@@ -24,7 +24,6 @@
 # - The ranges on the sphere linspaces can be used to plot only a portion of the sphere 
 # - 'outer' creates two dimensions from 1D data (u & v). The calculations done to get 
 #   the xyz coordinates are the xyz coordinate equations of a sphere. 
-# - 
 #================================================================================
 
 
@@ -56,12 +55,12 @@ import atexit
 # Variables 
 
 # Parameters 
-radius = 1     # Define the radius of the Earth 
+radius = 1                          # Define the radius of the Earth 
 
 # Pre-defined strings 
 lat_prompt = "Latitude: "
 lon_prompt = "Longitude: "
-terminate = "exit"             # Exit program string input 
+terminate = "exit"                  # Exit program string input 
 
 #================================================================================
 
@@ -72,7 +71,22 @@ terminate = "exit"             # Exit program string input
 #
 # brief: Checks user input for a valid entry 
 # 
-# description: 
+# description: The function prints a prompt (specified in the arguments) to the 
+#              console and takes the user input. This input is first checked 
+#              against the 'check' argument, which if matched, will then 
+#              terminate the script. If there is no match then the 'data_type' 
+#              argument is used to determine how to interpret the user input. 
+#              If the user input aligns with the data types specified then 
+#              'True' is returned along with the user input formatted 
+#              according to the data type. If the input doesn't match the 
+#              data types then 'False' is returned and the user input returned 
+#              is irrelevant.  
+# 
+# @param prompt : string printed to console to prompt the user as needed 
+# @param check : string to check user input against for terminating the program 
+# @param data_type : expected data type input from the user 
+# @return 1 : True if user input matches expected format, False otherwise 
+# @return 2 : contents of the user input formatted as needed if it's a valid input 
 #
 def user_input(prompt, check, data_type): 
     # Get the user input 
@@ -81,7 +95,10 @@ def user_input(prompt, check, data_type):
     # Check for exit 
     # String comparision 
     for i in range(len(check)): 
-        if (command[i].lower() != check[i]):
+        try: 
+            if (command[i].lower() != check[i]):
+                break 
+        except IndexError: 
             break 
     
     if (i == (len(check)-1)): 
@@ -123,7 +140,8 @@ def plane_generation():
 #
 # brief: Converts degrees to radians 
 # 
-# description: 
+# @param angle : angle in degrees 
+# @return 1 : angle in radians 
 #
 def deg_to_rad(angle): 
     return (angle * np.pi / 180.0) 
@@ -132,7 +150,8 @@ def deg_to_rad(angle):
 #
 # brief: Converts radians to degrees 
 # 
-# description: 
+# @param angle : angle in radians 
+# @return 1 : angle in degrees 
 #
 def rad_to_deg(angle): 
     return (angle * 180.0 / np.pi) 
@@ -141,7 +160,9 @@ def rad_to_deg(angle):
 #
 # brief: Code called upon termination of the script 
 # 
-# description: 
+# description: Code that should be run before the script terminates should be put here. 
+#              This code will only be run once the program has begun the termination 
+#              process. 
 #
 def exit_handler(): 
     print("\nProgram terminated.\n") 
@@ -164,6 +185,16 @@ def exit_handler():
 #              
 #              Requires np.seterr(divide='ignore') in the code somewhere to suppress 
 #              RuntimeWarnings for zero division. 
+#              
+#              The equation used to calculate heading angle produces a number from 
+#              -90 degrees to 90 degrees. Given a compass heading can be anywhere 
+#              from 0 to 360 degrees, or -180 to 180 degrees depending on the reference 
+#              point is established, this means there are two possible solutions for 
+#              a single calculation (each solution shifted 180 degrees from the other). 
+#              To distinguish which solution to use, we look at the signs on the 
+#              numerator and denominator of the angle equation to determine what 
+#              quadrant the solution lies in. Using this information we can adjust the 
+#              angle to give a unique solution. 
 #
 def compass_heading(lat1, lon1, lat2, lon2): 
     # Convert angles to radians 
@@ -172,29 +203,28 @@ def compass_heading(lat1, lon1, lat2, lon2):
     lat2 = deg_to_rad(lat2) 
     lon2 = deg_to_rad(lon2) 
     
-    # Calculate portions of final equation 
-    eq1 = np.cos(lat2)*np.sin(lon2-lon1) 
-    eq2 = np.cos(lat1)*np.sin(lat2) 
-    eq3 = np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1) 
+    # Calculate the components of the initial course equation 
+    eq_num = np.cos(lat2)*np.sin(lon2-lon1) 
+    eq_den = np.cos(lat1)*np.sin(lat2) - np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1) 
     
-    # Calculate the heading 
-    heading = np.arctan(eq1/(eq2-eq3)) 
+    # Calculate the initial heading angle 
+    init_heading = np.arctan(eq_num/eq_den) 
     
-    # The calculation is accurate however there are two solutions for every 
-    # calculation given the nature of arctan. The logic below is the only certainty 
-    # I have in the angles. For all other cases it gets messy. 
-    # See if you can use the final course to figure out how to compensate the 
-    # initial course angle. 
+    #==================================================
+    # # Adjust the heading angle to get a unique solution (see function description) 
+
+    # -180 to 180 degree logic 
+    if (eq_den < 0): 
+        if (eq_num >= 0): 
+            init_heading = init_heading + np.pi 
+        else: 
+            init_heading = init_heading - np.pi 
+
+    # 0-360 degree logic 
+
+    #==================================================
     
-    # If starting point is in the Northern hemisphere + equator (lat1 >= 0) 
-    # - If lat2 >= lat1 then angle remains the same 
-    
-    # If starting point is in the Southern hemisphere (lat1 < 0) 
-    # - If lat2 <= lat1: 
-    #   - If (heading >= 0) then (angle - 180) 
-    #   - If (heading < 0) then (angle + 180) 
-    
-    return heading 
+    return init_heading 
 
 
 #
@@ -241,14 +271,14 @@ np.seterr(divide='ignore')
 #==================================================
 
 #==================================================
-# Spherical Plot Setup 
+# Spherical plot data generation 
 
 # Generate base data for the figure (Earth) 
 u = np.linspace(0, 2*np.pi, 100) 
 v = np.linspace(0, np.pi, 100) 
-X = 0.95*np.outer(np.cos(u), np.sin(v)) 
-Y = 0.95*np.outer(np.sin(u), np.sin(v)) 
-Z = 0.95*np.outer(np.ones(np.size(u)), np.cos(v)) 
+X = (radius*0.95)*np.outer(np.cos(u), np.sin(v)) 
+Y = (radius*0.95)*np.outer(np.sin(u), np.sin(v)) 
+Z = (radius*0.95)*np.outer(np.ones(np.size(u)), np.cos(v)) 
 
 #==================================================
 
@@ -281,10 +311,15 @@ while (True):
     print("\nCoordinates:") 
     print(str(lat1) + ", " + str(lon1)) 
     print(str(lat2) + ", " + str(lon2)) 
+
+    #==================================================
+
+    #==================================================
+    # Determine location and direction 
         
     # Calculate the heading at the starting point 
-    heading = compass_heading(lat1, lon1, lat2, lon2) 
-    print("\nHeading from start point: " + str(rad_to_deg(heading))) 
+    initial_heading = compass_heading(lat1, lon1, lat2, lon2) 
+    print("\nInitial heading: " + str(rad_to_deg(initial_heading))) 
         
     # Calculate the coordinate location on the sphere 
     lat1, lon1, x1, y1, z1 = xyz_gps_coordinate(lat1, lon1) 
@@ -295,7 +330,7 @@ while (True):
     #==================================================
 
     #==================================================
-    # Set up the figure 
+    # Set up the figure to show data 
 
     # Calling this in the loop is required to repeatedly show a plot 
 
@@ -315,14 +350,14 @@ while (True):
     plt.ylabel('y') 
     # ax.set_aspect('equal') 
     ax.set_aspect('auto') 
-
-    #==================================================
-
-    # # Close the plot 
-    # plt.close() 
     
     # Show the plot 
     plt.show() 
+
+    # Close the plot 
+    plt.close() 
+
+    #==================================================
 
 #==================================================
 
