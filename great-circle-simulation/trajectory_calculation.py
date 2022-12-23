@@ -305,7 +305,6 @@ while (True):
 
     # Plot the Earth data 
     ax.plot_surface(X, Y, Z) 
-    # ax.scatter(x, y, z) 
     
     # Plot the coordinates 
     ax.scatter(x1, y1, z1, marker="v", c=0.5) 
