@@ -250,8 +250,65 @@ def xyz_gps_coordinate(lat, lon):
 # 
 # description: 
 #
-def great_circle_path():
-    print("Great circle path") 
+def great_circle_path(r1, r2, gps1, gps2):
+    # Pass the calculated xyz coordinates to this function 
+    
+    # Use the coordinates as your two plane vectors (origin reference) and find 
+    # the cross product between them to get the normal vector of the plane 
+    n = np.cross(r1, r2) 
+    m = [0, 0, 1]  # xy plane normal vector 
+    
+    # We can choose to plot the entire great circle path (maybe save this for the 
+    # heading variations script) or plot just the portion between the two points. 
+    # We will do the latter. 
+    
+    # Take *all the x and y coordinates for the Earth plot (pass as an argument 
+    # here) and use that with the normal vector to calculate all the z points of 
+    # the great circle. 
+    
+    # *To get just the path between the two points, use the initial and final x 
+    # and y coordinates as bounds on the full data set. Generate a new set of 
+    # of 1D xyz coordinates (not 2D used to plot the Earth surface), plot that 
+    # and that should give you the path. 
+    
+    # Within this code the path calculation only serves as a representation. It 
+    # will serve in calculating heading variations along the great circle later. 
+    
+    # Calculate the angle between the normal vectors 
+    cos_theta = abs(np.dot(m, n) / (np.linalg.norm(m) * np.linalg.norm(n))) 
+    
+    print("\ncos_theta: ") 
+    print(cos_theta) 
+    
+    # Calculate the rotation axis 
+    rot_axis = np.cross(m, n) / np.linalg.norm(np.cross(m, n)) 
+    
+    # Calculate the rotation matrix 
+    s = np.sqrt(1 - cos_theta**2) 
+    C = 1 - cos_theta 
+    x = rot_axis[0] 
+    y = rot_axis[1] 
+    z = rot_axis[2] 
+    
+    R = [[x*x*C + cos_theta, x*y*C - z*s,       x*z*C + y*s], 
+         [y*x*C + z*s,       y*y*C + cos_theta, y*z*C - x*s], 
+         [z*x*C - y*s,       z*y*C + x*s,       z*z*C + cos_theta]]
+    
+    # Generate circle points in the xy plane 
+    num_points = 100 
+    angle = np.linspace(0, 2*np.pi, num_points) 
+    
+    x_rot = [0] * num_points 
+    y_rot = [0] * num_points 
+    z_rot = [0] * num_points 
+    
+    for i in range(num_points): 
+        vector = np.dot([radius*np.cos(angle[i]), radius*np.sin(angle[i]), 0], R) 
+        x_rot[i] = vector[0] 
+        y_rot[i] = vector[1] 
+        z_rot[i] = vector[2] 
+        
+    return x_rot, y_rot, z_rot 
 
 #================================================================================
 
@@ -326,6 +383,11 @@ while (True):
     lat2, lon2, x2, y2, z2 = xyz_gps_coordinate(lat2, lon2) 
     
     # Calculate the great circle path 
+    r1 = [x1, y1, z1] 
+    r2 = [x2, y2, z2] 
+    gps1 = [lat1, lon1] 
+    gps2 = [lat2, lon2] 
+    x_rot, y_rot, z_rot = great_circle_path(r1, r2, gps1, gps2) 
 
     #==================================================
 
@@ -344,6 +406,9 @@ while (True):
     # Plot the coordinates 
     ax.scatter(x1, y1, z1, marker="v", c=0.5) 
     ax.scatter(x2, y2, z2, marker="o", c=0.4) 
+    
+    # Plot the great circle 
+    ax.scatter(x_rot, y_rot, z_rot) 
 
     # Format the plot 
     plt.xlabel('x')
