@@ -211,7 +211,7 @@ def compass_heading(lat1, lon1, lat2, lon2):
     init_heading = np.arctan(eq_num/eq_den) 
     
     #==================================================
-    # # Adjust the heading angle to get a unique solution (see function description) 
+    # Adjust the heading angle to get a unique solution (see function description) 
 
     # -180 to 180 degree logic 
     if (eq_den < 0): 
@@ -234,8 +234,8 @@ def compass_heading(lat1, lon1, lat2, lon2):
 #
 def xyz_gps_coordinate(lat, lon): 
     # Adjust the coordinates - adjusted based on matplotlib plot orientation 
-    lat = (90.0 - lat) * np.pi / 180.0 
-    lon = lon * np.pi / 180.0 
+    lat = deg_to_rad(90.0 - lat) 
+    lon = deg_to_rad(lon) 
     
     # Get the XYZ points of the coordinates 
     x = radius*np.cos(lon)*np.sin(lat) 
@@ -274,11 +274,11 @@ def great_circle_path(r1, r2, gps1, gps2):
     # Within this code the path calculation only serves as a representation. It 
     # will serve in calculating heading variations along the great circle later. 
     
-    # Calculate the angle between the normal vectors 
-    cos_theta = abs(np.dot(m, n) / (np.linalg.norm(m) * np.linalg.norm(n))) 
+    #==================================================
+    # Plane transformation 
     
-    print("\ncos_theta: ") 
-    print(cos_theta) 
+    # Calculate the angle between the normal vectors 
+    cos_theta = -np.dot(m, n) / (np.linalg.norm(m) * np.linalg.norm(n)) 
     
     # Calculate the rotation axis 
     rot_axis = np.cross(m, n) / np.linalg.norm(np.cross(m, n)) 
@@ -294,19 +294,44 @@ def great_circle_path(r1, r2, gps1, gps2):
          [y*x*C + z*s,       y*y*C + cos_theta, y*z*C - x*s], 
          [z*x*C - y*s,       z*y*C + x*s,       z*z*C + cos_theta]]
     
+    #==================================================
+    
+    #==================================================
+    # Get the section of the great circle to plot 
+    
+    # Calculate the parts of the central angle equation 
+    eq1 = np.cos(np.pi/2 - gps2[0])*np.sin(gps2[1]-gps1[1]) 
+    eq2 = np.cos(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
+    eq3 = np.sin(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
+    eq4 = np.sin(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
+    eq5 = np.cos(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
+    
+    # Calculate and return the central angle 
+    cen_angle = np.arctan(np.sqrt((eq2-eq3)**2 + eq1**2) / (eq4 + eq5)) 
+    
+    print("\nCentral angle: " + str(cen_angle)) 
+    
+    #==================================================
+    
+    #==================================================
     # Generate circle points in the xy plane 
+    
     num_points = 100 
     angle = np.linspace(0, 2*np.pi, num_points) 
+    # angle = np.linspace(0, central_angle, num_points) 
     
     x_rot = [0] * num_points 
     y_rot = [0] * num_points 
     z_rot = [0] * num_points 
     
     for i in range(num_points): 
+        # Rotate to the correct plane 
         vector = np.dot([radius*np.cos(angle[i]), radius*np.sin(angle[i]), 0], R) 
         x_rot[i] = vector[0] 
         y_rot[i] = vector[1] 
         z_rot[i] = vector[2] 
+    
+    #==================================================
         
     return x_rot, y_rot, z_rot 
 
@@ -401,20 +426,21 @@ while (True):
     ax = fig.add_subplot(projection='3d')
 
     # Plot the Earth data 
-    ax.plot_surface(X, Y, Z) 
+    # ax.plot_surface(X, Y, Z) 
     
     # Plot the coordinates 
     ax.scatter(x1, y1, z1, marker="v", c=0.5) 
     ax.scatter(x2, y2, z2, marker="o", c=0.4) 
     
-    # Plot the great circle 
-    ax.scatter(x_rot, y_rot, z_rot) 
+    # # Plot the great circle 
+    ax.plot(x_rot, y_rot, z_rot) 
 
     # Format the plot 
     plt.xlabel('x')
     plt.ylabel('y') 
-    # ax.set_aspect('equal') 
-    ax.set_aspect('auto') 
+    ax.set_xlim(-1.1, 1.1) 
+    ax.set_ylim(-1.1, 1.1) 
+    ax.set_zlim(-1.1, 1.1) 
     
     # Show the plot 
     plt.show() 
