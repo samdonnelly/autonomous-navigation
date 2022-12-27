@@ -24,6 +24,7 @@
 # - The ranges on the sphere linspaces can be used to plot only a portion of the sphere 
 # - 'outer' creates two dimensions from 1D data (u & v). The calculations done to get 
 #   the xyz coordinates are the xyz coordinate equations of a sphere. 
+# - Make a script that interfaces with Google maps to record (and plot?) coordinates  
 #================================================================================
 
 
@@ -34,7 +35,6 @@
 # - Update plot without closing the plot 
 # - Convert a user defined geofence into linspace ranges and plot that portion of the 
 #   sphere. The input coordinates would then have to be checked against this. 
-# - Aspect ratio of plot on mac doesn't support 'equal' 
 #================================================================================
 
 
@@ -239,35 +239,45 @@ def xyz_gps_coordinate(lat, lon):
 #
 # brief: Calculate the great circle path 
 # 
-# description: 
+# description: Generates the great circle points between the two user input 
+#              coordinates so that it can be plotted. 
+#  
+#              Steps: 
+#              1. Find the plane that the two input coordinates are in by taking 
+#                 the cross product between the coordinate vectors with reference 
+#                 to the origin. 
+#              2. Create a rotation matrix between the xy plane and the great circle 
+#                 plane. 
+#              3. Set the bounds of the great circle to in between the two input 
+#                 coordinates so that only that part of the great circle is plotted. 
+#                 Use these bounds to calculate all the points to plot.  
+#              4. Translate the path points into the great circle plane and return 
+#                 the result so it can be plotted.  
+# 
+#              Note: We can plot the entire great circle plane by defining 'angle' 
+#                    from 0 to 2*pi and translating all of those points into the 
+#                    great circle plane: 
+#                    angle = np.linspace(0, 2*np.pi, num_points) 
+# 
+#              Note: Within this code the path calculation only serves as a 
+#                    representation. It will serve in calculating heading variations 
+#                    along the great circle later.  
 #
-def great_circle_path(r1, r2, gps1, gps2):
-    # Pass the calculated xyz coordinates to this function 
-    
-    # Use the coordinates as your two plane vectors (origin reference) and find 
-    # the cross product between them to get the normal vector of the plane 
-    n = np.cross(r1, r2) 
-    m = [0, 0, 1]  # xy plane normal vector 
-    
-    # We can choose to plot the entire great circle path (maybe save this for the 
-    # heading variations script) or plot just the portion between the two points. 
-    # We will do the latter. 
-    
-    # Take *all the x and y coordinates for the Earth plot (pass as an argument 
-    # here) and use that with the normal vector to calculate all the z points of 
-    # the great circle. 
-    
-    # *To get just the path between the two points, use the initial and final x 
-    # and y coordinates as bounds on the full data set. Generate a new set of 
-    # of 1D xyz coordinates (not 2D used to plot the Earth surface), plot that 
-    # and that should give you the path. 
-    
-    # Within this code the path calculation only serves as a representation. It 
-    # will serve in calculating heading variations along the great circle later. 
-    
+def great_circle_path(r1, r2):
+    # Local variables 
+    num_points = 100       # Number of great circle plot points 
+    angle = []             # Empty array to hold great circle coordinate angles 
+    x_rot = []             # Empty array to hold x coordinates of the great circle 
+    y_rot = []             # Empty array to hold y coordinates of the great circle 
+    z_rot = []             # Empty array to hold z coordinates of the great circle 
+
+    # Define the xy plane and great circle plane 
+    m = [0, 0, 1]              # xy plane normal vector 
+    n = np.cross(r1, r2)       # Great circle plane (of coordinates) normal vector 
+
     #==================================================
-    # Plane transformation 
-    
+    # Define the translation from the xy plane to the great circle plane 
+
     # Calculate the angle between the normal vectors 
     cos_theta = -np.dot(m, n) / (np.linalg.norm(m) * np.linalg.norm(n)) 
     
@@ -280,70 +290,80 @@ def great_circle_path(r1, r2, gps1, gps2):
     x = rot_axis[0] 
     y = rot_axis[1] 
     z = rot_axis[2] 
-    
     R = [[x*x*C + cos_theta, x*y*C - z*s,       x*z*C + y*s], 
          [y*x*C + z*s,       y*y*C + cos_theta, y*z*C - x*s], 
-         [z*x*C - y*s,       z*y*C + x*s,       z*z*C + cos_theta]]
-    
+         [z*x*C - y*s,       z*y*C + x*s,       z*z*C + cos_theta]] 
+
+    # Calculate the inverse matrix 
+    R_I = np.linalg.inv(R) 
+
     #==================================================
     
     #==================================================
-    # Get the section of the great circle to plot 
+    # Set the bounds of the great circle section 
+
+    # Translate the input coordinate vectors to the xy plane 
+    r1_xy = np.dot(r1, R_I) 
+    r2_xy = np.dot(r2, R_I) 
+
+    # Find the angle of the translated coordinates from the x axis 
+    r1_xy_theta = np.arccos(r1_xy[0] / radius) 
+    r2_xy_theta = np.arccos(r2_xy[0] / radius) 
+
+    # Adjust the angle at account for the acceptable range of theta (-pi to pi) 
+    if (r1_xy[1] < 0): 
+        r1_xy_theta = -r1_xy_theta 
     
-    # Calculate the parts of the central angle equation 
-    eq1 = np.cos(np.pi/2 - gps2[0])*np.sin(gps2[1]-gps1[1]) 
-    eq2 = np.cos(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
-    eq3 = np.sin(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
-    eq4 = np.sin(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
-    eq5 = np.cos(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
+    if (r2_xy[1] < 0): 
+        r2_xy_theta = -r2_xy_theta 
+
+    # Determine the relative location of the translated coordinates 
+    r_xy_theta_min = min(r1_xy_theta, r2_xy_theta) 
+    r_xy_theta_max = max(r1_xy_theta, r2_xy_theta) 
     
-    # Calculate and return the central angle 
-    central_angle = np.arctan(np.sqrt((eq2-eq3)**2 + eq1**2) / (eq4 + eq5)) 
+    # Define equivalent great circle path points in the xy plane 
+    if (abs(r2_xy_theta - r1_xy_theta) <= np.pi):  
+        angle = np.linspace(r_xy_theta_min, r_xy_theta_max, num_points)
     
-    print("\nCentral angle: " + str(central_angle)) 
-    
+    else:   # Crosses pi/-pi boundary 
+        diff = int(((np.pi - r_xy_theta_max) / \
+                    ((np.pi - r_xy_theta_max) + (r_xy_theta_min + np.pi)))*num_points) 
+        angle.extend(np.linspace(r_xy_theta_max, np.pi, diff)) 
+        angle.extend(np.linspace(-np.pi, r_xy_theta_min, num_points - diff)) 
+     
     #==================================================
     
-    # print("\nr1: " + str(r1[0]) + ", " + str(r1[1]) + ", " + str(r1[2])) 
-    
-    # print("\ngps1: " + str(gps1[0]) + ", " + str(gps1[1])) 
-    
-    # theta_1 = np.arctan(r1[1] / r1[0]) 
-    # phi_1 = np.arccos(r1[2] / np.sqrt(r1[0]**2 + r1[1]**2 + r1[2]**2)) 
-    
-    # if ((r1[0] < 0) and (r1[1] >= 0)): 
-    #     theta_1 = theta_1 + np.pi 
-    # elif ((r1[0] < 0) and (r1[1] < 0)): 
-    #     theta_1 = theta_1 - np.pi 
-    
-    # print("\ntheta_1: " + str(theta_1)) 
-    # print("phi_1: " + str(phi_1)) 
-    
-    #==================================================
-    # Generate circle points in the xy plane 
-    
-    num_points = 100 
-    angle = np.linspace(0, 2*np.pi, num_points) 
-    # angle = np.linspace(0, central_angle, num_points) 
-    
-    x_rot = [0] * num_points 
-    y_rot = [0] * num_points 
-    z_rot = [0] * num_points 
-    # x_rot = [] 
-    # y_rot = [] 
-    # z_rot = [] 
-    
+    # Translate the great circle path points into the great circle plane 
     for i in range(num_points): 
         # Rotate to the correct plane 
         vector = np.dot([radius*np.cos(angle[i]), radius*np.sin(angle[i]), 0], R) 
-        
-        x_rot[i] = vector[0] 
-        y_rot[i] = vector[1] 
-        z_rot[i] = vector[2] 
+        x_rot.append(vector[0]) 
+        y_rot.append(vector[1]) 
+        z_rot.append(vector[2]) 
     
-    #==================================================
-        
     return x_rot, y_rot, z_rot 
+
+
+#
+# brief: Calculates the central angle between two points on the great circle 
+# 
+# description: 
+#              The cos and sin inputs were readjusted to their original input from their converted 
+#              matplotlib axis format so that the correct angle would be calculated  
+#
+def central_angle(): 
+    # # Calculate the parts of the central angle equation 
+    # eq1 = np.cos(np.pi/2 - gps2[0])*np.sin(gps2[1]-gps1[1]) 
+    # eq2 = np.cos(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
+    # eq3 = np.sin(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
+    # eq4 = np.sin(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
+    # eq5 = np.cos(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
+    
+    # # Calculate and return the central angle 
+    # central_angle = np.arctan(np.sqrt((eq2-eq3)**2 + eq1**2) / (eq4 + eq5)) 
+    
+    # print("\nCentral angle: " + str(central_angle))
+    print() 
 
 #================================================================================
 
@@ -417,12 +437,8 @@ while (True):
     lat1, lon1, x1, y1, z1 = xyz_gps_coordinate(lat1, lon1) 
     lat2, lon2, x2, y2, z2 = xyz_gps_coordinate(lat2, lon2) 
     
-    # Calculate the great circle path 
-    r1 = [x1, y1, z1] 
-    r2 = [x2, y2, z2] 
-    gps1 = [lat1, lon1] 
-    gps2 = [lat2, lon2] 
-    x_rot, y_rot, z_rot = great_circle_path(r1, r2, gps1, gps2) 
+    # Calculate the great circle path  
+    x_rot, y_rot, z_rot = great_circle_path([x1, y1, z1], [x2, y2, z2]) 
 
     #==================================================
 
@@ -436,13 +452,13 @@ while (True):
     ax = fig.add_subplot(projection='3d')
 
     # Plot the Earth data 
-    # ax.plot_surface(X, Y, Z) 
+    ax.plot_surface(X, Y, Z) 
     
     # Plot the coordinates 
     ax.scatter(x1, y1, z1, marker="v", c=0.5) 
     ax.scatter(x2, y2, z2, marker="o", c=0.4) 
     
-    # # Plot the great circle 
+    # Plot the great circle 
     ax.plot(x_rot, y_rot, z_rot) 
 
     # Format the plot 
