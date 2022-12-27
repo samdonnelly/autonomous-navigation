@@ -126,15 +126,6 @@ def user_input(prompt, check, data_type):
         return True, command
             
     return False, 0
-
-
-#
-# brief: Generates the equation of a plane 
-# 
-# description: 
-#
-def plane_generation(): 
-    print("Plane generation") 
     
     
 #
@@ -307,11 +298,26 @@ def great_circle_path(r1, r2, gps1, gps2):
     eq5 = np.cos(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
     
     # Calculate and return the central angle 
-    cen_angle = np.arctan(np.sqrt((eq2-eq3)**2 + eq1**2) / (eq4 + eq5)) 
+    central_angle = np.arctan(np.sqrt((eq2-eq3)**2 + eq1**2) / (eq4 + eq5)) 
     
-    print("\nCentral angle: " + str(cen_angle)) 
+    print("\nCentral angle: " + str(central_angle)) 
     
     #==================================================
+    
+    # print("\nr1: " + str(r1[0]) + ", " + str(r1[1]) + ", " + str(r1[2])) 
+    
+    # print("\ngps1: " + str(gps1[0]) + ", " + str(gps1[1])) 
+    
+    # theta_1 = np.arctan(r1[1] / r1[0]) 
+    # phi_1 = np.arccos(r1[2] / np.sqrt(r1[0]**2 + r1[1]**2 + r1[2]**2)) 
+    
+    # if ((r1[0] < 0) and (r1[1] >= 0)): 
+    #     theta_1 = theta_1 + np.pi 
+    # elif ((r1[0] < 0) and (r1[1] < 0)): 
+    #     theta_1 = theta_1 - np.pi 
+    
+    # print("\ntheta_1: " + str(theta_1)) 
+    # print("phi_1: " + str(phi_1)) 
     
     #==================================================
     # Generate circle points in the xy plane 
@@ -323,10 +329,14 @@ def great_circle_path(r1, r2, gps1, gps2):
     x_rot = [0] * num_points 
     y_rot = [0] * num_points 
     z_rot = [0] * num_points 
+    # x_rot = [] 
+    # y_rot = [] 
+    # z_rot = [] 
     
     for i in range(num_points): 
         # Rotate to the correct plane 
         vector = np.dot([radius*np.cos(angle[i]), radius*np.sin(angle[i]), 0], R) 
+        
         x_rot[i] = vector[0] 
         y_rot[i] = vector[1] 
         z_rot[i] = vector[2] 
