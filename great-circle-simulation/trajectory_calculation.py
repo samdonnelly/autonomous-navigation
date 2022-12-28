@@ -30,6 +30,8 @@
 
 #================================================================================
 # TODO 
+# - Calculate the central angle and get the distance between points 
+# - Add a conversion between the different coordinate formats (here or in another file?) 
 # - Scatter points (coordinates) can only be seen on the surface plot at some angles 
 # - Clear old plot points (or keep them?) 
 # - Update plot without closing the plot 
@@ -55,7 +57,8 @@ import atexit
 # Variables 
 
 # Parameters 
-radius = 1                          # Define the radius of the Earth 
+radius = 1                          # Radius used for coordinate calculation 
+earth_radius = 6371.0               # Average radius of the Earth (km) 
 
 # Pre-defined strings 
 lat_prompt = "Latitude: "
@@ -351,19 +354,16 @@ def great_circle_path(r1, r2):
 #              The cos and sin inputs were readjusted to their original input from their converted 
 #              matplotlib axis format so that the correct angle would be calculated  
 #
-def central_angle(): 
+def central_angle(gps1, gps2): 
     # # Calculate the parts of the central angle equation 
-    # eq1 = np.cos(np.pi/2 - gps2[0])*np.sin(gps2[1]-gps1[1]) 
-    # eq2 = np.cos(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
-    # eq3 = np.sin(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
-    # eq4 = np.sin(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
-    # eq5 = np.cos(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
+    eq1 = np.cos(np.pi/2 - gps2[0])*np.sin(gps2[1]-gps1[1]) 
+    eq2 = np.cos(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
+    eq3 = np.sin(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
+    eq4 = np.sin(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
+    eq5 = np.cos(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
     
-    # # Calculate and return the central angle 
-    # central_angle = np.arctan(np.sqrt((eq2-eq3)**2 + eq1**2) / (eq4 + eq5)) 
-    
-    # print("\nCentral angle: " + str(central_angle))
-    print() 
+    # Calculate and return the central angle 
+    return np.arctan(np.sqrt((eq2-eq3)**2 + eq1**2) / (eq4 + eq5)) 
 
 #================================================================================
 
@@ -443,6 +443,16 @@ while (True):
     #==================================================
 
     #==================================================
+    # Calculate the distance to travel 
+
+    cen_angle = central_angle([lat1, lon1], [lat2, lon2]) 
+    distance = cen_angle*earth_radius 
+
+    print("Surface distance between coordinates: " + str(distance) + " km") 
+
+    #==================================================
+
+    #==================================================
     # Set up the figure to show data 
 
     # Calling this in the loop is required to repeatedly show a plot 
@@ -452,7 +462,7 @@ while (True):
     ax = fig.add_subplot(projection='3d')
 
     # Plot the Earth data 
-    ax.plot_surface(X, Y, Z) 
+    # ax.plot_surface(X, Y, Z) 
     
     # Plot the coordinates 
     ax.scatter(x1, y1, z1, marker="v", c=0.5) 
