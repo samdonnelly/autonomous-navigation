@@ -27,7 +27,7 @@
 
 # Libraries 
 import os 
-import atexit 
+import glob 
 
 # Scripts 
 import file_locations 
@@ -36,50 +36,33 @@ import file_locations
 
 
 #================================================================================
-# Error handling functions 
+# User functions 
 
-#
-# brief: 
-# 
-# description: 
-#
-def invalid_file(): 
-    print("\nFile or directory could not be found") 
-    exit() 
+def geo_planer(): 
+    #==================================================
+    # Get and check directories 
 
-#
-# brief: Code called upon termination of the script 
-# 
-# description: Code that should be run before the script terminates should be put here. 
-#              This code will only be run once the program has begun the termination 
-#              process. 
-#
-def exit_handler(): 
-    print("\nProgram terminated.\n") 
+    # Check for a valid Downloads folder 
+    if (os.path.exists(file_locations.downloads)): 
+        geoplaner_file_path = file_locations.downloads 
+    else: 
+        return 
 
-#================================================================================
+    # Get the current directory 
 
+    #==================================================
 
-#================================================================================
-# Setup 
+    #==================================================
+    # Search the file needed 
 
-# Configure the exit handler 
-atexit.register(exit_handler) 
+    # Check for gpx files 
+    gpx_files = glob.glob(geoplaner_file_path + "*.gpx") 
 
-#================================================================================
+    for file in gpx_files: 
+        print(file) 
 
+    # Check the time stamp on the files 
 
-#================================================================================
-# Directories 
-
-# Check for a valid Downloads folder 
-if (os.path.exists(file_locations.downloads)): 
-    path = file_locations.downloads 
-else: 
-    invalid_file() 
-
-print("file location good") 
-
-# Get the current directory 
+    #==================================================
 
 #================================================================================
