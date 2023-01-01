@@ -2,3 +2,6 @@
 
 # Hidden files 
 .DS_Store 
+
+# Scripts 
+simulation/pc-scripts/file_locations.py 
