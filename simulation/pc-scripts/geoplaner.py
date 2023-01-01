@@ -18,7 +18,7 @@
 
 #================================================================================
 # Notes 
-# - Do we want to save old  
+# - Do we want to save old coordinate data?  
 #================================================================================
 
 
@@ -36,7 +36,16 @@ import file_locations
 
 
 #================================================================================
-# Functions 
+# Error handling functions 
+
+#
+# brief: 
+# 
+# description: 
+#
+def invalid_file(): 
+    print("\nFile or directory could not be found") 
+    exit() 
 
 #
 # brief: Code called upon termination of the script 
@@ -46,7 +55,6 @@ import file_locations
 #              process. 
 #
 def exit_handler(): 
-    print("\nCould not locate a Downloads folder.")
     print("\nProgram terminated.\n") 
 
 #================================================================================
@@ -64,13 +72,13 @@ atexit.register(exit_handler)
 #================================================================================
 # Directories 
 
-# Downloads folder 
-if (os.path.exists(file_locations.windows_downloads)): 
-    path = file_locations.windows_downloads 
-elif (os.path.exists(file_locations.mac_downloads)): 
-    path = file_locations.mac_downloads 
+# Check for a valid Downloads folder 
+if (os.path.exists(file_locations.downloads)): 
+    path = file_locations.downloads 
 else: 
-    exit() 
+    invalid_file() 
+
+print("file location good") 
 
 # Get the current directory 
 

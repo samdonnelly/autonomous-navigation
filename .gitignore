@@ -2,6 +2,7 @@
 
 # Hidden files 
 .DS_Store 
+__pycache__/
 
 # Scripts 
 simulation/pc-scripts/file_locations.py 
