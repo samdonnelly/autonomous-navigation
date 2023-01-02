@@ -40,6 +40,7 @@ import atexit
 import sys 
 
 # Add include support for other sub-directories 
+# TODO add error handling for the directory check 
 sys.path.append(file_locations.repo_folder + "simulation/library/") 
 
 # Files 
@@ -81,7 +82,7 @@ def exit_handler():
 
 
 #================================================================================
-# User interface functions 
+# State functions 
 
 #
 # brief: 
@@ -105,19 +106,27 @@ def app_select():
     print("2. Other") 
     print("3. Back\n") 
 
-#================================================================================
-
-
-#================================================================================
-# State functions 
 
 #
 # brief: 
 # 
 # description: 
 #
-def s0_op_select(): 
-    print() 
+def s0_op_select(prompt): 
+    valid, cmd = user_input(prompt, terminate, str) 
+
+    if ((not valid) and (cmd == -1)): 
+        exit() 
+
+    cmd = cmd.lower() 
+
+    if (valid): 
+        if ((cmd == "get") or (cmd == "1")): 
+            return True 
+        else: 
+            print("\nNot a valid operation.") 
+    
+    return False 
 
 
 #
@@ -125,8 +134,24 @@ def s0_op_select():
 # 
 # description: 
 #
-def s1_get_select(): 
-    print() 
+def s1_get_select(prompt): 
+    valid, cmd = user_input(prompt, terminate, str) 
+
+    if ((not valid) and (cmd == -1)): 
+        exit() 
+
+    cmd = cmd.lower() 
+
+    if (valid): 
+        if ((cmd == "geoplaner") or (cmd == "1")): 
+            geoplaner.geo_planer() 
+            return True 
+        elif ((cmd == "back") or (cmd == "3")): 
+            return True 
+        else: 
+            print("\nNot a valid app.") 
+    
+    return False 
 
 #================================================================================
 
@@ -147,69 +172,33 @@ atexit.register(exit_handler)
 # Main loop 
 while (True): 
     #==================================================
-    # Choose what to do 
-
-    # op_select() 
-
-    # while (True): 
-    #     valid, cmd = user_input(operation, terminate, str) 
-
-    #     if ((not valid) and (cmd == -1)): 
-    #         exit() 
-
-    #     cmd = cmd.lower() 
-
-    #     if (valid): 
-    #         if ((cmd == "get") or (cmd == "1")): 
-    #             break 
-    #         else: 
-    #             print("Not a valid operation.") 
-    
-    #==================================================
-
-    #==================================================
     # State machine 
 
-    if (state == 0):   # select operation 
+    # Operation select UI state 
+    if (state == 0): 
         op_select() 
-
-        valid, cmd = user_input(operation, terminate, str) 
-
-        if ((not valid) and (cmd == -1)): 
-            exit() 
-
-        cmd = cmd.lower() 
-
-        if (valid): 
-            if ((cmd == "get") or (cmd == "1")): 
-                state = 1 
-                break 
-            else: 
-                print("Not a valid operation.") 
-
-    elif (state == 1):    # get coordinates - choose app 
-        app_select() 
-
-        valid, cmd = user_input(app, terminate, str) 
-
-        if ((not valid) and (cmd == -1)): 
-            exit() 
-
-        cmd = cmd.lower() 
-
-        if (valid): 
-            if ((cmd == "geoplaner") or (cmd == "1")): 
-                geoplaner.geo_planer() 
-                state = 0 
-                break 
-            elif ((cmd == "back") or (cmd == "3")): 
-                state = 0 
-            else: 
-                print("Not a valid app.") 
+        state = 1 
     
-    elif (state == 2):    # send coordinates - choose method 
+    # Operation select state 
+    elif (state == 1): 
+        if (s0_op_select(operation)): 
+            state = 2 
+
+    # Getter application select UI state 
+    elif (state == 2): 
+        app_select() 
+        state = 3 
+    
+    # Getter application select state 
+    elif (state == 3): 
+        if (s1_get_select(app)): 
+            state = 0 
+    
+    # Send coordinates state 
+    elif (state == 4): 
         state = 0 
 
+    # Default back to operation select state 
     else: 
         state = 0 
     

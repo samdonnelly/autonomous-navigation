@@ -58,8 +58,11 @@ def geo_planer():
     # Check for gpx files 
     gpx_files = glob.glob(geoplaner_file_path + "*.gpx") 
 
-    for file in gpx_files: 
-        print(file) 
+    if (gpx_files == []): 
+        print("No gpx files.") 
+    else: 
+        for file in gpx_files: 
+            print(file) 
 
     # Check the time stamp on the files 
 
