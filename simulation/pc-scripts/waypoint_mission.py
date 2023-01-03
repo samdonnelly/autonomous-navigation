@@ -40,8 +40,11 @@ import atexit
 import sys 
 
 # Add include support for other sub-directories 
-# TODO add error handling for the directory check 
-sys.path.append(file_locations.repo_folder + "simulation/library/") 
+try: 
+    sys.path.append(file_locations.repo_folder + "simulation/library/") 
+except: 
+    print("\nInvalid import file directory.") 
+    exit() 
 
 # Files 
 import geoplaner 
@@ -53,7 +56,8 @@ from user_interface import user_input
 #================================================================================
 # Variables 
 
-state = 0   # State tracker 
+state = 0          # State tracker 
+state_return = 0   # State return value 
 
 # Prompts 
 operation = "Operation: " 
@@ -85,34 +89,23 @@ def exit_handler():
 # State functions 
 
 #
-# brief: 
+# brief: State 0 - Operation select UI 
 # 
 # description: 
 #
-def op_select(): 
+def s0_op_select_ui(): 
     print("\nOperations: ") 
-    print("1. Get") 
-    print("2. Send\n") 
+    print("1. Get")              # Create a new coordinate set 
+    print("2. Send")             # Send an existing coordinate set 
+    print("3. Delete\n")         # Delete an existing coordinate set 
 
 
 #
-# brief: 
+# brief: State 1 - Operation select 
 # 
 # description: 
 #
-def app_select(): 
-    print("\nApp tp use: ") 
-    print("1. geoplaner") 
-    print("2. Other") 
-    print("3. Back\n") 
-
-
-#
-# brief: 
-# 
-# description: 
-#
-def s0_op_select(prompt): 
+def s1_op_select(prompt): 
     valid, cmd = user_input(prompt, terminate, str) 
 
     if ((not valid) and (cmd == -1)): 
@@ -122,7 +115,14 @@ def s0_op_select(prompt):
 
     if (valid): 
         if ((cmd == "get") or (cmd == "1")): 
-            return True 
+            return 1
+        
+        elif ((cmd == "send") or (cmd == "2")): 
+            return 2 
+        
+        elif ((cmd == "delete") or (cmd == "3")): 
+            return 3 
+        
         else: 
             print("\nNot a valid operation.") 
     
@@ -130,11 +130,23 @@ def s0_op_select(prompt):
 
 
 #
-# brief: 
+# brief: State 2 - Get coordinates UI 
 # 
 # description: 
 #
-def s1_get_select(prompt): 
+def s2_app_select_ui(): 
+    print("\nApp tp use: ") 
+    print("1. geoplaner") 
+    print("2. Other") 
+    print("3. Back\n") 
+
+
+#
+# brief: State 3 - Get coordinates 
+# 
+# description: 
+#
+def s3_get_select(prompt): 
     valid, cmd = user_input(prompt, terminate, str) 
 
     if ((not valid) and (cmd == -1)): 
@@ -146,12 +158,50 @@ def s1_get_select(prompt):
         if ((cmd == "geoplaner") or (cmd == "1")): 
             geoplaner.geo_planer() 
             return True 
+        
         elif ((cmd == "back") or (cmd == "3")): 
             return True 
+        
         else: 
             print("\nNot a valid app.") 
     
     return False 
+
+
+#
+# brief: State 4 - Send coordinates UI 
+# 
+# description: 
+#
+def s4_send_select_ui(): 
+    print("\nSending not yet implemented.")  
+
+
+#
+# brief: State 5 - Send coordinates 
+# 
+# description: 
+#
+def s5_send_select(): 
+    return 
+
+
+#
+# brief: State 6 - Send coordinates UI 
+# 
+# description: 
+#
+def s6_delete_select_ui(): 
+    print("\Deleting not yet implemented.")  
+
+
+#
+# brief: State 7 - Send coordinates 
+# 
+# description: 
+#
+def s7_delete_select(): 
+    return 
 
 #================================================================================
 
@@ -174,28 +224,54 @@ while (True):
     #==================================================
     # State machine 
 
-    # Operation select UI state 
+    # State 0 - Operation select UI state 
     if (state == 0): 
-        op_select() 
+        s0_op_select_ui() 
         state = 1 
     
-    # Operation select state 
+    # State 1 - Operation select state 
     elif (state == 1): 
-        if (s0_op_select(operation)): 
-            state = 2 
+        state_return = s1_op_select(operation) 
 
-    # Getter application select UI state 
+        if (state_return == 1):     # Get 
+            state = 2 
+        
+        elif (state_return == 2):   # Send 
+            state = 4 
+        
+        elif (state_return == 3):   # Delete 
+            state = 6 
+
+    # State 2 - Getter application select UI state 
     elif (state == 2): 
-        app_select() 
+        s2_app_select_ui() 
         state = 3 
     
-    # Getter application select state 
+    # State 3 - Getter application select state 
     elif (state == 3): 
-        if (s1_get_select(app)): 
+        state_return = s3_get_select(app) 
+
+        if (state_return == 1): 
             state = 0 
     
-    # Send coordinates state 
+    # State 4 - Send coordinates UI state 
     elif (state == 4): 
+        s4_send_select_ui() 
+        state = 5 
+    
+    # State 5 - Send coordinates state 
+    elif (state == 5): 
+        s5_send_select() 
+        state = 0 
+
+    # State 6 - Delete coordinates UI state 
+    elif (state == 6): 
+        s6_delete_select_ui() 
+        state = 7 
+    
+    # State 7 - Delete coordinates state 
+    elif (state == 7): 
+        s6_delete_select() 
         state = 0 
 
     # Default back to operation select state 

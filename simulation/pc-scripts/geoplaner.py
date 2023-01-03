@@ -28,6 +28,7 @@
 # Libraries 
 import os 
 import glob 
+import time 
 
 # Scripts 
 import file_locations 
@@ -46,6 +47,7 @@ def geo_planer():
     if (os.path.exists(file_locations.downloads)): 
         geoplaner_file_path = file_locations.downloads 
     else: 
+        print("\nInvalid path to look for gpx files.") 
         return 
 
     # Get the current directory 
@@ -55,16 +57,22 @@ def geo_planer():
     #==================================================
     # Search the file needed 
 
+    # TODO create a files file in the library for the following 
+
     # Check for gpx files 
     gpx_files = glob.glob(geoplaner_file_path + "*.gpx") 
 
     if (gpx_files == []): 
         print("No gpx files.") 
-    else: 
-        for file in gpx_files: 
-            print(file) 
-
-    # Check the time stamp on the files 
+        return 
+    
+    # Check the time stamp on the files to get the most recent file 
+    for file in gpx_files: 
+        print("") 
+        print(file) 
+        mod_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(file))) 
+        print("Last modified time: ", mod_time) 
+        print((type(mod_time))) 
 
     #==================================================
 
