@@ -108,8 +108,13 @@ def geo_planer():
     # Open the file to read 
     gpx_file = open(gpx_recent) 
     gpx_file_content = gpx_file.readlines() 
+    
+    # Open/create a file to write to 
+    current_time = str(dt.now()) 
+    gps_file_name = "waypoint_mission - " + current_time + ".txt" 
+    gps_file = open(write_path + gps_file_name, "w") 
 
-    # Get the file start index 
+    # Get the read file start index 
     gpx_index = gpx_start_line 
 
     # Read the contents of the file 
@@ -118,7 +123,7 @@ def geo_planer():
         if (gpx_file_content[gpx_index] == gpx_end_file): 
             break 
 
-        # Read the coordinate number (WP##-<letter>).
+        # Read the coordinate number (WP##-<letter>) 
         gps_num = gpx_num_regex.search(gpx_file_content[gpx_index+1]).group() 
 
         # Read the latitude and longitude 
@@ -129,15 +134,16 @@ def geo_planer():
         gps_lon = (gpx_file_content[gpx_index])[ \
                    gpx_file_content[gpx_index].find(gpx_lon) + len(gpx_lon) : \
                    gpx_file_content[gpx_index].find(gpx_end_line)] 
+        
+        # Record the gps data 
+        gps_file.write(gps_num + " " + gps_lat + " " + gps_lon + "\n") 
 
         # Update the index 
         gpx_index += gpx_index_jump 
-
-    # Write to the new file 
-    # - Create a new file with an appropriate name (current date and index). 
-    # - Check for the existance of the file name - if so modify the new name 
-    # - Copy the coordinate number followed by the lat and lon into the file 
-    #   each on a new line.  
+        
+    # Close the files 
+    gpx_file.close() 
+    gps_file.close() 
 
     #==================================================
 
