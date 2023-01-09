@@ -6,3 +6,6 @@ __pycache__/
 
 # Scripts 
 simulation/pc-scripts/file_locations.py 
+
+# Data 
+simulation/pc-scripts/gps-coordinates/ 
