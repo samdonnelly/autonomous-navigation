@@ -91,7 +91,11 @@ terminate = "exit"                  # Exit program string input
 # @return 1 : True if user input matches expected format, False otherwise 
 # @return 2 : contents of the user input formatted as needed if it's a valid input 
 #
-def user_input(prompt, check, data_type): 
+def user_input(
+    prompt, 
+    check, 
+    data_type): 
+
     # Get the user input 
     command = input(prompt) 
         
@@ -168,12 +172,13 @@ def exit_handler():
 # Program Specific Functions 
 
 #
-# brief: Calculate the heading at the starting point 
+# brief: Calculate compass heading between current location and target location 
 # 
-# description: Uses the great circle navigation equation for initial heading to get 
-#              a compass heading. This angle must be equated to the readings seen
-#              from a magnetometer. The angle is the angle with reference to North or 
-#              the longitude line. 
+# description: Uses the great circle navigation equation for initial heading to 
+#              get a compass heading. The heading is the angle from true North. 
+#              
+#              This calculated heading can be used to compare to a magnetometer 
+#              heading to know which direction to travel. 
 #              
 #              This equation comes from spherical triginometry. 
 #              
@@ -183,38 +188,51 @@ def exit_handler():
 #              The equation used to calculate heading angle produces a number from 
 #              -90 degrees to 90 degrees. Given a compass heading can be anywhere 
 #              from 0 to 360 degrees, or -180 to 180 degrees depending on the reference 
-#              point is established, this means there are two possible solutions for 
+#              point established, which means there are two possible solutions for 
 #              a single calculation (each solution shifted 180 degrees from the other). 
 #              To distinguish which solution to use, we look at the signs on the 
 #              numerator and denominator of the angle equation to determine what 
 #              quadrant the solution lies in. Using this information we can adjust the 
 #              angle to give a unique solution. 
+# 
+# @param lat1 : 
+# @param lon1 : 
+# @param lat2 : 
+# @param lon2 : 
+# @return init_heading : 
 #
-def compass_heading(lat1, lon1, lat2, lon2): 
+def compass_heading(
+    lat1, 
+    lon1, 
+    lat2, 
+    lon2): 
+    
     # Convert angles to radians 
     lat1 = deg_to_rad(lat1) 
     lon1 = deg_to_rad(lon1) 
     lat2 = deg_to_rad(lat2) 
     lon2 = deg_to_rad(lon2) 
     
-    # Calculate the components of the initial course equation 
+    # Calculate the numerator and denominator of the initial heading equation 
     eq_num = np.cos(lat2)*np.sin(lon2-lon1) 
     eq_den = np.cos(lat1)*np.sin(lat2) - np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1) 
     
-    # Calculate the initial heading angle 
+    # Calculate the initial heading 
     init_heading = np.arctan(eq_num/eq_den) 
     
     #==================================================
     # Adjust the heading angle to get a unique solution (see function description) 
 
+    # 0-360 degree logic 
+
     # -180 to 180 degree logic 
     if (eq_den < 0): 
         if (eq_num >= 0): 
-            init_heading = init_heading + np.pi 
+            # init_heading = init_heading + np.pi 
+            init_heading += np.pi 
         else: 
-            init_heading = init_heading - np.pi 
-
-    # 0-360 degree logic 
+            # init_heading = init_heading - np.pi 
+            init_heading -= np.pi 
 
     #==================================================
     
@@ -225,8 +243,19 @@ def compass_heading(lat1, lon1, lat2, lon2):
 # brief: Coordinate location on sphere calculation 
 # 
 # description: 
+# 
+# @param lat : 
+# @param lon : 
+# @return lat : 
+# @return lon : 
+# @return x : 
+# @return y : 
+# @return z : 
 #
-def xyz_gps_coordinate(lat, lon): 
+def xyz_gps_coordinate(
+    lat, 
+    lon): 
+    
     # Adjust the coordinates - adjusted based on matplotlib plot orientation 
     lat = deg_to_rad(90.0 - lat) 
     lon = deg_to_rad(lon) 
@@ -264,9 +293,15 @@ def xyz_gps_coordinate(lat, lon):
 # 
 #              Note: Within this code the path calculation only serves as a 
 #                    representation. It will serve in calculating heading variations 
-#                    along the great circle later.  
+#                    along the great circle later. 
+# 
+# @param r1 : 
+# @param r2 : 
 #
-def great_circle_path(r1, r2):
+def great_circle_path(
+    r1, 
+    r2):
+    
     # Local variables 
     num_points = 100       # Number of great circle plot points 
     angle = []             # Empty array to hold great circle coordinate angles 
@@ -351,11 +386,18 @@ def great_circle_path(r1, r2):
 # brief: Calculates the central angle between two points on the great circle 
 # 
 # description: 
-#              The cos and sin inputs were readjusted to their original input from their converted 
-#              matplotlib axis format so that the correct angle would be calculated  
+#              The cos and sin inputs were readjusted to their original input from 
+#              their converted matplotlib axis format so that the correct angle 
+#              would be calculated. 
+# 
+# @param gps1 : 
+# @param gps2 : 
 #
-def central_angle(gps1, gps2): 
-    # # Calculate the parts of the central angle equation 
+def central_angle(
+    gps1, 
+    gps2): 
+    
+    # Calculate the parts of the central angle equation 
     eq1 = np.cos(np.pi/2 - gps2[0])*np.sin(gps2[1]-gps1[1]) 
     eq2 = np.cos(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 
     eq3 = np.sin(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
