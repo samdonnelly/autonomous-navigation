@@ -30,7 +30,6 @@
 
 #================================================================================
 # TODO 
-# - Calculate the central angle and get the distance between points 
 # - Add a conversion between the different coordinate formats (here or in another file?) 
 # - Scatter points (coordinates) can only be seen on the surface plot at some angles 
 # - Clear old plot points (or keep them?) 
@@ -54,9 +53,12 @@ import atexit
 
 
 #================================================================================
-# Variables 
+# Global variables 
 
-# Parameters 
+# Conditional compilation 
+HEADING_360 = 1                     # 360 degree heading mode - otherwise +/-180
+
+# Constants 
 radius = 1                          # Radius used for coordinate calculation 
 earth_radius = 6371.0               # Average radius of the Earth (km) 
 
@@ -172,7 +174,7 @@ def exit_handler():
 # Program Specific Functions 
 
 #
-# brief: Calculate compass heading between current location and target location 
+# brief: Calculate compass heading (degrees) between current and destination location 
 # 
 # description: Uses the great circle navigation equation for initial heading to 
 #              get a compass heading. The heading is the angle from true North. 
@@ -195,11 +197,11 @@ def exit_handler():
 #              quadrant the solution lies in. Using this information we can adjust the 
 #              angle to give a unique solution. 
 # 
-# @param lat1 : 
-# @param lon1 : 
-# @param lat2 : 
-# @param lon2 : 
-# @return init_heading : 
+# @param lat1 : coordinate 1 (starting/current location) latitude 
+# @param lon1 : coordinate 1 (starting/current location) longitude 
+# @param lat2 : coordinate 2 (final/destination location) latitude 
+# @param lon2 : coordinate 2 (final/destination location) longitude 
+# @return init_heading : initial heading (degrees) between coordinates 
 #
 def compass_heading(
     lat1, 
@@ -223,16 +225,26 @@ def compass_heading(
     #==================================================
     # Adjust the heading angle to get a unique solution (see function description) 
 
-    # 0-360 degree logic 
+    # Below are the signs of the numerator and denominator for each quadrant 
+    # Q1 (top right):    num: (+), den: (+) 
+    # Q2 (bottom right): num: (+), den: (-) 
+    # Q3 (bottom left):  num: (-), den: (-) 
+    # Q4 (top left):     num: (-), den: (+) 
 
-    # -180 to 180 degree logic 
-    if (eq_den < 0): 
-        if (eq_num >= 0): 
-            # init_heading = init_heading + np.pi 
-            init_heading += np.pi 
-        else: 
-            # init_heading = init_heading - np.pi 
-            init_heading -= np.pi 
+    # 0-360 degree logic 
+    if HEADING_360: 
+        # 0-360 degree logic 
+        if (eq_den < 0): 
+            init_heading += np.pi
+        elif (eq_num < 0): 
+            init_heading += 2*np.pi
+    else: 
+        # +/-180 degree heading logic 
+        if (eq_den < 0): 
+            if (eq_num < 0): 
+                init_heading -= np.pi 
+            else: 
+                init_heading += np.pi 
 
     #==================================================
     
