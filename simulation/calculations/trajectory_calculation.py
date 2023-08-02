@@ -231,7 +231,6 @@ def compass_heading(
     # Q3 (bottom left):  num: (-), den: (-) 
     # Q4 (top left):     num: (-), den: (+) 
 
-    # 0-360 degree logic 
     if HEADING_360: 
         # 0-360 degree logic 
         if (eq_den < 0): 
