@@ -12,7 +12,9 @@
 			"main.h": "c",
 			"project_init.h": "c",
 			"includes_app.h": "c",
-			"includes_drivers.h": "c"
+			"includes_drivers.h": "c",
+			"gs_init.h": "c",
+			"ab_init.h": "c"
 		}
 	},
 	"launch": {

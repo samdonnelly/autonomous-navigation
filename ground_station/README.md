@@ -1,3 +1,3 @@
-# Autonomous Boat
+# Ground Station
 
-Boat that autonomous navigates GPS waypoints. Can also be remotely operated via radio. 
+System for the operator used to control a robot remotely. 

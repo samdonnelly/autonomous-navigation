@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Ground station initialization header 
+ * @brief Autonomous boat initialization header 
  * 
  * @version 0.1
  * @date 2023-07-20
@@ -12,8 +12,8 @@
  * 
  */
 
-#ifndef _GS_INIT_H_ 
-#define _GS_INIT_H_ 
+#ifndef _AB_INIT_H_ 
+#define _AB_INIT_H_ 
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,11 +32,11 @@ extern "C" {
 // Functions 
 
 /**
- * @brief Ground station initialization 
+ * @brief Autonomous boat initialization 
  * 
  * @details 
  */
-void gs_init(void); 
+void ab_init(void); 
 
 //=======================================================================================
 
@@ -44,4 +44,4 @@ void gs_init(void);
 }
 #endif
 
-#endif   // _GS_INIT_H_ 
+#endif   // _AB_INIT_H_ 

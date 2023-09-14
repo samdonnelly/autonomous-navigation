@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Project application header 
+ * @brief Ground station application header 
  * 
  * @version 0.1
  * @date 2023-07-20
@@ -32,7 +32,7 @@ extern "C" {
 // Functions 
 
 /**
- * @brief Project application 
+ * @brief Ground station application 
  * 
  * @details 
  */

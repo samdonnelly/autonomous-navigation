@@ -1,9 +1,9 @@
 /**
- * @file project_init.h
+ * @file project_init.cpp
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Ground station initialization header 
+ * @brief Autonomous boat initialization code 
  * 
  * @version 0.1
  * @date 2023-07-20
@@ -12,18 +12,10 @@
  * 
  */
 
-#ifndef _GS_INIT_H_ 
-#define _GS_INIT_H_ 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 //=======================================================================================
 // Includes 
 
-#include "includes_app.h"
-#include "includes_drivers.h"
+#include "ab_app.h"
 
 //=======================================================================================
 
@@ -31,17 +23,10 @@ extern "C" {
 //=======================================================================================
 // Functions 
 
-/**
- * @brief Ground station initialization 
- * 
- * @details 
- */
-void gs_init(void); 
+// Autonomous boat application  
+void ab_app(void)
+{
+    // Autonomous boat application code 
+}
 
 //=======================================================================================
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif   // _GS_INIT_H_ 

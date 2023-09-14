@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Project initialization code 
+ * @brief Ground station initialization code 
  * 
  * @version 0.1
  * @date 2023-07-20
@@ -26,7 +26,7 @@
 // Ground station initialization 
 void gs_init(void)
 {
-    // Project initialization code 
+    // Ground station initialization code 
 }
 
 //=======================================================================================
