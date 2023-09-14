@@ -2,9 +2,19 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../STM32F4-driver-library"
 		}
 	],
-	"settings": {},
+	"settings": {
+		"files.associations": {
+			"main.h": "c",
+			"project_init.h": "c",
+			"includes_app.h": "c",
+			"includes_drivers.h": "c"
+		}
+	},
 	"launch": {
 		"version": "0.2.0",
 		"configurations": []

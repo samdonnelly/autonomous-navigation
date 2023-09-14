@@ -4,9 +4,41 @@
 .DS_Store 
 __pycache__/
 
+# VS code files 
+.vscode/
+
+#========================================================================================
+# Ground station 
+
+# VS code files 
+ground_station/.vscode/
+
+# Build files 
+ground_station/build/
+
 # Scripts 
-simulation/scripts/file_locations.py 
 ground_station/mission_planning/scripts/file_locations.py 
 
 # Data 
 ground_station/mission_planning/missions/ 
+
+#========================================================================================
+
+#========================================================================================
+# Boat 
+
+# VS code files 
+boat/.vscode/
+
+# Build files 
+boat/build/
+
+#========================================================================================
+
+#========================================================================================
+# Simulation 
+
+# Scripts 
+simulation/scripts/file_locations.py 
+
+#========================================================================================
