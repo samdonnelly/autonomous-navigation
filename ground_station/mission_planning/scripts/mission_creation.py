@@ -10,7 +10,16 @@
 
 #================================================================================
 # TODO 
-# - See if geoplaner can go beyond 99 points  
+# - Modify this script to be used for the coordinate file export from Mission 
+#   Planner instead of Geoplaner. 
+# - Read only the most recent .waypoints file, convert it to a more usable format 
+#   and save the formatted file to a common location. Check the common location for 
+#   existing files and make sure it gets assigned a unique name. Delete the 
+#   .waypoints file that was read. This script can be run again to continue 
+#   converting files if there are more. 
+#   - The unique name should be "<date>-<time>-mission.txt" 
+# - Add the ability to take coordinates the robot travelled and format it into a 
+#   .waypoint file that can then be uploaded to mission planner. 
 #================================================================================
 
 

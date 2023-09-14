@@ -5,7 +5,8 @@
 __pycache__/
 
 # Scripts 
-simulation/pc-scripts/file_locations.py 
+simulation/scripts/file_locations.py 
+ground_station/mission_planning/scripts/file_locations.py 
 
 # Data 
-simulation/pc-scripts/gps-coordinates/ 
+ground_station/mission_planning/missions/ 
