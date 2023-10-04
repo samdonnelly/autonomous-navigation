@@ -341,8 +341,10 @@ void ab_init(void)
 
     // Application code setup 
     ab_app_init(
+        TIM9, 
         DMA2_Stream0, 
-        ADC1); 
+        ADC1, 
+        NRF24L01_DP_1); 
 
     // Enable the DMA stream - done after the application code initialization so the 
     // DMA can finish being set up. 

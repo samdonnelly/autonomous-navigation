@@ -21,23 +21,214 @@
 
 
 //=======================================================================================
+// Function prototypes 
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_init_state(void); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_not_ready_state(void); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_ready_state(void); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_manual_state(void); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_auto_state(void); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_low_pwr_state(void); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_fault_state(void); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_reset_state(void); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_idle_cmd(
+    uint8_t idle_cmd_value); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_manual_cmd(
+    uint8_t manual_cmd_value); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_auto_cmd(
+    uint8_t auto_cmd_value); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ */
+void ab_index_cmd(
+    uint8_t index_cmd_value); 
+
+
+/**
+ * @brief GPS heading calculation 
+ * 
+ * @details 
+ */
+void ab_gps_rad(void); 
+
+
+/**
+ * @brief GPS heading calculation 
+ * 
+ * @details 
+ */
+void ab_gps_heading(void); 
+
+
+/**
+ * @brief Get the true North heading 
+ * 
+ * @details 
+ */
+void ab_heading(void); 
+
+
+/**
+ * @brief Heading error 
+ * 
+ * @details 
+ */
+void ab_heading_error(void); 
+
+
+/**
+ * @brief Parse the user command into an ID and value 
+ * 
+ * @details 
+ * 
+ * @param command_buffer 
+ * @return uint8_t 
+ */
+uint8_t ab_parse_cmd(
+    uint8_t *command_buffer); 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Global variables 
 
 // Data record instance 
 static ab_data_t ab_data; 
 
+// Function pointer table 
+static ab_state_func_ptr_t state_table[AB_NUM_STATES] = 
+{
+    &ab_init_state, 
+    &ab_not_ready_state, 
+    &ab_ready_state, 
+    &ab_manual_state, 
+    &ab_auto_state, 
+    &ab_low_pwr_state, 
+    &ab_fault_state, 
+    &ab_reset_state 
+}; 
+
+// Command table 
+static ab_cmds_t cmd_table[AB_NUM_CMDS] = 
+{
+    {"idle",   &ab_idle_cmd,   (SET_BIT << AB_MANUAL_STATE) | (SET_BIT << AB_AUTO_STATE)}, 
+    {"manual", &ab_manual_cmd, (SET_BIT << AB_READY_STATE)  | (SET_BIT << AB_AUTO_STATE)}, 
+    {"auto",   &ab_auto_cmd,   (SET_BIT << AB_READY_STATE)  | (SET_BIT << AB_MANUAL_STATE)}, 
+    {"index",  &ab_index_cmd,  (SET_BIT << AB_READY_STATE)  | (SET_BIT << AB_AUTO_STATE)}, 
+}; 
+
+// GPS coordinate table 
+const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
+{
+    {0.000000, 0.000000},    // Index 0 
+    {0.000000, 0.000000},    // Index 1 
+    {0.000000, 0.000000},    // Index 2 
+    {0.000000, 0.000000},    // Index 3 
+    {0.000000, 0.000000},    // Index 4 
+    {0.000000, 0.000000},    // Index 5 
+    {0.000000, 0.000000},    // Index 6 
+    {0.000000, 0.000000},    // Index 7 
+    {0.000000, 0.000000},    // Index 8 
+    {0.000000, 0.000000}     // Index 9 
+}; 
+
 //=======================================================================================
 
 
 //=======================================================================================
-// Functions 
+// Main functions 
 
 // Autonomous boat application  
 void ab_app_init(
+    TIM_TypeDef *timer_nonblocking, 
     DMA_Stream_TypeDef *adc_dma_stream, 
-    ADC_TypeDef *adc)
+    ADC_TypeDef *adc, 
+    nrf24l01_data_pipe_t pipe_num)
 {
     // Autonomous boat application code initialization 
+
+    //==================================================
+    // System configuration 
 
     // Configure the DMA stream 
     dma_stream_config(
@@ -45,6 +236,41 @@ void ab_app_init(
         (uint32_t)(&adc->DR), 
         (uint32_t)ab_data.adc_buff, 
         (uint16_t)AB_ADC_BUFF_SIZE); 
+    
+    //==================================================
+
+    //==================================================
+    // Data record initialization 
+    
+    // System information 
+    ab_data.state = AB_INIT_STATE; 
+    ab_data.adc = adc; 
+    ab_data.pipe = pipe_num; 
+
+    // Timing information 
+    ab_data.timer_nonblocking = timer_nonblocking; 
+    ab_data.delay_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
+    ab_data.delay_timer.time_cnt_total = CLEAR; 
+    ab_data.delay_timer.time_cnt = CLEAR; 
+    ab_data.delay_timer.time_start = SET_BIT; 
+
+    // System data 
+    memset((void *)ab_data.adc_buff, CLEAR, sizeof(ab_data.adc_buff)); 
+
+    // Navigation data 
+    ab_data.waypoint_index = CLEAR; 
+
+    // State flags 
+    ab_data.init = SET_BIT; 
+    ab_data.ready = CLEAR_BIT; 
+    ab_data.idle = CLEAR_BIT; 
+    ab_data.manual = CLEAR_BIT; 
+    ab_data.autonomous = CLEAR_BIT; 
+    ab_data.low_pwr = CLEAR_BIT; 
+    ab_data.fault = CLEAR_BIT; 
+    ab_data.reset = CLEAR_BIT; 
+    
+    //==================================================
 }
 
 
@@ -52,6 +278,715 @@ void ab_app_init(
 void ab_app(void)
 {
     // Autonomous boat application code 
+
+    // Local variables 
+    ab_states_t next_state = ab_data.state; 
+
+    //==================================================
+    // Device status checks 
+
+    if (m8q_get_fault_code())
+    {
+        ab_data.fault_code |= (SET_BIT << SHIFT_0); 
+    }
+
+    // TODO Add a status return to the lsm303agr driver 
+
+    // TODO Add a status return to the nrf24l01 driver 
+
+    //==================================================
+
+    //==================================================
+    // System requirements check 
+
+    // Voltages 
+    // GPS position lock 
+    // Heatbeat detected 
+
+    //==================================================
+
+    //==================================================
+    // External command check 
+
+    // Check if a payload has been received 
+    if (nrf24l01_data_ready_status(ab_data.pipe))
+    {
+        // Payload has been received. Read the payload from the device RX FIFO. 
+        nrf24l01_receive_payload(ab_data.read_buff, ab_data.pipe); 
+
+        // Validate the input - parse into an ID and value if valid 
+        if (ab_parse_cmd(&ab_data.read_buff[1]))
+        {
+            ab_data.mc_data = SET_BIT; 
+
+            // Valid input - compare the ID to each of the available pre-defined commands 
+            for (uint8_t i = CLEAR; i < AB_NUM_CMDS; i++) 
+            {
+                // Check that the command is available for the state before comparing it 
+                // against the ID. 
+                if (cmd_table[i].ab_cmd_mask & (SET_BIT << ab_data.state))
+                {
+                    // Command available. Compare with the ID. 
+                    if (str_compare(cmd_table[i].ab_cmd, (char *)ab_data.cmd_id, BYTE_0)) 
+                    {
+                        // ID matched to a command. Execute the command. 
+                        (cmd_table[i].ab_cmd_func_ptr)(ab_data.cmd_value); 
+                        ab_data.mc_data = CLEAR_BIT; 
+                        break; 
+                    }
+                }
+            }
+        }
+
+        memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
+    }
+
+    //==================================================
+
+    //==================================================
+    // System state machine 
+
+    switch (next_state)
+    {
+        case AB_INIT_STATE: 
+            if (!ab_data.init)
+            {
+                next_state = AB_NOT_READY_STATE; 
+            }
+            break; 
+        
+        case AB_NOT_READY_STATE: 
+            if (ab_data.fault)
+            {
+                next_state = AB_FAULT_STATE; 
+            }
+            else if (ab_data.low_pwr)
+            {
+                next_state = AB_LOW_PWR_STATE; 
+            }
+            else if (ab_data.ready)
+            {
+                next_state = AB_READY_STATE; 
+            }
+            break; 
+        
+        case AB_READY_STATE: 
+            if (ab_data.fault)
+            {
+                next_state = AB_FAULT_STATE; 
+            }
+            else if (ab_data.low_pwr)
+            {
+                next_state = AB_LOW_PWR_STATE; 
+            }
+            else if (!ab_data.ready)
+            {
+                next_state = AB_NOT_READY_STATE; 
+            }
+            else if (ab_data.manual)
+            {
+                next_state = AB_MANUAL_STATE; 
+            }
+            else if (ab_data.autonomous)
+            {
+                next_state = AB_AUTO_STATE; 
+            }
+            break; 
+        
+        case AB_MANUAL_STATE: 
+            if (ab_data.fault)
+            {
+                next_state = AB_FAULT_STATE; 
+            }
+            else if (ab_data.low_pwr)
+            {
+                next_state = AB_LOW_PWR_STATE; 
+            }
+            else if (ab_data.idle)
+            {
+                next_state = AB_READY_STATE; 
+            }
+            else if (ab_data.autonomous)
+            {
+                next_state = AB_AUTO_STATE; 
+            }
+            break; 
+        
+        case AB_AUTO_STATE: 
+            if (ab_data.fault)
+            {
+                next_state = AB_FAULT_STATE; 
+            }
+            else if (ab_data.low_pwr)
+            {
+                next_state = AB_LOW_PWR_STATE; 
+            }
+            else if (ab_data.idle)
+            {
+                next_state = AB_READY_STATE; 
+            }
+            else if (ab_data.manual)
+            {
+                next_state = AB_MANUAL_STATE; 
+            }
+            break; 
+        
+        case AB_LOW_PWR_STATE: 
+            if (ab_data.fault)
+            {
+                next_state = AB_FAULT_STATE; 
+            }
+            else if (!ab_data.low_pwr)
+            {
+                next_state = AB_NOT_READY_STATE; 
+            }
+            break; 
+        
+        case AB_FAULT_STATE: 
+            if (ab_data.reset)
+            {
+                next_state = AB_RESET_STATE; 
+            }
+            break; 
+        
+        case AB_RESET_STATE: 
+            if (ab_data.init)
+            {
+                next_state = AB_INIT_STATE; 
+            }
+            break; 
+        
+        default: 
+            next_state = AB_INIT_STATE; 
+            break; 
+    }
+    
+    //==================================================
+
+    // Execute the state 
+    state_table[next_state](); 
+
+    // Update the state 
+    ab_data.state = next_state; 
+
+    // Run the controllers 
+    m8q_controller(); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// State functions 
+
+// Initialization state 
+void ab_init_state(void)
+{
+    // Local variables 
+
+    //==================================================
+    // State entry 
+
+    if (ab_data.init)
+    {
+        ab_data.init = CLEAR_BIT; 
+    }
+
+    //==================================================
+
+    //==================================================
+    // State exit 
+    //==================================================
+}
+
+
+// Not ready state 
+void ab_not_ready_state(void)
+{
+    // Local variables 
+
+    //==================================================
+    // State entry 
+    //==================================================
+
+    //==================================================
+    // State exit 
+    //==================================================
+}
+
+
+// Ready state 
+void ab_ready_state(void)
+{
+    // Local variables 
+
+    //==================================================
+    // State entry 
+
+    if (ab_data.ready)
+    {
+        ab_data.ready = CLEAR_BIT; 
+    }
+
+    //==================================================
+
+    //==================================================
+    // State exit 
+    //==================================================
+}
+
+
+// Manual control mode state 
+void ab_manual_state(void)
+{
+    // Local variables 
+    uint8_t cmd_checksum = CLEAR; 
+
+    //==================================================
+    // State entry 
+
+    if (ab_data.manual)
+    {
+        ab_data.manual = CLEAR_BIT; 
+    }
+
+    //==================================================
+
+    //==================================================
+    // External thruster control 
+
+    // Validate the payload format 
+    if (ab_data.mc_data)
+    {
+        ab_data.mc_data = CLEAR_BIT; 
+
+        // Check that the command matches a valid throttle command. If it does then update 
+        // the thruster command. 
+        cmd_checksum = ab_data.cmd_id[0] + ab_data.cmd_id[1]; 
+
+        switch (cmd_checksum)
+        {
+            case (AB_MC_RIGHT_MOTOR + AB_MC_FWD_THRUST): 
+                ab_data.right_thruster += 
+                    ((ab_data.cmd_value - ab_data.right_thruster) >> SHIFT_3); 
+                esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
+                break; 
+            case (AB_MC_RIGHT_MOTOR + AB_MC_REV_THRUST): 
+                ab_data.right_thruster += 
+                    (((~(ab_data.cmd_value) + 1) - ab_data.right_thruster) >> SHIFT_3); 
+                esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
+                break; 
+            case (AB_MC_LEFT_MOTOR + AB_MC_FWD_THRUST): 
+                ab_data.left_thruster += 
+                    ((ab_data.cmd_value - ab_data.left_thruster) >> SHIFT_3); 
+                esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
+                break; 
+            case (AB_MC_LEFT_MOTOR + AB_MC_REV_THRUST): 
+                ab_data.left_thruster += 
+                    (((~(ab_data.cmd_value) + 1) - ab_data.left_thruster) >> SHIFT_3); 
+                esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
+                break; 
+            default: 
+                break; 
+        }
+    }
+
+    //==================================================
+
+    //==================================================
+    // State exit 
+    //==================================================
+}
+
+
+// Autonomous mode state 
+void ab_auto_state(void)
+{
+    // Local variables 
+    static uint8_t nav_period_flag = CLEAR; 
+
+    //==================================================
+    // State entry 
+
+    if (ab_data.autonomous)
+    {
+        ab_data.autonomous = CLEAR_BIT; 
+    }
+
+    //==================================================
+
+    //==================================================
+    // Navigation calculations 
+
+    // Update the navigation calculations 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.delay_timer.clk_freq, 
+                    AB_NAV_UPDATE, 
+                    &ab_data.delay_timer.time_cnt_total, 
+                    &ab_data.delay_timer.time_cnt, 
+                    &ab_data.delay_timer.time_start))
+    {
+        // Update the current location and desired heading every other period (can't be 
+        // faster than once per second) 
+        if (nav_period_flag)
+        {
+            // Get the updated location 
+            ab_data.location.lat = m8q_get_lat(); 
+            ab_data.location.lon = m8q_get_long(); 
+
+            // Update GPS radius and desired heading. 
+            ab_gps_rad(); 
+            ab_gps_heading(); 
+
+            // If the device is close enough to a waypoint then the next waypoint in the 
+            // mission is selected. 
+            if (ab_data.waypoint_rad < AB_WAYPOINT_RAD)
+            {
+                // Update the target waypoint 
+                ab_data.waypoint.lat = waypoint_table[ab_data.waypoint_index].lat; 
+                ab_data.waypoint.lon = waypoint_table[ab_data.waypoint_index].lon; 
+
+                // Adjust waypoint index. If the end of the waypoint mission is reached 
+                // then start over from the beginning. 
+                if (++ab_data.waypoint_index >= AB_NUM_COORDINATES)
+                {
+                    ab_data.waypoint_index = CLEAR; 
+                }
+            }
+        }
+
+        nav_period_flag = 1 - nav_period_flag; 
+
+
+        // Update the current heading and calculate the thruster output every period 
+
+        // Update the magnetometer data 
+        lsm303agr_m_read(); 
+
+        // Get the true North heading from the magnetometer 
+        ab_heading(); 
+        
+        // Use the GPS heading and the magnetometer heading to get a heading error 
+        ab_heading_error(); 
+
+        // Calculate the thruster command 
+        // ab_data.pid_out = 
+        //     (lsm303agr_test_pid(ab_data.heading_error) >> SHIFT_5); 
+        // ab_data.m1_pwm_cnt = 
+        //     LSM303AGR_TEST_PWM_N + LSM303AGR_TEST_PWM_BASE + ab_data.pid_out; 
+        // ab_data.m2_pwm_cnt = 
+        //     LSM303AGR_TEST_PWM_N - LSM303AGR_TEST_PWM_BASE + ab_data.pid_out; 
+    }
+
+    //==================================================
+
+    //==================================================
+    // State exit 
+    //==================================================
+}
+
+
+// Low power state 
+void ab_low_pwr_state(void)
+{
+    // Local variables 
+
+    //==================================================
+    // State entry 
+
+    if (ab_data.low_pwr)
+    {
+        ab_data.low_pwr = CLEAR_BIT; 
+    }
+
+    //==================================================
+
+    //==================================================
+    // State exit 
+    //==================================================
+}
+
+
+// Fault state 
+void ab_fault_state(void)
+{
+    // Local variables 
+
+    //==================================================
+    // State entry 
+
+    if (ab_data.fault)
+    {
+        ab_data.fault = CLEAR_BIT; 
+    }
+
+    //==================================================
+
+    //==================================================
+    // State exit 
+    //==================================================
+}
+
+
+// Reset state 
+void ab_reset_state(void)
+{
+    // Local variables 
+
+    //==================================================
+    // State entry 
+
+    if (ab_data.reset)
+    {
+        ab_data.reset = CLEAR_BIT; 
+    }
+
+    //==================================================
+
+    //==================================================
+    // State exit 
+    //==================================================
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Command functions 
+
+// Idle command 
+void ab_idle_cmd(
+    uint8_t idle_cmd_value)
+{
+    // 
+}
+
+
+// Manual control mode command 
+void ab_manual_cmd(
+    uint8_t manual_cmd_value)
+{
+    // 
+}
+
+
+// Autonomous mode command 
+void ab_auto_cmd(
+    uint8_t auto_cmd_value)
+{
+    // 
+}
+
+
+// Index update command 
+void ab_index_cmd(
+    uint8_t index_cmd_value)
+{
+    // Check that an index has been receieved X times before updating the index so that 
+    // a bad message doesn't screw up the desired index. 
+
+    // Check that the index is within bounds. 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Application functions 
+
+// GPS coordinate radius check - calculate surface distance and compare to threshold 
+void ab_gps_rad(void)
+{
+    // Local variables 
+    static double surf_dist = CLEAR; 
+    double eq1, eq2, eq3, eq4, eq5; 
+    double deg_to_rad = 3.14159/180; 
+    double pi_over_2 = 3.14159/2.0; 
+    double earth_rad = 6371; 
+    double km_to_m = 1000; 
+
+    // Convert coordinates to radians 
+    ab_data.location.lat *= deg_to_rad; 
+    ab_data.location.lon *= deg_to_rad; 
+    ab_data.waypoint.lat *= deg_to_rad; 
+    ab_data.waypoint.lon *= deg_to_rad; 
+
+    eq1 = cos(pi_over_2 - ab_data.waypoint.lat)*sin(ab_data.waypoint.lon - ab_data.location.lon); 
+    eq2 = cos(pi_over_2 - ab_data.location.lat)*sin(pi_over_2 - ab_data.waypoint.lat); 
+    eq3 = sin(pi_over_2 - ab_data.location.lat)*cos(pi_over_2 - ab_data.waypoint.lat)* 
+                                                cos(ab_data.waypoint.lon - ab_data.location.lon); 
+    eq4 = sin(pi_over_2 - ab_data.location.lat)*sin(pi_over_2 - ab_data.waypoint.lat); 
+    eq5 = cos(pi_over_2 - ab_data.location.lat)*cos(pi_over_2 - ab_data.waypoint.lat)*
+                                                cos(ab_data.waypoint.lon - ab_data.location.lon); 
+
+    // atan2 is used because it produces an angle between +/-180 (pi). The central angle 
+    // should always be positive and never greater than 180. 
+    // Calculate the radius using a low pass filter to smooth the data. 
+    surf_dist += ((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), (eq4 + eq5)) * 
+                 earth_rad*km_to_m) - surf_dist)*0.5; 
+    ab_data.waypoint_rad = (uint16_t)(surf_dist*10); 
+}
+
+
+// GPS heading calculation 
+void ab_gps_heading(void)
+{
+    // Local variables 
+    static double heading_temp = CLEAR; 
+    double num, den; 
+    double deg_to_rad = 3.14159/180; 
+
+    // Convert coordinates to radians 
+    ab_data.location.lat *= deg_to_rad; 
+    ab_data.location.lon *= deg_to_rad; 
+    ab_data.waypoint.lat *= deg_to_rad; 
+    ab_data.waypoint.lon *= deg_to_rad; 
+
+    // Calculate the numerator and denominator of the atan calculation 
+    num = cos(ab_data.waypoint.lat)*sin(ab_data.waypoint.lon-ab_data.location.lon); 
+    den = cos(ab_data.location.lat)*sin(ab_data.waypoint.lat) - sin(ab_data.location.lat)*
+          cos(ab_data.waypoint.lat)*cos(ab_data.waypoint.lon-ab_data.location.lon); 
+
+    // Calculate the heading between coordinates. 
+    // A low pass filter is used to smooth the data. 
+    heading_temp += (atan(num/den) - heading_temp)*0.5; 
+
+    // Convert heading to degrees 
+    ab_data.heading_desired = (int16_t)(heading_temp*10/deg_to_rad); 
+
+    // Correct the calculated heading if needed 
+    if (den < 0)
+    {
+        ab_data.heading_desired += LSM303AGR_M_HEAD_DIFF; 
+    }
+    else if (num < 0)
+    {
+        ab_data.heading_desired += LSM303AGR_M_HEAD_MAX; 
+    }
+}
+
+
+// Get the true North heading 
+void ab_heading(void)
+{
+    // Local variables 
+
+    // Get the magnetometer heading and add the true North correction 
+    ab_data.heading_actual = lsm303agr_m_get_heading() + AB_TN_COR; 
+
+    // Adjust the true North heading if the corrected headed exceeds heading bounds 
+    if (AB_TN_COR >= 0)
+    {
+        if (ab_data.heading_actual >= LSM303AGR_M_HEAD_MAX)
+        {
+            ab_data.heading_actual -= LSM303AGR_M_HEAD_MAX; 
+        }
+    }
+    else 
+    {
+        if (ab_data.heading_actual < 0)
+        {
+            ab_data.heading_actual += LSM303AGR_M_HEAD_MAX; 
+        }
+    }
+}
+
+
+// Heading error 
+void ab_heading_error(void)
+{
+    // Local variables 
+    ab_data.heading_error; 
+
+    // Calculate the heading error 
+    ab_data.heading_error = ab_data.heading_desired - ab_data.heading_actual; 
+
+    // Correct the error for when the heading crosses the 0/360 degree boundary 
+    if (ab_data.heading_error > LSM303AGR_M_HEAD_DIFF)
+    {
+        ab_data.heading_error -= LSM303AGR_M_HEAD_MAX; 
+    }
+    else if (ab_data.heading_error < -LSM303AGR_M_HEAD_DIFF)
+    {
+        ab_data.heading_error += LSM303AGR_M_HEAD_MAX; 
+    }
+}
+
+
+// Parse the user command into an ID and value 
+uint8_t ab_parse_cmd(
+    uint8_t *command_buffer)
+{
+    // Local variables 
+    uint8_t id_flag = SET_BIT; 
+    uint8_t id_index = CLEAR; 
+    uint8_t data = CLEAR; 
+    uint8_t cmd_value[AB_MAX_CMD_SIZE]; 
+    uint8_t value_size = CLEAR; 
+
+    // Initialize data 
+    memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
+    ab_data.cmd_value = CLEAR; 
+    memset((void *)cmd_value, CLEAR, sizeof(cmd_value)); 
+
+    // Parse the command into an ID and value 
+    for (uint8_t i = CLEAR; command_buffer[i] != NULL_CHAR; i++)
+
+    {
+        data = command_buffer[i]; 
+
+        if (id_flag)
+        {
+            // cmd ID parsing 
+
+            id_index = i; 
+
+            // Check that the command byte is within range 
+            if ((data >= A_LO_CHAR && data <= Z_LO_CHAR) || 
+                (data >= A_UP_CHAR && data <= Z_UP_CHAR))
+            {
+                // Valid character byte seen 
+                ab_data.cmd_id[i] = data; 
+            }
+            else if (data >= ZERO_CHAR && data <= NINE_CHAR)
+            {
+                // Valid digit character byte seen 
+                id_flag = CLEAR_BIT; 
+                ab_data.cmd_id[i] = NULL_CHAR; 
+                cmd_value[i-id_index] = data; 
+                value_size++; 
+            }
+            else 
+            {
+                // Valid data not seen 
+                return FALSE; 
+            }
+        }
+        else 
+        {
+            // cmd value parsing 
+
+            if (data >= ZERO_CHAR && data <= NINE_CHAR)
+            {
+                // Valid digit character byte seen 
+                cmd_value[i-id_index] = data; 
+                value_size++; 
+            }
+            else 
+            {
+                // Valid data not seen 
+                return FALSE; 
+            }
+        }
+    }
+
+    // Calculate the cmd value 
+    for (uint8_t i = CLEAR; i < value_size; i++)
+    {
+        ab_data.cmd_value += (uint8_t)char_to_int(cmd_value[i], value_size-i-1); 
+    }
+
+    return TRUE; 
 }
 
 //=======================================================================================

@@ -25,6 +25,8 @@
 /* USER CODE BEGIN Includes */
 #include "ab_init.h"
 #include "ab_app.h"
+#include "gs_init.h"
+#include "gs_app.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
