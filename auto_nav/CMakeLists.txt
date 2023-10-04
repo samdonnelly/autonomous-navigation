@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.12)
 include(./arm-none-eabi-gcc.cmake)
 
 # Set project name and source code folder location
-project(ground_station)
+project(autonomous_boat)
 
 option(DUMP_ASM "Create full assembly of final executable" OFF)
 
@@ -48,7 +48,9 @@ set(STM32CUBEMX_INCLUDE_DIRECTORIES
 
 set(PROJECT_INCLUDE_DIRECTORIES 
     ${CMAKE_CURRENT_SOURCE_DIR}/headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/ground_station
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/devices
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/peripherals
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/tools)
@@ -82,8 +84,12 @@ file(GLOB_RECURSE STM32CUBEMX_SOURCES CONFIGURE_DEPENDS
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/ground_station/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/ground_station/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/sources/devices/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/sources/devices/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/sources/peripherals/*.c

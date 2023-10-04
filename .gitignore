@@ -7,31 +7,28 @@ __pycache__/
 # VS code files 
 .vscode/
 
+# Workspace 
+build/
+
 #========================================================================================
-# Ground station 
+# Auto Nav 
 
 # VS code files 
-ground_station/.vscode/
+auto_nav/.vscode/
 
 # Build files 
-ground_station/build/
+auto_nav/build/
+
+#========================================================================================
+
+#========================================================================================
+# Mission Planning  
 
 # Scripts 
-ground_station/mission_planning/scripts/file_locations.py 
+mission_planning/scripts/file_locations.py 
 
 # Data 
-ground_station/mission_planning/missions/ 
-
-#========================================================================================
-
-#========================================================================================
-# Boat 
-
-# VS code files 
-boat/.vscode/
-
-# Build files 
-boat/build/
+mission_planning/missions/ 
 
 #========================================================================================
 
@@ -39,6 +36,6 @@ boat/build/
 # Simulation 
 
 # Scripts 
-simulation/scripts/file_locations.py 
+simulation/pc-scripts/file_locations.py 
 
 #========================================================================================

@@ -23,8 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "gs_init.h"
-#include "gs_app.h"
+#include "ab_init.h"
+#include "ab_app.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,7 +84,11 @@ int main(void)
   /* USER CODE BEGIN SysInit */
 
   // Run setup code
-  gs_init();
+#if AB_CODE 
+  ab_init(); 
+#else   // AB_CODE 
+  gs_init(); 
+#endif   // AB_CODE 
 
   /* USER CODE END SysInit */
 
@@ -100,7 +104,11 @@ int main(void)
   while (1)
   {
     // Run looped code
-    gs_app();
+#if AB_CODE 
+    ab_app(); 
+#else   // AB_CODE 
+    gs_app(); 
+#endif   // AB_CODE 
     
     /* USER CODE END WHILE */
 
