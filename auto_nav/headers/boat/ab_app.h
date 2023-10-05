@@ -45,6 +45,8 @@ extern "C" {
 #define AB_HB_PERIOD 500000          // Time between heartbeat checks (us) 
 #define AB_HB_TIMEOUT 30             // period*timeout = time before conecction lost status 
 #define AB_INIT_DELAY 1000000        // Init state delay (us) 
+#define AB_READY_PERIOD 100000       // Ready / Not Ready state LED update period 
+#define AB_READY_TIMEOUT 30          // period*timeout = time between LED flashes 
 
 // Navigation 
 #define AB_NUM_COORDINATES 10        // Number of pre-defined GPS coordinates 
@@ -57,6 +59,9 @@ extern "C" {
 #define AB_MC_RIGHT_MOTOR 0x52       // "R" character that indicates right motor 
 #define AB_MC_FWD_THRUST 0x50        // "P" (positive) - indicates forward thrust 
 #define AB_MC_REV_THRUST 0x4E        // "N" (negative) - indicates reverse thrust 
+
+// Thrusters 
+#define AB_NO_THRUST 0               // Force thruster output to zero 
 
 //=======================================================================================
 
@@ -122,6 +127,9 @@ typedef struct ab_data_s
 
     // System data 
     uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
+
+    // LED colour data - Green bits: 16-23, Red bits: 8-15, Blue bits: 0-7 
+    uint32_t led_colour_data[WS2812_LED_NUM]; 
 
     // Payload data 
     uint8_t read_buff[AB_PL_LEN];            // Data read by PRX from PTX device 

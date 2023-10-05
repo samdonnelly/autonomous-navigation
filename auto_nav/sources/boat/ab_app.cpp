@@ -298,6 +298,10 @@ void ab_app_init(
     // System data 
     memset((void *)ab_data.adc_buff, CLEAR, sizeof(ab_data.adc_buff)); 
 
+    // LED colour data 
+    memset((void *)ab_data.led_colour_data, CLEAR, sizeof(ab_data.led_colour_data)); 
+    ws2812_send(DEVICE_ONE, ab_data.led_colour_data); 
+
     // Payload data 
     memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
     memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
@@ -316,8 +320,8 @@ void ab_app_init(
     ab_data.heading_error = CLEAR; 
 
     // Thrusters 
-    ab_data.right_thruster = CLEAR; 
-    ab_data.left_thruster = CLEAR; 
+    ab_data.right_thruster = AB_NO_THRUST; 
+    ab_data.left_thruster = AB_NO_THRUST; 
 
     // Control flags 
     ab_data.connect = CLEAR_BIT; 
@@ -383,7 +387,7 @@ void ab_app(void)
     }
     
     // Heartbeat check 
-    if ((!ab_data.connect))
+    if ((!ab_data.connect) && (ab_data.state != AB_AUTO_STATE))
     {
         ab_data.ready = CLEAR_BIT; 
     }
@@ -539,13 +543,9 @@ void ab_app(void)
             break; 
         
         case AB_LOW_PWR_STATE: 
-            if (ab_data.fault)
+            if (ab_data.reset)
             {
-                next_state = AB_FAULT_STATE; 
-            }
-            else if (!ab_data.low_pwr)
-            {
-                next_state = AB_NOT_READY_STATE; 
+                next_state = AB_RESET_STATE; 
             }
             break; 
         
@@ -598,9 +598,9 @@ void ab_init_state(void)
     {
         ab_data.state_entry = CLEAR_BIT; 
 
-        // Set the thruster throttle to zero 
-        esc_readytosky_send(DEVICE_ONE, 0); 
-        esc_readytosky_send(DEVICE_TWO, 0); 
+        // Set the thruster throttle to zero to initialize the ESCs and motors. 
+        esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
+        esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
     }
 
     //==================================================
@@ -631,6 +631,7 @@ void ab_init_state(void)
 void ab_not_ready_state(void)
 {
     // Local variables 
+    static uint8_t led_counter = CLEAR; 
 
     //==================================================
     // State entry 
@@ -645,12 +646,54 @@ void ab_not_ready_state(void)
     // Wait for the system requirements to be met - ready flag will be set 
 
     //==================================================
+    // External feedback 
+
+    // Toggle an LED to indicate the state to the user 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.delay_timer.clk_freq, 
+                    AB_READY_PERIOD, 
+                    &ab_data.delay_timer.time_cnt_total, 
+                    &ab_data.delay_timer.time_cnt, 
+                    &ab_data.delay_timer.time_start))
+    {
+        if (!led_counter)
+        {
+            ab_data.led_colour_data[WS2812_LED_3] = ab_led_clear; 
+            ab_data.led_colour_data[WS2812_LED_4] = ab_led_clear; 
+            ws2812_send(DEVICE_ONE, ab_data.led_colour_data); 
+            led_counter++; 
+        }
+        else if (led_counter >= AB_READY_TIMEOUT)
+        {
+            ab_data.led_colour_data[WS2812_LED_3] = ab_led3_not_ready; 
+            ab_data.led_colour_data[WS2812_LED_4] = ab_led4_not_ready; 
+            ws2812_send(DEVICE_ONE, ab_data.led_colour_data); 
+            led_counter = CLEAR; 
+        }
+        else 
+        {
+            led_counter++; 
+        }
+    }
+    
+    //==================================================
+
+    //==================================================
     // State exit 
 
     if (ab_data.fault | ab_data.low_pwr | ab_data.ready)
     {
         ab_data.state_entry = SET_BIT; 
+        ab_data.delay_timer.time_start = SET_BIT; 
         ab_data.idle = SET_BIT; 
+        ab_data.manual = CLEAR_BIT; 
+        ab_data.autonomous = CLEAR_BIT; 
+        led_counter = CLEAR; 
+
+        // Make sure LEDs are off 
+        ab_data.led_colour_data[WS2812_LED_3] = ab_led_clear; 
+        ab_data.led_colour_data[WS2812_LED_4] = ab_led_clear; 
+        ws2812_send(DEVICE_ONE, ab_data.led_colour_data); 
     }
 
     //==================================================
@@ -661,6 +704,7 @@ void ab_not_ready_state(void)
 void ab_ready_state(void)
 {
     // Local variables 
+    static uint8_t led_counter = CLEAR; 
 
     //==================================================
     // State entry 
@@ -675,12 +719,52 @@ void ab_ready_state(void)
     // Wait for an active state to be chosen 
 
     //==================================================
+    // External feedback 
+
+    // Toggle an LED to indicate the state to the user 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.delay_timer.clk_freq, 
+                    AB_READY_PERIOD, 
+                    &ab_data.delay_timer.time_cnt_total, 
+                    &ab_data.delay_timer.time_cnt, 
+                    &ab_data.delay_timer.time_start))
+    {
+        if (!led_counter)
+        {
+            ab_data.led_colour_data[WS2812_LED_3] = ab_led_clear; 
+            ab_data.led_colour_data[WS2812_LED_4] = ab_led_clear; 
+            ws2812_send(DEVICE_ONE, ab_data.led_colour_data); 
+            led_counter++; 
+        }
+        else if (led_counter >= AB_READY_TIMEOUT)
+        {
+            ab_data.led_colour_data[WS2812_LED_3] = ab_led3_ready; 
+            ab_data.led_colour_data[WS2812_LED_4] = ab_led4_ready; 
+            ws2812_send(DEVICE_ONE, ab_data.led_colour_data); 
+            led_counter = CLEAR; 
+        }
+        else 
+        {
+            led_counter++; 
+        }
+    }
+    
+    //==================================================
+
+    //==================================================
     // State exit 
 
     if (ab_data.fault | ab_data.low_pwr | !ab_data.ready | ab_data.manual | ab_data.autonomous)
     {
         ab_data.state_entry = SET_BIT; 
+        ab_data.delay_timer.time_start = SET_BIT; 
         ab_data.idle = CLEAR_BIT; 
+        led_counter = CLEAR; 
+
+        // Make sure LEDs are off 
+        ab_data.led_colour_data[WS2812_LED_3] = ab_led_clear; 
+        ab_data.led_colour_data[WS2812_LED_4] = ab_led_clear; 
+        ws2812_send(DEVICE_ONE, ab_data.led_colour_data); 
     }
 
     //==================================================
@@ -692,6 +776,13 @@ void ab_manual_state(void)
 {
     // Local variables 
     uint8_t cmd_checksum = CLEAR; 
+
+    static uint16_t r_fwd = CLEAR; 
+    static uint16_t r_rev = CLEAR; 
+    static uint16_t l_fwd = CLEAR; 
+    static uint16_t l_rev = CLEAR; 
+
+    uint16_t cmd_value = CLEAR; 
 
     //==================================================
     // State entry 
@@ -722,24 +813,32 @@ void ab_manual_state(void)
                     ((ab_data.cmd_value - ab_data.right_thruster) >> SHIFT_3); 
                 esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
                 break; 
+            
             case (AB_MC_RIGHT_MOTOR + AB_MC_REV_THRUST): 
                 ab_data.right_thruster += 
                     (((~(ab_data.cmd_value) + 1) - ab_data.right_thruster) >> SHIFT_3); 
                 esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
                 break; 
+            
             case (AB_MC_LEFT_MOTOR + AB_MC_FWD_THRUST): 
                 ab_data.left_thruster += 
                     ((ab_data.cmd_value - ab_data.left_thruster) >> SHIFT_3); 
                 esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
                 break; 
+            
             case (AB_MC_LEFT_MOTOR + AB_MC_REV_THRUST): 
                 ab_data.left_thruster += 
                     (((~(ab_data.cmd_value) + 1) - ab_data.left_thruster) >> SHIFT_3); 
                 esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
                 break; 
+            
             default: 
                 break; 
         }
+
+        // Send the throttle command to the ESCs 
+        esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
+        esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
     }
 
     //==================================================
@@ -751,6 +850,12 @@ void ab_manual_state(void)
     {
         ab_data.state_entry = SET_BIT; 
         ab_data.manual = CLEAR_BIT; 
+
+        // Set the throttle to zero to stop the thrusters 
+        ab_data.right_thruster = AB_NO_THRUST; 
+        ab_data.left_thruster = AB_NO_THRUST; 
+        esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
+        esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
     }
 
     //==================================================
@@ -845,6 +950,12 @@ void ab_auto_state(void)
     {
         ab_data.state_entry = SET_BIT; 
         ab_data.autonomous = CLEAR_BIT; 
+
+        // Set the throttle to zero to stop the thrusters 
+        ab_data.right_thruster = AB_NO_THRUST; 
+        ab_data.left_thruster = AB_NO_THRUST; 
+        esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
+        esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
     }
 
     //==================================================
@@ -862,18 +973,28 @@ void ab_low_pwr_state(void)
     if (ab_data.state_entry)
     {
         ab_data.state_entry = CLEAR_BIT; 
+
+        // Put devices in low power mode 
+        m8q_set_low_pwr_flag(); 
     }
 
     //==================================================
 
-    // Wait for the voltage to rise to an acceptable level 
+    // Wait for a system reset 
+    // Currently the system would hang here until it's power cycled because 
+    // there is no setter for the reset flag. This is ok because if the 
+    // battery voltage is low there is nothing the system can and should 
+    // do anyway. 
 
     //==================================================
     // State exit 
 
-    if (ab_data.fault | !ab_data.low_pwr)
+    if (ab_data.reset)
     {
         ab_data.state_entry = SET_BIT; 
+
+        // Take devices out of low power mode 
+        m8q_clear_low_pwr_flag(); 
     }
 
     //==================================================
@@ -895,6 +1016,7 @@ void ab_fault_state(void)
 
     //==================================================
 
+    // Go directly to the reset state 
     ab_data.reset = SET_BIT; 
 
     //==================================================
@@ -925,8 +1047,14 @@ void ab_reset_state(void)
 
     //==================================================
 
+    // Go directly to the init function 
     ab_data.init = SET_BIT; 
+
+    // Clear fault and status codes 
     ab_data.fault_code = CLEAR; 
+    m8q_set_reset_flag(); 
+    lsm303agr_clear_status(); 
+    nrf24l01_clear_status(); 
 
     //==================================================
     // State exit 
@@ -1040,13 +1168,14 @@ void ab_gps_rad(void)
     ab_data.waypoint.lat *= deg_to_rad; 
     ab_data.waypoint.lon *= deg_to_rad; 
 
-    eq1 = cos(pi_over_2 - ab_data.waypoint.lat)*sin(ab_data.waypoint.lon - ab_data.location.lon); 
+    eq1 = cos(pi_over_2 - ab_data.waypoint.lat)*
+          sin(ab_data.waypoint.lon - ab_data.location.lon); 
     eq2 = cos(pi_over_2 - ab_data.location.lat)*sin(pi_over_2 - ab_data.waypoint.lat); 
     eq3 = sin(pi_over_2 - ab_data.location.lat)*cos(pi_over_2 - ab_data.waypoint.lat)* 
-                                                cos(ab_data.waypoint.lon - ab_data.location.lon); 
+          cos(ab_data.waypoint.lon - ab_data.location.lon); 
     eq4 = sin(pi_over_2 - ab_data.location.lat)*sin(pi_over_2 - ab_data.waypoint.lat); 
     eq5 = cos(pi_over_2 - ab_data.location.lat)*cos(pi_over_2 - ab_data.waypoint.lat)*
-                                                cos(ab_data.waypoint.lon - ab_data.location.lon); 
+          cos(ab_data.waypoint.lon - ab_data.location.lon); 
 
     // atan2 is used because it produces an angle between +/-180 (pi). The central angle 
     // should always be positive and never greater than 180. 
