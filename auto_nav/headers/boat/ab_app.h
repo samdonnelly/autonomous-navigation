@@ -31,20 +31,26 @@ extern "C" {
 //=======================================================================================
 // Macros 
 
+// System info 
+#define AB_NUM_STATES 8              // Number of system states 
+#define AB_NUM_CMDS 9                // Total number of external commands available 
+
 // Data sizes 
 #define AB_ADC_BUFF_SIZE 3           // Size according to the number of ADCs used 
-#define AB_NUM_COORDINATES 10        // Number of pre-defined GPS coordinates 
-#define AB_NUM_STATES 8              // Number of system states 
 #define AB_MAX_CMD_SIZE 32           // Max external command size 
 #define AB_PL_LEN 32                 // Payload length 
-#define AB_NUM_CMDS 4                // Total number of external commands available 
 
 // Timing 
 #define AB_NAV_UPDATE 500000         // Navigation calculation update period (us) 
+#define AB_HB_PERIOD 500000          // Time between heartbeat checks (us) 
+#define AB_HB_TIMEOUT 30             // period*timeout = time before conecction lost status 
+#define AB_INIT_DELAY 1000000        // Init state delay (us) 
 
 // Navigation 
+#define AB_NUM_COORDINATES 10        // Number of pre-defined GPS coordinates 
 #define AB_WAYPOINT_RAD 100          // Threshold waypoint radius - expressed in meters*10 
 #define AB_TN_COR 130                // True North direction correction 
+#define AB_GPS_INDEX_CNT 3           // Successive index command count needed to update 
 
 // Manual Control 
 #define AB_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
@@ -111,6 +117,8 @@ typedef struct ab_data_s
     // Timing information 
     TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
     tim_compare_t delay_timer;               // Delay timing info 
+    tim_compare_t hb_timer;                  // Heartbeat timing info 
+    uint8_t hb_timeout;                      // Heartbeat timeout count 
 
     // System data 
     uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
@@ -135,16 +143,17 @@ typedef struct ab_data_s
     int16_t left_thruster;                   // Left thruster throttle 
 
     // Control flags 
-    uint8_t connect    : 1;                  // Radio connection status flag 
-    uint8_t mc_data    : 1;                  // Manual control new dtaa check flag 
-    uint8_t init       : 1;                  // Initialization state flag 
-    uint8_t ready      : 1;                  // Ready state flag 
-    uint8_t idle       : 1;                  // Idle flag - for leaving manual and auto modes 
-    uint8_t manual     : 1;                  // Manual control mode state flag 
-    uint8_t autonomous : 1;                  // Autonomous mode state flag 
-    uint8_t low_pwr    : 1;                  // Low power state flag 
-    uint8_t fault      : 1;                  // Fault state flag 
-    uint8_t reset      : 1;                  // Reset state flag 
+    uint8_t connect     : 1;                 // Radio connection status flag 
+    uint8_t mc_data     : 1;                 // Manual control new dtaa check flag 
+    uint8_t state_entry : 1;                 // State entry flag 
+    uint8_t init        : 1;                 // Initialization state flag 
+    uint8_t ready       : 1;                 // Ready state flag 
+    uint8_t idle        : 1;                 // Idle flag - for leaving manual and auto modes 
+    uint8_t manual      : 1;                 // Manual control mode state flag 
+    uint8_t autonomous  : 1;                 // Autonomous mode state flag 
+    uint8_t low_pwr     : 1;                 // Low power state flag 
+    uint8_t fault       : 1;                 // Fault state flag 
+    uint8_t reset       : 1;                 // Reset state flag 
 }
 ab_data_t; 
 

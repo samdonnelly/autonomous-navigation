@@ -91,6 +91,8 @@ void ab_reset_state(void);
  * @brief 
  * 
  * @details 
+ * 
+ * @param idle_cmd_value : 
  */
 void ab_idle_cmd(
     uint8_t idle_cmd_value); 
@@ -100,6 +102,8 @@ void ab_idle_cmd(
  * @brief 
  * 
  * @details 
+ * 
+ * @param manual_cmd_value : 
  */
 void ab_manual_cmd(
     uint8_t manual_cmd_value); 
@@ -109,6 +113,8 @@ void ab_manual_cmd(
  * @brief 
  * 
  * @details 
+ * 
+ * @param auto_cmd_value : 
  */
 void ab_auto_cmd(
     uint8_t auto_cmd_value); 
@@ -118,9 +124,33 @@ void ab_auto_cmd(
  * @brief 
  * 
  * @details 
+ * 
+ * @param index_cmd_value : 
  */
 void ab_index_cmd(
     uint8_t index_cmd_value); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ * 
+ * @param throttle_cmd_value : 
+ */
+void ab_throttle_cmd(
+    uint8_t throttle_cmd_value); 
+
+
+/**
+ * @brief 
+ * 
+ * @details 
+ * 
+ * @param hb_cmd_value : 
+ */
+void ab_hb_cmd(
+    uint8_t hb_cmd_value); 
 
 
 /**
@@ -191,10 +221,15 @@ static ab_state_func_ptr_t state_table[AB_NUM_STATES] =
 // Command table 
 static ab_cmds_t cmd_table[AB_NUM_CMDS] = 
 {
-    {"idle",   &ab_idle_cmd,   (SET_BIT << AB_MANUAL_STATE) | (SET_BIT << AB_AUTO_STATE)}, 
-    {"manual", &ab_manual_cmd, (SET_BIT << AB_READY_STATE)  | (SET_BIT << AB_AUTO_STATE)}, 
-    {"auto",   &ab_auto_cmd,   (SET_BIT << AB_READY_STATE)  | (SET_BIT << AB_MANUAL_STATE)}, 
-    {"index",  &ab_index_cmd,  (SET_BIT << AB_READY_STATE)  | (SET_BIT << AB_AUTO_STATE)}, 
+    {"idle",   &ab_idle_cmd,     (SET_BIT << AB_MANUAL_STATE) | (SET_BIT << AB_AUTO_STATE)}, 
+    {"manual", &ab_manual_cmd,   (SET_BIT << AB_READY_STATE)  | (SET_BIT << AB_AUTO_STATE)}, 
+    {"auto",   &ab_auto_cmd,     (SET_BIT << AB_READY_STATE)  | (SET_BIT << AB_MANUAL_STATE)}, 
+    {"index",  &ab_index_cmd,    (SET_BIT << AB_READY_STATE)  | (SET_BIT << AB_AUTO_STATE)}, 
+    {"RP",     &ab_throttle_cmd, (SET_BIT << AB_MANUAL_STATE)}, 
+    {"RN",     &ab_throttle_cmd, (SET_BIT << AB_MANUAL_STATE)}, 
+    {"LP",     &ab_throttle_cmd, (SET_BIT << AB_MANUAL_STATE)}, 
+    {"LN",     &ab_throttle_cmd, (SET_BIT << AB_MANUAL_STATE)}, 
+    {"ping",   &ab_hb_cmd,       0xFF}   // Available in all states 
 }; 
 
 // GPS coordinate table 
@@ -246,6 +281,7 @@ void ab_app_init(
     ab_data.state = AB_INIT_STATE; 
     ab_data.adc = adc; 
     ab_data.pipe = pipe_num; 
+    ab_data.fault_code = CLEAR; 
 
     // Timing information 
     ab_data.timer_nonblocking = timer_nonblocking; 
@@ -253,14 +289,40 @@ void ab_app_init(
     ab_data.delay_timer.time_cnt_total = CLEAR; 
     ab_data.delay_timer.time_cnt = CLEAR; 
     ab_data.delay_timer.time_start = SET_BIT; 
+    ab_data.hb_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
+    ab_data.hb_timer.time_cnt_total = CLEAR; 
+    ab_data.hb_timer.time_cnt = CLEAR; 
+    ab_data.hb_timer.time_start = SET_BIT; 
+    ab_data.hb_timeout = CLEAR; 
 
     // System data 
     memset((void *)ab_data.adc_buff, CLEAR, sizeof(ab_data.adc_buff)); 
 
+    // Payload data 
+    memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
+    memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
+    ab_data.cmd_value = CLEAR; 
+    memset((void *)ab_data.hb_msg, CLEAR, sizeof(ab_data.hb_msg)); 
+
     // Navigation data 
     ab_data.waypoint_index = CLEAR; 
+    ab_data.waypoint.lat = waypoint_table[0].lat; 
+    ab_data.waypoint.lon = waypoint_table[0].lon; 
+    ab_data.location.lat = m8q_get_lat(); 
+    ab_data.location.lon = m8q_get_long(); 
+    ab_data.waypoint_rad = CLEAR; 
+    ab_data.heading_desired = CLEAR; 
+    ab_data.heading_actual = CLEAR; 
+    ab_data.heading_error = CLEAR; 
 
-    // State flags 
+    // Thrusters 
+    ab_data.right_thruster = CLEAR; 
+    ab_data.left_thruster = CLEAR; 
+
+    // Control flags 
+    ab_data.connect = CLEAR_BIT; 
+    ab_data.mc_data = CLEAR_BIT; 
+    ab_data.state_entry = SET_BIT; 
     ab_data.init = SET_BIT; 
     ab_data.ready = CLEAR_BIT; 
     ab_data.idle = CLEAR_BIT; 
@@ -289,19 +351,67 @@ void ab_app(void)
     {
         ab_data.fault_code |= (SET_BIT << SHIFT_0); 
     }
-
-    // TODO Add a status return to the lsm303agr driver 
-
-    // TODO Add a status return to the nrf24l01 driver 
+    if (lsm303agr_get_status())
+    {
+        ab_data.fault_code |= (SET_BIT << SHIFT_1); 
+    }
+    if (nrf24l01_get_status())
+    {
+        ab_data.fault_code |= (SET_BIT << SHIFT_2); 
+    }
 
     //==================================================
 
     //==================================================
     // System requirements check 
 
+    // If these conditions are not met (excluding radio connection when in autonomous 
+    // mode) then take the system out of an active mode. 
+
+    ab_data.ready = SET_BIT; 
+
     // Voltages 
-    // GPS position lock 
-    // Heatbeat detected 
+    // Set low power flag is voltage is below a threshold (but not zero because that means 
+    // the voltage source is not present). 
+    // If the low power flag gets set then the threshold to clear the flag has to be higher 
+    // than the one used to set the flag. 
+    
+    // GPS position lock check 
+    if ((m8q_get_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2)
+    {
+        ab_data.ready = CLEAR_BIT; 
+    }
+    
+    // Heartbeat check 
+    if ((!ab_data.connect))
+    {
+        ab_data.ready = CLEAR_BIT; 
+    }
+
+    //==================================================
+
+    //==================================================
+    // Heartbeat check 
+
+    // Increment the timeout counter periodically until the timeout limit at which 
+    // point the system assumes to have lost radio connection. Connection status is 
+    // re-established once a HB command is seen. 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.hb_timer.clk_freq, 
+                    AB_HB_PERIOD, 
+                    &ab_data.hb_timer.time_cnt_total, 
+                    &ab_data.hb_timer.time_cnt, 
+                    &ab_data.hb_timer.time_start))
+    {
+        if (ab_data.hb_timeout >= AB_HB_TIMEOUT)
+        {
+            ab_data.connect = CLEAR_BIT; 
+        }
+        else 
+        {
+            ab_data.hb_timeout++; 
+        }
+    }
 
     //==================================================
 
@@ -317,8 +427,6 @@ void ab_app(void)
         // Validate the input - parse into an ID and value if valid 
         if (ab_parse_cmd(&ab_data.read_buff[1]))
         {
-            ab_data.mc_data = SET_BIT; 
-
             // Valid input - compare the ID to each of the available pre-defined commands 
             for (uint8_t i = CLEAR; i < AB_NUM_CMDS; i++) 
             {
@@ -331,7 +439,6 @@ void ab_app(void)
                     {
                         // ID matched to a command. Execute the command. 
                         (cmd_table[i].ab_cmd_func_ptr)(ab_data.cmd_value); 
-                        ab_data.mc_data = CLEAR_BIT; 
                         break; 
                     }
                 }
@@ -364,7 +471,7 @@ void ab_app(void)
             {
                 next_state = AB_LOW_PWR_STATE; 
             }
-            else if (ab_data.ready)
+            else if (ab_data.idle)
             {
                 next_state = AB_READY_STATE; 
             }
@@ -402,13 +509,13 @@ void ab_app(void)
             {
                 next_state = AB_LOW_PWR_STATE; 
             }
+            else if (!ab_data.ready)
+            {
+                next_state = AB_NOT_READY_STATE; 
+            }
             else if (ab_data.idle)
             {
                 next_state = AB_READY_STATE; 
-            }
-            else if (ab_data.autonomous)
-            {
-                next_state = AB_AUTO_STATE; 
             }
             break; 
         
@@ -421,13 +528,13 @@ void ab_app(void)
             {
                 next_state = AB_LOW_PWR_STATE; 
             }
+            else if (!ab_data.ready)
+            {
+                next_state = AB_NOT_READY_STATE; 
+            }
             else if (ab_data.idle)
             {
                 next_state = AB_READY_STATE; 
-            }
-            else if (ab_data.manual)
-            {
-                next_state = AB_MANUAL_STATE; 
             }
             break; 
         
@@ -487,15 +594,35 @@ void ab_init_state(void)
     //==================================================
     // State entry 
 
-    if (ab_data.init)
+    if (ab_data.state_entry)
     {
-        ab_data.init = CLEAR_BIT; 
+        ab_data.state_entry = CLEAR_BIT; 
+
+        // Set the thruster throttle to zero 
+        esc_readytosky_send(DEVICE_ONE, 0); 
+        esc_readytosky_send(DEVICE_TWO, 0); 
     }
 
     //==================================================
 
+    // Set up the file system 
+
     //==================================================
     // State exit 
+
+    // Short delay to let the system set up before moving into the next state 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.delay_timer.clk_freq, 
+                    AB_INIT_DELAY, 
+                    &ab_data.delay_timer.time_cnt_total, 
+                    &ab_data.delay_timer.time_cnt, 
+                    &ab_data.delay_timer.time_start))
+    {
+        ab_data.delay_timer.time_start = SET_BIT; 
+        ab_data.state_entry = SET_BIT; 
+        ab_data.init = CLEAR_BIT; 
+    }
+
     //==================================================
 }
 
@@ -507,10 +634,25 @@ void ab_not_ready_state(void)
 
     //==================================================
     // State entry 
+    
+    if (ab_data.state_entry)
+    {
+        ab_data.state_entry = CLEAR_BIT; 
+    }
+
     //==================================================
+
+    // Wait for the system requirements to be met - ready flag will be set 
 
     //==================================================
     // State exit 
+
+    if (ab_data.fault | ab_data.low_pwr | ab_data.ready)
+    {
+        ab_data.state_entry = SET_BIT; 
+        ab_data.idle = SET_BIT; 
+    }
+
     //==================================================
 }
 
@@ -523,15 +665,24 @@ void ab_ready_state(void)
     //==================================================
     // State entry 
 
-    if (ab_data.ready)
+    if (ab_data.state_entry)
     {
-        ab_data.ready = CLEAR_BIT; 
+        ab_data.state_entry = CLEAR_BIT; 
     }
 
     //==================================================
 
+    // Wait for an active state to be chosen 
+
     //==================================================
     // State exit 
+
+    if (ab_data.fault | ab_data.low_pwr | !ab_data.ready | ab_data.manual | ab_data.autonomous)
+    {
+        ab_data.state_entry = SET_BIT; 
+        ab_data.idle = CLEAR_BIT; 
+    }
+
     //==================================================
 }
 
@@ -545,9 +696,9 @@ void ab_manual_state(void)
     //==================================================
     // State entry 
 
-    if (ab_data.manual)
+    if (ab_data.state_entry)
     {
-        ab_data.manual = CLEAR_BIT; 
+        ab_data.state_entry = CLEAR_BIT; 
     }
 
     //==================================================
@@ -595,6 +746,13 @@ void ab_manual_state(void)
 
     //==================================================
     // State exit 
+
+    if (ab_data.fault | ab_data.low_pwr | !ab_data.ready | ab_data.idle)
+    {
+        ab_data.state_entry = SET_BIT; 
+        ab_data.manual = CLEAR_BIT; 
+    }
+
     //==================================================
 }
 
@@ -603,14 +761,14 @@ void ab_manual_state(void)
 void ab_auto_state(void)
 {
     // Local variables 
-    static uint8_t nav_period_flag = CLEAR; 
+    static uint8_t nav_period_flag = SET_BIT; 
 
     //==================================================
     // State entry 
 
-    if (ab_data.autonomous)
+    if (ab_data.state_entry)
     {
-        ab_data.autonomous = CLEAR_BIT; 
+        ab_data.state_entry = CLEAR_BIT; 
     }
 
     //==================================================
@@ -682,6 +840,13 @@ void ab_auto_state(void)
 
     //==================================================
     // State exit 
+
+    if (ab_data.fault | ab_data.low_pwr | !ab_data.ready | ab_data.idle)
+    {
+        ab_data.state_entry = SET_BIT; 
+        ab_data.autonomous = CLEAR_BIT; 
+    }
+
     //==================================================
 }
 
@@ -694,15 +859,23 @@ void ab_low_pwr_state(void)
     //==================================================
     // State entry 
 
-    if (ab_data.low_pwr)
+    if (ab_data.state_entry)
     {
-        ab_data.low_pwr = CLEAR_BIT; 
+        ab_data.state_entry = CLEAR_BIT; 
     }
 
     //==================================================
 
+    // Wait for the voltage to rise to an acceptable level 
+
     //==================================================
     // State exit 
+
+    if (ab_data.fault | !ab_data.low_pwr)
+    {
+        ab_data.state_entry = SET_BIT; 
+    }
+
     //==================================================
 }
 
@@ -715,15 +888,24 @@ void ab_fault_state(void)
     //==================================================
     // State entry 
 
-    if (ab_data.fault)
+    if (ab_data.state_entry)
     {
-        ab_data.fault = CLEAR_BIT; 
+        ab_data.state_entry = CLEAR_BIT; 
     }
 
     //==================================================
 
+    ab_data.reset = SET_BIT; 
+
     //==================================================
     // State exit 
+
+    if (ab_data.reset)
+    {
+        ab_data.state_entry = SET_BIT; 
+        ab_data.fault = CLEAR_BIT; 
+    }
+
     //==================================================
 }
 
@@ -736,15 +918,25 @@ void ab_reset_state(void)
     //==================================================
     // State entry 
 
-    if (ab_data.reset)
+    if (ab_data.state_entry)
     {
-        ab_data.reset = CLEAR_BIT; 
+        ab_data.state_entry = CLEAR_BIT; 
     }
 
     //==================================================
 
+    ab_data.init = SET_BIT; 
+    ab_data.fault_code = CLEAR; 
+
     //==================================================
     // State exit 
+
+    if (ab_data.init)
+    {
+        ab_data.state_entry = SET_BIT; 
+        ab_data.reset = CLEAR_BIT; 
+    }
+
     //==================================================
 }
 
@@ -758,7 +950,7 @@ void ab_reset_state(void)
 void ab_idle_cmd(
     uint8_t idle_cmd_value)
 {
-    // 
+    ab_data.idle = SET_BIT; 
 }
 
 
@@ -766,7 +958,7 @@ void ab_idle_cmd(
 void ab_manual_cmd(
     uint8_t manual_cmd_value)
 {
-    // 
+    ab_data.manual = SET_BIT; 
 }
 
 
@@ -774,7 +966,7 @@ void ab_manual_cmd(
 void ab_auto_cmd(
     uint8_t auto_cmd_value)
 {
-    // 
+    ab_data.autonomous = SET_BIT; 
 }
 
 
@@ -782,10 +974,47 @@ void ab_auto_cmd(
 void ab_index_cmd(
     uint8_t index_cmd_value)
 {
-    // Check that an index has been receieved X times before updating the index so that 
-    // a bad message doesn't screw up the desired index. 
+    // Local variables 
+    static uint8_t index_check = CLEAR; 
+    static uint8_t index_last = CLEAR; 
 
-    // Check that the index is within bounds. 
+    // Compare the previous index command to the new index command 
+    if (index_cmd_value != index_last)
+    {
+        index_last = index_cmd_value; 
+        index_check = SET_BIT; 
+    }
+    else 
+    {
+        index_check++; 
+    }
+
+    // Check that the index is within bounds and seen the last AB_GPS_INDEX_CNT times before 
+    // updating the index (filters noise). 
+    if ((index_cmd_value < AB_NUM_COORDINATES) && (index_check >= AB_GPS_INDEX_CNT))
+    {
+        ab_data.waypoint_index = index_cmd_value; 
+        index_check = CLEAR; 
+    }
+}
+
+
+// Manual throttle command 
+void ab_throttle_cmd(
+    uint8_t throttle_cmd_value)
+{
+    ab_data.mc_data = SET_BIT; 
+    ab_data.connect = SET_BIT; 
+    ab_data.hb_timeout = CLEAR; 
+}
+
+
+// Heartbeat command 
+void ab_hb_cmd(
+    uint8_t hb_cmd_value)
+{
+    ab_data.connect = SET_BIT; 
+    ab_data.hb_timeout = CLEAR; 
 }
 
 //=======================================================================================
@@ -869,8 +1098,6 @@ void ab_gps_heading(void)
 // Get the true North heading 
 void ab_heading(void)
 {
-    // Local variables 
-
     // Get the magnetometer heading and add the true North correction 
     ab_data.heading_actual = lsm303agr_m_get_heading() + AB_TN_COR; 
 
@@ -895,9 +1122,6 @@ void ab_heading(void)
 // Heading error 
 void ab_heading_error(void)
 {
-    // Local variables 
-    ab_data.heading_error; 
-
     // Calculate the heading error 
     ab_data.heading_error = ab_data.heading_desired - ab_data.heading_actual; 
 
