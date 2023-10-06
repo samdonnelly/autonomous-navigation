@@ -12,8 +12,8 @@
  * 
  */
 
-#ifndef _INCLUDES_APP_H_
-#define _INCLUDES_APP_H_
+#ifndef _AB_INCLUDES_APP_H_
+#define _AB_INCLUDES_APP_H_
 
 //=======================================================================================
 // Includes 
@@ -25,4 +25,4 @@
 
 //=======================================================================================
 
-#endif  // _INCLUDES_APP_H_
+#endif  // _AB_INCLUDES_APP_H_

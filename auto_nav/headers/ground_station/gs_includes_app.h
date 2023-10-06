@@ -12,8 +12,8 @@
  * 
  */
 
-#ifndef _INCLUDES_APP_H_
-#define _INCLUDES_APP_H_
+#ifndef _GS_INCLUDES_APP_H_
+#define _GS_INCLUDES_APP_H_
 
 //=======================================================================================
 // Includes 
@@ -24,4 +24,4 @@
 
 //=======================================================================================
 
-#endif  // _INCLUDES_APP_H_
+#endif  // _GS_INCLUDES_APP_H_
