@@ -57,8 +57,9 @@ extern "C" {
 // Manual Control 
 #define AB_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
 #define AB_MC_RIGHT_MOTOR 0x52       // "R" character that indicates right motor 
-#define AB_MC_FWD_THRUST 0x50        // "P" (positive) - indicates forward thrust 
-#define AB_MC_REV_THRUST 0x4E        // "N" (negative) - indicates reverse thrust 
+#define AB_MC_FWD_THRUST 0x50        // "P" (plus) - indicates forward thrust 
+#define AB_MC_REV_THRUST 0x4D        // "M" (minus) - indicates reverse thrust 
+#define AB_MC_NEUTRAL 0x4E           // "N" (neutral) - indicates neutral gear or zero thrust 
 
 // Thrusters 
 #define AB_NO_THRUST 0               // Force thruster output to zero 

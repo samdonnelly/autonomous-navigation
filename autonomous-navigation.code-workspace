@@ -14,7 +14,8 @@
 			"includes_app.h": "c",
 			"includes_drivers.h": "c",
 			"gs_init.h": "c",
-			"ab_init.h": "c"
+			"ab_init.h": "c",
+			"esc_readytosky_driver.h": "c"
 		}
 	},
 	"launch": {
