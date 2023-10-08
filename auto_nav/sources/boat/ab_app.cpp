@@ -253,7 +253,7 @@ const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] =
 //=======================================================================================
 // Main functions 
 
-// Autonomous boat application  
+// Autonomous boat application initialization 
 void ab_app_init(
     TIM_TypeDef *timer_nonblocking, 
     DMA_Stream_TypeDef *adc_dma_stream, 
@@ -775,10 +775,7 @@ void ab_ready_state(void)
 void ab_manual_state(void)
 {
     // Local variables 
-    uint8_t cmd_checksum = CLEAR; 
-    uint16_t cmd_value = (uint16_t)ab_data.cmd_value; 
-    static uint16_t right_thrust = CLEAR; 
-    static uint16_t left_thrust = CLEAR; 
+    int16_t cmd_value = CLEAR; 
 
     //==================================================
     // State entry 
@@ -800,57 +797,59 @@ void ab_manual_state(void)
 
         // Check that the command matches a valid throttle command. If it does then update 
         // the thruster command. 
-        cmd_checksum = ab_data.cmd_id[0] + ab_data.cmd_id[1]; 
+        
+        cmd_value = (int16_t)ab_data.cmd_value; 
 
-        switch (cmd_checksum)
-        {
-            case (AB_MC_RIGHT_MOTOR + AB_MC_FWD_THRUST): 
-                right_thrust += (cmd_value - right_thrust) >> SHIFT_2; 
-                ab_data.right_thruster = (int16_t)right_thrust; 
-                break; 
-            
-            case (AB_MC_RIGHT_MOTOR + AB_MC_REV_THRUST): 
-                right_thrust += (cmd_value - right_thrust) >> SHIFT_2; 
-                ab_data.right_thruster = (int16_t)(~right_thrust + 1); 
-                break; 
-
-            case (AB_MC_RIGHT_MOTOR + AB_MC_NEUTRAL): 
-                // Check that the throttle command is also zero to help protect against 
-                // mangled commands. 
-                if (cmd_value == AB_NO_THRUST)
+        if (ab_data.cmd_id[0] == AB_MC_RIGHT_MOTOR)
+            {
+                switch (ab_data.cmd_id[1])
                 {
-                    right_thrust = AB_NO_THRUST; 
-                    ab_data.right_thruster = AB_NO_THRUST; 
+                    case AB_MC_FWD_THRUST: 
+                        ab_data.right_thruster += (cmd_value - 
+                                                        ab_data.right_thruster) >> SHIFT_3; 
+                        esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
+                        break; 
+                    case AB_MC_REV_THRUST: 
+                        ab_data.right_thruster += ((~cmd_value + 1) - 
+                                                        ab_data.right_thruster) >> SHIFT_3; 
+                        esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
+                        break; 
+                    case AB_MC_NEUTRAL: 
+                        if (cmd_value == AB_NO_THRUST)
+                        {
+                            ab_data.right_thruster = AB_NO_THRUST; 
+                            esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
+                        }
+                        break; 
+                    default: 
+                        break; 
                 }
-                break; 
-            
-            case (AB_MC_LEFT_MOTOR + AB_MC_FWD_THRUST): 
-                left_thrust += (cmd_value - left_thrust) >> SHIFT_2; 
-                ab_data.left_thruster = (int16_t)left_thrust; 
-                break; 
-            
-            case (AB_MC_LEFT_MOTOR + AB_MC_REV_THRUST): 
-                left_thrust += (cmd_value - left_thrust) >> SHIFT_2; 
-                ab_data.left_thruster = (int16_t)(~left_thrust + 1); 
-                break; 
-
-            case (AB_MC_LEFT_MOTOR + AB_MC_NEUTRAL): 
-                // Check that the throttle command is also zero to help protect against 
-                // mangled commands. 
-                if (cmd_value == AB_NO_THRUST)
+            }
+            else if (ab_data.cmd_id[0] == AB_MC_LEFT_MOTOR)
+            {
+                switch (ab_data.cmd_id[1])
                 {
-                    left_thrust = AB_NO_THRUST; 
-                    ab_data.left_thruster = AB_NO_THRUST; 
+                    case AB_MC_FWD_THRUST: 
+                        ab_data.left_thruster += (cmd_value - 
+                                                        ab_data.left_thruster) >> SHIFT_3; 
+                        esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
+                        break; 
+                    case AB_MC_REV_THRUST: 
+                        ab_data.left_thruster += ((~cmd_value + 1) - 
+                                                        ab_data.left_thruster) >> SHIFT_3; 
+                        esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
+                        break; 
+                    case AB_MC_NEUTRAL: 
+                        if (cmd_value == AB_NO_THRUST)
+                        {
+                            ab_data.left_thruster = AB_NO_THRUST; 
+                            esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
+                        }
+                        break; 
+                    default: 
+                        break; 
                 }
-                break; 
-            
-            default: 
-                break; 
-        }
-
-        // Send the throttle command to the ESCs 
-        esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
-        esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
+            }
     }
 
     //==================================================

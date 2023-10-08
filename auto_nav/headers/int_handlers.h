@@ -72,6 +72,11 @@ typedef struct int_handle_flags_s
 
     // ADC interrupt flags 
     uint8_t adc_flag: 1; 
+
+    // USART interrupt flags 
+    uint8_t usart1_flag : 1;                       // USART1 global 
+    uint8_t usart2_flag : 1;                       // USART2 global 
+    uint8_t usart6_flag : 1;                       // USART6 global 
 } 
 int_handle_flags_t;
 
@@ -578,6 +583,30 @@ void TIM5_IRQHandler(void);
  *          conversion, and for analog watchdog or overrun events. 
  */
 void ADC_IRQHandler(void); 
+
+
+/**
+ * @brief USART1 interrupt handler 
+ * 
+ * @details 
+ */
+void USART1_IRQHandler(void); 
+
+
+/**
+ * @brief USART2 interrupt handler 
+ * 
+ * @details 
+ */
+void USART2_IRQHandler(void); 
+
+
+/**
+ * @brief USART6 interrupt handler 
+ * 
+ * @details 
+ */
+void USART6_IRQHandler(void); 
 
 //=======================================================================================
 

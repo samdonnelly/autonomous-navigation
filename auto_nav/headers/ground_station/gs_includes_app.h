@@ -21,6 +21,7 @@
 // Application code 
 #include "gs_init.h"
 #include "gs_app.h"
+#include "int_handlers.h"
 
 //=======================================================================================
 

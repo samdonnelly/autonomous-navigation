@@ -153,7 +153,7 @@ typedef struct ab_data_s
 
     // Control flags 
     uint8_t connect     : 1;                 // Radio connection status flag 
-    uint8_t mc_data     : 1;                 // Manual control new dtaa check flag 
+    uint8_t mc_data     : 1;                 // Manual control new data check flag 
     uint8_t state_entry : 1;                 // State entry flag 
     uint8_t init        : 1;                 // Initialization state flag 
     uint8_t ready       : 1;                 // Ready state flag 

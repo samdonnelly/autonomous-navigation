@@ -19,8 +19,6 @@
 
 //=======================================================================================
 
-// TODO
-// - No way to distinguish what flag triggered the DMA interrupts 
 
 //=======================================================================================
 // Globals 
@@ -78,6 +76,11 @@ void int_handler_init(void)
 
     // ADC interrupt flags 
     handler_flags.adc_flag = CLEAR; 
+
+    // USART interrupt flags 
+    handler_flags.usart1_flag = CLEAR; 
+    handler_flags.usart2_flag = CLEAR; 
+    handler_flags.usart6_flag = CLEAR; 
 }
 
 //=======================================================================================
@@ -343,6 +346,33 @@ void TIM5_IRQHandler(void)
 void ADC_IRQHandler(void)
 {
     handler_flags.adc_flag = SET_BIT;  
+}
+
+
+// USART1 
+void USART1_IRQHandler(void)
+{
+    handler_flags.usart1_flag = SET_BIT; 
+    dummy_read(USART1->SR); 
+    dummy_read(USART1->DR); 
+}
+
+
+// USART2 
+void USART2_IRQHandler(void)
+{
+    handler_flags.usart2_flag = SET_BIT; 
+    dummy_read(USART2->SR); 
+    dummy_read(USART2->DR); 
+}
+
+
+// USART6 
+void USART6_IRQHandler(void)
+{
+    handler_flags.usart6_flag = SET_BIT; 
+    dummy_read(USART6->SR); 
+    dummy_read(USART6->DR); 
 }
 
 //=======================================================================================
