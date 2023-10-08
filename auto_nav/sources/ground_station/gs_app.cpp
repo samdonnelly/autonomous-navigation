@@ -47,38 +47,6 @@ void gs_mc_state(void);
 void gs_cmd_send_state(void); 
 
 
-// /**
-//  * @brief Idle command state 
-//  * 
-//  * @details 
-//  */
-// void gs_idle_cmd_state(void); 
-
-
-// /**
-//  * @brief Manual control command state 
-//  * 
-//  * @details 
-//  */
-// void gs_manual_cmd_state(void); 
-
-
-// /**
-//  * @brief Autonomous command state 
-//  * 
-//  * @details 
-//  */
-// void gs_auto_cmd_state(void); 
-
-
-// /**
-//  * @brief Waypoint index update command state 
-//  * 
-//  * @details 
-//  */
-// void gs_index_cmd_state(void); 
-
-
 /**
  * @brief Heartbeat command 
  * 
@@ -98,64 +66,29 @@ void gs_mc_mode_cmd(
 
 
 /**
- * @brief Command send S
+ * @brief Command send 
  * 
- * @param idle_cmd_value 
+ * @param cmd_value 
  */
 void gs_cmd_send(
-    uint8_t idle_cmd_value); 
-
-
-// /**
-//  * @brief Idle command 
-//  * 
-//  * @param idle_cmd_value 
-//  */
-// void gs_idle_cmd(
-//     uint8_t idle_cmd_value); 
-
-
-// /**
-//  * @brief Manual control mode command 
-//  * 
-//  * @param manual_cmd_value 
-//  */
-// void gs_manual_cmd(
-//     uint8_t manual_cmd_value); 
-
-
-// /**
-//  * @brief Autonomous mode command 
-//  * 
-//  * @param auto_cmd_value 
-//  */
-// void gs_auto_cmd(
-//     uint8_t auto_cmd_value); 
-
-
-// /**
-//  * @brief Index update command 
-//  * 
-//  * @param index_cmd_value 
-//  */
-// void gs_index_cmd(
-//     uint8_t index_cmd_value); 
+    uint8_t cmd_value); 
 
 
 /**
- * @brief Heartbeat state exit 
+ * @brief RF power output command 
+ * 
+ * @param rf_pwr 
+ */
+void gs_pwr_cmd(
+    uint8_t rf_pwr); 
+
+
+/**
+ * @brief User serial terminal prompt 
  * 
  * @details 
  */
-void gs_state_exit(void); 
-
-
-// /**
-//  * @brief Heartbeat state exit 
-//  * 
-//  * @details 
-//  */
-// void gs_hb_state_exit(void); 
+void gs_user_prompt(void); 
 
 
 /**
@@ -197,26 +130,19 @@ static gs_state_func_ptr state_table[GS_NUM_STATES] =
     &gs_hb_state, 
     &gs_mc_state, 
     &gs_cmd_send_state 
-    // &gs_idle_cmd_state, 
-    // &gs_manual_cmd_state, 
-    // &gs_auto_cmd_state, 
-    // &gs_index_cmd_state
 }; 
 
 
 // User commands 
 static gs_cmds_t cmd_table[GS_NUM_CMDS] = 
 {
-    {"hb",     &gs_hb_cmd,      0xFF}, 
-    {"mc",     &gs_mc_mode_cmd, 0x38}, 
-    // {"idle",   &gs_idle_cmd,    0x3F}, 
-    // {"manual", &gs_manual_cmd,  0x3F}, 
-    // {"auto",   &gs_auto_cmd,    0x3F}, 
-    // {"index",  &gs_index_cmd,   0x38} 
-    {"idle",   &gs_cmd_send,    0x3F}, 
-    {"manual", &gs_cmd_send,    0x3F}, 
-    {"auto",   &gs_cmd_send,    0x3F}, 
-    {"index",  &gs_cmd_send,    0x38} 
+    {"hb",     &gs_hb_cmd,      (SET_BIT << GS_MC_STATE)}, 
+    {"mc",     &gs_mc_mode_cmd, (SET_BIT << GS_HB_STATE)}, 
+    {"idle",   &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
+    {"manual", &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
+    {"auto",   &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
+    {"index",  &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
+    {"rfpwr",  &gs_pwr_cmd,     (SET_BIT >> GS_HB_STATE) | (SET_BIT << GS_MC_STATE)} 
 }; 
 
 //=======================================================================================
@@ -259,6 +185,7 @@ void gs_app_init(
 
     // System information 
     gs_data.state = GS_HB_STATE; 
+    gs_data.uart = uart; 
 
     // Timing information 
     gs_data.timer_nonblocking = timer_nonblocking; 
@@ -279,27 +206,19 @@ void gs_app_init(
 
     // System data 
     memset((void *)gs_data.adc_buff, CLEAR, sizeof(gs_data.adc_buff)); 
-
-    // 
-    gs_data.waypoint_index = CLEAR; 
-
-    // 
-    gs_data.cmd_send_index = GS_SEND_COUNT; 
+    gs_data.cmd_send_index = GS_CMD_SEND_COUNT; 
 
     // Control flags 
     gs_data.led_state = CLEAR_BIT; 
     gs_data.state_entry = CLEAR_BIT; 
     gs_data.hb = SET_BIT; 
     gs_data.mc = CLEAR_BIT; 
-    // gs_data.idle = CLEAR_BIT; 
-    // gs_data.manual = CLEAR_BIT; 
-    // gs_data.autonomous = CLEAR_BIT; 
-    // gs_data.index = CLEAR_BIT; 
+    gs_data.cmd = CLEAR_BIT; 
 
     //==================================================
 
     // Provide an initial user prompt 
-    uart_sendstring(USART2, "\r\n>>> "); 
+    gs_user_prompt(); 
 }
 
 
@@ -351,7 +270,7 @@ void gs_app(void)
             }
         }
 
-        uart_sendstring(USART2, "\r\n>>> "); 
+        gs_user_prompt(); 
     }
 
     //==================================================
@@ -370,22 +289,6 @@ void gs_app(void)
             {
                 next_state = GS_MC_STATE; 
             }
-            // if (gs_data.idle)
-            // {
-            //     next_state = GS_IDLE_CMD_STATE; 
-            // }
-            // else if (gs_data.manual)
-            // {
-            //     next_state = GS_MANUAL_CMD_STATE; 
-            // }
-            // else if (gs_data.autonomous)
-            // {
-            //     next_state = GS_AUTO_CMD_STATE; 
-            // }
-            // else if (gs_data.index)
-            // {
-            //     next_state = GS_INDEX_CMD_STATE; 
-            // }
             break; 
         
         case GS_MC_STATE: 
@@ -401,34 +304,6 @@ void gs_app(void)
                 next_state = GS_HB_STATE; 
             }
             break; 
-
-        // case GS_IDLE_CMD_STATE: 
-        //     if (gs_data.hb)
-        //     {
-        //         next_state = GS_HB_STATE; 
-        //     }
-        //     break; 
-
-        // case GS_MANUAL_CMD_STATE: 
-        //     if (gs_data.hb)
-        //     {
-        //         next_state = GS_HB_STATE; 
-        //     }
-        //     break; 
-
-        // case GS_AUTO_CMD_STATE: 
-        //     if (gs_data.hb)
-        //     {
-        //         next_state = GS_HB_STATE; 
-        //     }
-        //     break; 
-
-        // case GS_INDEX_CMD_STATE: 
-        //     if (gs_data.hb)
-        //     {
-        //         next_state = GS_HB_STATE; 
-        //     }
-        //     break; 
         
         default: 
             next_state = GS_HB_STATE; 
@@ -459,10 +334,7 @@ void gs_hb_state(void)
     //==================================================
     // State entry 
 
-    if (gs_data.state_entry)
-    {
-        gs_data.state_entry = CLEAR_BIT; 
-    }
+    // No tasks needed for state entry 
 
     //==================================================
 
@@ -506,10 +378,7 @@ void gs_mc_state(void)
     //==================================================
     // State entry 
 
-    if (gs_data.state_entry)
-    {
-        gs_data.state_entry = CLEAR_BIT; 
-    }
+    // No tasks needed for state entry 
 
     //==================================================
 
@@ -578,10 +447,7 @@ void gs_cmd_send_state(void)
     //==================================================
     // State entry 
 
-    if (gs_data.state_entry)
-    {
-        gs_data.state_entry = CLEAR_BIT; 
-    }
+    // No tasks needed for state entry 
 
     //==================================================
 
@@ -612,199 +478,17 @@ void gs_cmd_send_state(void)
     {
         gs_data.state_entry = SET_BIT; 
         gs_data.delay_timer.time_start = SET_BIT; 
-        gs_data.cmd_send_index = GS_SEND_COUNT; 
+        gs_data.cmd_send_index = GS_CMD_SEND_COUNT; 
+        gs_data.hb = SET_BIT; 
+        gs_data.cmd = CLEAR_BIT; 
+
+        // Heartbeat state message 
+        uart_sendstring(gs_data.uart, "\r\n\nHB state\r\n"); 
+        gs_user_prompt(); 
     }
 
     //==================================================
 }
-
-
-// // Heartbeat state 
-// void gs_idle_cmd_state(void)
-// {
-//     //==================================================
-//     // State entry 
-
-//     if (gs_data.state_entry)
-//     {
-//         gs_data.state_entry = CLEAR_BIT; 
-//     }
-
-//     //==================================================
-
-//     // Send the idle state command X number of times 
-
-//     // Periodically send the command to the PRX device 
-//     if (tim_compare(gs_data.timer_nonblocking, 
-//                     gs_data.delay_timer.clk_freq, 
-//                     GS_CMD_PERIOD, 
-//                     &gs_data.delay_timer.time_cnt_total, 
-//                     &gs_data.delay_timer.time_cnt, 
-//                     &gs_data.delay_timer.time_start))
-//     {
-//         // Try sending out a payload and toggle the led if it was sent 
-//         if (nrf24l01_send_payload(gs_data.cmd_buff))
-//         {
-//             gs_data.led_state = GPIO_HIGH - gs_data.led_state; 
-//             gpio_write(GPIOA, GPIOX_PIN_5, (gpio_pin_state_t)gs_data.led_state); 
-//         } 
-
-//         gs_data.cmd_send_index--; 
-//     }
-
-//     //==================================================
-//     // State exit 
-
-//     if (!gs_data.cmd_send_index)
-//     {
-//         gs_data.state_entry = SET_BIT; 
-//         gs_data.delay_timer.time_start = SET_BIT; 
-//         gs_data.cmd_send_index = GS_SEND_COUNT; 
-//     }
-
-//     //==================================================
-// }
-
-
-// // Heartbeat state 
-// void gs_manual_cmd_state(void)
-// {
-//     //==================================================
-//     // State entry 
-
-//     if (gs_data.state_entry)
-//     {
-//         gs_data.state_entry = CLEAR_BIT; 
-//     }
-
-//     //==================================================
-
-//     // Send the manual control state command X number of times 
-
-//     // Periodically send the command to the PRX device 
-//     if (tim_compare(gs_data.timer_nonblocking, 
-//                     gs_data.delay_timer.clk_freq, 
-//                     GS_CMD_PERIOD, 
-//                     &gs_data.delay_timer.time_cnt_total, 
-//                     &gs_data.delay_timer.time_cnt, 
-//                     &gs_data.delay_timer.time_start))
-//     {
-//         // Try sending out a payload and toggle the led if it was sent 
-//         if (nrf24l01_send_payload(gs_data.cmd_id))
-//         {
-//             gs_data.led_state = GPIO_HIGH - gs_data.led_state; 
-//             gpio_write(GPIOA, GPIOX_PIN_5, (gpio_pin_state_t)gs_data.led_state); 
-//         } 
-
-//         gs_data.cmd_send_index--; 
-//     }
-
-//     //==================================================
-//     // State exit 
-
-//     if (!gs_data.cmd_send_index)
-//     {
-//         gs_data.state_entry = SET_BIT; 
-//         gs_data.delay_timer.time_start = SET_BIT; 
-//         gs_data.cmd_send_index = GS_SEND_COUNT; 
-//     }
-
-//     //==================================================
-// }
-
-
-// // Heartbeat state 
-// void gs_auto_cmd_state(void)
-// {
-//     //==================================================
-//     // State entry 
-
-//     if (gs_data.state_entry)
-//     {
-//         gs_data.state_entry = CLEAR_BIT; 
-//     }
-
-//     //==================================================
-
-//     // Send the auto state command X number of times 
-
-//     // Periodically send the command to the PRX device 
-//     if (tim_compare(gs_data.timer_nonblocking, 
-//                     gs_data.delay_timer.clk_freq, 
-//                     GS_CMD_PERIOD, 
-//                     &gs_data.delay_timer.time_cnt_total, 
-//                     &gs_data.delay_timer.time_cnt, 
-//                     &gs_data.delay_timer.time_start))
-//     {
-//         // Try sending out a payload and toggle the led if it was sent 
-//         if (nrf24l01_send_payload(gs_data.cmd_id))
-//         {
-//             gs_data.led_state = GPIO_HIGH - gs_data.led_state; 
-//             gpio_write(GPIOA, GPIOX_PIN_5, (gpio_pin_state_t)gs_data.led_state); 
-//         } 
-
-//         gs_data.cmd_send_index--; 
-//     }
-
-//     //==================================================
-//     // State exit 
-
-//     if (!gs_data.cmd_send_index)
-//     {
-//         gs_data.state_entry = SET_BIT; 
-//         gs_data.delay_timer.time_start = SET_BIT; 
-//         gs_data.cmd_send_index = GS_SEND_COUNT; 
-//     }
-
-//     //==================================================
-// }
-
-
-// // Heartbeat state 
-// void gs_index_cmd_state(void)
-// {
-//     //==================================================
-//     // State entry 
-
-//     if (gs_data.state_entry)
-//     {
-//         gs_data.state_entry = CLEAR_BIT; 
-//     }
-
-//     //==================================================
-
-//     // Send an updated waypoint index command X number of times 
-
-//     // Periodically send the command to the PRX device 
-//     if (tim_compare(gs_data.timer_nonblocking, 
-//                     gs_data.delay_timer.clk_freq, 
-//                     GS_CMD_PERIOD, 
-//                     &gs_data.delay_timer.time_cnt_total, 
-//                     &gs_data.delay_timer.time_cnt, 
-//                     &gs_data.delay_timer.time_start))
-//     {
-//         // Try sending out a payload and toggle the led if it was sent 
-//         if (nrf24l01_send_payload(gs_data.cmd_id))
-//         {
-//             gs_data.led_state = GPIO_HIGH - gs_data.led_state; 
-//             gpio_write(GPIOA, GPIOX_PIN_5, (gpio_pin_state_t)gs_data.led_state); 
-//         } 
-
-//         gs_data.cmd_send_index--; 
-//     }
-
-//     //==================================================
-//     // State exit 
-
-//     if (!gs_data.cmd_send_index)
-//     {
-//         gs_data.state_entry = SET_BIT; 
-//         gs_data.delay_timer.time_start = SET_BIT; 
-//         gs_data.cmd_send_index = GS_SEND_COUNT; 
-//     }
-
-//     //==================================================
-// }
 
 //=======================================================================================
 
@@ -818,7 +502,8 @@ void gs_hb_cmd(
 {
     gs_data.hb = SET_BIT; 
     gs_data.mc = CLEAR_BIT; 
-    gs_state_exit(); 
+    gs_data.delay_timer.time_start = SET_BIT; 
+    uart_sendstring(gs_data.uart, "\r\nHB state\r\n"); 
 }
 
 
@@ -829,56 +514,38 @@ void gs_mc_mode_cmd(
     // gs_hb_state_exit(); 
     gs_data.mc = SET_BIT; 
     gs_data.hb = CLEAR_BIT; 
-    gs_state_exit(); 
+    gs_data.delay_timer.time_start = SET_BIT; 
+    uart_sendstring(gs_data.uart, "\r\nMC state\r\n"); 
 }
 
 
 // Command send 
 void gs_cmd_send(
-    uint8_t idle_cmd_value)
+    uint8_t cmd_value)
 {
     // gs_hb_state_exit(); 
     gs_data.cmd = SET_BIT; 
     gs_data.hb = CLEAR_BIT; 
-    gs_state_exit(); 
+    gs_data.delay_timer.time_start = SET_BIT; 
+    uart_sendstring(gs_data.uart, "\r\ncommand sending...\r\n"); 
 }
 
 
-// // Idle command 
-// void gs_idle_cmd(
-//     uint8_t idle_cmd_value)
-// {
-//     gs_data.idle = SET_BIT; 
-//     gs_hb_state_exit(); 
-// }
+// RF power output command 
+void gs_pwr_cmd(
+    uint8_t rf_pwr)
+{
+    // Check that input is within bounds 
+    if (rf_pwr <= (uint8_t)NRF24L01_RF_PWR_0DBM)
+    {
+        nrf24l01_set_rf_pwr((nrf24l01_rf_pwr_t)rf_pwr); 
 
-
-// // Manual control mode command 
-// void gs_manual_cmd(
-//     uint8_t manual_cmd_value)
-// {
-//     gs_data.manual = SET_BIT; 
-//     gs_hb_state_exit(); 
-// }
-
-
-// // Autonomous mode command 
-// void gs_auto_cmd(
-//     uint8_t auto_cmd_value)
-// {
-//     gs_data.autonomous = SET_BIT; 
-//     gs_hb_state_exit(); 
-// }
-
-
-// // Index update command 
-// void gs_index_cmd(
-//     uint8_t index_cmd_value)
-// {
-//     gs_data.waypoint_index = index_cmd_value; 
-//     gs_data.index = SET_BIT; 
-//     gs_hb_state_exit(); 
-// }
+        if (nrf24l01_get_rf_pwr() == (nrf24l01_rf_pwr_t)rf_pwr)
+        {
+            uart_sendstring(gs_data.uart, "\r\nSuccess.\r\n"); 
+        }
+    }
+}
 
 //=======================================================================================
 
@@ -886,21 +553,11 @@ void gs_cmd_send(
 //=======================================================================================
 // Other functions 
 
-// Heartbeat state exit 
-void gs_state_exit(void)
+// User serial terminal prompt 
+void gs_user_prompt(void)
 {
-    gs_data.delay_timer.time_start = SET_BIT; 
-    gs_data.state_entry = SET_BIT; 
+    uart_sendstring(gs_data.uart, "\r\n>>> "); 
 }
-
-
-// // Heartbeat state exit 
-// void gs_hb_state_exit(void)
-// {
-//     gs_data.hb = CLEAR_BIT; 
-//     gs_data.delay_timer.time_start = SET_BIT; 
-//     gs_data.state_entry = SET_BIT; 
-// }
 
 //=======================================================================================
 

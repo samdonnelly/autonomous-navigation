@@ -35,11 +35,6 @@ extern "C" {
 #define AB_NUM_STATES 8              // Number of system states 
 #define AB_NUM_CMDS 9                // Total number of external commands available 
 
-// Data sizes 
-#define AB_ADC_BUFF_SIZE 3           // Size according to the number of ADCs used 
-#define AB_MAX_CMD_SIZE 32           // Max external command size 
-#define AB_PL_LEN 32                 // Payload length 
-
 // Timing 
 #define AB_NAV_UPDATE 500000         // Navigation calculation update period (us) 
 #define AB_HB_PERIOD 500000          // Time between heartbeat checks (us) 
@@ -47,6 +42,11 @@ extern "C" {
 #define AB_INIT_DELAY 1000000        // Init state delay (us) 
 #define AB_READY_PERIOD 100000       // Ready / Not Ready state LED update period 
 #define AB_READY_TIMEOUT 30          // period*timeout = time between LED flashes 
+
+// Data sizes 
+#define AB_ADC_BUFF_SIZE 3           // Size according to the number of ADCs used 
+#define AB_MAX_CMD_SIZE 32           // Max external command size 
+#define AB_PL_LEN 32                 // Payload length 
 
 // Navigation 
 #define AB_NUM_COORDINATES 10        // Number of pre-defined GPS coordinates 
@@ -128,9 +128,7 @@ typedef struct ab_data_s
 
     // System data 
     uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
-
-    // LED colour data - Green bits: 16-23, Red bits: 8-15, Blue bits: 0-7 
-    uint32_t led_colour_data[WS2812_LED_NUM]; 
+    uint32_t led_data[WS2812_LED_NUM];       // Bits: Green: 16-23, Red: 8-15, Blue: 0-7 
 
     // Payload data 
     uint8_t read_buff[AB_PL_LEN];            // Data read by PRX from PTX device 

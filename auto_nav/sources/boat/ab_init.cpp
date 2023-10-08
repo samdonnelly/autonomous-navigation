@@ -16,6 +16,7 @@
 // Includes 
 
 #include "ab_init.h"
+#include "ab_includes_app.h"
 
 //=======================================================================================
 
@@ -98,6 +99,18 @@ void ab_init(void)
 
     //===================================================
     // UART 
+
+    // TEST 
+    // Initialize UART - serial terminal 
+    uart_init(
+        USART2, 
+        GPIOA, 
+        PIN_3, 
+        PIN_2, 
+        UART_FRAC_42_9600, 
+        UART_MANT_42_9600, 
+        UART_DMA_DISABLE, 
+        UART_DMA_DISABLE); 
 
     // Bluetooth module 
     uart_init(
@@ -294,13 +307,18 @@ void ab_init(void)
     //===================================================
     // LEDs 
 
-    // WS2812 (Neopixels) 
-    ws2812_init(
-        DEVICE_ONE, 
-        TIM3, 
-        TIM_CHANNEL_1, 
-        GPIOC, 
-        PIN_6); 
+    // TODO the LEDs use the same timer (TIM3) as the ESCs but the prescalar is 
+    //      different between them so it causes the LEDs not to work. Also 
+    //      the LED driver enables and disables the timer when sending so it 
+    //      messes up the ESCs. 
+
+    // // WS2812 (Neopixels) 
+    // ws2812_init(
+    //     DEVICE_ONE, 
+    //     TIM3, 
+    //     TIM_CHANNEL_1, 
+    //     GPIOC, 
+    //     PIN_6); 
     
     //===================================================
 

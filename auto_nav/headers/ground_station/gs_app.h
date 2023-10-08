@@ -34,32 +34,28 @@ extern "C" {
 // System info 
 #define GS_NUM_STATES 3              // Total number of system states 
 
-// Data sizes 
-#define GS_ADC_BUFF_SIZE 2           // 
+// Timing 
+#define GS_HB_PERIOD 500000          // Time between heartbeat checks (us) 
+#define GS_MC_PERIOD 50000           // Time between throttle command sends (us) 
+#define GS_CMD_PERIOD 250000         // Time between command sends checks (us) 
 
 // User commands 
-#define GS_MAX_USER_INPUT 30         // 
-#define GS_NUM_CMDS 6                // Total number of external commands available 
+#define GS_MAX_USER_INPUT 30         // Max data size for user input (bytes) 
+#define GS_NUM_CMDS 7                // Total number of external commands available 
 
-// Heartbeat 
-#define GS_HB_PERIOD 500000          // Time between heartbeat checks (us) 
+// Data sizes 
+#define GS_ADC_BUFF_SIZE 2           // Number of ADCs used 
+#define GS_CMD_SEND_COUNT 10         // Number of times a command gets sent 
 
-// Manual Control 
+// Thrusters 
 #define GS_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
 #define GS_MC_RIGHT_MOTOR 0x52       // "R" character that indicates right motor 
 #define GS_MC_FWD_THRUST 0x50        // "P" (plus) - indicates forward thrust 
 #define GS_MC_REV_THRUST 0x4D        // "M" (minus) - indicates reverse thrust 
 #define GS_MC_NEUTRAL 0x4E           // "N" (neutral) - indicates neutral gear or zero thrust 
-#define GS_MC_PERIOD 50000           // Time between throttle command sends (us) 
+#define GS_NO_THRUST 0               // Force thruster output to zero 
 #define GS_ADC_REV_LIM 100           // ADC value reverse command limit 
 #define GS_ADC_FWD_LIM 155           // ADC value forward command limit 
-
-// Command states 
-#define GS_CMD_PERIOD 250000         // Time between command sends checks (us) 
-#define GS_SEND_COUNT 10             // Number of times a command gets sent 
-
-// Thrusters 
-#define GS_NO_THRUST 0               // Force thruster output to zero 
 
 //=======================================================================================
 
@@ -69,17 +65,11 @@ extern "C" {
 
 /**
  * @brief Ground station states 
- * 
- * @details 
  */
 typedef enum {
     GS_HB_STATE,             // State 0: heartbeat 
     GS_MC_STATE,             // State 1: manual control 
-    GS_CMD_STATE,            // State 1: command send 
-    // GS_IDLE_CMD_STATE,       // State 2: idle command 
-    // GS_MANUAL_CMD_STATE,     // State 3: manual control command 
-    // GS_AUTO_CMD_STATE,       // State 4: autonomous command 
-    // GS_INDEX_CMD_STATE       // State 5: waypoint index update command 
+    GS_CMD_STATE,            // State 2: command send 
 } gs_states_t; 
 
 //=======================================================================================
@@ -103,6 +93,7 @@ typedef struct gs_data_s
 {
     // System information 
     gs_states_t state;                            // State machine state 
+    USART_TypeDef *uart;                          // UART port used for user interface 
 
     // Timing information 
     TIM_TypeDef *timer_nonblocking;                // Timer used for non-blocking delays 
@@ -119,12 +110,7 @@ typedef struct gs_data_s
 
     // System data 
     uint16_t adc_buff[GS_ADC_BUFF_SIZE];           // ADC buffer - thruster potentiometers 
-
-    // 
-    uint8_t waypoint_index;                        // 
-
-    // 
-    uint8_t cmd_send_index;                        // 
+    uint8_t cmd_send_index;                        // Command send counter 
 
     // Control flags 
     uint8_t led_state   : 1;                       // LED state (on/off) 
@@ -132,10 +118,6 @@ typedef struct gs_data_s
     uint8_t hb          : 1;                       // Heartbeat state flag 
     uint8_t mc          : 1;                       // Manual control mode state flag 
     uint8_t cmd         : 1;                       // Command send state flag 
-    // uint8_t idle        : 1;                       // Idle flag - default to heartbeat state 
-    // uint8_t manual      : 1;                       // Manual control command state flag 
-    // uint8_t autonomous  : 1;                       // Autonomous command state flag 
-    // uint8_t index       : 1;                       // Waypoint index update command state flag 
 }
 gs_data_t; 
 
