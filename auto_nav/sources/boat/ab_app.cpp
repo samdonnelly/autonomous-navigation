@@ -240,18 +240,19 @@ static ab_cmds_t cmd_table[AB_NUM_CMDS] =
 }; 
 
 // GPS coordinate table 
+
 const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
 {
-    {0.000000, 0.000000},    // Index 0 
-    {0.000000, 0.000000},    // Index 1 
-    {0.000000, 0.000000},    // Index 2 
-    {0.000000, 0.000000},    // Index 3 
-    {0.000000, 0.000000},    // Index 4 
-    {0.000000, 0.000000},    // Index 5 
-    {0.000000, 0.000000},    // Index 6 
-    {0.000000, 0.000000},    // Index 7 
-    {0.000000, 0.000000},    // Index 8 
-    {0.000000, 0.000000}     // Index 9 
+    {50.962742, -114.064726},    // Index 0 
+    {50.962174, -114.066598},    // Index 1 
+    {50.961458, -114.064688},    // Index 2 
+    {50.962255, -114.063186},    // Index 3 
+    // {0.000000, 0.000000},    // Index 4 
+    // {0.000000, 0.000000},    // Index 5 
+    // {0.000000, 0.000000},    // Index 6 
+    // {0.000000, 0.000000},    // Index 7 
+    // {0.000000, 0.000000},    // Index 8 
+    // {0.000000, 0.000000}     // Index 9 
 }; 
 
 //=======================================================================================
@@ -386,12 +387,12 @@ void ab_app(void)
     // than the one used to set the flag. 
     
     // // GPS position lock check 
-    // // If the system loses GPS position lock in manual mode then it continues on. 
-    // if (((m8q_get_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
-    //     (ab_data.state != AB_MANUAL_STATE))
-    // {
-    //     ab_data.ready = CLEAR_BIT; 
-    // }
+    // If the system loses GPS position lock in manual mode then it continues on. 
+    if (((m8q_get_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
+        (ab_data.state != AB_MANUAL_STATE))
+    {
+        ab_data.ready = CLEAR_BIT; 
+    }
     
     // Heartbeat check 
     // If the system loses the heartbeat in autonomous mode then it continues on. 
@@ -641,7 +642,7 @@ void ab_init_state(void)
 void ab_not_ready_state(void)
 {
     // Local variables 
-    // static uint8_t led_counter = CLEAR; 
+    static uint8_t led_counter = CLEAR; 
 
     //==================================================
     // State entry 
@@ -660,33 +661,36 @@ void ab_not_ready_state(void)
     //==================================================
     // External feedback 
 
-    // // Toggle an LED to indicate the state to the user 
-    // if (tim_compare(ab_data.timer_nonblocking, 
-    //                 ab_data.delay_timer.clk_freq, 
-    //                 AB_READY_PERIOD, 
-    //                 &ab_data.delay_timer.time_cnt_total, 
-    //                 &ab_data.delay_timer.time_cnt, 
-    //                 &ab_data.delay_timer.time_start))
-    // {
-    //     if (!led_counter)
-    //     {
-    //         ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-    //         ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-    //         ws2812_send(DEVICE_ONE, ab_data.led_data); 
-    //         led_counter++; 
-    //     }
-    //     else if (led_counter >= AB_READY_TIMEOUT)
-    //     {
-    //         ab_data.led_data[WS2812_LED_3] = ab_led3_not_ready; 
-    //         ab_data.led_data[WS2812_LED_4] = ab_led4_not_ready; 
-    //         ws2812_send(DEVICE_ONE, ab_data.led_data); 
-    //         led_counter = CLEAR; 
-    //     }
-    //     else 
-    //     {
-    //         led_counter++; 
-    //     }
-    // }
+    // TODO LEDs can't operate because they use the same timer as the ESCs but with a 
+    //      different prescalar. 
+
+    // Toggle an LED to indicate the state to the user 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.delay_timer.clk_freq, 
+                    AB_READY_PERIOD, 
+                    &ab_data.delay_timer.time_cnt_total, 
+                    &ab_data.delay_timer.time_cnt, 
+                    &ab_data.delay_timer.time_start))
+    {
+        if (!led_counter)
+        {
+            // ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
+            // ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
+            // ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            led_counter++; 
+        }
+        else if (led_counter >= AB_READY_TIMEOUT)
+        {
+            // ab_data.led_data[WS2812_LED_3] = ab_led3_not_ready; 
+            // ab_data.led_data[WS2812_LED_4] = ab_led4_not_ready; 
+            // ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            led_counter = CLEAR; 
+        }
+        else 
+        {
+            led_counter++; 
+        }
+    }
     
     //==================================================
 
@@ -700,7 +704,7 @@ void ab_not_ready_state(void)
         ab_data.idle = SET_BIT; 
         ab_data.manual = CLEAR_BIT; 
         ab_data.autonomous = CLEAR_BIT; 
-        // led_counter = CLEAR; 
+        led_counter = CLEAR; 
 
         // Make sure LEDs are off 
         ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
@@ -716,7 +720,7 @@ void ab_not_ready_state(void)
 void ab_ready_state(void)
 {
     // Local variables 
-    // static uint8_t led_counter = CLEAR; 
+    static uint8_t led_counter = CLEAR; 
 
     //==================================================
     // State entry 
@@ -735,33 +739,36 @@ void ab_ready_state(void)
     //==================================================
     // External feedback 
 
-    // // Toggle an LED to indicate the state to the user 
-    // if (tim_compare(ab_data.timer_nonblocking, 
-    //                 ab_data.delay_timer.clk_freq, 
-    //                 AB_READY_PERIOD, 
-    //                 &ab_data.delay_timer.time_cnt_total, 
-    //                 &ab_data.delay_timer.time_cnt, 
-    //                 &ab_data.delay_timer.time_start))
-    // {
-    //     if (!led_counter)
-    //     {
-    //         ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-    //         ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-    //         ws2812_send(DEVICE_ONE, ab_data.led_data); 
-    //         led_counter++; 
-    //     }
-    //     else if (led_counter >= AB_READY_TIMEOUT)
-    //     {
-    //         ab_data.led_data[WS2812_LED_3] = ab_led3_ready; 
-    //         ab_data.led_data[WS2812_LED_4] = ab_led4_ready; 
-    //         ws2812_send(DEVICE_ONE, ab_data.led_data); 
-    //         led_counter = CLEAR; 
-    //     }
-    //     else 
-    //     {
-    //         led_counter++; 
-    //     }
-    // }
+    // TODO LEDs can't operate because they use the same timer as the ESCs but with a 
+    //      different prescalar. 
+
+    // Toggle an LED to indicate the state to the user 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.delay_timer.clk_freq, 
+                    AB_READY_PERIOD, 
+                    &ab_data.delay_timer.time_cnt_total, 
+                    &ab_data.delay_timer.time_cnt, 
+                    &ab_data.delay_timer.time_start))
+    {
+        if (!led_counter)
+        {
+            // ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
+            // ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
+            // ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            led_counter++; 
+        }
+        else if (led_counter >= AB_READY_TIMEOUT)
+        {
+            // ab_data.led_data[WS2812_LED_3] = ab_led3_ready; 
+            // ab_data.led_data[WS2812_LED_4] = ab_led4_ready; 
+            // ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            led_counter = CLEAR; 
+        }
+        else 
+        {
+            led_counter++; 
+        }
+    }
     
     //==================================================
 
@@ -776,7 +783,7 @@ void ab_ready_state(void)
         ab_data.state_entry = SET_BIT; 
         ab_data.delay_timer.time_start = SET_BIT; 
         ab_data.idle = CLEAR_BIT; 
-        // led_counter = CLEAR; 
+        led_counter = CLEAR; 
 
         // Make sure LEDs are off 
         ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
@@ -916,65 +923,66 @@ void ab_auto_state(void)
     //==================================================
     // Navigation calculations 
 
-    // // Update the navigation calculations 
-    // if (tim_compare(ab_data.timer_nonblocking, 
-    //                 ab_data.delay_timer.clk_freq, 
-    //                 AB_NAV_UPDATE, 
-    //                 &ab_data.delay_timer.time_cnt_total, 
-    //                 &ab_data.delay_timer.time_cnt, 
-    //                 &ab_data.delay_timer.time_start))
-    // {
-    //     // Update the current location and desired heading every other period (can't be 
-    //     // faster than once per second) 
-    //     if (nav_period_flag)
-    //     {
-    //         // Get the updated location 
-    //         ab_data.location.lat = m8q_get_lat(); 
-    //         ab_data.location.lon = m8q_get_long(); 
+    // Update the navigation calculations 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.delay_timer.clk_freq, 
+                    AB_NAV_UPDATE, 
+                    &ab_data.delay_timer.time_cnt_total, 
+                    &ab_data.delay_timer.time_cnt, 
+                    &ab_data.delay_timer.time_start))
+    {
+        // Update the current location and desired heading every other period (can't be 
+        // faster than once per second) 
+        if (nav_period_flag)
+        {
+            // Get the updated location 
+            ab_data.location.lat = m8q_get_lat(); 
+            ab_data.location.lon = m8q_get_long(); 
 
-    //         // Update GPS radius and desired heading. 
-    //         ab_gps_rad(); 
-    //         ab_gps_heading(); 
+            // Update GPS radius and desired heading. 
+            ab_gps_rad(); 
+            ab_gps_heading(); 
 
-    //         // If the device is close enough to a waypoint then the next waypoint in the 
-    //         // mission is selected. 
-    //         if (ab_data.waypoint_rad < AB_WAYPOINT_RAD)
-    //         {
-    //             // Update the target waypoint 
-    //             ab_data.waypoint.lat = waypoint_table[ab_data.waypoint_index].lat; 
-    //             ab_data.waypoint.lon = waypoint_table[ab_data.waypoint_index].lon; 
+            // If the device is close enough to a waypoint then the next waypoint in the 
+            // mission is selected. 
+            if (ab_data.waypoint_rad < AB_WAYPOINT_RAD)
+            {
+                // Adjust waypoint index. If the end of the waypoint mission is reached 
+                // then start over from the beginning. 
+                if (++ab_data.waypoint_index >= AB_NUM_COORDINATES)
+                {
+                    ab_data.waypoint_index = CLEAR; 
+                }
 
-    //             // Adjust waypoint index. If the end of the waypoint mission is reached 
-    //             // then start over from the beginning. 
-    //             if (++ab_data.waypoint_index >= AB_NUM_COORDINATES)
-    //             {
-    //                 ab_data.waypoint_index = CLEAR; 
-    //             }
-    //         }
-    //     }
+                // Update the target waypoint 
+                ab_data.waypoint.lat = waypoint_table[ab_data.waypoint_index].lat; 
+                ab_data.waypoint.lon = waypoint_table[ab_data.waypoint_index].lon; 
+            }
+        }
 
-    //     nav_period_flag = 1 - nav_period_flag; 
+        nav_period_flag = SET_BIT - nav_period_flag; 
 
+        // Update the current heading and calculate the thruster output every period 
 
-    //     // Update the current heading and calculate the thruster output every period 
+        // Update the magnetometer data 
+        lsm303agr_m_read(); 
 
-    //     // Update the magnetometer data 
-    //     lsm303agr_m_read(); 
-
-    //     // Get the true North heading from the magnetometer 
-    //     ab_heading(); 
+        // Get the true North heading from the magnetometer 
+        ab_heading(); 
         
-    //     // Use the GPS heading and the magnetometer heading to get a heading error 
-    //     ab_heading_error(); 
+        // Use the GPS heading and the magnetometer heading to get a heading error 
+        ab_heading_error(); 
 
-    //     // Calculate the thruster command 
-    //     // ab_data.pid_out = 
-    //     //     (lsm303agr_test_pid(ab_data.heading_error) >> SHIFT_5); 
-    //     // ab_data.m1_pwm_cnt = 
-    //     //     LSM303AGR_TEST_PWM_N + LSM303AGR_TEST_PWM_BASE + ab_data.pid_out; 
-    //     // ab_data.m2_pwm_cnt = 
-    //     //     LSM303AGR_TEST_PWM_N - LSM303AGR_TEST_PWM_BASE + ab_data.pid_out; 
-    // }
+        // Calculate the thruster command 
+        // throttle = (base throttle) + error*slope 
+        ab_data.right_thruster = AB_AUTO_BASE_SPEED - ab_data.heading_error*ESC_MAX_THROTTLE / 
+                                                      (AB_AUTO_MAX_ER_P + AB_AUTO_MAX_ER_N); 
+        ab_data.left_thruster = AB_AUTO_BASE_SPEED +  ab_data.heading_error*ESC_MAX_THROTTLE / 
+                                                      (AB_AUTO_MAX_ER_P + AB_AUTO_MAX_ER_N); 
+
+        esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
+        esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
+    }
 
     //==================================================
 
@@ -1253,7 +1261,7 @@ void ab_gps_rad(void)
     // should always be positive and never greater than 180. 
     // Calculate the radius using a low pass filter to smooth the data. 
     surf_dist += ((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), (eq4 + eq5)) * 
-                 earth_rad*km_to_m) - surf_dist)*0.5; 
+                 earth_rad*km_to_m) - surf_dist)*0.25; 
     ab_data.waypoint_rad = (uint16_t)(surf_dist*10); 
 }
 
@@ -1279,7 +1287,8 @@ void ab_gps_heading(void)
 
     // Calculate the heading between coordinates. 
     // A low pass filter is used to smooth the data. 
-    heading_temp += (atan(num/den) - heading_temp)*0.5; 
+    // heading_temp += (atan(num/den) - heading_temp)*0.5; 
+    heading_temp = atan(num/den); 
 
     // Convert heading to degrees 
     ab_data.heading_desired = (int16_t)(heading_temp*10/deg_to_rad); 

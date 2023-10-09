@@ -257,10 +257,7 @@ void gs_app(void)
                 if (cmd_table[i].gs_cmd_mask & (SET_BIT << gs_data.state))
                 {
                     // Command available. Compare with the ID. 
-                    if (str_compare(
-                            cmd_table[i].gs_cmd, 
-                            (char *)gs_data.cmd_id, 
-                            BYTE_0)) 
+                    if (str_compare(cmd_table[i].gs_cmd, (char *)gs_data.cmd_id, BYTE_0)) 
                     {
                         // ID matched to a command. Execute the command. 
                         (cmd_table[i].gs_cmd_func_ptr)(gs_data.cmd_value); 

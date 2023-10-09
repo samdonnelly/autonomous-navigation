@@ -70,7 +70,7 @@ void Error_Handler(void);
 #define SWO_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
-#define AB_CODE 0   // Toggle between AB and GS code. AB=1, GS=0. 
+#define AB_CODE 1   // Toggle between AB and GS code. AB=1, GS=0. 
 
 /* USER CODE END Private defines */
 
