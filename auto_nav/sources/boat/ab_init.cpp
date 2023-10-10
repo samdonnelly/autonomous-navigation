@@ -100,8 +100,7 @@ void ab_init(void)
     //===================================================
     // UART 
 
-    // TEST 
-    // Initialize UART - serial terminal 
+    // Initialize UART - serial terminal - for testing 
     uart_init(
         USART2, 
         GPIOA, 
@@ -239,14 +238,14 @@ void ab_init(void)
     // Magnetometer 
 
     // Magnetometer reading error offsets - see the test code for calibration steps 
-    mag_offsets[0] = -250;     // N  (0/360deg) direction heading offset (degrees * 10) 
-    mag_offsets[1] = -120;     // NE (45deg) direction heading offset (degrees * 10) 
-    mag_offsets[2] = 15;       // E  (90deg) direction heading offset (degrees * 10) 
-    mag_offsets[3] = 175;      // SE (135deg) direction heading offset (degrees * 10) 
-    mag_offsets[4] = 325;      // S  (180deg) direction heading offset (degrees * 10) 
-    mag_offsets[5] = 480;      // SW (225deg) direction heading offset (degrees * 10) 
-    mag_offsets[6] = -40;      // W  (270deg) direction heading offset (degrees * 10) 
-    mag_offsets[7] = -315;     // NW (315deg) direction heading offset (degrees * 10) 
+    mag_offsets[0] = -160;     // N  (0/360deg) direction heading offset (degrees * 10) 
+    mag_offsets[1] = 32;       // NE (45deg) direction heading offset (degrees * 10) 
+    mag_offsets[2] = 215;      // E  (90deg) direction heading offset (degrees * 10) 
+    mag_offsets[3] = 385;      // SE (135deg) direction heading offset (degrees * 10) 
+    mag_offsets[4] = 435;      // S  (180deg) direction heading offset (degrees * 10) 
+    mag_offsets[5] = 20;       // SW (225deg) direction heading offset (degrees * 10) 
+    mag_offsets[6] = -450;     // W  (270deg) direction heading offset (degrees * 10) 
+    mag_offsets[7] = -365;     // NW (315deg) direction heading offset (degrees * 10) 
 
     // Driver init 
     lsm303agr_init(
@@ -325,6 +324,8 @@ void ab_init(void)
     //===================================================
     // ESCs/Motors 
 
+    // TODO create speed limits individually for each thruster 
+
     // ESC 1 - right 
     esc_readytosky_init(
         DEVICE_ONE, 
@@ -334,7 +335,8 @@ void ab_init(void)
         PIN_1, 
         TIM_84MHZ_1US_PSC, 
         AB_ESC_PERIOD, 
-        AB_ESC_FWD_SPEED_LIM, 
+        // AB_ESC_FWD_SPEED_LIM, 
+        1620, 
         AB_ESC_REV_SPEED_LIM); 
 
     // ESC 2 - left 
@@ -346,7 +348,8 @@ void ab_init(void)
         PIN_0, 
         TIM_84MHZ_1US_PSC, 
         AB_ESC_PERIOD, 
-        AB_ESC_FWD_SPEED_LIM, 
+        // AB_ESC_FWD_SPEED_LIM, 
+        1600, 
         AB_ESC_REV_SPEED_LIM); 
 
     // Enable the PWM timer - TIM3 set up in the ESC init 

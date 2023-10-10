@@ -142,7 +142,7 @@ static gs_cmds_t cmd_table[GS_NUM_CMDS] =
     {"manual", &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
     {"auto",   &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
     {"index",  &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
-    {"rfpwr",  &gs_pwr_cmd,     (SET_BIT >> GS_HB_STATE) | (SET_BIT << GS_MC_STATE)} 
+    {"rfpwr",  &gs_pwr_cmd,     (SET_BIT << GS_HB_STATE) | (SET_BIT << GS_MC_STATE)} 
 }; 
 
 //=======================================================================================

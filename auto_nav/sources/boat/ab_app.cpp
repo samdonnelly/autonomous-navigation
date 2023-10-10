@@ -241,19 +241,34 @@ static ab_cmds_t cmd_table[AB_NUM_CMDS] =
 
 // GPS coordinate table 
 
+// // Test 0 
+// const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
+// {
+//     {50.962742, -114.064726},    // Index 0 
+//     {50.962174, -114.066598},    // Index 1 
+//     {50.961458, -114.064688},    // Index 2 
+//     {50.962255, -114.063186},    // Index 3 
+// }; 
+
+// Test 1 
 const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
 {
-    {50.962742, -114.064726},    // Index 0 
-    {50.962174, -114.066598},    // Index 1 
-    {50.961458, -114.064688},    // Index 2 
-    {50.962255, -114.063186},    // Index 3 
-    // {0.000000, 0.000000},    // Index 4 
-    // {0.000000, 0.000000},    // Index 5 
-    // {0.000000, 0.000000},    // Index 6 
-    // {0.000000, 0.000000},    // Index 7 
-    // {0.000000, 0.000000},    // Index 8 
-    // {0.000000, 0.000000}     // Index 9 
+    {50.975314, -114.028618}     // Index 0 
 }; 
+
+// // Test 2 
+// const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
+// {
+//     {50.975327, -114.029699},    // Index 0 
+//     {50.974952, -114.030498}     // Index 1 
+// }; 
+
+// // Test 3 
+// const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
+// {
+//     {50.975327, -114.029699},    // Index 0 
+//     {50.975109, -114.028704}     // Index 1 
+// }; 
 
 //=======================================================================================
 
@@ -906,7 +921,7 @@ void ab_manual_state(void)
 void ab_auto_state(void)
 {
     // Local variables 
-    static uint8_t nav_period_flag = SET_BIT; 
+    static uint8_t nav_period_counter = CLEAR; 
 
     //==================================================
     // State entry 
@@ -933,7 +948,7 @@ void ab_auto_state(void)
     {
         // Update the current location and desired heading every other period (can't be 
         // faster than once per second) 
-        if (nav_period_flag)
+        if (!nav_period_counter)
         {
             // Get the updated location 
             ab_data.location.lat = m8q_get_lat(); 
@@ -960,7 +975,10 @@ void ab_auto_state(void)
             }
         }
 
-        nav_period_flag = SET_BIT - nav_period_flag; 
+        if (++nav_period_counter >= AB_NAV_COUNTER)
+        {
+            nav_period_counter = CLEAR; 
+        }
 
         // Update the current heading and calculate the thruster output every period 
 
@@ -973,12 +991,22 @@ void ab_auto_state(void)
         // Use the GPS heading and the magnetometer heading to get a heading error 
         ab_heading_error(); 
 
+        // Cap the error if needed so the throttle calculation works 
+        if (ab_data.heading_error > AB_AUTO_MAX_ERROR)
+        {
+            ab_data.heading_error = AB_AUTO_MAX_ERROR; 
+        }
+        else if (ab_data.heading_error < -AB_AUTO_MAX_ERROR)
+        {
+            ab_data.heading_error = -AB_AUTO_MAX_ERROR; 
+        }
+
         // Calculate the thruster command 
         // throttle = (base throttle) + error*slope 
         ab_data.right_thruster = AB_AUTO_BASE_SPEED - ab_data.heading_error*ESC_MAX_THROTTLE / 
-                                                      (AB_AUTO_MAX_ER_P + AB_AUTO_MAX_ER_N); 
+                                                      (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
         ab_data.left_thruster = AB_AUTO_BASE_SPEED +  ab_data.heading_error*ESC_MAX_THROTTLE / 
-                                                      (AB_AUTO_MAX_ER_P + AB_AUTO_MAX_ER_N); 
+                                                      (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
 
         esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
         esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
@@ -996,6 +1024,7 @@ void ab_auto_state(void)
     {
         ab_data.state_entry = SET_BIT; 
         ab_data.autonomous = CLEAR_BIT; 
+        nav_period_counter = CLEAR; 
 
         // Set the throttle to zero to stop the thrusters 
         ab_data.right_thruster = AB_NO_THRUST; 
@@ -1199,6 +1228,8 @@ void ab_index_cmd(
     if ((index_cmd_value < AB_NUM_COORDINATES) && (index_check >= AB_GPS_INDEX_CNT))
     {
         ab_data.waypoint_index = index_cmd_value; 
+        ab_data.waypoint.lat = waypoint_table[ab_data.waypoint_index].lat; 
+        ab_data.waypoint.lon = waypoint_table[ab_data.waypoint_index].lon; 
         index_check = CLEAR; 
         uart_sendstring(USART2, "\r\nindex="); 
         uart_send_integer(USART2, (int16_t)ab_data.waypoint_index); 
@@ -1241,21 +1272,22 @@ void ab_gps_rad(void)
     double pi_over_2 = 3.14159/2.0; 
     double earth_rad = 6371; 
     double km_to_m = 1000; 
+    double lat_loc = ab_data.location.lat;   // Current location latitude 
+    double lon_loc = ab_data.location.lon;   // Current location longitude 
+    double lat_tar = ab_data.waypoint.lat;   // Target location latitude 
+    double lon_tar = ab_data.waypoint.lon;   // Target location longitude 
 
     // Convert coordinates to radians 
-    ab_data.location.lat *= deg_to_rad; 
-    ab_data.location.lon *= deg_to_rad; 
-    ab_data.waypoint.lat *= deg_to_rad; 
-    ab_data.waypoint.lon *= deg_to_rad; 
+    lat_loc *= deg_to_rad; 
+    lon_loc *= deg_to_rad; 
+    lat_tar *= deg_to_rad; 
+    lon_tar *= deg_to_rad; 
 
-    eq1 = cos(pi_over_2 - ab_data.waypoint.lat)*
-          sin(ab_data.waypoint.lon - ab_data.location.lon); 
-    eq2 = cos(pi_over_2 - ab_data.location.lat)*sin(pi_over_2 - ab_data.waypoint.lat); 
-    eq3 = sin(pi_over_2 - ab_data.location.lat)*cos(pi_over_2 - ab_data.waypoint.lat)* 
-          cos(ab_data.waypoint.lon - ab_data.location.lon); 
-    eq4 = sin(pi_over_2 - ab_data.location.lat)*sin(pi_over_2 - ab_data.waypoint.lat); 
-    eq5 = cos(pi_over_2 - ab_data.location.lat)*cos(pi_over_2 - ab_data.waypoint.lat)*
-          cos(ab_data.waypoint.lon - ab_data.location.lon); 
+    eq1 = cos(pi_over_2 - lat_tar)*sin(lon_tar - lon_loc); 
+    eq2 = cos(pi_over_2 - lat_loc)*sin(pi_over_2 - lat_tar); 
+    eq3 = sin(pi_over_2 - lat_loc)*cos(pi_over_2 - lat_tar)* cos(lon_tar - lon_loc); 
+    eq4 = sin(pi_over_2 - lat_loc)*sin(pi_over_2 - lat_tar); 
+    eq5 = cos(pi_over_2 - lat_loc)*cos(pi_over_2 - lat_tar)*cos(lon_tar - lon_loc); 
 
     // atan2 is used because it produces an angle between +/-180 (pi). The central angle 
     // should always be positive and never greater than 180. 
@@ -1273,17 +1305,20 @@ void ab_gps_heading(void)
     static double heading_temp = CLEAR; 
     double num, den; 
     double deg_to_rad = 3.14159/180; 
+    double lat_loc = ab_data.location.lat;   // Current location latitude 
+    double lon_loc = ab_data.location.lon;   // Current location longitude 
+    double lat_tar = ab_data.waypoint.lat;   // Target location latitude 
+    double lon_tar = ab_data.waypoint.lon;   // Target location longitude 
 
     // Convert coordinates to radians 
-    ab_data.location.lat *= deg_to_rad; 
-    ab_data.location.lon *= deg_to_rad; 
-    ab_data.waypoint.lat *= deg_to_rad; 
-    ab_data.waypoint.lon *= deg_to_rad; 
+    lat_loc *= deg_to_rad; 
+    lon_loc *= deg_to_rad; 
+    lat_tar *= deg_to_rad; 
+    lon_tar *= deg_to_rad; 
 
     // Calculate the numerator and denominator of the atan calculation 
-    num = cos(ab_data.waypoint.lat)*sin(ab_data.waypoint.lon-ab_data.location.lon); 
-    den = cos(ab_data.location.lat)*sin(ab_data.waypoint.lat) - sin(ab_data.location.lat)*
-          cos(ab_data.waypoint.lat)*cos(ab_data.waypoint.lon-ab_data.location.lon); 
+    num = cos(lat_tar)*sin(lon_tar-lon_loc); 
+    den = cos(lat_loc)*sin(lat_tar) - sin(lat_loc)*cos(lat_tar)*cos(lon_tar-lon_loc); 
 
     // Calculate the heading between coordinates. 
     // A low pass filter is used to smooth the data. 
