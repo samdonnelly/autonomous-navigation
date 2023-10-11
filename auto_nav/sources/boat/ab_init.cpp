@@ -237,15 +237,16 @@ void ab_init(void)
     //===================================================
     // Magnetometer 
 
-    // Magnetometer reading error offsets - see the test code for calibration steps 
-    mag_offsets[0] = -160;     // N  (0/360deg) direction heading offset (degrees * 10) 
-    mag_offsets[1] = 32;       // NE (45deg) direction heading offset (degrees * 10) 
-    mag_offsets[2] = 215;      // E  (90deg) direction heading offset (degrees * 10) 
-    mag_offsets[3] = 385;      // SE (135deg) direction heading offset (degrees * 10) 
-    mag_offsets[4] = 435;      // S  (180deg) direction heading offset (degrees * 10) 
-    mag_offsets[5] = 20;       // SW (225deg) direction heading offset (degrees * 10) 
-    mag_offsets[6] = -450;     // W  (270deg) direction heading offset (degrees * 10) 
-    mag_offsets[7] = -365;     // NW (315deg) direction heading offset (degrees * 10) 
+    // Magnetometer reading error offsets (expresses as degrees*10) 
+    // See the test code for calibration steps 
+    mag_offsets[0] = -160;     // N  (0/360deg) direction heading offset 
+    mag_offsets[1] = 32;       // NE (45deg) direction heading offset 
+    mag_offsets[2] = 215;      // E  (90deg) direction heading offset 
+    mag_offsets[3] = 385;      // SE (135deg) direction heading offset 
+    mag_offsets[4] = 435;      // S  (180deg) direction heading offset 
+    mag_offsets[5] = 20;       // SW (225deg) direction heading offset 
+    mag_offsets[6] = -450;     // W  (270deg) direction heading offset 
+    mag_offsets[7] = -365;     // NW (315deg) direction heading offset 
 
     // Driver init 
     lsm303agr_init(
@@ -306,25 +307,22 @@ void ab_init(void)
     //===================================================
     // LEDs 
 
-    // TODO the LEDs use the same timer (TIM3) as the ESCs but the prescalar is 
-    //      different between them so it causes the LEDs not to work. Also 
-    //      the LED driver enables and disables the timer when sending so it 
-    //      messes up the ESCs. 
+    // The timer port (not just the channel) used for the LEDs must be different than the timer 
+    // used for the ESCs because they run at different speeds and the WS2812 driver turns the 
+    // timer on and off for sending. 
 
-    // // WS2812 (Neopixels) 
-    // ws2812_init(
-    //     DEVICE_ONE, 
-    //     TIM3, 
-    //     TIM_CHANNEL_1, 
-    //     GPIOC, 
-    //     PIN_6); 
+    // WS2812 (Neopixel LEDs) 
+    ws2812_init(
+        DEVICE_ONE, 
+        TIM4, 
+        TIM_CHANNEL_2, 
+        GPIOB, 
+        PIN_7); 
     
     //===================================================
 
     //===================================================
     // ESCs/Motors 
-
-    // TODO create speed limits individually for each thruster 
 
     // ESC 1 - right 
     esc_readytosky_init(
@@ -335,9 +333,8 @@ void ab_init(void)
         PIN_1, 
         TIM_84MHZ_1US_PSC, 
         AB_ESC_PERIOD, 
-        // AB_ESC_FWD_SPEED_LIM, 
-        1620, 
-        AB_ESC_REV_SPEED_LIM); 
+        AB_R_ESC_FWD_SPD_LIM, 
+        AB_R_ESC_REV_SPD_LIM); 
 
     // ESC 2 - left 
     esc_readytosky_init(
@@ -348,9 +345,8 @@ void ab_init(void)
         PIN_0, 
         TIM_84MHZ_1US_PSC, 
         AB_ESC_PERIOD, 
-        // AB_ESC_FWD_SPEED_LIM, 
-        1600, 
-        AB_ESC_REV_SPEED_LIM); 
+        AB_L_ESC_FWD_SPD_LIM, 
+        AB_L_ESC_REV_SPD_LIM); 
 
     // Enable the PWM timer - TIM3 set up in the ESC init 
     tim_enable(TIM3); 

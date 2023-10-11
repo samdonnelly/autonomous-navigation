@@ -37,8 +37,12 @@ extern "C" {
 #define AB_MAG_NUM_DIRS 8            // Number of directions of heading offset calcs 
 #define AB_RF_CH_FREQ 10             // Frequency channel for the RF module 
 #define AB_ESC_PERIOD 20000          // ESC PWM timer period (auto-reload register) 
-#define AB_ESC_FWD_SPEED_LIM 1610    // Forward PWM pulse time limit (us) 
-#define AB_ESC_REV_SPEED_LIM 1430    // Reverse PWM pulse time limit (us) 
+
+// ESCs/Motors 
+#define AB_R_ESC_FWD_SPD_LIM 1620    // Forward PWM pulse time limit (us) - right ESC 
+#define AB_R_ESC_REV_SPD_LIM 1430    // Reverse PWM pulse time limit (us) - right ESC 
+#define AB_L_ESC_FWD_SPD_LIM 1600    // Forward PWM pulse time limit (us) - left ESC 
+#define AB_L_ESC_REV_SPD_LIM 1430    // Reverse PWM pulse time limit (us) - left ESC 
 
 //=======================================================================================
 

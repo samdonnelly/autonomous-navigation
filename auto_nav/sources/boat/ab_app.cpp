@@ -250,18 +250,18 @@ static ab_cmds_t cmd_table[AB_NUM_CMDS] =
 //     {50.962255, -114.063186},    // Index 3 
 // }; 
 
-// Test 1 
-const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
-{
-    {50.975314, -114.028618}     // Index 0 
-}; 
-
-// // Test 2 
+// // Test 1 
 // const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
 // {
-//     {50.975327, -114.029699},    // Index 0 
-//     {50.974952, -114.030498}     // Index 1 
+//     {50.975314, -114.028618}     // Index 0 
 // }; 
+
+// Test 2 
+const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
+{
+    {50.975327, -114.029699},    // Index 0 
+    {50.974952, -114.030498}     // Index 1 
+}; 
 
 // // Test 3 
 // const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
@@ -401,7 +401,7 @@ void ab_app(void)
     // If the low power flag gets set then the threshold to clear the flag has to be higher 
     // than the one used to set the flag. 
     
-    // // GPS position lock check 
+    // GPS position lock check 
     // If the system loses GPS position lock in manual mode then it continues on. 
     if (((m8q_get_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
         (ab_data.state != AB_MANUAL_STATE))
@@ -676,9 +676,6 @@ void ab_not_ready_state(void)
     //==================================================
     // External feedback 
 
-    // TODO LEDs can't operate because they use the same timer as the ESCs but with a 
-    //      different prescalar. 
-
     // Toggle an LED to indicate the state to the user 
     if (tim_compare(ab_data.timer_nonblocking, 
                     ab_data.delay_timer.clk_freq, 
@@ -689,16 +686,16 @@ void ab_not_ready_state(void)
     {
         if (!led_counter)
         {
-            // ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-            // ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-            // ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
+            ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
+            ws2812_send(DEVICE_ONE, ab_data.led_data); 
             led_counter++; 
         }
         else if (led_counter >= AB_READY_TIMEOUT)
         {
-            // ab_data.led_data[WS2812_LED_3] = ab_led3_not_ready; 
-            // ab_data.led_data[WS2812_LED_4] = ab_led4_not_ready; 
-            // ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            ab_data.led_data[WS2812_LED_3] = ab_led3_not_ready; 
+            ab_data.led_data[WS2812_LED_4] = ab_led4_not_ready; 
+            ws2812_send(DEVICE_ONE, ab_data.led_data); 
             led_counter = CLEAR; 
         }
         else 
@@ -754,9 +751,6 @@ void ab_ready_state(void)
     //==================================================
     // External feedback 
 
-    // TODO LEDs can't operate because they use the same timer as the ESCs but with a 
-    //      different prescalar. 
-
     // Toggle an LED to indicate the state to the user 
     if (tim_compare(ab_data.timer_nonblocking, 
                     ab_data.delay_timer.clk_freq, 
@@ -767,16 +761,16 @@ void ab_ready_state(void)
     {
         if (!led_counter)
         {
-            // ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-            // ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-            // ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
+            ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
+            ws2812_send(DEVICE_ONE, ab_data.led_data); 
             led_counter++; 
         }
         else if (led_counter >= AB_READY_TIMEOUT)
         {
-            // ab_data.led_data[WS2812_LED_3] = ab_led3_ready; 
-            // ab_data.led_data[WS2812_LED_4] = ab_led4_ready; 
-            // ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            ab_data.led_data[WS2812_LED_3] = ab_led3_ready; 
+            ab_data.led_data[WS2812_LED_4] = ab_led4_ready; 
+            ws2812_send(DEVICE_ONE, ab_data.led_data); 
             led_counter = CLEAR; 
         }
         else 
@@ -1285,7 +1279,7 @@ void ab_gps_rad(void)
 
     eq1 = cos(pi_over_2 - lat_tar)*sin(lon_tar - lon_loc); 
     eq2 = cos(pi_over_2 - lat_loc)*sin(pi_over_2 - lat_tar); 
-    eq3 = sin(pi_over_2 - lat_loc)*cos(pi_over_2 - lat_tar)* cos(lon_tar - lon_loc); 
+    eq3 = sin(pi_over_2 - lat_loc)*cos(pi_over_2 - lat_tar)*cos(lon_tar - lon_loc); 
     eq4 = sin(pi_over_2 - lat_loc)*sin(pi_over_2 - lat_tar); 
     eq5 = cos(pi_over_2 - lat_loc)*cos(pi_over_2 - lat_tar)*cos(lon_tar - lon_loc); 
 
