@@ -24,8 +24,19 @@
 //=======================================================================================
 // Global variables 
 
-// Magnetometer directional offsets to correct for heading errors 
-static int16_t mag_offsets[AB_MAG_NUM_DIRS]; 
+// Magnetometer directional offsets to correct for heading errors (expresses as degrees*10). 
+// See the test code for calibration steps. 
+static int16_t mag_offsets[AB_MAG_NUM_DIRS] = 
+{
+    -160,   // N  (0/360deg) direction heading offset 
+    32,     // NE (45deg) direction heading offset 
+    215,    // E  (90deg) direction heading offset 
+    385,    // SE (135deg) direction heading offset 
+    435,    // S  (180deg) direction heading offset 
+    20,     // SW (225deg) direction heading offset 
+    -450,   // W  (270deg) direction heading offset 
+    -365    // NW (315deg) direction heading offset 
+};  
 
 // RF module data pipe address 
 static uint8_t pipe_addr_buff[NRF24l01_ADDR_WIDTH] = {0xB3, 0xB4, 0xB5, 0xB6, 0x05}; 
@@ -236,17 +247,6 @@ void ab_init(void)
 
     //===================================================
     // Magnetometer 
-
-    // Magnetometer reading error offsets (expresses as degrees*10) 
-    // See the test code for calibration steps 
-    mag_offsets[0] = -160;     // N  (0/360deg) direction heading offset 
-    mag_offsets[1] = 32;       // NE (45deg) direction heading offset 
-    mag_offsets[2] = 215;      // E  (90deg) direction heading offset 
-    mag_offsets[3] = 385;      // SE (135deg) direction heading offset 
-    mag_offsets[4] = 435;      // S  (180deg) direction heading offset 
-    mag_offsets[5] = 20;       // SW (225deg) direction heading offset 
-    mag_offsets[6] = -450;     // W  (270deg) direction heading offset 
-    mag_offsets[7] = -365;     // NW (315deg) direction heading offset 
 
     // Driver init 
     lsm303agr_init(
