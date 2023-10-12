@@ -455,13 +455,13 @@ void ab_app(void)
     // If the low power flag gets set then the threshold to clear the flag has to be higher 
     // than the one used to set the flag. 
     
-    // // GPS position lock check 
-    // // If the system loses GPS position lock in manual mode then it continues on. 
-    // if (((m8q_get_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
-    //     (ab_data.state != AB_MANUAL_STATE))
-    // {
-    //     ab_data.ready = CLEAR_BIT; 
-    // }
+    // GPS position lock check 
+    // If the system loses GPS position lock in manual mode then it continues on. 
+    if (((m8q_get_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
+        (ab_data.state != AB_MANUAL_STATE))
+    {
+        ab_data.ready = CLEAR_BIT; 
+    }
     
     // Heartbeat check 
     // If the system loses the heartbeat in autonomous mode then it continues on. 
@@ -964,6 +964,11 @@ void ab_auto_state(void)
             // Get the updated location 
             ab_data.location.lat = m8q_get_lat(); 
             ab_data.location.lon = m8q_get_long(); 
+
+            // Update the location of the system while filtering out some position noise. The system 
+            // moves slow enough to not be affected by a slower position update. 
+            // ab_data.location.lat += (m8q_get_lat() - ab_data.location.lat)*0.5; 
+            // ab_data.location.lon += (m8q_get_long() - ab_data.location.lon)*0.5; 
 
             // Update GPS radius and desired heading. 
             ab_gps_rad(); 
