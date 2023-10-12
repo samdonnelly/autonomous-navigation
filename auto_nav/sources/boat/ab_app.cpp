@@ -23,6 +23,9 @@
 //=======================================================================================
 // Function prototypes 
 
+//==================================================
+// State functions 
+
 /**
  * @brief 
  * 
@@ -86,6 +89,11 @@ void ab_fault_state(void);
  */
 void ab_reset_state(void); 
 
+//==================================================
+
+
+//==================================================
+// Command functions 
 
 /**
  * @brief 
@@ -152,6 +160,49 @@ void ab_throttle_cmd(
 void ab_hb_cmd(
     uint8_t hb_cmd_value); 
 
+//==================================================
+
+
+//==================================================
+// Data handling 
+
+/**
+ * @brief Parse the user command into an ID and value 
+ * 
+ * @details 
+ * 
+ * @param command_buffer 
+ * @return uint8_t 
+ */
+uint8_t ab_parse_cmd(
+    uint8_t *command_buffer); 
+
+//==================================================
+
+
+//==================================================
+// LED functions 
+
+/**
+ * @brief LED strobe control 
+ * 
+ * @details 
+ */
+void ab_led_strobe(void); 
+
+
+/**
+ * @brief LED strobe off 
+ * 
+ * @details 
+ */
+void ab_led_strobe_off(void); 
+
+//==================================================
+
+
+//==================================================
+// Navigation calculation 
 
 /**
  * @brief GPS heading calculation 
@@ -184,17 +235,7 @@ void ab_heading(void);
  */
 void ab_heading_error(void); 
 
-
-/**
- * @brief Parse the user command into an ID and value 
- * 
- * @details 
- * 
- * @param command_buffer 
- * @return uint8_t 
- */
-uint8_t ab_parse_cmd(
-    uint8_t *command_buffer); 
+//==================================================
 
 //=======================================================================================
 
@@ -308,10 +349,22 @@ void ab_app_init(
 
     // Timing information 
     ab_data.timer_nonblocking = timer_nonblocking; 
+
     ab_data.delay_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
     ab_data.delay_timer.time_cnt_total = CLEAR; 
     ab_data.delay_timer.time_cnt = CLEAR; 
     ab_data.delay_timer.time_start = SET_BIT; 
+
+    ab_data.nav_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
+    ab_data.nav_timer.time_cnt_total = CLEAR; 
+    ab_data.nav_timer.time_cnt = CLEAR; 
+    ab_data.nav_timer.time_start = SET_BIT; 
+
+    ab_data.led_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
+    ab_data.led_timer.time_cnt_total = CLEAR; 
+    ab_data.led_timer.time_cnt = CLEAR; 
+    ab_data.led_timer.time_start = SET_BIT; 
+
     ab_data.hb_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
     ab_data.hb_timer.time_cnt_total = CLEAR; 
     ab_data.hb_timer.time_cnt = CLEAR; 
@@ -321,6 +374,7 @@ void ab_app_init(
     // System data 
     memset((void *)ab_data.adc_buff, CLEAR, sizeof(ab_data.adc_buff)); 
     memset((void *)ab_data.led_data, CLEAR, sizeof(ab_data.led_data)); 
+    ab_data.led_strobe = CLEAR; 
     ws2812_send(DEVICE_ONE, ab_data.led_data); 
 
     // Payload data 
@@ -401,13 +455,13 @@ void ab_app(void)
     // If the low power flag gets set then the threshold to clear the flag has to be higher 
     // than the one used to set the flag. 
     
-    // GPS position lock check 
-    // If the system loses GPS position lock in manual mode then it continues on. 
-    if (((m8q_get_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
-        (ab_data.state != AB_MANUAL_STATE))
-    {
-        ab_data.ready = CLEAR_BIT; 
-    }
+    // // GPS position lock check 
+    // // If the system loses GPS position lock in manual mode then it continues on. 
+    // if (((m8q_get_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
+    //     (ab_data.state != AB_MANUAL_STATE))
+    // {
+    //     ab_data.ready = CLEAR_BIT; 
+    // }
     
     // Heartbeat check 
     // If the system loses the heartbeat in autonomous mode then it continues on. 
@@ -657,7 +711,6 @@ void ab_init_state(void)
 void ab_not_ready_state(void)
 {
     // Local variables 
-    static uint8_t led_counter = CLEAR; 
 
     //==================================================
     // State entry 
@@ -665,6 +718,9 @@ void ab_not_ready_state(void)
     if (ab_data.state_entry)
     {
         ab_data.state_entry = CLEAR_BIT; 
+
+        // Update the LED strobe colour 
+        ab_data.led_strobe = ab_led_not_ready; 
 
         uart_sendstring(USART2, "\r\nnot_ready\r\n"); 
     }
@@ -677,32 +733,7 @@ void ab_not_ready_state(void)
     // External feedback 
 
     // Toggle an LED to indicate the state to the user 
-    if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.delay_timer.clk_freq, 
-                    AB_READY_PERIOD, 
-                    &ab_data.delay_timer.time_cnt_total, 
-                    &ab_data.delay_timer.time_cnt, 
-                    &ab_data.delay_timer.time_start))
-    {
-        if (!led_counter)
-        {
-            ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-            ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-            ws2812_send(DEVICE_ONE, ab_data.led_data); 
-            led_counter++; 
-        }
-        else if (led_counter >= AB_READY_TIMEOUT)
-        {
-            ab_data.led_data[WS2812_LED_3] = ab_led3_not_ready; 
-            ab_data.led_data[WS2812_LED_4] = ab_led4_not_ready; 
-            ws2812_send(DEVICE_ONE, ab_data.led_data); 
-            led_counter = CLEAR; 
-        }
-        else 
-        {
-            led_counter++; 
-        }
-    }
+    ab_led_strobe(); 
     
     //==================================================
 
@@ -712,16 +743,12 @@ void ab_not_ready_state(void)
     if (ab_data.fault | ab_data.low_pwr | ab_data.ready)
     {
         ab_data.state_entry = SET_BIT; 
-        ab_data.delay_timer.time_start = SET_BIT; 
         ab_data.idle = SET_BIT; 
         ab_data.manual = CLEAR_BIT; 
         ab_data.autonomous = CLEAR_BIT; 
-        led_counter = CLEAR; 
 
-        // Make sure LEDs are off 
-        ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-        ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-        ws2812_send(DEVICE_ONE, ab_data.led_data); 
+        // Make sure the LEDs are off and reset the strobe timer 
+        ab_led_strobe_off(); 
     }
 
     //==================================================
@@ -732,7 +759,6 @@ void ab_not_ready_state(void)
 void ab_ready_state(void)
 {
     // Local variables 
-    static uint8_t led_counter = CLEAR; 
 
     //==================================================
     // State entry 
@@ -740,6 +766,9 @@ void ab_ready_state(void)
     if (ab_data.state_entry)
     {
         ab_data.state_entry = CLEAR_BIT; 
+
+        // Update the LED strobe colour 
+        ab_data.led_strobe = ab_led_ready; 
 
         uart_sendstring(USART2, "\r\nready\r\n"); 
     }
@@ -752,32 +781,7 @@ void ab_ready_state(void)
     // External feedback 
 
     // Toggle an LED to indicate the state to the user 
-    if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.delay_timer.clk_freq, 
-                    AB_READY_PERIOD, 
-                    &ab_data.delay_timer.time_cnt_total, 
-                    &ab_data.delay_timer.time_cnt, 
-                    &ab_data.delay_timer.time_start))
-    {
-        if (!led_counter)
-        {
-            ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-            ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-            ws2812_send(DEVICE_ONE, ab_data.led_data); 
-            led_counter++; 
-        }
-        else if (led_counter >= AB_READY_TIMEOUT)
-        {
-            ab_data.led_data[WS2812_LED_3] = ab_led3_ready; 
-            ab_data.led_data[WS2812_LED_4] = ab_led4_ready; 
-            ws2812_send(DEVICE_ONE, ab_data.led_data); 
-            led_counter = CLEAR; 
-        }
-        else 
-        {
-            led_counter++; 
-        }
-    }
+    ab_led_strobe(); 
     
     //==================================================
 
@@ -790,14 +794,10 @@ void ab_ready_state(void)
     if (ab_data.fault | ab_data.low_pwr | !ab_data.ready)
     {
         ab_data.state_entry = SET_BIT; 
-        ab_data.delay_timer.time_start = SET_BIT; 
         ab_data.idle = CLEAR_BIT; 
-        led_counter = CLEAR; 
 
-        // Make sure LEDs are off 
-        ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-        ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-        ws2812_send(DEVICE_ONE, ab_data.led_data); 
+        // Make sure the LEDs are off and reset the strobe timer 
+        ab_led_strobe_off(); 
     }
 
     //==================================================
@@ -816,6 +816,9 @@ void ab_manual_state(void)
     if (ab_data.state_entry)
     {
         ab_data.state_entry = CLEAR_BIT; 
+
+        // Update the LED strobe colour 
+        ab_data.led_strobe = ab_led_manual; 
 
         uart_sendstring(USART2, "\r\nmanual\r\n"); 
     }
@@ -890,6 +893,14 @@ void ab_manual_state(void)
     //==================================================
 
     //==================================================
+    // External feedback 
+
+    // Toggle an LED to indicate the state to the user 
+    ab_led_strobe(); 
+    
+    //==================================================
+
+    //==================================================
     // State exit 
 
     // the idle (ready) state exit condition comes from an external command received 
@@ -905,6 +916,9 @@ void ab_manual_state(void)
         ab_data.left_thruster = AB_NO_THRUST; 
         esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
         esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+
+        // Make sure the LEDs are off and reset the strobe timer 
+        ab_led_strobe_off(); 
     }
 
     //==================================================
@@ -924,6 +938,9 @@ void ab_auto_state(void)
     {
         ab_data.state_entry = CLEAR_BIT; 
 
+        // Update the LED strobe colour 
+        ab_data.led_strobe = ab_led_auto; 
+
         uart_sendstring(USART2, "\r\nauto\r\n"); 
     }
 
@@ -934,11 +951,11 @@ void ab_auto_state(void)
 
     // Update the navigation calculations 
     if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.delay_timer.clk_freq, 
+                    ab_data.nav_timer.clk_freq, 
                     AB_NAV_UPDATE, 
-                    &ab_data.delay_timer.time_cnt_total, 
-                    &ab_data.delay_timer.time_cnt, 
-                    &ab_data.delay_timer.time_start))
+                    &ab_data.nav_timer.time_cnt_total, 
+                    &ab_data.nav_timer.time_cnt, 
+                    &ab_data.nav_timer.time_start))
     {
         // Update the current location and desired heading every other period (can't be 
         // faster than once per second) 
@@ -1009,6 +1026,14 @@ void ab_auto_state(void)
     //==================================================
 
     //==================================================
+    // External feedback 
+
+    // Toggle an LED to indicate the state to the user 
+    ab_led_strobe(); 
+    
+    //==================================================
+
+    //==================================================
     // State exit 
 
     // the idle (ready) state exit condition comes from an external command received 
@@ -1019,12 +1044,16 @@ void ab_auto_state(void)
         ab_data.state_entry = SET_BIT; 
         ab_data.autonomous = CLEAR_BIT; 
         nav_period_counter = CLEAR; 
+        ab_data.nav_timer.time_start = SET_BIT; 
 
         // Set the throttle to zero to stop the thrusters 
         ab_data.right_thruster = AB_NO_THRUST; 
         ab_data.left_thruster = AB_NO_THRUST; 
         esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
         esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+
+        // Make sure the LEDs are off and reset the strobe timer 
+        ab_led_strobe_off(); 
     }
 
     //==================================================
@@ -1157,12 +1186,16 @@ void ab_idle_cmd(
     ab_data.state_entry = SET_BIT; 
     ab_data.manual = CLEAR_BIT; 
     ab_data.autonomous = CLEAR_BIT; 
+    ab_data.nav_timer.time_start = SET_BIT; 
 
     // Set the throttle to zero to stop the thrusters 
     ab_data.right_thruster = AB_NO_THRUST; 
     ab_data.left_thruster = AB_NO_THRUST; 
     esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
     esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+
+    // Make sure the LEDs are off and reset the strobe timer 
+    ab_led_strobe_off(); 
 }
 
 
@@ -1172,13 +1205,10 @@ void ab_manual_cmd(
 {
     ab_data.manual = SET_BIT; 
     ab_data.state_entry = SET_BIT; 
-    ab_data.delay_timer.time_start = SET_BIT; 
     ab_data.idle = CLEAR_BIT; 
 
-    // Make sure LEDs are off 
-    ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-    ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-    ws2812_send(DEVICE_ONE, ab_data.led_data); 
+    // Make sure the LEDs are off and reset the strobe timer 
+    ab_led_strobe_off(); 
 }
 
 
@@ -1188,13 +1218,10 @@ void ab_auto_cmd(
 {
     ab_data.autonomous = SET_BIT; 
     ab_data.state_entry = SET_BIT; 
-    ab_data.delay_timer.time_start = SET_BIT; 
     ab_data.idle = CLEAR_BIT; 
 
-    // Make sure LEDs are off 
-    ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-    ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-    ws2812_send(DEVICE_ONE, ab_data.led_data); 
+    // Make sure the LEDs are off and reset the strobe timer 
+    ab_led_strobe_off(); 
 }
 
 
@@ -1254,7 +1281,141 @@ void ab_hb_cmd(
 
 
 //=======================================================================================
-// Application functions 
+// Data handling 
+
+// Parse the user command into an ID and value 
+uint8_t ab_parse_cmd(
+    uint8_t *command_buffer)
+{
+    // Local variables 
+    uint8_t id_flag = SET_BIT; 
+    uint8_t id_index = CLEAR; 
+    uint8_t data = CLEAR; 
+    uint8_t cmd_value[AB_MAX_CMD_SIZE]; 
+    uint8_t value_size = CLEAR; 
+
+    // Initialize data 
+    memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
+    ab_data.cmd_value = CLEAR; 
+    memset((void *)cmd_value, CLEAR, sizeof(cmd_value)); 
+
+    // Parse the command into an ID and value 
+    for (uint8_t i = CLEAR; command_buffer[i] != NULL_CHAR; i++)
+
+    {
+        data = command_buffer[i]; 
+
+        if (id_flag)
+        {
+            // cmd ID parsing 
+
+            id_index = i; 
+
+            // Check that the command byte is within range 
+            if ((data >= A_LO_CHAR && data <= Z_LO_CHAR) || 
+                (data >= A_UP_CHAR && data <= Z_UP_CHAR))
+            {
+                // Valid character byte seen 
+                ab_data.cmd_id[i] = data; 
+            }
+            else if (data >= ZERO_CHAR && data <= NINE_CHAR)
+            {
+                // Valid digit character byte seen 
+                id_flag = CLEAR_BIT; 
+                ab_data.cmd_id[i] = NULL_CHAR; 
+                cmd_value[i-id_index] = data; 
+                value_size++; 
+            }
+            else 
+            {
+                // Valid data not seen 
+                return FALSE; 
+            }
+        }
+        else 
+        {
+            // cmd value parsing 
+
+            if (data >= ZERO_CHAR && data <= NINE_CHAR)
+            {
+                // Valid digit character byte seen 
+                cmd_value[i-id_index] = data; 
+                value_size++; 
+            }
+            else 
+            {
+                // Valid data not seen 
+                return FALSE; 
+            }
+        }
+    }
+
+    // Calculate the cmd value 
+    for (uint8_t i = CLEAR; i < value_size; i++)
+    {
+        ab_data.cmd_value += (uint8_t)char_to_int(cmd_value[i], value_size-i-1); 
+    }
+
+    return TRUE; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// LED functions 
+
+// LED strobe control 
+void ab_led_strobe(void)
+{
+    // Local variables 
+    static uint8_t led_counter = CLEAR; 
+
+    // Toggle the strobe LEDs an LED to indicate the state to the user 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.led_timer.clk_freq, 
+                    AB_LED_PERIOD, 
+                    &ab_data.led_timer.time_cnt_total, 
+                    &ab_data.led_timer.time_cnt, 
+                    &ab_data.led_timer.time_start))
+    {
+        if (!led_counter)
+        {
+            ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
+            ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
+            ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            led_counter++; 
+        }
+        else if (led_counter >= AB_LED_TIMEOUT)
+        {
+            ab_data.led_data[WS2812_LED_3] = ab_data.led_strobe; 
+            ab_data.led_data[WS2812_LED_4] = ab_data.led_strobe; 
+            ws2812_send(DEVICE_ONE, ab_data.led_data); 
+            led_counter = CLEAR; 
+        }
+        else 
+        {
+            led_counter++; 
+        }
+    }
+}
+
+
+// LED strobe off 
+void ab_led_strobe_off(void)
+{
+    ab_data.led_strobe = ab_led_clear; 
+    ab_data.led_data[WS2812_LED_3] = ab_data.led_strobe; 
+    ab_data.led_data[WS2812_LED_4] = ab_data.led_strobe; 
+    ws2812_send(DEVICE_ONE, ab_data.led_data); 
+    ab_data.led_timer.time_start = SET_BIT; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Navigation calculatios 
 
 // GPS coordinate radius check - calculate surface distance and compare to threshold 
 void ab_gps_rad(void)
@@ -1373,83 +1534,6 @@ void ab_heading_error(void)
     {
         ab_data.heading_error += LSM303AGR_M_HEAD_MAX; 
     }
-}
-
-
-// Parse the user command into an ID and value 
-uint8_t ab_parse_cmd(
-    uint8_t *command_buffer)
-{
-    // Local variables 
-    uint8_t id_flag = SET_BIT; 
-    uint8_t id_index = CLEAR; 
-    uint8_t data = CLEAR; 
-    uint8_t cmd_value[AB_MAX_CMD_SIZE]; 
-    uint8_t value_size = CLEAR; 
-
-    // Initialize data 
-    memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
-    ab_data.cmd_value = CLEAR; 
-    memset((void *)cmd_value, CLEAR, sizeof(cmd_value)); 
-
-    // Parse the command into an ID and value 
-    for (uint8_t i = CLEAR; command_buffer[i] != NULL_CHAR; i++)
-
-    {
-        data = command_buffer[i]; 
-
-        if (id_flag)
-        {
-            // cmd ID parsing 
-
-            id_index = i; 
-
-            // Check that the command byte is within range 
-            if ((data >= A_LO_CHAR && data <= Z_LO_CHAR) || 
-                (data >= A_UP_CHAR && data <= Z_UP_CHAR))
-            {
-                // Valid character byte seen 
-                ab_data.cmd_id[i] = data; 
-            }
-            else if (data >= ZERO_CHAR && data <= NINE_CHAR)
-            {
-                // Valid digit character byte seen 
-                id_flag = CLEAR_BIT; 
-                ab_data.cmd_id[i] = NULL_CHAR; 
-                cmd_value[i-id_index] = data; 
-                value_size++; 
-            }
-            else 
-            {
-                // Valid data not seen 
-                return FALSE; 
-            }
-        }
-        else 
-        {
-            // cmd value parsing 
-
-            if (data >= ZERO_CHAR && data <= NINE_CHAR)
-            {
-                // Valid digit character byte seen 
-                cmd_value[i-id_index] = data; 
-                value_size++; 
-            }
-            else 
-            {
-                // Valid data not seen 
-                return FALSE; 
-            }
-        }
-    }
-
-    // Calculate the cmd value 
-    for (uint8_t i = CLEAR; i < value_size; i++)
-    {
-        ab_data.cmd_value += (uint8_t)char_to_int(cmd_value[i], value_size-i-1); 
-    }
-
-    return TRUE; 
 }
 
 //=======================================================================================

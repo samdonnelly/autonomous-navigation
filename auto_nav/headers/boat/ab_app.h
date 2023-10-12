@@ -36,13 +36,13 @@ extern "C" {
 #define AB_NUM_CMDS 9                // Total number of external commands available 
 
 // Timing 
-#define AB_NAV_UPDATE 100000         // Navigation calculation update period (us) 
-#define AB_NAV_COUNTER 10            // 
-#define AB_HB_PERIOD 500000          // Time between heartbeat checks (us) 
-#define AB_HB_TIMEOUT 30             // period*timeout = time before conecction lost status 
 #define AB_INIT_DELAY 1000000        // Init state delay (us) 
-#define AB_READY_PERIOD 100000       // Ready / Not Ready state LED update period 
-#define AB_READY_TIMEOUT 30          // period*timeout = time between LED flashes 
+#define AB_NAV_UPDATE 100000         // Navigation calculation update period (us) 
+#define AB_NAV_COUNTER 10            // update*counter = time between nav calc updates 
+#define AB_HB_PERIOD 500000          // Time between heartbeat checks (us) 
+#define AB_HB_TIMEOUT 30             // period*timeout = time before conection lost status 
+#define AB_LED_PERIOD 100000         // LED update period 
+#define AB_LED_TIMEOUT 30            // period*timeout = time between LED flashes 
 
 // Data sizes 
 #define AB_ADC_BUFF_SIZE 3           // Size according to the number of ADCs used 
@@ -125,13 +125,16 @@ typedef struct ab_data_s
 
     // Timing information 
     TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
-    tim_compare_t delay_timer;               // Delay timing info 
+    tim_compare_t delay_timer;               // General purpose delay timing info 
+    tim_compare_t nav_timer;                 // Navigation timing info 
+    tim_compare_t led_timer;                 // LED output timing info 
     tim_compare_t hb_timer;                  // Heartbeat timing info 
     uint8_t hb_timeout;                      // Heartbeat timeout count 
 
     // System data 
     uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
     uint32_t led_data[WS2812_LED_NUM];       // Bits: Green: 16-23, Red: 8-15, Blue: 0-7 
+    uint32_t led_strobe;                     // LED strobe colour 
 
     // Payload data 
     uint8_t read_buff[AB_PL_LEN];            // Data read by PRX from PTX device 

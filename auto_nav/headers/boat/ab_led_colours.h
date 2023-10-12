@@ -38,15 +38,11 @@ extern uint32_t ab_led1_auto_star;    // Autonomous state - Starbird side
 
 // LED 2 colours 
 
-// LED 3 colours 
-extern uint32_t ab_led3_not_ready;    // Not ready state - indicator 
-extern uint32_t ab_led3_ready;        // Ready state - indicator 
-extern uint32_t ab_led3_auto;         // Autonomous state - Strobe 
-
-// LED 4 colours 
-extern uint32_t ab_led4_not_ready;    // Not ready state - indicator 
-extern uint32_t ab_led4_ready;        // Ready state - indicator 
-extern uint32_t ab_led4_auto;         // Autonomous state - Strobe 
+// Strobe LEDs (LEDs 3 and 4) 
+extern uint32_t ab_led_not_ready;     // Not ready state - indicator 
+extern uint32_t ab_led_ready;         // Ready state - indicator 
+extern uint32_t ab_led_manual;        // Manual control state - Strobe 
+extern uint32_t ab_led_auto;          // Autonomous state - Strobe 
 
 // LED 5 colours 
 
