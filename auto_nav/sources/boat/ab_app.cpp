@@ -281,35 +281,17 @@ static ab_cmds_t cmd_table[AB_NUM_CMDS] =
 }; 
 
 // GPS coordinate table 
-
-// // Test 0 
-// const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
-// {
-//     {50.962742, -114.064726},    // Index 0 
-//     {50.962174, -114.066598},    // Index 1 
-//     {50.961458, -114.064688},    // Index 2 
-//     {50.962255, -114.063186},    // Index 3 
-// }; 
-
-// // Test 1 
-// const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
-// {
-//     {50.975314, -114.028618}     // Index 0 
-// }; 
-
-// Test 2 
 const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
 {
-    {50.975623, -114.029932},    // Index 0 
-    {50.975420, -114.030844}     // Index 1 
+    {50.976867, -114.031855},    // Index 0 
+    {50.977409, -114.031625},    // Index 1 
+    {50.977441, -114.030954},    // Index 2 
+    {50.976464, -114.030587},    // Index 3 
+    {50.976453, -114.031689},    // Index 4 
+    {50.976827, -114.032303},    // Index 5 
+    {50.976776, -114.033022}     // Index 6 
 }; 
 
-// // Test 3 
-// const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
-// {
-//     {50.975327, -114.029699},    // Index 0 
-//     {50.975109, -114.028704}     // Index 1 
-// }; 
 
 //=======================================================================================
 
