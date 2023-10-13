@@ -300,8 +300,8 @@ static ab_cmds_t cmd_table[AB_NUM_CMDS] =
 // Test 2 
 const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
 {
-    {50.975327, -114.029699},    // Index 0 
-    {50.974952, -114.030498}     // Index 1 
+    {50.975623, -114.029932},    // Index 0 
+    {50.975420, -114.030844}     // Index 1 
 }; 
 
 // // Test 3 

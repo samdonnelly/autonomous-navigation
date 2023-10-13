@@ -39,9 +39,9 @@ extern "C" {
 #define AB_ESC_PERIOD 20000          // ESC PWM timer period (auto-reload register) 
 
 // ESCs/Motors 
-#define AB_R_ESC_FWD_SPD_LIM 1620    // Forward PWM pulse time limit (us) - right ESC 
+#define AB_R_ESC_FWD_SPD_LIM 1650    // Forward PWM pulse time limit (us) - right ESC 
 #define AB_R_ESC_REV_SPD_LIM 1430    // Reverse PWM pulse time limit (us) - right ESC 
-#define AB_L_ESC_FWD_SPD_LIM 1600    // Forward PWM pulse time limit (us) - left ESC 
+#define AB_L_ESC_FWD_SPD_LIM 1630    // Forward PWM pulse time limit (us) - left ESC 
 #define AB_L_ESC_REV_SPD_LIM 1430    // Reverse PWM pulse time limit (us) - left ESC 
 
 //=======================================================================================
