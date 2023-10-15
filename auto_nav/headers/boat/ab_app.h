@@ -50,12 +50,12 @@ extern "C" {
 #define AB_PL_LEN 32                 // Payload length 
 
 // Navigation 
-#define AB_NUM_COORDINATES 7         // Number of pre-defined GPS coordinates 
+#define AB_NUM_COORDINATES 6         // Number of pre-defined GPS coordinates 
 #define AB_WAYPOINT_RAD 100          // Threshold waypoint radius - expressed in meters*10 
 #define AB_TN_COR 130                // True North direction correction 
 #define AB_GPS_INDEX_CNT 3           // Successive index command count needed to update 
 #define AB_AUTO_BASE_SPEED 50        // Base throttle of each thruster (%) 
-#define AB_AUTO_MAX_ERROR 900        // Max heading error (degrees*10) - must be within +/-1800 
+#define AB_AUTO_MAX_ERROR 600        // Max heading error (degrees*10) - must be within +/-1800 
 
 // Manual Control 
 #define AB_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
