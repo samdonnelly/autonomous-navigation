@@ -205,9 +205,11 @@ void ab_led_strobe_off(void);
 // Navigation calculation 
 
 /**
- * @brief GPS heading calculation 
+ * @brief GPS radius calculation 
  * 
- * @details 
+ * @details Calculates the surface distance between the systems current location and 
+ *          the target waypoint. This distance is used to determine if the system has 
+ *          hit its target waypoint during a mission. 
  */
 void ab_gps_rad(void); 
 
@@ -215,7 +217,9 @@ void ab_gps_rad(void);
 /**
  * @brief GPS heading calculation 
  * 
- * @details 
+ * @details Calculates the heading (0-359 degress), relative to true North, between the 
+ *          systems location and the target waypoint. The system uses this to know which 
+ *          direction it must travel to hit its target waypoint. 
  */
 void ab_gps_heading(void); 
 
