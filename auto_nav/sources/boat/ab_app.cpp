@@ -210,6 +210,12 @@ void ab_led_strobe_off(void);
  * @details Calculates the surface distance between the systems current location and 
  *          the target waypoint. This distance is used to determine if the system has 
  *          hit its target waypoint during a mission. 
+ *          
+ *          The radius is the Earths surface distance, or distance along a circular path / 
+ *          course around the globe, between two coordinates which in this case is the 
+ *          current and desired coordinates. This is calculated using the Great-Circle 
+ *          Navigation equation for central angle which is then used with the average 
+ *          radius of the Earth to find the surface distance. 
  */
 void ab_gps_rad(void); 
 
@@ -217,9 +223,15 @@ void ab_gps_rad(void);
 /**
  * @brief GPS heading calculation 
  * 
- * @details Calculates the heading (0-359 degress), relative to true North, between the 
- *          systems location and the target waypoint. The system uses this to know which 
- *          direction it must travel to hit its target waypoint. 
+ * @details Calculates the heading (0-359 degress), clockwise relative to true North, 
+ *          between the systems location and the target waypoint. The system uses this 
+ *          to know which direction it must travel to hit its target waypoint. 
+ *          
+ *          The heading is calculated using the Great-Circle Navigation equation for 
+ *          initial course between two GPS coordinates. The heading changes throughout 
+ *          a Great-Circle course due to the changing position/orientation relative to 
+ *          North, however the GPS position and this heading calculation are updated 
+ *          frequently so the needed initial heading is always up to date. 
  */
 void ab_gps_heading(void); 
 
@@ -1415,33 +1427,37 @@ void ab_gps_rad(void)
     // Local variables 
     static double surf_dist = CLEAR; 
     double eq1, eq2, eq3, eq4, eq5; 
-    double deg_to_rad = 3.14159/180; 
-    double pi_over_2 = 3.14159/2.0; 
-    double earth_rad = 6371; 
-    double km_to_m = 1000; 
-    double lat_loc = ab_data.location.lat;   // Current location latitude 
-    double lon_loc = ab_data.location.lon;   // Current location longitude 
-    double lat_tar = ab_data.waypoint.lat;   // Target location latitude 
-    double lon_tar = ab_data.waypoint.lon;   // Target location longitude 
+    double deg_to_rad = AB_DEG_TO_RAD; 
+    double lat_loc = deg_to_rad*ab_data.location.lat;   // Current location latitude 
+    double lon_loc = deg_to_rad*ab_data.location.lon;   // Current location longitude 
+    double lat_tar = deg_to_rad*ab_data.waypoint.lat;   // Target location latitude 
+    double lon_tar = deg_to_rad*ab_data.waypoint.lon;   // Target location longitude 
+    // double deg_to_rad = 3.14159/180; 
+    // double pi_over_2 = 3.14159/2.0; 
+    // double earth_rad = AB_EARTH_RADIUS; 
+    // double km_to_m = AB_KM_TO_M; 
 
-    // Convert coordinates to radians 
-    lat_loc *= deg_to_rad; 
-    lon_loc *= deg_to_rad; 
-    lat_tar *= deg_to_rad; 
-    lon_tar *= deg_to_rad; 
+    // // Convert coordinates to radians 
+    // lat_loc *= deg_to_rad; 
+    // lon_loc *= deg_to_rad; 
+    // lat_tar *= deg_to_rad; 
+    // lon_tar *= deg_to_rad; 
 
-    eq1 = cos(pi_over_2 - lat_tar)*sin(lon_tar - lon_loc); 
-    eq2 = cos(pi_over_2 - lat_loc)*sin(pi_over_2 - lat_tar); 
-    eq3 = sin(pi_over_2 - lat_loc)*cos(pi_over_2 - lat_tar)*cos(lon_tar - lon_loc); 
-    eq4 = sin(pi_over_2 - lat_loc)*sin(pi_over_2 - lat_tar); 
-    eq5 = cos(pi_over_2 - lat_loc)*cos(pi_over_2 - lat_tar)*cos(lon_tar - lon_loc); 
+    // Calculate the individual parts of the distance equation 
+    eq1 = cos(AB_PI_OVER_2 - lat_tar)*sin(lon_tar - lon_loc); 
+    eq2 = cos(AB_PI_OVER_2 - lat_loc)*sin(AB_PI_OVER_2 - lat_tar); 
+    eq3 = sin(AB_PI_OVER_2 - lat_loc)*cos(AB_PI_OVER_2 - lat_tar)*cos(lon_tar - lon_loc); 
+    eq4 = sin(AB_PI_OVER_2 - lat_loc)*sin(AB_PI_OVER_2 - lat_tar); 
+    eq5 = cos(AB_PI_OVER_2 - lat_loc)*cos(AB_PI_OVER_2 - lat_tar)*cos(lon_tar - lon_loc); 
 
     // atan2 is used because it produces an angle between +/-180 (pi). The central angle 
     // should always be positive and never greater than 180. 
     // Calculate the radius using a low pass filter to smooth the data. 
+    // surf_dist += ((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), (eq4 + eq5)) * 
+    //              earth_rad*km_to_m) - surf_dist)*0.25; 
     surf_dist += ((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), (eq4 + eq5)) * 
-                 earth_rad*km_to_m) - surf_dist)*0.25; 
-    ab_data.waypoint_rad = (uint16_t)(surf_dist*10); 
+                 AB_EARTH_RADIUS*AB_KM_TO_M) - surf_dist)*0.25; 
+    ab_data.waypoint_rad = (uint16_t)(surf_dist*AB_NAV_SCALAR); 
 }
 
 
@@ -1451,21 +1467,22 @@ void ab_gps_heading(void)
     // Local variables 
     static double heading_temp = CLEAR; 
     double num, den; 
-    double deg_to_rad = 3.14159/180; 
-    double lat_loc = ab_data.location.lat;   // Current location latitude 
-    double lon_loc = ab_data.location.lon;   // Current location longitude 
-    double lat_tar = ab_data.waypoint.lat;   // Target location latitude 
-    double lon_tar = ab_data.waypoint.lon;   // Target location longitude 
+    double deg_to_rad = AB_DEG_TO_RAD; 
+    double lat_loc = deg_to_rad*ab_data.location.lat;   // Current location latitude 
+    double lon_loc = deg_to_rad*ab_data.location.lon;   // Current location longitude 
+    double lat_tar = deg_to_rad*ab_data.waypoint.lat;   // Target location latitude 
+    double lon_tar = deg_to_rad*ab_data.waypoint.lon;   // Target location longitude 
+    // double deg_to_rad = 3.14159/180; 
 
-    // Convert coordinates to radians 
-    lat_loc *= deg_to_rad; 
-    lon_loc *= deg_to_rad; 
-    lat_tar *= deg_to_rad; 
-    lon_tar *= deg_to_rad; 
+    // // Convert coordinates to radians 
+    // lat_loc *= deg_to_rad; 
+    // lon_loc *= deg_to_rad; 
+    // lat_tar *= deg_to_rad; 
+    // lon_tar *= deg_to_rad; 
 
     // Calculate the numerator and denominator of the atan calculation 
-    num = cos(lat_tar)*sin(lon_tar-lon_loc); 
-    den = cos(lat_loc)*sin(lat_tar) - sin(lat_loc)*cos(lat_tar)*cos(lon_tar-lon_loc); 
+    num = cos(lat_tar)*sin(lon_tar - lon_loc); 
+    den = cos(lat_loc)*sin(lat_tar) - sin(lat_loc)*cos(lat_tar)*cos(lon_tar - lon_loc); 
 
     // Calculate the heading between coordinates. 
     // A low pass filter is used to smooth the data. 
@@ -1473,7 +1490,7 @@ void ab_gps_heading(void)
     heading_temp = atan(num/den); 
 
     // Convert heading to degrees 
-    ab_data.heading_desired = (int16_t)(heading_temp*10/deg_to_rad); 
+    ab_data.heading_desired = (int16_t)(heading_temp*AB_NAV_SCALAR/deg_to_rad); 
 
     // Correct the calculated heading if needed 
     if (den < 0)

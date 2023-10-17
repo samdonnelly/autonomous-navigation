@@ -51,11 +51,19 @@ extern "C" {
 
 // Navigation 
 #define AB_NUM_COORDINATES 9         // Number of pre-defined GPS coordinates 
-#define AB_WAYPOINT_RAD 100          // Threshold waypoint radius - expressed in meters*10 
 #define AB_TN_COR 130                // True North direction correction 
+#define AB_WAYPOINT_RAD 100          // Threshold waypoint radius (meters*10) 
 #define AB_GPS_INDEX_CNT 3           // Successive index command count needed to update 
 #define AB_AUTO_BASE_SPEED 50        // Base throttle of each thruster (%) 
 #define AB_AUTO_MAX_ERROR 600        // Max heading error (degrees*10) - must be within +/-1800 
+#define AB_NAV_SCALAR 10             // Scalar used to remove decimal place in nav calcs 
+
+// Calculations 
+#define AB_EARTH_RADIUS 6371         // Earth average radius (km) 
+#define AB_KM_TO_M 1000              // Kilometer to meter conversion 
+#define AB_PI 3.14159                // pi 
+#define AB_PI_OVER_2 1.57080         // pi/2 
+#define AB_DEG_TO_RAD AB_PI/180      // Degrees to radians conversion 
 
 // Manual Control 
 #define AB_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
