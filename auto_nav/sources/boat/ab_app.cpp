@@ -237,9 +237,21 @@ void ab_gps_heading(void);
 
 
 /**
- * @brief Get the true North heading 
+ * @brief Update the system heading relative to True North 
  * 
- * @details 
+ * @details Retrieves the heading of the system relative to True North. The heading relative 
+ *          to magnetic North is found using the LSM303AGR magnetometer driver and the True 
+ *          North correction factor (AB_TN_COR) is added to. This is done because GPS 
+ *          coordinates and the headings between them are relative to True North. The heading 
+ *          calculated here is used by the system to compare against the desired heading (gps 
+ *          heading). 
+ *          
+ *          The True North correction factor will change based on where the system is operating 
+ *          on Earth. For relatively localized missions, the correction factor can be assumed to 
+ *          be constant. Very long range missions likely need to consider how the correction 
+ *          factor would change depending on location. The correction factor can be found at a 
+ *          given point by taking the difference between magnetic North and True North (such 
+ *          as with a smart phone). 
  */
 void ab_heading(void); 
 
