@@ -241,10 +241,14 @@ void ab_gps_heading(void);
  * 
  * @details Retrieves the heading of the system relative to True North. The heading relative 
  *          to magnetic North is found using the LSM303AGR magnetometer driver and the True 
- *          North correction factor (AB_TN_COR) is added to. This is done because GPS 
- *          coordinates and the headings between them are relative to True North. The heading 
- *          calculated here is used by the system to compare against the desired heading (gps 
- *          heading). 
+ *          North correction factor (AB_TN_COR - difference between true and magnetic North) 
+ *          is added to. This is done because GPS coordinates and the headings between them 
+ *          are relative to True North. If the heading exceeds the acceptable heading range 
+ *          (0-359.9 degrees) then the heading value is adjusted to be within range without 
+ *          changing the headings relative position to True North. For example, if the heading 
+ *          is determined to be 365 degrees then it is adjusted to 5 degrees. The heading 
+ *          calculated here is used by the system to compare against the desired heading 
+ *          (gps heading). 
  *          
  *          The True North correction factor will change based on where the system is operating 
  *          on Earth. For relatively localized missions, the correction factor can be assumed to 
@@ -259,7 +263,17 @@ void ab_heading(void);
 /**
  * @brief Heading error 
  * 
- * @details 
+ * @details Finds the difference between the desired heading, determined by the current 
+ *          and desired location, and the current heading, determined by the magnetometer. 
+ *          This error is used by the boats throttle controller to know how to thrust to 
+ *          get pointed in the right direction. The error falls within +/-180 degrees. 
+ *          
+ *          The headings in this system operate from 0-359.9 degrees. It's best for the 
+ *          boat to turn the shortest distance to point the direction it needs to and it 
+ *          can turn both left and right. This means the maximum error that should be 
+ *          produced is +/-180 degrees. Errors outside of this range would result in the 
+ *          boat turning a greater distance than it needs to so if the error falls out of 
+ *          this range then it's adjusted as needed. 
  */
 void ab_heading_error(void); 
 
@@ -978,8 +992,8 @@ void ab_auto_state(void)
 
             // Update the location of the system while filtering out some position noise. The system 
             // moves slow enough to not be affected by a slower position update. 
-            // ab_data.location.lat += (m8q_get_lat() - ab_data.location.lat)*0.5; 
-            // ab_data.location.lon += (m8q_get_long() - ab_data.location.lon)*0.5; 
+            // ab_data.location.lat += (m8q_get_lat() - ab_data.location.lat)*0.25; 
+            // ab_data.location.lon += (m8q_get_long() - ab_data.location.lon)*0.25; 
 
             // Update GPS radius and desired heading. 
             ab_gps_rad(); 
@@ -1444,16 +1458,6 @@ void ab_gps_rad(void)
     double lon_loc = deg_to_rad*ab_data.location.lon;   // Current location longitude 
     double lat_tar = deg_to_rad*ab_data.waypoint.lat;   // Target location latitude 
     double lon_tar = deg_to_rad*ab_data.waypoint.lon;   // Target location longitude 
-    // double deg_to_rad = 3.14159/180; 
-    // double pi_over_2 = 3.14159/2.0; 
-    // double earth_rad = AB_EARTH_RADIUS; 
-    // double km_to_m = AB_KM_TO_M; 
-
-    // // Convert coordinates to radians 
-    // lat_loc *= deg_to_rad; 
-    // lon_loc *= deg_to_rad; 
-    // lat_tar *= deg_to_rad; 
-    // lon_tar *= deg_to_rad; 
 
     // Calculate the individual parts of the distance equation 
     eq1 = cos(AB_PI_OVER_2 - lat_tar)*sin(lon_tar - lon_loc); 
@@ -1465,11 +1469,12 @@ void ab_gps_rad(void)
     // atan2 is used because it produces an angle between +/-180 (pi). The central angle 
     // should always be positive and never greater than 180. 
     // Calculate the radius using a low pass filter to smooth the data. 
-    // surf_dist += ((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), (eq4 + eq5)) * 
-    //              earth_rad*km_to_m) - surf_dist)*0.25; 
     surf_dist += ((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), (eq4 + eq5)) * 
                  AB_EARTH_RADIUS*AB_KM_TO_M) - surf_dist)*0.25; 
     ab_data.waypoint_rad = (uint16_t)(surf_dist*AB_NAV_SCALAR); 
+    // ab_data.waypoint_rad = (uint16_t)((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), 
+    //                                               (eq4 + eq5))*AB_EARTH_RADIUS*AB_KM_TO_M) * 
+    //                                               AB_NAV_SCALAR); 
 }
 
 
@@ -1484,13 +1489,6 @@ void ab_gps_heading(void)
     double lon_loc = deg_to_rad*ab_data.location.lon;   // Current location longitude 
     double lat_tar = deg_to_rad*ab_data.waypoint.lat;   // Target location latitude 
     double lon_tar = deg_to_rad*ab_data.waypoint.lon;   // Target location longitude 
-    // double deg_to_rad = 3.14159/180; 
-
-    // // Convert coordinates to radians 
-    // lat_loc *= deg_to_rad; 
-    // lon_loc *= deg_to_rad; 
-    // lat_tar *= deg_to_rad; 
-    // lon_tar *= deg_to_rad; 
 
     // Calculate the numerator and denominator of the atan calculation 
     num = cos(lat_tar)*sin(lon_tar - lon_loc); 
@@ -1546,7 +1544,9 @@ void ab_heading_error(void)
     // Calculate the heading error 
     ab_data.heading_error = ab_data.heading_desired - ab_data.heading_actual; 
 
-    // Correct the error for when the heading crosses the 0/360 degree boundary 
+    // Make sure the heading error does not exceed +/-180 degrees. This error is used for 
+    // steering control ((+) error turns one way, (-) error turns another) of the boat so 
+    // an error outside of this range is better handled by turning the opposite direction. 
     if (ab_data.heading_error > LSM303AGR_M_HEAD_DIFF)
     {
         ab_data.heading_error -= LSM303AGR_M_HEAD_MAX; 
