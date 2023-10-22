@@ -59,9 +59,21 @@ void ab_manual_state(void);
 
 
 /**
- * @brief 
+ * @brief Autonomous navigation state 
  * 
- * @details 
+ * @details In this state the boat navigates the pre-defined waypoint mission autonomously. 
+ *          The waypoint mission is defined in the 'waypoint_table' and the next or target 
+ *          waypoint the boat goes to is determined by the 'ab_data.waypoint_index'. 
+ *          
+ *          The boat reads it's location one per second from the M8Q GPS module. It also 
+ *          calculates it's heading using readings from the LSM303AGR magnetometer every 
+ *          100ms. The current location is compared against the target waypoint to determine
+ *          desired heading and the current distance between the two points. If the distance 
+ *          between the current and desired location is less than a threshold then the 
+ *          boat assumes to have hit it's waypoint at which point it increments the 
+ *          'ab_data.waypoint_index' and reads the new target waypoint. The error between 
+ *          the calculated heading and desired heading is found and used as the input to the 
+ *          thruster controller used to propel the boat. 
  */
 void ab_auto_state(void); 
 
