@@ -999,13 +999,16 @@ void ab_auto_state(void)
         if (!nav_period_counter)
         {
             // Get the updated location 
+#if AB_GPS_LOC_FILTER 
+            // Update the location of the system while filtering out some position noise. The 
+            // system moves slow enough to not be affected by a slower position update. 
+            ab_data.location.lat += (m8q_get_lat() - ab_data.location.lat)*0.25; 
+            ab_data.location.lon += (m8q_get_long() - ab_data.location.lon)*0.25; 
+#else 
+            // Use the raw coordinate reading from the M8Q 
             ab_data.location.lat = m8q_get_lat(); 
             ab_data.location.lon = m8q_get_long(); 
-
-            // Update the location of the system while filtering out some position noise. The system 
-            // moves slow enough to not be affected by a slower position update. 
-            // ab_data.location.lat += (m8q_get_lat() - ab_data.location.lat)*0.25; 
-            // ab_data.location.lon += (m8q_get_long() - ab_data.location.lon)*0.25; 
+#endif   // AB_GPS_LOC_FILTER 
 
             // Update GPS radius and desired heading. 
             ab_gps_rad(); 
@@ -1463,7 +1466,7 @@ void ab_led_strobe_off(void)
 void ab_gps_rad(void)
 {
     // Local variables 
-    static double surf_dist = CLEAR; 
+    // static double surf_dist = CLEAR; 
     double eq1, eq2, eq3, eq4, eq5; 
     double deg_to_rad = AB_DEG_TO_RAD; 
     double lat_loc = deg_to_rad*ab_data.location.lat;   // Current location latitude 
@@ -1478,15 +1481,20 @@ void ab_gps_rad(void)
     eq4 = sin(AB_PI_OVER_2 - lat_loc)*sin(AB_PI_OVER_2 - lat_tar); 
     eq5 = cos(AB_PI_OVER_2 - lat_loc)*cos(AB_PI_OVER_2 - lat_tar)*cos(lon_tar - lon_loc); 
 
+    // Calculate the surface distance (radius) between the current and desired location. 
     // atan2 is used because it produces an angle between +/-180 (pi). The central angle 
     // should always be positive and never greater than 180. 
+#if AB_GPS_RAD_FILTER 
     // Calculate the radius using a low pass filter to smooth the data. 
     surf_dist += ((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), (eq4 + eq5)) * 
                  AB_EARTH_RADIUS*AB_KM_TO_M) - surf_dist)*0.25; 
     ab_data.waypoint_rad = (uint16_t)(surf_dist*AB_NAV_SCALAR); 
-    // ab_data.waypoint_rad = (uint16_t)((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), 
-    //                                               (eq4 + eq5))*AB_EARTH_RADIUS*AB_KM_TO_M) * 
-    //                                               AB_NAV_SCALAR); 
+#else 
+    // The current GPS coordinates are filtered so this equation is not. 
+    ab_data.waypoint_rad = (uint16_t)((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), 
+                                                  (eq4 + eq5))*AB_EARTH_RADIUS*AB_KM_TO_M) * 
+                                                  AB_NAV_SCALAR); 
+#endif   // AB_GPS_RAD_FILTER 
 }
 
 
@@ -1507,9 +1515,13 @@ void ab_gps_heading(void)
     den = cos(lat_loc)*sin(lat_tar) - sin(lat_loc)*cos(lat_tar)*cos(lon_tar - lon_loc); 
 
     // Calculate the heading between coordinates. 
+#if AB_GPS_HEAD_FILTER 
     // A low pass filter is used to smooth the data. 
     // heading_temp += (atan(num/den) - heading_temp)*0.5; 
+#else 
+    // The current GPS coordinates are filtered so this equation is not. 
     heading_temp = atan(num/den); 
+#endif   // AB_GPS_HEAD_FILTER 
 
     // Convert heading to degrees 
     ab_data.heading_desired = (int16_t)(heading_temp*AB_NAV_SCALAR/deg_to_rad); 

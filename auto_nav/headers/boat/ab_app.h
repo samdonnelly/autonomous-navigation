@@ -75,6 +75,11 @@ extern "C" {
 // Thrusters 
 #define AB_NO_THRUST 0               // Force thruster output to zero 
 
+// Conditional compilation 
+#define AB_GPS_LOC_FILTER 1          // GPS location low pass filter enable 
+#define AB_GPS_RAD_FILTER 0          // GPS radius calculation low pass filter enable 
+#define AB_GPS_HEAD_FILTER 0         // GPS heading calculation low pass filter enable 
+
 //=======================================================================================
 
 
