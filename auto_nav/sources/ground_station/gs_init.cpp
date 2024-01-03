@@ -107,18 +107,19 @@ void gs_init(void)
     // TODO add another pin for battery voltage status 
 
     // Initialize the ADC port (called once) 
+    adc1_clock_enable(RCC); 
     adc_port_init(
         ADC1, 
         ADC1_COMMON, 
         ADC_PCLK2_4, 
         ADC_RES_8, 
-        ADC_EOC_EACH, 
-        ADC_SCAN_ENABLE, 
-        ADC_CONT_ENABLE, 
-        ADC_DMA_ENABLE, 
-        ADC_DDS_ENABLE, 
-        ADC_EOC_INT_DISABLE, 
-        ADC_OVR_INT_DISABLE); 
+        ADC_PARAM_ENABLE,      // ADC_EOC_EACH 
+        ADC_PARAM_DISABLE,     // ADC_EOC_INT_DISABLE 
+        ADC_PARAM_ENABLE,      // ADC_SCAN_ENABLE 
+        ADC_PARAM_ENABLE,      // ADC_CONT_ENABLE 
+        ADC_PARAM_ENABLE,      // ADC_DMA_ENABLE 
+        ADC_PARAM_ENABLE,      // ADC_DDS_ENABLE 
+        ADC_PARAM_DISABLE);    // ADC_OVR_INT_DISABLE 
 
     // Initialize the ADC pins and channels (called for each pin/channel) 
     // Right and left thruster control (potentiometer) in manual control mode 
