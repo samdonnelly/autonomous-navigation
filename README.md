@@ -1,14 +1,13 @@
 # Autonomous Navigation 
 
-Application and simulation code for an autonomous robot boat. 
+Unmanned boat used to autonomously navigate short range waypoint missions on open bodies of water. This project is comprised of two main systems: boat and ground station. The boat performs the missions while the ground station is used to command the boat from shore. Both run on the STM32F4 and utilize the <a href="https://github.com/samdonnelly/STM32F4-driver-library">STM32F4-driver-library</a> to talk with external devices. 
 
-## Auto Nav
-Embedded application code for an autonomous boat and its ground station. The boat runs on an STM32F4 and communicates with the operators ground station using radio. The boat runs autonomous waypoint missions but can also be remotely operated via the ground station if needed. 
-
-The ground station is the system that stays with the operator and allows for remote control and communication with the robot. The code is written for the STM32F4, the operator communicates with the system using a serial terminal, and the system talks to the robot over radio. 
-
-## Missing Planning 
-Scripts that allow the operator to send and receive mission data. They act as an interface between the operator and the ground station. 
+Boat Code: <a href="https://github.com/samdonnelly/autonomous-navigation/tree/main/auto_nav/sources/boat">src</a>, <a href="https://github.com/samdonnelly/autonomous-navigation/tree/main/auto_nav/headers/boat">inc</a> \
+Ground Station Code: <a href="https://github.com/samdonnelly/autonomous-navigation/tree/main/auto_nav/sources/ground_station">src</a>, <a href="https://github.com/samdonnelly/autonomous-navigation/tree/main/auto_nav/headers/ground_station">inc</a> \
+Project Build and Background: <a href="https://samueldonnelly11.wixsite.com/builds/autonomous-boat">Link</a> 
 
 ## Simulation 
-Scripts that perform navigation calculations such as using the current and desired GPS coordinates to determining the heading between the two points. These are used to test calculations before implementation in real systems. 
+
+Scripts used to test navigation calculations before implementing them in the real system. 
+
+Simulation Scripts: <a href="https://github.com/samdonnelly/autonomous-navigation/tree/main/simulation">folder</a> 

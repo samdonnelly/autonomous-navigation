@@ -27,35 +27,19 @@
 //=======================================================================================
 // Macros 
 
-#define M8Q_CONFIG_MSG_NUM 12        // Number of M8Q configuration messages on startup 
-#define M8Q_CONFIG_MSG_MAX_LEN 150   // Maximum length of an M8Q configuration message 
+// Number of messages in a configuration packet 
+#define M8Q_CONFIG_MSG_NUM 12 
+
+// Max length of a single config message in a packet 
+#define M8Q_CONFIG_MSG_MAX_LEN 150 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Function prototypes 
+// Config messages 
 
-/**
- * @brief M8Q configuration message copy 
- * 
- * @details This function copies the configuration messages defined in the m8q_config 
- *          file into the array passed to this function. This array can then be passed to 
- *          the m8q_init function to configure the receiver. 
- *          
- *          The messages defined in the config file are meant to configure the settings/
- *          behavior of the receiver. The M8Q doesn't have flash memory so it must be 
- *          reconfigured every time it looses power and battery backup power. These 
- *          messages are carefully constructed according to the message format in the 
- *          devices protocol datasheet. 
- *          
- *          The configuration messages are defined in a separate config file and copied 
- *          into an array so that there is a central location to define the messages 
- *          whether they are used in a project or not. 
- * 
- * @param config_msgs 
- */
-void m8q_config_copy(char config_msgs[M8Q_CONFIG_MSG_NUM][M8Q_CONFIG_MSG_MAX_LEN]); 
+extern const char m8q_config_msgs[M8Q_CONFIG_MSG_NUM][M8Q_CONFIG_MSG_MAX_LEN]; 
 
 //=======================================================================================
 

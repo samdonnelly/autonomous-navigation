@@ -16,7 +16,8 @@
 			"gs_init.h": "c",
 			"ab_init.h": "c",
 			"esc_readytosky_driver.h": "c",
-			"int_handlers.h": "c"
+			"int_handlers.h": "c",
+			"m8q_config.h": "c"
 		}
 	},
 	"launch": {
