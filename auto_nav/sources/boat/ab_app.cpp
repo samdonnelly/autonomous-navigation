@@ -424,8 +424,8 @@ void ab_app_init(
     ab_data.waypoint_index = CLEAR; 
     ab_data.waypoint.lat = waypoint_table[0].lat; 
     ab_data.waypoint.lon = waypoint_table[0].lon; 
-    ab_data.location.lat = m8q_get_lat(); 
-    ab_data.location.lon = m8q_get_long(); 
+    ab_data.location.lat = m8q_get_position_lat(); 
+    ab_data.location.lon = m8q_get_position_lon(); 
     ab_data.waypoint_rad = CLEAR; 
     ab_data.heading_desired = CLEAR; 
     ab_data.heading_actual = CLEAR; 
@@ -494,7 +494,7 @@ void ab_app(void)
     
     // GPS position lock check 
     // If the system loses GPS position lock in manual mode then it continues on. 
-    if (((m8q_get_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
+    if (((m8q_get_position_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
         (ab_data.state != AB_MANUAL_STATE))
     {
         ab_data.ready = CLEAR_BIT; 
@@ -1002,8 +1002,8 @@ void ab_auto_state(void)
 #if AB_GPS_LOC_FILTER 
             // Update the location of the system while filtering out some position noise. The 
             // system moves slow enough to not be affected by a slower position update. 
-            ab_data.location.lat += (m8q_get_lat() - ab_data.location.lat)*0.25; 
-            ab_data.location.lon += (m8q_get_long() - ab_data.location.lon)*0.25; 
+            ab_data.location.lat += (m8q_get_position_lat() - ab_data.location.lat)*0.25; 
+            ab_data.location.lon += (m8q_get_position_lon() - ab_data.location.lon)*0.25; 
 #else 
             // Use the raw coordinate reading from the M8Q 
             ab_data.location.lat = m8q_get_lat(); 
