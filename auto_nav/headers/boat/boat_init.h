@@ -1,19 +1,23 @@
 /**
- * @file m8q_config.h
+ * @file boat_init.h
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief SAM-M8Q GPS configuration file 
+ * @brief Autonomous RC boat initialization interface 
  * 
  * @version 0.1
- * @date 2022-10-02
+ * @date 2024-01-31
  * 
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2024
  * 
  */
 
-#ifndef _M8Q_CONFIG_H_ 
-#define _M8Q_CONFIG_H_ 
+#ifndef _BOAT_INIT_H_
+#define _BOAT_INIT_H_ 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //=======================================================================================
 // Includes 
@@ -22,21 +26,15 @@
 
 //=======================================================================================
 // Macros 
-
-// Number of messages in a configuration packet 
-#define M8Q_CONFIG_MSG_NUM 12 
-
-// Max length of a single config message in a packet 
-#define M8Q_CONFIG_MSG_MAX_LEN 150 
-
 //=======================================================================================
 
 
 //=======================================================================================
-// Config messages 
-
-extern const char m8q_config_msgs[M8Q_CONFIG_MSG_NUM][M8Q_CONFIG_MSG_MAX_LEN]; 
-
+// Functions 
 //=======================================================================================
 
-#endif  // _M8Q_CONFIG_H_
+#ifdef __cplusplus
+}
+#endif
+
+#endif   // _BOAT_INIT_H_ 
