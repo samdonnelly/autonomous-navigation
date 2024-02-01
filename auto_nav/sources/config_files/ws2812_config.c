@@ -24,28 +24,20 @@
 // LED colours 
 
 // LED off 
-uint32_t ws2812_led_clear = 0x00000000; 
+uint32_t ws2812_led_off = 0x00000000; 
 
-// LED 0 colours 
-uint32_t ws2812_led0_auto_star = 0x001E0000;    // Autonomous state - Starbird side (green) 
+// Autonomous state 
+uint32_t ws2812_led_auto_star = 0x001E0000;       // Starbird side indicator 
+uint32_t ws2812_led_auto_port = 0x00001E00;       // Port side indicator 
+uint32_t ws2812_led_auto_strobe = 0x001E1E1E;     // Strobe light 
 
-// LED 1 colours 
-uint32_t ws2812_led1_auto_star = 0x001E0000;    // Autonomous state - Starbird side (green) 
+// Manual state 
+uint32_t ws2812_led_manual_strobe = 0x0000001E;   // Strobe light 
 
-// LED 2 colours 
+// Not ready state 
+uint32_t ws2812_led_not_ready = 0x00001E00;       // Not ready indicator 
 
-// Strobe LEDs (LEDs 3 and 4) 
-uint32_t ws2812_led_not_ready = 0x00001E00;     // Not ready state - indicator (red) 
-uint32_t ws2812_led_ready = 0x00FF6600;         // Ready state - indicator (orange) 
-uint32_t ws2812_led_manual = 0x0000001E;        // Manual control state - Strobe (blue) 
-uint32_t ws2812_led_auto = 0x001E1E1E;          // Autonomous state - Strobe (white) 
-
-// LED 5 colours 
-
-// LED 6 colours 
-uint32_t ws2812_led6_auto_port = 0x00001E00;    // Autonomous state - Port side (red) 
-
-// LED 7 colours 
-uint32_t ws2812_led7_auto_port = 0x00001E00;    // Autonomous state - Port side (red) 
+// Ready state 
+uint32_t ws2812_led_ready = 0x00FF6600;           // Ready indicator 
 
 //=======================================================================================
