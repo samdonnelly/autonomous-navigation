@@ -57,7 +57,9 @@
 //   
 //   - Processes 
 //     - Navigation calculations 
+//     - Filters (ex. Kalman) 
 //     - Log data 
+//     - Motor controller 
 //     - Idle - called when there is nothing else to run 
 // 
 // - Scheduling 
@@ -65,11 +67,19 @@
 //     needs the data it then just grabs the formatted version from the driver. 
 // 
 // - States: 
-//   - 
+//   - Autonomous 
+//   - Manual 
+//   - Loiter 
 // 
 // - ArduPilot 
 //   - Each platform has a 1kHz timer available. This can help time when tasks are run. 
 //     If tasks need to run slower then counters are used to accumulate time. Slow tasks 
 //     are not called on the timer thread because they would slow it down. 
 //   - Callbacks / function pointer are used to define the scheduler. 
+//   - An SD card is used to store data. The filesystem within a root directory is as 
+//     follows: 
+//     - LOGS : flight logs and stored data 
+//     - TERRAIN : terrain data 
+//     - STRNG_BAK : parameter data is backup up here on every boot 
+//     - scripts : LUA scripts 
 //=======================================================================================
