@@ -17,6 +17,8 @@
 
 #include "boat_app.h" 
 
+#include "stm32f411xe.h"
+
 //=======================================================================================
 
 
@@ -66,6 +68,12 @@
 //   - Data is read from sensors on a schedule or in intervals. When then main thread 
 //     needs the data it then just grabs the formatted version from the driver. 
 // 
+// - State machine: 
+//   - State machine and RTOS can be integrated. 
+//   - Event driven + input driven 
+//   - Input driven needs to account for changing external inputs while that state 
+//     machine is running. 
+// 
 // - States: 
 //   - Autonomous 
 //   - Manual 
@@ -82,4 +90,132 @@
 //     - TERRAIN : terrain data 
 //     - STRNG_BAK : parameter data is backup up here on every boot 
 //     - scripts : LUA scripts 
+//=======================================================================================
+
+
+//=======================================================================================
+// Prototypes 
+
+/**
+ * @brief 
+ */
+void boat_state0(void); 
+
+
+/**
+ * @brief 
+ */
+void boat_state1(void); 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Classes 
+
+class boat_state_data 
+{
+private:   // Private data 
+    
+    // State function pointer 
+    typedef void (*state_ptr)(void); 
+
+    // Data 
+    uint8_t state;   // Application state 
+
+public:   // Public data 
+
+    // Store the states + indexes 
+    enum 
+    {
+        STATE0,      // State 0 
+        STATE1,      // State 1 
+        NUM_STATES   // Keeps track of the number of states. Not a state itself. 
+    }; 
+
+    // State table 
+    state_ptr state_table[NUM_STATES] = 
+    {
+        &boat_state0, 
+        &boat_state1 
+    }; 
+
+public:   // Setup and teardown 
+
+    // Constructor 
+    boat_state_data() {} 
+
+    // Destructor 
+    ~boat_state_data() {} 
+
+public: 
+    
+    // Main state machine 
+    void state_machine(void); 
+}; 
+
+
+static boat_state_data boat; 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Main application 
+
+void boat_app(void)
+{
+    boat.state_machine(); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// State machine 
+
+// Top level state machine 
+void boat_state_data::state_machine(void) 
+{
+    uint8_t next_state = state; 
+
+    switch(next_state)
+    {
+        case STATE0: 
+            next_state = STATE1; 
+            break; 
+
+        case STATE1: 
+            next_state = STATE0; 
+            break; 
+        
+        default: 
+            next_state = STATE0; 
+            break; 
+    }
+
+    // Execute the state and update the state record 
+    state_table[next_state](); 
+    state = next_state; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// States 
+
+// State 0 
+void boat_state0(void)
+{
+    // 
+}
+
+
+// State 1 
+void boat_state1(void)
+{
+    // 
+}
+
 //=======================================================================================
