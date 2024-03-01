@@ -48,7 +48,7 @@
 #include "interrupt_driver.h"
 #include "linked_list_driver.h"
 #include "switch_debounce.h"
-#include "timers.h"
+#include "timers_driver.h"
 
 // Configuration files 
 #include "m8q_config.h"

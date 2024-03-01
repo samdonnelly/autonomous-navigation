@@ -248,9 +248,10 @@ void ab_init(void)
     // Magnetometer 
 
     // Driver init 
-    lsm303agr_init(
+    lsm303agr_m_init(
         I2C1, 
         mag_offsets, 
+        0.1, 
         LSM303AGR_M_ODR_10, 
         LSM303AGR_M_MODE_CONT, 
         LSM303AGR_CFG_DISABLE, 
@@ -314,7 +315,7 @@ void ab_init(void)
     ws2812_init(
         DEVICE_ONE, 
         TIM4, 
-        TIM_CHANNEL_2, 
+        TIMER_CH2, 
         GPIOB, 
         PIN_7); 
     
@@ -327,7 +328,7 @@ void ab_init(void)
     esc_readytosky_init(
         DEVICE_ONE, 
         TIM3, 
-        TIM_CHANNEL_4, 
+        TIMER_CH4, 
         GPIOB, 
         PIN_1, 
         TIM_84MHZ_1US_PSC, 
@@ -339,7 +340,7 @@ void ab_init(void)
     esc_readytosky_init(
         DEVICE_TWO, 
         TIM3, 
-        TIM_CHANNEL_3, 
+        TIMER_CH3, 
         GPIOB, 
         PIN_0, 
         TIM_84MHZ_1US_PSC, 

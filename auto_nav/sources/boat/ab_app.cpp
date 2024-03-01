@@ -467,10 +467,10 @@ void ab_app(void)
     {
         ab_data.fault_code |= (SET_BIT << SHIFT_0); 
     }
-    if (lsm303agr_get_status())
-    {
-        ab_data.fault_code |= (SET_BIT << SHIFT_1); 
-    }
+    // if (lsm303agr_get_status())
+    // {
+    //     ab_data.fault_code |= (SET_BIT << SHIFT_1); 
+    // }
     if (nrf24l01_get_status())
     {
         ab_data.fault_code |= (SET_BIT << SHIFT_2); 
@@ -1039,7 +1039,8 @@ void ab_auto_state(void)
         // Update the current heading and calculate the thruster output every period 
 
         // Update the magnetometer data 
-        lsm303agr_m_read(); 
+        // lsm303agr_m_read(); 
+        lsm303agr_m_update(); 
 
         // Get the true North heading from the magnetometer 
         ab_heading(); 
@@ -1202,7 +1203,7 @@ void ab_reset_state(void)
     // Clear fault and status codes 
     ab_data.fault_code = CLEAR; 
     m8q_set_reset_flag(); 
-    lsm303agr_clear_status(); 
+    // lsm303agr_clear_status(); 
     nrf24l01_clear_status(); 
 
     //==================================================
@@ -1529,11 +1530,13 @@ void ab_gps_heading(void)
     // Correct the calculated heading if needed 
     if (den < 0)
     {
-        ab_data.heading_desired += LSM303AGR_M_HEAD_DIFF; 
+        // ab_data.heading_desired += LSM303AGR_M_HEAD_DIFF; 
+        ab_data.heading_desired += 1800; 
     }
     else if (num < 0)
     {
-        ab_data.heading_desired += LSM303AGR_M_HEAD_MAX; 
+        // ab_data.heading_desired += LSM303AGR_M_HEAD_MAX; 
+        ab_data.heading_desired += 3600; 
     }
 }
 
@@ -1547,16 +1550,19 @@ void ab_heading(void)
     // Adjust the true North heading if the corrected headed exceeds heading bounds 
     if (AB_TN_COR >= 0)
     {
-        if (ab_data.heading_actual >= LSM303AGR_M_HEAD_MAX)
+        // if (ab_data.heading_actual >= LSM303AGR_M_HEAD_MAX)
+        if (ab_data.heading_actual >= 3600)
         {
-            ab_data.heading_actual -= LSM303AGR_M_HEAD_MAX; 
+            // ab_data.heading_actual -= LSM303AGR_M_HEAD_MAX; 
+            ab_data.heading_actual -= 3600; 
         }
     }
     else 
     {
         if (ab_data.heading_actual < 0)
         {
-            ab_data.heading_actual += LSM303AGR_M_HEAD_MAX; 
+            // ab_data.heading_actual += LSM303AGR_M_HEAD_MAX; 
+            ab_data.heading_actual += 3600; 
         }
     }
 }
@@ -1571,13 +1577,17 @@ void ab_heading_error(void)
     // Make sure the heading error does not exceed +/-180 degrees. This error is used for 
     // steering control ((+) error turns one way, (-) error turns another) of the boat so 
     // an error outside of this range is better handled by turning the opposite direction. 
-    if (ab_data.heading_error > LSM303AGR_M_HEAD_DIFF)
+    // if (ab_data.heading_error > LSM303AGR_M_HEAD_DIFF)
+    if (ab_data.heading_error > 1800)
     {
-        ab_data.heading_error -= LSM303AGR_M_HEAD_MAX; 
+        // ab_data.heading_error -= LSM303AGR_M_HEAD_MAX; 
+        ab_data.heading_error -= 3600; 
     }
-    else if (ab_data.heading_error < -LSM303AGR_M_HEAD_DIFF)
+    // else if (ab_data.heading_error < -LSM303AGR_M_HEAD_DIFF)
+    else if (ab_data.heading_error < -1800)
     {
-        ab_data.heading_error += LSM303AGR_M_HEAD_MAX; 
+        // ab_data.heading_error += LSM303AGR_M_HEAD_MAX; 
+        ab_data.heading_error += 3600; 
     }
 }
 
