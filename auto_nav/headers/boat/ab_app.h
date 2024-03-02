@@ -22,8 +22,8 @@ extern "C" {
 //=======================================================================================
 // Includes 
 
-#include "ab_includes_app.h"
-#include "includes_drivers.h"
+#include "ab_includes_app.h" 
+#include "includes_drivers.h" 
 
 //=======================================================================================
 
@@ -79,120 +79,6 @@ extern "C" {
 #define AB_GPS_LOC_FILTER 1          // GPS location low pass filter enable 
 #define AB_GPS_RAD_FILTER 0          // GPS radius calculation low pass filter enable 
 #define AB_GPS_HEAD_FILTER 0         // GPS heading calculation low pass filter enable 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Enums 
-
-/**
- * @brief 
- * 
- * @details 
- */
-typedef enum {
-    AB_INIT_STATE,         // State 0: startup 
-    AB_NOT_READY_STATE,    // State 1: not ready 
-    AB_READY_STATE,        // State 2: ready 
-    AB_MANUAL_STATE,       // State 3: manual control mode 
-    AB_AUTO_STATE,         // State 4: autonomous mode 
-    AB_LOW_PWR_STATE,      // State 5: low power 
-    AB_FAULT_STATE,        // State 6: fault 
-    AB_RESET_STATE         // State 7: reset 
-} ab_states_t; 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Structures 
-
-// External commands 
-typedef struct ab_cmds_s 
-{
-    char ab_cmd[AB_MAX_CMD_SIZE]; 
-    void (*ab_cmd_func_ptr)(uint8_t); 
-    uint8_t ab_cmd_mask; 
-}
-ab_cmds_t; 
-
-
-// GPS coordinate data type 
-typedef struct ab_waypoints_s 
-{
-    double lat;   // Latitude 
-    double lon;   // Longitude 
-}
-ab_waypoints_t; 
-
-
-// Data record for the system 
-typedef struct ab_data_s 
-{
-    // System information 
-    ab_states_t state;                       // State machine state 
-    ADC_TypeDef *adc;                        // ADC port battery soc and pots 
-    nrf24l01_data_pipe_t pipe;               // Data pipe number for the radio module 
-    uint16_t fault_code;                     // System fault code 
-
-    // Timing information 
-    TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
-    tim_compare_t delay_timer;               // General purpose delay timing info 
-    tim_compare_t nav_timer;                 // Navigation timing info 
-    tim_compare_t led_timer;                 // LED output timing info 
-    tim_compare_t hb_timer;                  // Heartbeat timing info 
-    uint8_t hb_timeout;                      // Heartbeat timeout count 
-
-    // System data 
-    uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
-    uint32_t led_data[WS2812_LED_NUM];       // Bits: Green: 16-23, Red: 8-15, Blue: 0-7 
-    uint32_t led_strobe;                     // LED strobe colour 
-
-    // Payload data 
-    uint8_t read_buff[AB_PL_LEN];            // Data read by PRX from PTX device 
-    uint8_t cmd_id[AB_MAX_CMD_SIZE];         // Stores the ID of the external command 
-    uint8_t cmd_value;                       // Stores the value of the external command 
-    uint8_t hb_msg[AB_PL_LEN];               // Heartbeat message 
-
-    // Navigation data 
-    uint8_t waypoint_index;                  // GPS coordinate index 
-    ab_waypoints_t waypoint;                 // Target waypoint 
-    ab_waypoints_t location;                 // Current geographical location 
-    uint16_t waypoint_rad;                   // Distance between current and target location 
-    int16_t heading_desired;                 // Desired heading 
-    int16_t heading_actual;                  // Current heading 
-    int16_t heading_error;                   // Heading error 
-
-    // Thrusters 
-    int16_t right_thruster;                  // Right thruster throttle 
-    int16_t left_thruster;                   // Left thruster throttle 
-
-    // Control flags 
-    uint8_t connect     : 1;                 // Radio connection status flag 
-    uint8_t mc_data     : 1;                 // Manual control new data check flag 
-    uint8_t state_entry : 1;                 // State entry flag 
-    uint8_t init        : 1;                 // Initialization state flag 
-    uint8_t ready       : 1;                 // Ready state flag 
-    uint8_t idle        : 1;                 // Idle flag - for leaving manual and auto modes 
-    uint8_t manual      : 1;                 // Manual control mode state flag 
-    uint8_t autonomous  : 1;                 // Autonomous mode state flag 
-    uint8_t low_pwr     : 1;                 // Low power state flag 
-    uint8_t fault       : 1;                 // Fault state flag 
-    uint8_t reset       : 1;                 // Reset state flag 
-}
-ab_data_t; 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Function pointers 
-
-/**
- * @brief State machine function pointer 
- */
-typedef void (*ab_state_func_ptr_t)(void); 
 
 //=======================================================================================
 

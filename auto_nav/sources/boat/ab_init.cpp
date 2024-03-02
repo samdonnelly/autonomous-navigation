@@ -15,31 +15,12 @@
 //=======================================================================================
 // Includes 
 
-#include "ab_init.h"
-#include "ab_includes_app.h"
+#include "ab_init.h" 
+#include "ab_includes_app.h" 
 
-//=======================================================================================
-
-
-//=======================================================================================
-// Global variables 
-
-// Magnetometer directional offsets to correct for heading errors (expresses as degrees*10). 
-// See the test code for calibration steps. 
-static int16_t mag_offsets[AB_MAG_NUM_DIRS] = 
-{
-    -160,   // N  (0/360deg) direction heading offset 
-    32,     // NE (45deg) direction heading offset 
-    215,    // E  (90deg) direction heading offset 
-    385,    // SE (135deg) direction heading offset 
-    435,    // S  (180deg) direction heading offset 
-    20,     // SW (225deg) direction heading offset 
-    -450,   // W  (270deg) direction heading offset 
-    -365    // NW (315deg) direction heading offset 
-};  
-
-// RF module data pipe address 
-static uint8_t pipe_addr_buff[NRF24l01_ADDR_WIDTH] = {0xB3, 0xB4, 0xB5, 0xB6, 0x05}; 
+#include "lsm303agr_config.h" 
+#include "m8q_config.h" 
+#include "nrf24l01_config.h" 
 
 //=======================================================================================
 
@@ -250,7 +231,7 @@ void ab_init(void)
     // Driver init 
     lsm303agr_m_init(
         I2C1, 
-        mag_offsets, 
+        lsm303agr_config_dir_offsets, 
         0.1, 
         LSM303AGR_M_ODR_10, 
         LSM303AGR_M_MODE_CONT, 
@@ -296,7 +277,7 @@ void ab_init(void)
     nrf24l01_set_rf_pwr(NRF24L01_RF_PWR_6DBM); 
 
     // Configure the devices PRX settings 
-    nrf24l01_prx_config(pipe_addr_buff, NRF24L01_DP_1); 
+    nrf24l01_prx_config(nrf24l01_pipe_addr, NRF24L01_DP_1); 
 
     //===================================================
 

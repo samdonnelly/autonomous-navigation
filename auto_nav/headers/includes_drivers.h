@@ -50,9 +50,6 @@
 #include "switch_debounce.h"
 #include "timers_driver.h"
 
-// Configuration files 
-#include "m8q_config.h"
-
 // Tools 
 #include "tools.h"
 

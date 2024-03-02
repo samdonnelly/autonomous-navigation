@@ -15,7 +15,116 @@
 //=======================================================================================
 // Includes 
 
-#include "ab_app.h"
+#include "ab_app.h" 
+#include "includes_cpp_drivers.h" 
+
+#include "gps_coordinates.h" 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Enums 
+
+/**
+ * @brief System states 
+ */
+typedef enum {
+    AB_INIT_STATE,         // State 0: startup 
+    AB_NOT_READY_STATE,    // State 1: not ready 
+    AB_READY_STATE,        // State 2: ready 
+    AB_MANUAL_STATE,       // State 3: manual control mode 
+    AB_AUTO_STATE,         // State 4: autonomous mode 
+    AB_LOW_PWR_STATE,      // State 5: low power 
+    AB_FAULT_STATE,        // State 6: fault 
+    AB_RESET_STATE         // State 7: reset 
+} ab_states_t; 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Structures 
+
+// External commands 
+typedef struct ab_cmds_s 
+{
+    char ab_cmd[AB_MAX_CMD_SIZE]; 
+    void (*ab_cmd_func_ptr)(uint8_t); 
+    uint8_t ab_cmd_mask; 
+}
+ab_cmds_t; 
+
+
+// Data record for the system 
+typedef struct ab_data_s 
+{
+    // System information 
+    ab_states_t state;                       // State machine state 
+    ADC_TypeDef *adc;                        // ADC port battery soc and pots 
+    nrf24l01_data_pipe_t pipe;               // Data pipe number for the radio module 
+    uint16_t fault_code;                     // System fault code 
+
+    // Timing information 
+    TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
+    tim_compare_t delay_timer;               // General purpose delay timing info 
+    tim_compare_t nav_timer;                 // Navigation timing info 
+    tim_compare_t led_timer;                 // LED output timing info 
+    tim_compare_t hb_timer;                  // Heartbeat timing info 
+    uint8_t hb_timeout;                      // Heartbeat timeout count 
+
+    // System data 
+    uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
+    uint32_t led_data[WS2812_LED_NUM];       // Bits: Green: 16-23, Red: 8-15, Blue: 0-7 
+    uint32_t led_strobe;                     // LED strobe colour 
+
+    // Payload data 
+    uint8_t read_buff[AB_PL_LEN];            // Data read by PRX from PTX device 
+    uint8_t cmd_id[AB_MAX_CMD_SIZE];         // Stores the ID of the external command 
+    uint8_t cmd_value;                       // Stores the value of the external command 
+    uint8_t hb_msg[AB_PL_LEN];               // Heartbeat message 
+
+    // Navigation data 
+    uint8_t waypoint_index;                  // GPS coordinate index 
+    gps_waypoints_t waypoint;                // Target waypoint 
+    gps_waypoints_t location;                // Current geographical location 
+    uint16_t waypoint_rad;                   // Distance between current and target location 
+    int16_t heading_desired;                 // Desired heading 
+    int16_t heading_actual;                  // Current heading 
+    int16_t heading_error;                   // Heading error 
+
+    // Thrusters 
+    int16_t right_thruster;                  // Right thruster throttle 
+    int16_t left_thruster;                   // Left thruster throttle 
+
+    // Control flags 
+    uint8_t connect     : 1;                 // Radio connection status flag 
+    uint8_t mc_data     : 1;                 // Manual control new data check flag 
+    uint8_t state_entry : 1;                 // State entry flag 
+    uint8_t init        : 1;                 // Initialization state flag 
+    uint8_t ready       : 1;                 // Ready state flag 
+    uint8_t idle        : 1;                 // Idle flag - for leaving manual and auto modes 
+    uint8_t manual      : 1;                 // Manual control mode state flag 
+    uint8_t autonomous  : 1;                 // Autonomous mode state flag 
+    uint8_t low_pwr     : 1;                 // Low power state flag 
+    uint8_t fault       : 1;                 // Fault state flag 
+    uint8_t reset       : 1;                 // Reset state flag 
+}
+ab_data_t; 
+
+// Data record instance 
+static ab_data_t ab_data; 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Function pointers 
+
+/**
+ * @brief State machine function pointer 
+ */
+typedef void (*ab_state_func_ptr_t)(void); 
 
 //=======================================================================================
 
@@ -295,10 +404,7 @@ void ab_heading_error(void);
 
 
 //=======================================================================================
-// Global variables 
-
-// Data record instance 
-static ab_data_t ab_data; 
+// Control data 
 
 // Function pointer table 
 static ab_state_func_ptr_t state_table[AB_NUM_STATES] = 
@@ -312,6 +418,7 @@ static ab_state_func_ptr_t state_table[AB_NUM_STATES] =
     &ab_fault_state, 
     &ab_reset_state 
 }; 
+
 
 // Command table 
 static ab_cmds_t cmd_table[AB_NUM_CMDS] = 
@@ -332,20 +439,6 @@ static ab_cmds_t cmd_table[AB_NUM_CMDS] =
                                  (SET_BIT << AB_LOW_PWR_STATE)   | 
                                  (SET_BIT << AB_FAULT_STATE)     | 
                                  (SET_BIT << AB_RESET_STATE)}   // Available in all states 
-}; 
-
-// GPS coordinate table 
-const static ab_waypoints_t waypoint_table[AB_NUM_COORDINATES] = 
-{
-    {50.97677260, -114.03209920},   // Index 0 
-    {50.97639930, -114.03126510},   // Index 1 
-    {50.97589600, -114.03057310},   // Index 2 
-    {50.97601600, -114.03018950},   // Index 3 
-    {50.97646180, -114.03059720},   // Index 4 
-    {50.97744890, -114.03095530},   // Index 5 
-    {50.97744300, -114.03161640},   // Index 6 
-    {50.97689920, -114.03157090},   // Index 7 
-    {50.97666280, -114.03299510}    // Index 8 
 }; 
 
 //=======================================================================================
@@ -422,8 +515,8 @@ void ab_app_init(
 
     // Navigation data 
     ab_data.waypoint_index = CLEAR; 
-    ab_data.waypoint.lat = waypoint_table[0].lat; 
-    ab_data.waypoint.lon = waypoint_table[0].lon; 
+    ab_data.waypoint.lat = gps_waypoints[0].lat; 
+    ab_data.waypoint.lon = gps_waypoints[0].lon; 
     ab_data.location.lat = m8q_get_position_lat(); 
     ab_data.location.lon = m8q_get_position_lon(); 
     ab_data.waypoint_rad = CLEAR; 
@@ -467,10 +560,6 @@ void ab_app(void)
     {
         ab_data.fault_code |= (SET_BIT << SHIFT_0); 
     }
-    // if (lsm303agr_get_status())
-    // {
-    //     ab_data.fault_code |= (SET_BIT << SHIFT_1); 
-    // }
     if (nrf24l01_get_status())
     {
         ab_data.fault_code |= (SET_BIT << SHIFT_2); 
@@ -1026,8 +1115,8 @@ void ab_auto_state(void)
                 }
 
                 // Update the target waypoint 
-                ab_data.waypoint.lat = waypoint_table[ab_data.waypoint_index].lat; 
-                ab_data.waypoint.lon = waypoint_table[ab_data.waypoint_index].lon; 
+                ab_data.waypoint.lat = gps_waypoints[ab_data.waypoint_index].lat; 
+                ab_data.waypoint.lon = gps_waypoints[ab_data.waypoint_index].lon; 
             }
         }
 
@@ -1203,7 +1292,6 @@ void ab_reset_state(void)
     // Clear fault and status codes 
     ab_data.fault_code = CLEAR; 
     m8q_set_reset_flag(); 
-    // lsm303agr_clear_status(); 
     nrf24l01_clear_status(); 
 
     //==================================================
@@ -1295,8 +1383,8 @@ void ab_index_cmd(
     if ((index_cmd_value < AB_NUM_COORDINATES) && (index_check >= AB_GPS_INDEX_CNT))
     {
         ab_data.waypoint_index = index_cmd_value; 
-        ab_data.waypoint.lat = waypoint_table[ab_data.waypoint_index].lat; 
-        ab_data.waypoint.lon = waypoint_table[ab_data.waypoint_index].lon; 
+        ab_data.waypoint.lat = gps_waypoints[ab_data.waypoint_index].lat; 
+        ab_data.waypoint.lon = gps_waypoints[ab_data.waypoint_index].lon; 
         index_check = CLEAR; 
         uart_sendstring(USART2, "\r\nindex="); 
         uart_send_integer(USART2, (int16_t)ab_data.waypoint_index); 
@@ -1530,12 +1618,10 @@ void ab_gps_heading(void)
     // Correct the calculated heading if needed 
     if (den < 0)
     {
-        // ab_data.heading_desired += LSM303AGR_M_HEAD_DIFF; 
         ab_data.heading_desired += 1800; 
     }
     else if (num < 0)
     {
-        // ab_data.heading_desired += LSM303AGR_M_HEAD_MAX; 
         ab_data.heading_desired += 3600; 
     }
 }
@@ -1550,10 +1636,8 @@ void ab_heading(void)
     // Adjust the true North heading if the corrected headed exceeds heading bounds 
     if (AB_TN_COR >= 0)
     {
-        // if (ab_data.heading_actual >= LSM303AGR_M_HEAD_MAX)
         if (ab_data.heading_actual >= 3600)
         {
-            // ab_data.heading_actual -= LSM303AGR_M_HEAD_MAX; 
             ab_data.heading_actual -= 3600; 
         }
     }
@@ -1561,7 +1645,6 @@ void ab_heading(void)
     {
         if (ab_data.heading_actual < 0)
         {
-            // ab_data.heading_actual += LSM303AGR_M_HEAD_MAX; 
             ab_data.heading_actual += 3600; 
         }
     }
@@ -1580,13 +1663,10 @@ void ab_heading_error(void)
     // if (ab_data.heading_error > LSM303AGR_M_HEAD_DIFF)
     if (ab_data.heading_error > 1800)
     {
-        // ab_data.heading_error -= LSM303AGR_M_HEAD_MAX; 
         ab_data.heading_error -= 3600; 
     }
-    // else if (ab_data.heading_error < -LSM303AGR_M_HEAD_DIFF)
     else if (ab_data.heading_error < -1800)
     {
-        // ab_data.heading_error += LSM303AGR_M_HEAD_MAX; 
         ab_data.heading_error += 3600; 
     }
 }
