@@ -23,8 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ab_init.h"
-#include "ab_app.h"
+#include "ab_interface.h" 
 #include "gs_init.h"
 #include "gs_app.h"
 /* USER CODE END Includes */

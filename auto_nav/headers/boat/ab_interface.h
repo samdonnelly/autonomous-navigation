@@ -1,19 +1,19 @@
 /**
- * @file project_init.h
+ * @file ab_interface.h
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Autonomous boat application header 
+ * @brief 
  * 
  * @version 0.1
- * @date 2023-07-20
+ * @date 2024-03-02
  * 
- * @copyright Copyright (c) 2023
+ * @copyright Copyright (c) 2024
  * 
  */
 
-#ifndef _AB_APP_H_ 
-#define _AB_APP_H_ 
+#ifndef _AB_INTERFACE_H_ 
+#define _AB_INTERFACE_H_ 
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,14 +22,30 @@ extern "C" {
 //=======================================================================================
 // Includes 
 
-#include "ab_includes_app.h" 
 #include "includes_drivers.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
+// Macros 
+
+// Data sizes 
+#define AB_ADC_BUFF_SIZE 3           // Size according to the number of ADCs used 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Functions 
+
+/**
+ * @brief Autonomous boat initialization 
+ * 
+ * @details 
+ */
+void ab_init(void); 
+
 
 /**
  * @brief 
@@ -61,4 +77,4 @@ void ab_app(void);
 }
 #endif
 
-#endif   // _AB_APP_H_ 
+#endif   // _AB_INTERFACE_H_ 

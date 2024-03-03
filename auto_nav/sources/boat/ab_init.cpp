@@ -15,12 +15,30 @@
 //=======================================================================================
 // Includes 
 
-#include "ab_init.h" 
-#include "ab_includes_app.h" 
-
+#include "ab_interface.h" 
 #include "lsm303agr_config.h" 
 #include "m8q_config.h" 
 #include "nrf24l01_config.h" 
+
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Macros 
+
+// Device setup 
+#define AB_IMU_STBY_MASK 0x00        // Axis standby status mask 
+#define AB_IMU_SMPLRT_DIVIDER 0      // Sample Rate Divider 
+#define AB_MAG_NUM_DIRS 8            // Number of directions of heading offset calcs 
+#define AB_RF_CH_FREQ 10             // Frequency channel for the RF module 
+#define AB_ESC_PERIOD 20000          // ESC PWM timer period (auto-reload register) 
+
+// ESCs/Motors 
+#define AB_R_ESC_FWD_SPD_LIM 1750    // Forward PWM pulse time limit (us) - right ESC 
+#define AB_R_ESC_REV_SPD_LIM 1430    // Reverse PWM pulse time limit (us) - right ESC 
+#define AB_L_ESC_FWD_SPD_LIM 1730    // Forward PWM pulse time limit (us) - left ESC 
+#define AB_L_ESC_REV_SPD_LIM 1430    // Reverse PWM pulse time limit (us) - left ESC 
 
 //=======================================================================================
 
