@@ -191,7 +191,7 @@ typedef void (*ab_state_func_ptr_t)(void);
 // State functions 
 
 /**
- * @brief 
+ * @brief Initialization state 
  * 
  * @details 
  */
@@ -199,7 +199,7 @@ void ab_init_state(void);
 
 
 /**
- * @brief 
+ * @brief Not ready state 
  * 
  * @details 
  */
@@ -207,7 +207,7 @@ void ab_not_ready_state(void);
 
 
 /**
- * @brief 
+ * @brief Ready state 
  * 
  * @details 
  */
@@ -215,7 +215,7 @@ void ab_ready_state(void);
 
 
 /**
- * @brief 
+ * @brief Manual control state 
  * 
  * @details 
  */
@@ -243,7 +243,7 @@ void ab_auto_state(void);
 
 
 /**
- * @brief 
+ * @brief Low power state 
  * 
  * @details 
  */
@@ -251,7 +251,7 @@ void ab_low_pwr_state(void);
 
 
 /**
- * @brief 
+ * @brief Fault state 
  * 
  * @details 
  */
@@ -259,7 +259,7 @@ void ab_fault_state(void);
 
 
 /**
- * @brief 
+ * @brief Reset state 
  * 
  * @details 
  */

@@ -20,7 +20,6 @@
 #include "m8q_config.h" 
 #include "nrf24l01_config.h" 
 
-
 //=======================================================================================
 
 
@@ -103,7 +102,7 @@ void ab_init(void)
         SPI_BR_FPCLK_16, 
         SPI_CLOCK_MODE_0); 
     
-    // SD card (if possible) 
+    // SD card 
 
     //===================================================
 
@@ -137,7 +136,7 @@ void ab_init(void)
     //===================================================
     // ADC 
 
-    // Two batteries and one PSU (if possible) 
+    // Two batteries and one PSU 
 
     // Initialize the ADC port (called once) 
     adc1_clock_enable(RCC); 
@@ -300,15 +299,15 @@ void ab_init(void)
     //===================================================
 
     //===================================================
-    // SD card (if possible) 
+    // SD card 
     //===================================================
 
     //===================================================
     // LEDs 
 
-    // The timer port (not just the channel) used for the LEDs must be different than the timer 
-    // used for the ESCs because they run at different speeds and the WS2812 driver turns the 
-    // timer on and off for sending. 
+    // The timer port (not just the channel) used for the LEDs must be different than the 
+    // timer used for the ESCs because they run at different speeds and the WS2812 driver 
+    // turns the timer on and off for sending. 
 
     // WS2812 (Neopixel LEDs) 
     ws2812_init(
