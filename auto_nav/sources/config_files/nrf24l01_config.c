@@ -1,12 +1,12 @@
 /**
- * @file stm32f4xx_hal_msp.c
+ * @file nrf24l01_config.c
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief MSP Initialization and de-Initialization 
+ * @brief nRF24L01 RF module configuration file implementation 
  * 
  * @version 0.1
- * @date 2024-03-04
+ * @date 2024-03-01
  * 
  * @copyright Copyright (c) 2024
  * 
@@ -15,23 +15,18 @@
 //=======================================================================================
 // Includes 
 
-#include "stm32f4xx_hal.h" 
+#include "nrf24l01_config.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Functions 
+// RF pipe addresses 
 
-/**
- * @brief Initializes the Global MSP 
- */
-void HAL_MspInit(void)
+// Address sent by the PTX and address accepted by the PRX 
+const uint8_t nrf24l01_pipe_addr[NRF24l01_ADDR_WIDTH] = 
 {
-    __HAL_RCC_SYSCFG_CLK_ENABLE();
-    __HAL_RCC_PWR_CLK_ENABLE();
-
-    HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_0); 
-}
+    0xB3, 0xB4, 0xB5, 0xB6, 0x05
+}; 
 
 //=======================================================================================

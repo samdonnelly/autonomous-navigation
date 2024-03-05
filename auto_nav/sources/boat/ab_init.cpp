@@ -15,31 +15,32 @@
 //=======================================================================================
 // Includes 
 
-#include "ab_init.h"
-#include "ab_includes_app.h"
+#include "ab_interface.h" 
+#include "lsm303agr_config.h" 
+#include "m8q_config.h" 
+#include "nrf24l01_config.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Global variables 
+// Macros 
 
-// Magnetometer directional offsets to correct for heading errors (expresses as degrees*10). 
-// See the test code for calibration steps. 
-static int16_t mag_offsets[AB_MAG_NUM_DIRS] = 
-{
-    -160,   // N  (0/360deg) direction heading offset 
-    32,     // NE (45deg) direction heading offset 
-    215,    // E  (90deg) direction heading offset 
-    385,    // SE (135deg) direction heading offset 
-    435,    // S  (180deg) direction heading offset 
-    20,     // SW (225deg) direction heading offset 
-    -450,   // W  (270deg) direction heading offset 
-    -365    // NW (315deg) direction heading offset 
-};  
+// Configuration 
+#define AB_HEADING_LPF_GAIN 0.2      // Heading low pass filter gain 
 
-// RF module data pipe address 
-static uint8_t pipe_addr_buff[NRF24l01_ADDR_WIDTH] = {0xB3, 0xB4, 0xB5, 0xB6, 0x05}; 
+// Device setup 
+#define AB_IMU_STBY_MASK 0x00        // Axis standby status mask 
+#define AB_IMU_SMPLRT_DIVIDER 0      // Sample Rate Divider 
+#define AB_MAG_NUM_DIRS 8            // Number of directions of heading offset calcs 
+#define AB_RF_CH_FREQ 10             // Frequency channel for the RF module 
+#define AB_ESC_PERIOD 20000          // ESC PWM timer period (auto-reload register) 
+
+// ESCs/Motors 
+#define AB_R_ESC_FWD_SPD_LIM 1750    // Forward PWM pulse time limit (us) - right ESC 
+#define AB_R_ESC_REV_SPD_LIM 1430    // Reverse PWM pulse time limit (us) - right ESC 
+#define AB_L_ESC_FWD_SPD_LIM 1730    // Forward PWM pulse time limit (us) - left ESC 
+#define AB_L_ESC_REV_SPD_LIM 1430    // Reverse PWM pulse time limit (us) - left ESC 
 
 //=======================================================================================
 
@@ -104,7 +105,7 @@ void ab_init(void)
         SPI_BR_FPCLK_16, 
         SPI_CLOCK_MODE_0); 
     
-    // SD card (if possible) 
+    // SD card 
 
     //===================================================
 
@@ -138,7 +139,7 @@ void ab_init(void)
     //===================================================
     // ADC 
 
-    // Two batteries and one PSU (if possible) 
+    // Two batteries and one PSU 
 
     // Initialize the ADC port (called once) 
     adc1_clock_enable(RCC); 
@@ -250,8 +251,8 @@ void ab_init(void)
     // Driver init 
     lsm303agr_m_init(
         I2C1, 
-        mag_offsets, 
-        0.1, 
+        lsm303agr_config_dir_offsets, 
+        AB_HEADING_LPF_GAIN, 
         LSM303AGR_M_ODR_10, 
         LSM303AGR_M_MODE_CONT, 
         LSM303AGR_CFG_DISABLE, 
@@ -296,20 +297,20 @@ void ab_init(void)
     nrf24l01_set_rf_pwr(NRF24L01_RF_PWR_6DBM); 
 
     // Configure the devices PRX settings 
-    nrf24l01_prx_config(pipe_addr_buff, NRF24L01_DP_1); 
+    nrf24l01_prx_config(nrf24l01_pipe_addr, NRF24L01_DP_1); 
 
     //===================================================
 
     //===================================================
-    // SD card (if possible) 
+    // SD card 
     //===================================================
 
     //===================================================
     // LEDs 
 
-    // The timer port (not just the channel) used for the LEDs must be different than the timer 
-    // used for the ESCs because they run at different speeds and the WS2812 driver turns the 
-    // timer on and off for sending. 
+    // The timer port (not just the channel) used for the LEDs must be different than the 
+    // timer used for the ESCs because they run at different speeds and the WS2812 driver 
+    // turns the timer on and off for sending. 
 
     // WS2812 (Neopixel LEDs) 
     ws2812_init(

@@ -19,6 +19,9 @@ auto_nav/.vscode/
 # Build files 
 auto_nav/build/
 
+# Application files 
+auto_nav/sources/system_data/gps_coordinates.cpp 
+
 #========================================================================================
 
 #========================================================================================
