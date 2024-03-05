@@ -43,6 +43,9 @@
 #define AB_MAX_CMD_SIZE 32           // Max external command size 
 #define AB_PL_LEN 32                 // Payload length 
 
+// Configuration 
+#define AB_COORDINATE_LPF_GAIN 0.5   // Coordinate low pass filter gain 
+
 // Navigation 
 #define AB_NUM_COORDINATES 9         // Number of pre-defined GPS coordinates 
 #define AB_TN_COR 130                // True North direction correction 
@@ -100,7 +103,7 @@ typedef enum {
 //=======================================================================================
 // Structures 
 
-// External commands 
+// Ground station commands 
 typedef struct ab_cmds_s 
 {
     char ab_cmd[AB_MAX_CMD_SIZE]; 
@@ -139,13 +142,16 @@ typedef struct ab_data_s
     uint8_t hb_msg[AB_PL_LEN];               // Heartbeat message 
 
     // Navigation data 
+    gps_waypoints_t current;                 // Current location coordinates 
+    gps_waypoints_t target;                  // Desired waypoint coordinates 
     uint8_t waypoint_index;                  // GPS coordinate index 
-    gps_waypoints_t waypoint;                // Target waypoint 
-    gps_waypoints_t location;                // Current geographical location 
-    uint16_t waypoint_rad;                   // Distance between current and target location 
-    int16_t heading_desired;                 // Desired heading 
-    int16_t heading_actual;                  // Current heading 
-    int16_t heading_error;                   // Heading error 
+    int32_t radius;                          // Distance between current and target location 
+    uint8_t navstat;                         // Position lock status 
+
+    // Heading 
+    int16_t coordinate_heading;              // Heading between current and desired location 
+    int16_t compass_heading;                 // Current compass heading 
+    int16_t error_heading;                   // Error between compass and coordinate heading 
 
     // Thrusters 
     int16_t right_thruster;                  // Right thruster throttle 
@@ -168,6 +174,15 @@ ab_data_t;
 
 // Data record instance 
 static ab_data_t ab_data; 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Clases 
+
+// GNSS navigation instance 
+static nav_calculations gnss_nav(AB_COORDINATE_LPF_GAIN, AB_TN_COR); 
 
 //=======================================================================================
 
@@ -306,8 +321,9 @@ void ab_reset_state(void);
 /**
  * @brief Idle command 
  * 
- * @details Triggers idle mode when in the applicable state. Turns the thrusters off. See 
- *          the "cmd_table" for states in which this command is valid. 
+ * @details Run when the ground station sends an "idle" command while in an applicable 
+ *          state. This will trigger idle mode and turn the thrusters off. See the 
+ *          "cmd_table" for states in which this command is valid. 
  * 
  * @param idle_cmd_value : generic idle command argument 
  */
@@ -317,9 +333,9 @@ void ab_idle_cmd(uint8_t idle_cmd_value);
 /**
  * @brief Manual control mode command 
  * 
- * @details 
- *          
- *          See the "cmd_table" for states in which this command is valid. 
+ * @details Run when the ground station sends a "manual" command while in an applicable 
+ *          state. This will trigger manual control mode. See the "cmd_table" for states 
+ *          in which this command is valid. 
  * 
  * @param manual_cmd_value : generic manual mode command argument 
  */
@@ -329,9 +345,9 @@ void ab_manual_cmd(uint8_t manual_cmd_value);
 /**
  * @brief Autonomous mode command 
  * 
- * @details 
- *          
- *          See the "cmd_table" for states in which this command is valid. 
+ * @details Run when the ground station sends an "auto" command while in an applicable 
+ *          state. Puts the system in autonomous mode. See the "cmd_table" for states in 
+ *          which this command is valid. 
  * 
  * @param auto_cmd_value : generic autonomous mode command argument 
  */
@@ -341,9 +357,12 @@ void ab_auto_cmd(uint8_t auto_cmd_value);
 /**
  * @brief Index update command 
  * 
- * @details 
- *          
- *          See the "cmd_table" for states in which this command is valid. 
+ * @details Run when the ground station sends an "index" command while in an applicable 
+ *          state. The payload of the index command ("index <payload>" - passed as the 
+ *          'index_cmd_value' argument) contains the index used to set the target 
+ *          location within the pre-defined waypoint mission. This function will verify 
+ *          the index value and update the target location if the index is valid. See 
+ *          the "cmd_table" for states in which this command is valid. 
  * 
  * @param index_cmd_value : generic index update command argument 
  */
@@ -353,9 +372,14 @@ void ab_index_cmd(uint8_t index_cmd_value);
 /**
  * @brief Manual throttle command 
  * 
- * @details 
- *          
- *          See the "cmd_table" for states in which this command is valid. 
+ * @details Run when the ground station sends an "RP", "RN", "LP", or "LN" command while 
+ *          in an applicable state. These indicate right or left thruster as well as 
+ *          positive (forward) and negative (reverse) thrust. Each command will be 
+ *          followed by a payload (ex. "RP <payload>") that indicates the thruster 
+ *          command (%), however this payload is used in the "manual" state function and 
+ *          not here. This function will indicate when a manual control message has been 
+ *          received and will reset the heartbeat timeout counter. See the "cmd_table" 
+ *          for states in which this command is valid. 
  * 
  * @param throttle_cmd_value : generic manual throttle command argument 
  */
@@ -365,9 +389,11 @@ void ab_throttle_cmd(uint8_t throttle_cmd_value);
 /**
  * @brief Heartbeat command 
  * 
- * @details 
- *          
- *          See the "cmd_table" for states in which this command is valid. 
+ * @details Run when the ground station sends an "ping" command while in an applicable 
+ *          state. This function resets the heartbeat timeout counter. The ground 
+ *          station will periodically send a "ping" and the boat uses this to know if 
+ *          it still has radio communication with the ground station. See the "cmd_table"
+ *          for states in which this command is valid. 
  * 
  * @param hb_cmd_value : generic heartbeat command argument 
  */
@@ -382,10 +408,14 @@ void ab_hb_cmd(uint8_t hb_cmd_value);
 /**
  * @brief Parse the user command into an ID and value 
  * 
- * @details 
+ * @details Takes a radio message received from the ground station and parses it into 
+ *          an ID and payload. If the ID and payload are of a valid format then the 
+ *          function will return true. Note that a payload is not needed for all 
+ *          commands. See the 'cmd_table' for a list of available commands/IDs and the 
+ *          states in which they're used. 
  * 
- * @param command_buffer 
- * @return uint8_t 
+ * @param command_buffer : radio message string 
+ * @return uint8_t : status of the message parsing 
  */
 uint8_t ab_parse_cmd(uint8_t *command_buffer); 
 
@@ -398,96 +428,17 @@ uint8_t ab_parse_cmd(uint8_t *command_buffer);
 /**
  * @brief LED strobe control 
  * 
- * @details 
+ * @details Periodically flashes the boat LEDs in a certain colour. LED colour is set 
+ *          cased on the boats state. This is used as a visual indicator of the boats 
+ *          state and to make the boat visible to surrounding entities. 
  */
 void ab_led_strobe(void); 
 
 
 /**
- * @brief LED strobe off 
- * 
- * @details 
+ * @brief Turns LED strobe light off 
  */
 void ab_led_strobe_off(void); 
-
-//==================================================
-
-
-//==================================================
-// Navigation calculation 
-
-/**
- * @brief GPS radius calculation 
- * 
- * @details Calculates the surface distance between the systems current location and 
- *          the target waypoint. This distance is used to determine if the system has 
- *          hit its target waypoint during a mission. 
- *          
- *          The radius is the Earths surface distance, or distance along a circular path / 
- *          course around the globe, between two coordinates which in this case is the 
- *          current and desired coordinates. This is calculated using the Great-Circle 
- *          Navigation equation for central angle which is then used with the average 
- *          radius of the Earth to find the surface distance. 
- */
-void ab_gps_rad(void); 
-
-
-/**
- * @brief GPS heading calculation 
- * 
- * @details Calculates the heading (0-359 degress), clockwise relative to true North, 
- *          between the systems location and the target waypoint. The system uses this 
- *          to know which direction it must travel to hit its target waypoint. 
- *          
- *          The heading is calculated using the Great-Circle Navigation equation for 
- *          initial course between two GPS coordinates. The heading changes throughout 
- *          a Great-Circle course due to the changing position/orientation relative to 
- *          North, however the GPS position and this heading calculation are updated 
- *          frequently so the needed initial heading is always up to date. 
- */
-void ab_gps_heading(void); 
-
-
-/**
- * @brief Update the system heading relative to True North 
- * 
- * @details Retrieves the heading of the system relative to True North. The heading relative 
- *          to magnetic North is found using the LSM303AGR magnetometer driver and the True 
- *          North correction factor (AB_TN_COR - difference between true and magnetic North) 
- *          is added to. This is done because GPS coordinates and the headings between them 
- *          are relative to True North. If the heading exceeds the acceptable heading range 
- *          (0-359.9 degrees) then the heading value is adjusted to be within range without 
- *          changing the headings relative position to True North. For example, if the heading 
- *          is determined to be 365 degrees then it is adjusted to 5 degrees. The heading 
- *          calculated here is used by the system to compare against the desired heading 
- *          (gps heading). 
- *          
- *          The True North correction factor will change based on where the system is operating 
- *          on Earth. For relatively localized missions, the correction factor can be assumed to 
- *          be constant. Very long range missions likely need to consider how the correction 
- *          factor would change depending on location. The correction factor can be found at a 
- *          given point by taking the difference between magnetic North and True North (such 
- *          as with a smart phone). 
- */
-void ab_heading(void); 
-
-
-/**
- * @brief Heading error 
- * 
- * @details Finds the difference between the desired heading, determined by the current 
- *          and desired location, and the current heading, determined by the magnetometer. 
- *          This error is used by the boats throttle controller to know how to thrust to 
- *          get pointed in the right direction. The error falls within +/-180 degrees. 
- *          
- *          The headings in this system operate from 0-359.9 degrees. It's best for the 
- *          boat to turn the shortest distance to point the direction it needs to and it 
- *          can turn both left and right. This means the maximum error that should be 
- *          produced is +/-180 degrees. Errors outside of this range would result in the 
- *          boat turning a greater distance than it needs to so if the error falls out of 
- *          this range then it's adjusted as needed. 
- */
-void ab_heading_error(void); 
 
 //==================================================
 
@@ -607,15 +558,18 @@ void ab_app_init(
     memset((void *)ab_data.hb_msg, CLEAR, sizeof(ab_data.hb_msg)); 
 
     // Navigation data 
+    ab_data.current.lat = m8q_get_position_lat(); 
+    ab_data.current.lon = m8q_get_position_lon(); 
+    ab_data.target.lat = gps_waypoints[0].lat; 
+    ab_data.target.lon = gps_waypoints[0].lon; 
     ab_data.waypoint_index = CLEAR; 
-    ab_data.waypoint.lat = gps_waypoints[0].lat; 
-    ab_data.waypoint.lon = gps_waypoints[0].lon; 
-    ab_data.location.lat = m8q_get_position_lat(); 
-    ab_data.location.lon = m8q_get_position_lon(); 
-    ab_data.waypoint_rad = CLEAR; 
-    ab_data.heading_desired = CLEAR; 
-    ab_data.heading_actual = CLEAR; 
-    ab_data.heading_error = CLEAR; 
+    ab_data.radius = CLEAR; 
+    ab_data.navstat = FALSE; 
+
+    // Heading 
+    ab_data.coordinate_heading = CLEAR; 
+    ab_data.compass_heading = CLEAR; 
+    ab_data.error_heading = CLEAR; 
 
     // Thrusters 
     ab_data.right_thruster = AB_NO_THRUST; 
@@ -676,8 +630,9 @@ void ab_app(void)
     
     // GPS position lock check 
     // If the system loses GPS position lock in manual mode then it continues on. 
-    if (((m8q_get_position_navstat() & M8Q_NAVSTAT_D2) != M8Q_NAVSTAT_D2) && 
-        (ab_data.state != AB_MANUAL_STATE))
+    ab_data.navstat = m8q_get_position_navstat_lock(); 
+
+    if (ab_data.navstat && (ab_data.state != AB_MANUAL_STATE))
     {
         ab_data.ready = CLEAR_BIT; 
     }
@@ -1166,75 +1121,65 @@ void ab_auto_state(void)
                     &ab_data.nav_timer.time_cnt, 
                     &ab_data.nav_timer.time_start))
     {
-        // Update the current location and desired heading every other period (can't be 
-        // faster than once per second) 
-        if (!nav_period_counter)
+        // Update the compass heading, determine the true north heading and find the 
+        // error between the current (compass) and desired (GPS) headings. Heading error 
+        // is determined here and not with each location update so it's updated faster. 
+        lsm303agr_m_update();   // Add status return storage 
+        ab_data.compass_heading = gnss_nav.true_north_heading(lsm303agr_m_get_heading()); 
+        ab_data.error_heading = gnss_nav.heading_error(ab_data.compass_heading, ab_data.coordinate_heading); 
+
+        // Update the GPS information and user navigation info 
+        if (nav_period_counter++ >= AB_NAV_COUNTER)
         {
-            // Get the updated location 
-#if AB_GPS_LOC_FILTER 
-            // Update the location of the system while filtering out some position noise. The 
-            // system moves slow enough to not be affected by a slower position update. 
-            ab_data.location.lat += (m8q_get_position_lat() - ab_data.location.lat)*0.25; 
-            ab_data.location.lon += (m8q_get_position_lon() - ab_data.location.lon)*0.25; 
-#else 
-            // Use the raw coordinate reading from the M8Q 
-            ab_data.location.lat = m8q_get_lat(); 
-            ab_data.location.lon = m8q_get_long(); 
-#endif   // AB_GPS_LOC_FILTER 
+            nav_period_counter = CLEAR; 
 
-            // Update GPS radius and desired heading. 
-            ab_gps_rad(); 
-            ab_gps_heading(); 
-
-            // If the device is close enough to a waypoint then the next waypoint in the 
-            // mission is selected. 
-            if (ab_data.waypoint_rad < AB_WAYPOINT_RAD)
+            if (ab_data.navstat)
             {
-                // Adjust waypoint index. If the end of the waypoint mission is reached 
-                // then start over from the beginning. 
-                if (++ab_data.waypoint_index >= AB_NUM_COORDINATES)
+                // Get the updated location by reading the GPS device coordinates then filtering 
+                // the result. 
+                gps_waypoints_t device_coordinates = 
                 {
-                    ab_data.waypoint_index = CLEAR; 
-                }
+                    .lat = m8q_get_position_lat(), 
+                    .lon = m8q_get_position_lon() 
+                }; 
+                gnss_nav.coordinate_filter(device_coordinates, ab_data.current); 
 
-                // Update the target waypoint 
-                ab_data.waypoint.lat = gps_waypoints[ab_data.waypoint_index].lat; 
-                ab_data.waypoint.lon = gps_waypoints[ab_data.waypoint_index].lon; 
+                // Calculate the distance to the target location and the heading needed to get 
+                // there. 
+                ab_data.radius = gnss_nav.gps_radius(ab_data.current, ab_data.target); 
+                ab_data.coordinate_heading = gnss_nav.gps_heading(ab_data.current, ab_data.target); 
+
+                // Check if the distance to the target is within the threshold. If so, the 
+                // target is considered "hit" and we can move to the next target. 
+                if (ab_data.radius < AB_WAYPOINT_RAD)
+                {
+                    // Adjust waypoint index 
+                    if (++ab_data.waypoint_index >= AB_NUM_COORDINATES)
+                    {
+                        ab_data.waypoint_index = CLEAR; 
+                    }
+
+                    // Update the target waypoint 
+                    ab_data.target.lat = gps_waypoints[ab_data.waypoint_index].lat; 
+                    ab_data.target.lon = gps_waypoints[ab_data.waypoint_index].lon; 
+                }
             }
         }
 
-        if (++nav_period_counter >= AB_NAV_COUNTER)
-        {
-            nav_period_counter = CLEAR; 
-        }
-
-        // Update the current heading and calculate the thruster output every period 
-
-        // Update the magnetometer data 
-        // lsm303agr_m_read(); 
-        lsm303agr_m_update(); 
-
-        // Get the true North heading from the magnetometer 
-        ab_heading(); 
-        
-        // Use the GPS heading and the magnetometer heading to get a heading error 
-        ab_heading_error(); 
-
         // Cap the error if needed so the throttle calculation works 
-        if (ab_data.heading_error > AB_AUTO_MAX_ERROR)
+        if (ab_data.error_heading > AB_AUTO_MAX_ERROR)
         {
-            ab_data.heading_error = AB_AUTO_MAX_ERROR; 
+            ab_data.error_heading = AB_AUTO_MAX_ERROR; 
         }
-        else if (ab_data.heading_error < -AB_AUTO_MAX_ERROR)
+        else if (ab_data.error_heading < -AB_AUTO_MAX_ERROR)
         {
-            ab_data.heading_error = -AB_AUTO_MAX_ERROR; 
+            ab_data.error_heading = -AB_AUTO_MAX_ERROR; 
         }
 
-        // Calculate the thruster command 
-        // throttle = (base throttle) + error*slope 
-        ab_data.right_thruster = AB_AUTO_BASE_SPEED - ab_data.heading_error*ESC_MAX_THROTTLE / 
+        // Calculate the thruster command: throttle = (base throttle) + error*slope 
+        ab_data.right_thruster = AB_AUTO_BASE_SPEED - ab_data.error_heading*ESC_MAX_THROTTLE / 
                                                       (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
-        ab_data.left_thruster = AB_AUTO_BASE_SPEED +  ab_data.heading_error*ESC_MAX_THROTTLE / 
+        ab_data.left_thruster = AB_AUTO_BASE_SPEED +  ab_data.error_heading*ESC_MAX_THROTTLE / 
                                                       (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
 
         esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
@@ -1254,7 +1199,7 @@ void ab_auto_state(void)
     //==================================================
     // State exit 
 
-    // the idle (ready) state exit condition comes from an external command received 
+    // The idle (ready) state exit condition comes from an external command received 
     // so it's not included here. 
 
     if (ab_data.fault | ab_data.low_pwr | !ab_data.ready)
@@ -1439,7 +1384,12 @@ void ab_index_cmd(uint8_t index_cmd_value)
     static uint8_t index_check = CLEAR; 
     static uint8_t index_last = CLEAR; 
 
-    // Compare the previous index command to the new index command 
+    // Compare the previous index command to the new index command. The radio messages 
+    // between the ground station and boat are poor meaning a complete and correct 
+    // message often does not get transmitted and received successfully. This can lead 
+    // to the index not being updated to the desired value and therefore the boat moving 
+    // to a target it's not supposed to. To combat this, the index has to been seen 
+    // successively at least "AB_GPS_INDEX_CNT" times before the index will be updated. 
     if (index_cmd_value != index_last)
     {
         index_last = index_cmd_value; 
@@ -1455,8 +1405,8 @@ void ab_index_cmd(uint8_t index_cmd_value)
     if ((index_cmd_value < AB_NUM_COORDINATES) && (index_check >= AB_GPS_INDEX_CNT))
     {
         ab_data.waypoint_index = index_cmd_value; 
-        ab_data.waypoint.lat = gps_waypoints[ab_data.waypoint_index].lat; 
-        ab_data.waypoint.lon = gps_waypoints[ab_data.waypoint_index].lon; 
+        ab_data.target.lat = gps_waypoints[ab_data.waypoint_index].lat; 
+        ab_data.target.lon = gps_waypoints[ab_data.waypoint_index].lon; 
         index_check = CLEAR; 
     }
 }
@@ -1484,7 +1434,7 @@ void ab_hb_cmd(uint8_t hb_cmd_value)
 //=======================================================================================
 // Data handling 
 
-// Parse the user command into an ID and value 
+// Parse the ground station command into an ID and value 
 uint8_t ab_parse_cmd(uint8_t *command_buffer)
 {
     // Local variables 
@@ -1501,7 +1451,6 @@ uint8_t ab_parse_cmd(uint8_t *command_buffer)
 
     // Parse the command into an ID and value 
     for (uint8_t i = CLEAR; command_buffer[i] != NULL_CHAR; i++)
-
     {
         data = command_buffer[i]; 
 
@@ -1609,132 +1558,6 @@ void ab_led_strobe_off(void)
     ab_data.led_data[WS2812_LED_4] = ab_data.led_strobe; 
     ws2812_send(DEVICE_ONE, ab_data.led_data); 
     ab_data.led_timer.time_start = SET_BIT; 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Navigation calculatios 
-
-// GPS coordinate radius check - calculate surface distance and compare to threshold 
-void ab_gps_rad(void)
-{
-    // Local variables 
-    // static double surf_dist = CLEAR; 
-    double eq1, eq2, eq3, eq4, eq5; 
-    double deg_to_rad = AB_DEG_TO_RAD; 
-    double lat_loc = deg_to_rad*ab_data.location.lat;   // Current location latitude 
-    double lon_loc = deg_to_rad*ab_data.location.lon;   // Current location longitude 
-    double lat_tar = deg_to_rad*ab_data.waypoint.lat;   // Target location latitude 
-    double lon_tar = deg_to_rad*ab_data.waypoint.lon;   // Target location longitude 
-
-    // Calculate the individual parts of the distance equation 
-    eq1 = cos(AB_PI_OVER_2 - lat_tar)*sin(lon_tar - lon_loc); 
-    eq2 = cos(AB_PI_OVER_2 - lat_loc)*sin(AB_PI_OVER_2 - lat_tar); 
-    eq3 = sin(AB_PI_OVER_2 - lat_loc)*cos(AB_PI_OVER_2 - lat_tar)*cos(lon_tar - lon_loc); 
-    eq4 = sin(AB_PI_OVER_2 - lat_loc)*sin(AB_PI_OVER_2 - lat_tar); 
-    eq5 = cos(AB_PI_OVER_2 - lat_loc)*cos(AB_PI_OVER_2 - lat_tar)*cos(lon_tar - lon_loc); 
-
-    // Calculate the surface distance (radius) between the current and desired location. 
-    // atan2 is used because it produces an angle between +/-180 (pi). The central angle 
-    // should always be positive and never greater than 180. 
-#if AB_GPS_RAD_FILTER 
-    // Calculate the radius using a low pass filter to smooth the data. 
-    surf_dist += ((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), (eq4 + eq5)) * 
-                 AB_EARTH_RADIUS*AB_KM_TO_M) - surf_dist)*0.25; 
-    ab_data.waypoint_rad = (uint16_t)(surf_dist*AB_NAV_SCALAR); 
-#else 
-    // The current GPS coordinates are filtered so this equation is not. 
-    ab_data.waypoint_rad = (uint16_t)((atan2(sqrt((eq2 - eq3)*(eq2 - eq3) + (eq1*eq1)), 
-                                                  (eq4 + eq5))*AB_EARTH_RADIUS*AB_KM_TO_M) * 
-                                                  AB_NAV_SCALAR); 
-#endif   // AB_GPS_RAD_FILTER 
-}
-
-
-// GPS heading calculation 
-void ab_gps_heading(void)
-{
-    // Local variables 
-    static double heading_temp = CLEAR; 
-    double num, den; 
-    double deg_to_rad = AB_DEG_TO_RAD; 
-    double lat_loc = deg_to_rad*ab_data.location.lat;   // Current location latitude 
-    double lon_loc = deg_to_rad*ab_data.location.lon;   // Current location longitude 
-    double lat_tar = deg_to_rad*ab_data.waypoint.lat;   // Target location latitude 
-    double lon_tar = deg_to_rad*ab_data.waypoint.lon;   // Target location longitude 
-
-    // Calculate the numerator and denominator of the atan calculation 
-    num = cos(lat_tar)*sin(lon_tar - lon_loc); 
-    den = cos(lat_loc)*sin(lat_tar) - sin(lat_loc)*cos(lat_tar)*cos(lon_tar - lon_loc); 
-
-    // Calculate the heading between coordinates. 
-#if AB_GPS_HEAD_FILTER 
-    // A low pass filter is used to smooth the data. 
-    // heading_temp += (atan(num/den) - heading_temp)*0.5; 
-#else 
-    // The current GPS coordinates are filtered so this equation is not. 
-    heading_temp = atan(num/den); 
-#endif   // AB_GPS_HEAD_FILTER 
-
-    // Convert heading to degrees 
-    ab_data.heading_desired = (int16_t)(heading_temp*AB_NAV_SCALAR/deg_to_rad); 
-
-    // Correct the calculated heading if needed 
-    if (den < 0)
-    {
-        ab_data.heading_desired += 1800; 
-    }
-    else if (num < 0)
-    {
-        ab_data.heading_desired += 3600; 
-    }
-}
-
-
-// Get the true North heading 
-void ab_heading(void)
-{
-    // Get the magnetometer heading and add the true North correction 
-    ab_data.heading_actual = lsm303agr_m_get_heading() + AB_TN_COR; 
-
-    // Adjust the true North heading if the corrected headed exceeds heading bounds 
-    if (AB_TN_COR >= 0)
-    {
-        if (ab_data.heading_actual >= 3600)
-        {
-            ab_data.heading_actual -= 3600; 
-        }
-    }
-    else 
-    {
-        if (ab_data.heading_actual < 0)
-        {
-            ab_data.heading_actual += 3600; 
-        }
-    }
-}
-
-
-// Heading error 
-void ab_heading_error(void)
-{
-    // Calculate the heading error 
-    ab_data.heading_error = ab_data.heading_desired - ab_data.heading_actual; 
-
-    // Make sure the heading error does not exceed +/-180 degrees. This error is used for 
-    // steering control ((+) error turns one way, (-) error turns another) of the boat so 
-    // an error outside of this range is better handled by turning the opposite direction. 
-    // if (ab_data.heading_error > LSM303AGR_M_HEAD_DIFF)
-    if (ab_data.heading_error > 1800)
-    {
-        ab_data.heading_error -= 3600; 
-    }
-    else if (ab_data.heading_error < -1800)
-    {
-        ab_data.heading_error += 3600; 
-    }
 }
 
 //=======================================================================================

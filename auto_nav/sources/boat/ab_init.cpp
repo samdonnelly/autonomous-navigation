@@ -26,6 +26,9 @@
 //=======================================================================================
 // Macros 
 
+// Configuration 
+#define AB_HEADING_LPF_GAIN 0.2      // Heading low pass filter gain 
+
 // Device setup 
 #define AB_IMU_STBY_MASK 0x00        // Axis standby status mask 
 #define AB_IMU_SMPLRT_DIVIDER 0      // Sample Rate Divider 
@@ -249,7 +252,7 @@ void ab_init(void)
     lsm303agr_m_init(
         I2C1, 
         lsm303agr_config_dir_offsets, 
-        0.1, 
+        AB_HEADING_LPF_GAIN, 
         LSM303AGR_M_ODR_10, 
         LSM303AGR_M_MODE_CONT, 
         LSM303AGR_CFG_DISABLE, 
