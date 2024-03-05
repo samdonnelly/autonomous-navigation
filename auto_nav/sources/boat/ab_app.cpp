@@ -40,7 +40,6 @@
 #define AB_LED_TIMEOUT 30            // period*timeout = time between LED flashes 
 
 // Data sizes 
-// #define AB_ADC_BUFF_SIZE 3           // Size according to the number of ADCs used 
 #define AB_MAX_CMD_SIZE 32           // Max external command size 
 #define AB_PL_LEN 32                 // Payload length 
 
@@ -185,7 +184,7 @@ typedef void (*ab_state_func_ptr_t)(void);
 
 
 //=======================================================================================
-// Function prototypes 
+// Prototypes 
 
 //==================================================
 // State functions 
@@ -193,7 +192,8 @@ typedef void (*ab_state_func_ptr_t)(void);
 /**
  * @brief Initialization state 
  * 
- * @details 
+ * @details First state to run on startup and after a system reset. Configures the system 
+ *          as needed before going to the "not ready" state. 
  */
 void ab_init_state(void); 
 
@@ -201,7 +201,15 @@ void ab_init_state(void);
 /**
  * @brief Not ready state 
  * 
- * @details 
+ * @details Waits for the "ready" flag to be set. This state provides an indication to 
+ *          the ground station that the boat is not ready to start navigating either 
+ *          manually or autonomously (ex. no position lock). 
+ *          
+ *          Entered from the "init" state or when the "ready" flag is cleared while in 
+ *          the "ready", "manual" or "auto" states. The "ready" flag can be cleared if 
+ *          the boat loses position lock while in "ready" and "auto" states, and if the 
+ *          heartbeat is not seen while in "ready" and "manual" states. The state is 
+ *          exited if the "ready" flag is set. 
  */
 void ab_not_ready_state(void); 
 
@@ -209,7 +217,15 @@ void ab_not_ready_state(void);
 /**
  * @brief Ready state 
  * 
- * @details 
+ * @details Waits for the ground station station to choose either manual or autonomous 
+ *          mode. This state provides an indication to the ground station that the 
+ *          boat is ready to start navigating. 
+ *          
+ *          Entered from the "not ready" state once the boat is ready to start 
+ *          navigating, and from the "manual" and "auto" states if the boat is commanded 
+ *          to idle by the ground station. Exited when the ground station selects either 
+ *          manual or autonomous mode, or if the boat no longer meets the requirements 
+ *          to start navigating (ex. position lock lost). 
  */
 void ab_ready_state(void); 
 
@@ -217,7 +233,14 @@ void ab_ready_state(void);
 /**
  * @brief Manual control state 
  * 
- * @details 
+ * @details Allows for the ground station to manually drive the boat. Thruster commands 
+ *          are send by the ground station and read by the boat via radio which get 
+ *          translated to thruster outputs. A loss of radio communication will remove 
+ *          the boat from manual control mode and turn off the thrusters. 
+ *          
+ *          Entered from the "ready" state when the ground station selects manual mode. 
+ *          Exited if the ground station commands the boat to idle or if radio 
+ *          communication is lost. 
  */
 void ab_manual_state(void); 
 
@@ -225,19 +248,15 @@ void ab_manual_state(void);
 /**
  * @brief Autonomous navigation state 
  * 
- * @details In this state the boat navigates the pre-defined waypoint mission autonomously. 
- *          The waypoint mission is defined in the 'waypoint_table' and the next or target 
- *          waypoint the boat goes to is determined by the 'ab_data.waypoint_index'. 
+ * @details Autonomously navigates a pre-defined waypoint mission. On startup, the first 
+ *          pre-defined waypoint is the boats default target waypoint. The boat will not 
+ *          start navigating these waypoints until this mode is entered. The target 
+ *          location can be updated via commands from the ground station. Upon hitting 
+ *          a waypoint, the boat will automatically target the next pre-defined waypoint. 
  *          
- *          The boat reads it's location one per second from the M8Q GPS module. It also 
- *          calculates it's heading using readings from the LSM303AGR magnetometer every 
- *          100ms. The current location is compared against the target waypoint to determine
- *          desired heading and the current distance between the two points. If the distance 
- *          between the current and desired location is less than a threshold then the 
- *          boat assumes to have hit it's waypoint at which point it increments the 
- *          'ab_data.waypoint_index' and reads the new target waypoint. The error between 
- *          the calculated heading and desired heading is found and used as the input to the 
- *          thruster controller used to propel the boat. 
+ *          Entered from the "ready" state when the ground station selects autonomous 
+ *          mode. Exited if the ground station commands the boat to idle or if GNSS 
+ *          position is lost. 
  */
 void ab_auto_state(void); 
 
@@ -245,7 +264,13 @@ void ab_auto_state(void);
 /**
  * @brief Low power state 
  * 
- * @details 
+ * @details Waits for the "reset" flag to be set. This state is used when the battery 
+ *          voltage is too low. It's meant to do minimal work to provide time to recover 
+ *          the boat before the battery SOC drops too low. 
+ *          
+ *          Entered from any continuous state when the battery voltage is observed to be 
+ *          too low. Exited only when the "reset" flag is set, however upon reset the 
+ *          system will re-enter low power mode if battery voltage is still too low. 
  */
 void ab_low_pwr_state(void); 
 
@@ -253,7 +278,12 @@ void ab_low_pwr_state(void);
 /**
  * @brief Fault state 
  * 
- * @details 
+ * @details Waits for the "reset" flag to be set. This state is used when there is a 
+ *          fault seen somewhere in the system that is preventing it from operating 
+ *          normally. 
+ *          
+ *          Entered from any continuous state when a fault is seen somewhere in the 
+ *          system. Exits to the "reset" state when the "reset" flag gets set. 
  */
 void ab_fault_state(void); 
 
@@ -261,7 +291,9 @@ void ab_fault_state(void);
 /**
  * @brief Reset state 
  * 
- * @details 
+ * @details Clears fault codes and resets the systems main control loop. 
+ *          
+ *          Entered from the "low power" and "fault" states. Exits to the "init" state. 
  */
 void ab_reset_state(void); 
 
@@ -272,69 +304,74 @@ void ab_reset_state(void);
 // Command functions 
 
 /**
- * @brief 
+ * @brief Idle command 
  * 
- * @details 
+ * @details Triggers idle mode when in the applicable state. Turns the thrusters off. See 
+ *          the "cmd_table" for states in which this command is valid. 
  * 
- * @param idle_cmd_value : 
+ * @param idle_cmd_value : generic idle command argument 
  */
-void ab_idle_cmd(
-    uint8_t idle_cmd_value); 
+void ab_idle_cmd(uint8_t idle_cmd_value); 
 
 
 /**
- * @brief 
+ * @brief Manual control mode command 
  * 
  * @details 
+ *          
+ *          See the "cmd_table" for states in which this command is valid. 
  * 
- * @param manual_cmd_value : 
+ * @param manual_cmd_value : generic manual mode command argument 
  */
-void ab_manual_cmd(
-    uint8_t manual_cmd_value); 
+void ab_manual_cmd(uint8_t manual_cmd_value); 
 
 
 /**
- * @brief 
+ * @brief Autonomous mode command 
  * 
  * @details 
+ *          
+ *          See the "cmd_table" for states in which this command is valid. 
  * 
- * @param auto_cmd_value : 
+ * @param auto_cmd_value : generic autonomous mode command argument 
  */
-void ab_auto_cmd(
-    uint8_t auto_cmd_value); 
+void ab_auto_cmd(uint8_t auto_cmd_value); 
 
 
 /**
- * @brief 
+ * @brief Index update command 
  * 
  * @details 
+ *          
+ *          See the "cmd_table" for states in which this command is valid. 
  * 
- * @param index_cmd_value : 
+ * @param index_cmd_value : generic index update command argument 
  */
-void ab_index_cmd(
-    uint8_t index_cmd_value); 
+void ab_index_cmd(uint8_t index_cmd_value); 
 
 
 /**
- * @brief 
+ * @brief Manual throttle command 
  * 
  * @details 
+ *          
+ *          See the "cmd_table" for states in which this command is valid. 
  * 
- * @param throttle_cmd_value : 
+ * @param throttle_cmd_value : generic manual throttle command argument 
  */
-void ab_throttle_cmd(
-    uint8_t throttle_cmd_value); 
+void ab_throttle_cmd(uint8_t throttle_cmd_value); 
 
 
 /**
- * @brief 
+ * @brief Heartbeat command 
  * 
  * @details 
+ *          
+ *          See the "cmd_table" for states in which this command is valid. 
  * 
- * @param hb_cmd_value : 
+ * @param hb_cmd_value : generic heartbeat command argument 
  */
-void ab_hb_cmd(
-    uint8_t hb_cmd_value); 
+void ab_hb_cmd(uint8_t hb_cmd_value); 
 
 //==================================================
 
@@ -350,8 +387,7 @@ void ab_hb_cmd(
  * @param command_buffer 
  * @return uint8_t 
  */
-uint8_t ab_parse_cmd(
-    uint8_t *command_buffer); 
+uint8_t ab_parse_cmd(uint8_t *command_buffer); 
 
 //==================================================
 
@@ -461,7 +497,7 @@ void ab_heading_error(void);
 //=======================================================================================
 // Control data 
 
-// Function pointer table 
+// State function pointer table 
 static ab_state_func_ptr_t state_table[AB_NUM_STATES] = 
 {
     &ab_init_state, 
@@ -475,7 +511,7 @@ static ab_state_func_ptr_t state_table[AB_NUM_STATES] =
 }; 
 
 
-// Command table 
+// Ground station command table 
 static ab_cmds_t cmd_table[AB_NUM_CMDS] = 
 {
     {"idle",   &ab_idle_cmd,     (SET_BIT << AB_MANUAL_STATE)    | 
@@ -495,7 +531,7 @@ static ab_cmds_t cmd_table[AB_NUM_CMDS] =
                                  (SET_BIT << AB_AUTO_STATE)      | 
                                  (SET_BIT << AB_LOW_PWR_STATE)   | 
                                  (SET_BIT << AB_FAULT_STATE)     | 
-                                 (SET_BIT << AB_RESET_STATE)}   // Available in all states 
+                                 (SET_BIT << AB_RESET_STATE)} 
 }; 
 
 //=======================================================================================
@@ -859,8 +895,6 @@ void ab_init_state(void)
     {
         ab_data.state_entry = CLEAR_BIT; 
 
-        uart_sendstring(USART2, "\r\ninit\r\n"); 
-
         // Set the thruster throttle to zero to initialize the ESCs and motors. 
         esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
         esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
@@ -904,8 +938,6 @@ void ab_not_ready_state(void)
 
         // Update the LED strobe colour 
         ab_data.led_strobe = ab_led_not_ready; 
-
-        uart_sendstring(USART2, "\r\nnot_ready\r\n"); 
     }
 
     //==================================================
@@ -952,8 +984,6 @@ void ab_ready_state(void)
 
         // Update the LED strobe colour 
         ab_data.led_strobe = ab_led_ready; 
-
-        uart_sendstring(USART2, "\r\nready\r\n"); 
     }
 
     //==================================================
@@ -1002,8 +1032,6 @@ void ab_manual_state(void)
 
         // Update the LED strobe colour 
         ab_data.led_strobe = ab_led_manual; 
-
-        uart_sendstring(USART2, "\r\nmanual\r\n"); 
     }
 
     //==================================================
@@ -1123,8 +1151,6 @@ void ab_auto_state(void)
 
         // Update the LED strobe colour 
         ab_data.led_strobe = ab_led_auto; 
-
-        uart_sendstring(USART2, "\r\nauto\r\n"); 
     }
 
     //==================================================
@@ -1264,8 +1290,6 @@ void ab_low_pwr_state(void)
     {
         ab_data.state_entry = CLEAR_BIT; 
 
-        uart_sendstring(USART2, "\r\nlow_pwr\r\n"); 
-
         // Put devices in low power mode 
         m8q_set_low_pwr_flag(); 
     }
@@ -1273,10 +1297,9 @@ void ab_low_pwr_state(void)
     //==================================================
 
     // Wait for a system reset 
-    // Currently the system would hang here until it's power cycled because 
-    // there is no setter for the reset flag. This is ok because if the 
-    // battery voltage is low there is nothing the system can and should 
-    // do anyway. 
+    // Currently the system would hang here until it's power cycled because there is no 
+    // setter for the reset flag. This is ok because if the battery voltage is low there 
+    // is nothing the system can and should do. 
 
     //==================================================
     // State exit 
@@ -1304,8 +1327,6 @@ void ab_fault_state(void)
     if (ab_data.state_entry)
     {
         ab_data.state_entry = CLEAR_BIT; 
-
-        uart_sendstring(USART2, "\r\nfault\r\n"); 
     }
 
     //==================================================
@@ -1337,8 +1358,6 @@ void ab_reset_state(void)
     if (ab_data.state_entry)
     {
         ab_data.state_entry = CLEAR_BIT; 
-
-        uart_sendstring(USART2, "\r\nreset\r\n"); 
     }
 
     //==================================================
@@ -1370,8 +1389,7 @@ void ab_reset_state(void)
 // Command functions 
 
 // Idle command 
-void ab_idle_cmd(
-    uint8_t idle_cmd_value)
+void ab_idle_cmd(uint8_t idle_cmd_value)
 {
     ab_data.idle = SET_BIT; 
     ab_data.state_entry = SET_BIT; 
@@ -1391,8 +1409,7 @@ void ab_idle_cmd(
 
 
 // Manual control mode command 
-void ab_manual_cmd(
-    uint8_t manual_cmd_value)
+void ab_manual_cmd(uint8_t manual_cmd_value)
 {
     ab_data.manual = SET_BIT; 
     ab_data.state_entry = SET_BIT; 
@@ -1404,8 +1421,7 @@ void ab_manual_cmd(
 
 
 // Autonomous mode command 
-void ab_auto_cmd(
-    uint8_t auto_cmd_value)
+void ab_auto_cmd(uint8_t auto_cmd_value)
 {
     ab_data.autonomous = SET_BIT; 
     ab_data.state_entry = SET_BIT; 
@@ -1417,8 +1433,7 @@ void ab_auto_cmd(
 
 
 // Index update command 
-void ab_index_cmd(
-    uint8_t index_cmd_value)
+void ab_index_cmd(uint8_t index_cmd_value)
 {
     // Local variables 
     static uint8_t index_check = CLEAR; 
@@ -1443,16 +1458,12 @@ void ab_index_cmd(
         ab_data.waypoint.lat = gps_waypoints[ab_data.waypoint_index].lat; 
         ab_data.waypoint.lon = gps_waypoints[ab_data.waypoint_index].lon; 
         index_check = CLEAR; 
-        uart_sendstring(USART2, "\r\nindex="); 
-        uart_send_integer(USART2, (int16_t)ab_data.waypoint_index); 
-        uart_send_new_line(USART2); 
     }
 }
 
 
 // Manual throttle command 
-void ab_throttle_cmd(
-    uint8_t throttle_cmd_value)
+void ab_throttle_cmd(uint8_t throttle_cmd_value)
 {
     ab_data.mc_data = SET_BIT; 
     ab_data.connect = SET_BIT; 
@@ -1461,8 +1472,7 @@ void ab_throttle_cmd(
 
 
 // Heartbeat command 
-void ab_hb_cmd(
-    uint8_t hb_cmd_value)
+void ab_hb_cmd(uint8_t hb_cmd_value)
 {
     ab_data.connect = SET_BIT; 
     ab_data.hb_timeout = CLEAR; 
@@ -1475,8 +1485,7 @@ void ab_hb_cmd(
 // Data handling 
 
 // Parse the user command into an ID and value 
-uint8_t ab_parse_cmd(
-    uint8_t *command_buffer)
+uint8_t ab_parse_cmd(uint8_t *command_buffer)
 {
     // Local variables 
     uint8_t id_flag = SET_BIT; 

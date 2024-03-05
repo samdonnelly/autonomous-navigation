@@ -20,7 +20,8 @@
 			"m8q_config.h": "c",
 			"lsm303agr_config.h": "c",
 			"ws2812_config.h": "c",
-			"ab_includes_app.h": "c"
+			"ab_includes_app.h": "c",
+			"gs_includes_app.h": "c"
 		}
 	},
 	"launch": {
