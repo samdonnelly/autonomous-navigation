@@ -416,7 +416,7 @@ def central_angle(
     eq5 = np.cos(np.pi/2 - gps1[0])*np.cos(np.pi/2 - gps2[0])*np.cos(gps2[1]-gps1[1]) 
     
     # Calculate and return the central angle 
-    return np.arctan(np.sqrt((eq2-eq3)**2 + eq1**2) / (eq4 + eq5)) 
+    return np.arctan2(np.sqrt((eq2-eq3)**2 + eq1**2), (eq4 + eq5)) 
 
 #================================================================================
 

@@ -1,42 +1,52 @@
 /**
- * @file m8q_config.h
+ * @file gps_coordinates.h
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief SAM-M8Q GPS configuration file 
+ * @brief GPS coordinates file interface 
+ *        
+ *        Note: the implementation of this header is not tracked because coordinates 
+ *              are use case specific. 
  * 
  * @version 0.1
- * @date 2022-10-02
+ * @date 2024-03-01
  * 
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2024
  * 
  */
 
-#ifndef _M8Q_CONFIG_H_ 
-#define _M8Q_CONFIG_H_ 
+#ifndef _GPS_COORDINATES_H_ 
+#define _GPS_COORDINATES_H_ 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //=======================================================================================
 // Includes 
+
+#include "nav_calcs.h"
+
 //=======================================================================================
 
 
 //=======================================================================================
 // Macros 
 
-// Number of messages in a configuration packet 
-#define M8Q_CONFIG_MSG_NUM 12 
-
-// Max length of a single config message in a packet 
-#define M8Q_CONFIG_MSG_MAX_LEN 150 
+#define NUM_GPS_WAYPOINTS 9 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Config messages 
+// Coordinates 
 
-extern const char m8q_config_msgs[M8Q_CONFIG_MSG_NUM][M8Q_CONFIG_MSG_MAX_LEN]; 
+extern const gps_waypoints_t gps_waypoints[NUM_GPS_WAYPOINTS]; 
 
 //=======================================================================================
 
-#endif  // _M8Q_CONFIG_H_
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // _GPS_COORDINATES_H_

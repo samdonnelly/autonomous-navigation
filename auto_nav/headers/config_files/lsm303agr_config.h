@@ -1,42 +1,39 @@
 /**
- * @file m8q_config.h
+ * @file lsm303agr_config.h
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief SAM-M8Q GPS configuration file 
+ * @brief LSM303AGR 6-axis magnetometer and accelerometer configuration file interface 
  * 
  * @version 0.1
- * @date 2022-10-02
+ * @date 2024-01-31
  * 
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2024
  * 
  */
 
-#ifndef _M8Q_CONFIG_H_ 
-#define _M8Q_CONFIG_H_ 
+#ifndef _LSM303AGR_CONFIG_H_ 
+#define _LSM303AGR_CONFIG_H_ 
 
 //=======================================================================================
 // Includes 
+
+#include "lsm303agr_driver.h" 
+
 //=======================================================================================
 
 
 //=======================================================================================
 // Macros 
-
-// Number of messages in a configuration packet 
-#define M8Q_CONFIG_MSG_NUM 12 
-
-// Max length of a single config message in a packet 
-#define M8Q_CONFIG_MSG_MAX_LEN 150 
-
 //=======================================================================================
 
 
 //=======================================================================================
 // Config messages 
 
-extern const char m8q_config_msgs[M8Q_CONFIG_MSG_NUM][M8Q_CONFIG_MSG_MAX_LEN]; 
+// Magnetometer directional offsets to correct for heading errors (units: degrees*10) 
+extern const int16_t lsm303agr_config_dir_offsets[LSM303AGR_M_NUM_DIR]; 
 
 //=======================================================================================
 
-#endif  // _M8Q_CONFIG_H_
+#endif   // _LSM303AGR_CONFIG_H_ 
