@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Autonomous boat initialization code 
+ * @brief Autonomous boat application code 
  * 
  * @version 0.1
  * @date 2023-07-20
@@ -500,6 +500,11 @@ void ab_app_init(
 {
     // Autonomous boat application code initialization 
 
+    if ((timer_nonblocking == NULL) || (adc_dma_stream == NULL) || (adc == NULL))
+    {
+        while (TRUE); 
+    }
+
     //==================================================
     // System configuration 
 
@@ -514,79 +519,83 @@ void ab_app_init(
 
     //==================================================
     // Data record initialization 
+
+    // Clear the data record 
+    memset((void *)&ab_data, CLEAR, sizeof(ab_data_t)); 
     
     // System information 
     ab_data.state = AB_INIT_STATE; 
     ab_data.adc = adc; 
     ab_data.pipe = pipe_num; 
-    ab_data.fault_code = CLEAR; 
+    // ab_data.fault_code = CLEAR; 
 
     // Timing information 
+    uint32_t clock_frequency = tim_get_pclk_freq(timer_nonblocking); 
     ab_data.timer_nonblocking = timer_nonblocking; 
 
-    ab_data.delay_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
-    ab_data.delay_timer.time_cnt_total = CLEAR; 
-    ab_data.delay_timer.time_cnt = CLEAR; 
+    ab_data.delay_timer.clk_freq = clock_frequency; 
+    // ab_data.delay_timer.time_cnt_total = CLEAR; 
+    // ab_data.delay_timer.time_cnt = CLEAR; 
     ab_data.delay_timer.time_start = SET_BIT; 
 
-    ab_data.nav_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
-    ab_data.nav_timer.time_cnt_total = CLEAR; 
-    ab_data.nav_timer.time_cnt = CLEAR; 
+    ab_data.nav_timer.clk_freq = clock_frequency; 
+    // ab_data.nav_timer.time_cnt_total = CLEAR; 
+    // ab_data.nav_timer.time_cnt = CLEAR; 
     ab_data.nav_timer.time_start = SET_BIT; 
 
-    ab_data.led_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
-    ab_data.led_timer.time_cnt_total = CLEAR; 
-    ab_data.led_timer.time_cnt = CLEAR; 
+    ab_data.led_timer.clk_freq = clock_frequency; 
+    // ab_data.led_timer.time_cnt_total = CLEAR; 
+    // ab_data.led_timer.time_cnt = CLEAR; 
     ab_data.led_timer.time_start = SET_BIT; 
 
-    ab_data.hb_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
-    ab_data.hb_timer.time_cnt_total = CLEAR; 
-    ab_data.hb_timer.time_cnt = CLEAR; 
+    ab_data.hb_timer.clk_freq = clock_frequency; 
+    // ab_data.hb_timer.time_cnt_total = CLEAR; 
+    // ab_data.hb_timer.time_cnt = CLEAR; 
     ab_data.hb_timer.time_start = SET_BIT; 
-    ab_data.hb_timeout = CLEAR; 
+    // ab_data.hb_timeout = CLEAR; 
 
     // System data 
-    memset((void *)ab_data.adc_buff, CLEAR, sizeof(ab_data.adc_buff)); 
-    memset((void *)ab_data.led_data, CLEAR, sizeof(ab_data.led_data)); 
-    ab_data.led_strobe = CLEAR; 
+    // memset((void *)ab_data.adc_buff, CLEAR, sizeof(ab_data.adc_buff)); 
+    // memset((void *)ab_data.led_data, CLEAR, sizeof(ab_data.led_data)); 
+    // ab_data.led_strobe = CLEAR; 
     ws2812_send(DEVICE_ONE, ab_data.led_data); 
 
     // Payload data 
-    memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
-    memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
-    ab_data.cmd_value = CLEAR; 
-    memset((void *)ab_data.hb_msg, CLEAR, sizeof(ab_data.hb_msg)); 
+    // memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
+    // memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
+    // ab_data.cmd_value = CLEAR; 
+    // memset((void *)ab_data.hb_msg, CLEAR, sizeof(ab_data.hb_msg)); 
 
     // Navigation data 
     ab_data.current.lat = m8q_get_position_lat(); 
     ab_data.current.lon = m8q_get_position_lon(); 
     ab_data.target.lat = gps_waypoints[0].lat; 
     ab_data.target.lon = gps_waypoints[0].lon; 
-    ab_data.waypoint_index = CLEAR; 
-    ab_data.radius = CLEAR; 
-    ab_data.navstat = FALSE; 
+    // ab_data.waypoint_index = CLEAR; 
+    // ab_data.radius = CLEAR; 
+    // ab_data.navstat = FALSE; 
 
     // Heading 
-    ab_data.coordinate_heading = CLEAR; 
-    ab_data.compass_heading = CLEAR; 
-    ab_data.error_heading = CLEAR; 
+    // ab_data.coordinate_heading = CLEAR; 
+    // ab_data.compass_heading = CLEAR; 
+    // ab_data.error_heading = CLEAR; 
 
     // Thrusters 
-    ab_data.right_thruster = AB_NO_THRUST; 
-    ab_data.left_thruster = AB_NO_THRUST; 
+    // ab_data.right_thruster = AB_NO_THRUST; 
+    // ab_data.left_thruster = AB_NO_THRUST; 
 
     // Control flags 
-    ab_data.connect = CLEAR_BIT; 
-    ab_data.mc_data = CLEAR_BIT; 
+    // ab_data.connect = CLEAR_BIT; 
+    // ab_data.mc_data = CLEAR_BIT; 
     ab_data.state_entry = SET_BIT; 
     ab_data.init = SET_BIT; 
-    ab_data.ready = CLEAR_BIT; 
-    ab_data.idle = CLEAR_BIT; 
-    ab_data.manual = CLEAR_BIT; 
-    ab_data.autonomous = CLEAR_BIT; 
-    ab_data.low_pwr = CLEAR_BIT; 
-    ab_data.fault = CLEAR_BIT; 
-    ab_data.reset = CLEAR_BIT; 
+    // ab_data.ready = CLEAR_BIT; 
+    // ab_data.idle = CLEAR_BIT; 
+    // ab_data.manual = CLEAR_BIT; 
+    // ab_data.autonomous = CLEAR_BIT; 
+    // ab_data.low_pwr = CLEAR_BIT; 
+    // ab_data.fault = CLEAR_BIT; 
+    // ab_data.reset = CLEAR_BIT; 
     
     //==================================================
 }
