@@ -1,19 +1,23 @@
 /**
- * @file int_handlers.h
+ * @file stm32f4xx_it.h
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Interrupt handlers 
+ * @brief Interrupt Service Routines (ISRs) 
  * 
  * @version 0.1
- * @date 2022-11-05
+ * @date 2024-03-04
  * 
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2024
  * 
  */
 
-#ifndef _INT_HANDLERS_H_ 
-#define _INT_HANDLERS_H_
+#ifndef _STM32F4XX_IT_H_
+#define _STM32F4XX_IT_H_
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 //=======================================================================================
 // Includes 
@@ -102,7 +106,66 @@ void int_handler_init(void);
 
 
 //=======================================================================================
-// Handlers 
+// System Handlers 
+
+/**
+ * @brief Non-maskable interrupt handler 
+ */
+void NMI_Handler(void); 
+
+
+/**
+ * @brief Hard fault interrupt handler 
+ */
+void HardFault_Handler(void); 
+
+
+/**
+ * @brief Memory management fault handler 
+ */
+void MemManage_Handler(void); 
+
+
+/**
+ * @brief Pre-fetch fault, memory access fault handler 
+ */
+void BusFault_Handler(void); 
+
+
+/**
+ * @brief Undefined instruction or illegal state handler 
+ */
+void UsageFault_Handler(void); 
+
+
+/**
+ * @brief Debug monitor handler 
+ */
+void DebugMon_Handler(void); 
+
+
+/**
+ * @brief This function handles System service call via SWI instruction 
+ */
+void SVC_Handler(void); 
+
+
+/**
+ * @brief This function handles Pendable request for system service 
+ */
+void PendSV_Handler(void); 
+
+
+/**
+ * @brief This function handles System tick timer 
+ */
+void SysTick_Handler(void); 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Peripheral Handlers 
 
 /**
  * @brief EXTI Line 0 interrupt handler 
@@ -586,7 +649,7 @@ void ADC_IRQHandler(void);
 /**
  * @brief USART1 interrupt handler 
  * 
- * @details 
+ * @details Interrupt handler for USART1. This handler sets usart1_flag. 
  */
 void USART1_IRQHandler(void); 
 
@@ -594,7 +657,7 @@ void USART1_IRQHandler(void);
 /**
  * @brief USART2 interrupt handler 
  * 
- * @details 
+ * @details Interrupt handler for USART2. This handler sets usart2_flag. 
  */
 void USART2_IRQHandler(void); 
 
@@ -602,10 +665,14 @@ void USART2_IRQHandler(void);
 /**
  * @brief USART6 interrupt handler 
  * 
- * @details 
+ * @details Interrupt handler for USART6. This handler sets usart6_flag. 
  */
 void USART6_IRQHandler(void); 
 
 //=======================================================================================
 
-#endif   // _INT_HANDLERS_H_ 
+#ifdef __cplusplus
+}
+#endif
+
+#endif   // _STM32F4XX_IT_H_ 

@@ -37,7 +37,6 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 # Headers 
 set(STM32CUBEMX_INCLUDE_DIRECTORIES
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/FATFS/Target
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/FATFS/App
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src
@@ -50,7 +49,9 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/headers
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/core
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/ground_station
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/includes
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/system_data
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/devices
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/peripherals
@@ -58,7 +59,6 @@ set(PROJECT_INCLUDE_DIRECTORIES
 
 # Sources 
 file(GLOB_RECURSE STM32CUBEMX_SOURCES CONFIGURE_DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/FATFS/Target/user_diskio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/FATFS/App/fatfs.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src/diskio.c
@@ -89,6 +89,8 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/core/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/core/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/ground_station/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/ground_station/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/system_data/*.c
