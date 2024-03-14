@@ -16,8 +16,7 @@
 // Includes 
 
 #include "ab_interface.h" 
-#include "includes_cpp_drivers.h" 
-#include "ab_led_colours.h" 
+#include "ws2812_config.h" 
 #include "gps_coordinates.h" 
 
 //=======================================================================================
@@ -39,10 +38,6 @@
 #define AB_LED_PERIOD 100000         // LED update period 
 #define AB_LED_TIMEOUT 30            // period*timeout = time between LED flashes 
 
-// Data sizes 
-#define AB_MAX_CMD_SIZE 32           // Max external command size 
-#define AB_PL_LEN 32                 // Payload length 
-
 // Configuration 
 #define AB_COORDINATE_LPF_GAIN 0.5   // Coordinate low pass filter gain 
 
@@ -53,14 +48,6 @@
 #define AB_GPS_INDEX_CNT 3           // Successive index command count needed to update 
 #define AB_AUTO_BASE_SPEED 50        // Base throttle of each thruster (%) 
 #define AB_AUTO_MAX_ERROR 600        // Max heading error (degrees*10) - must be within +/-1800 
-#define AB_NAV_SCALAR 10             // Scalar used to remove decimal place in nav calcs 
-
-// Calculations 
-#define AB_EARTH_RADIUS 6371         // Earth average radius (km) 
-#define AB_KM_TO_M 1000              // Kilometer to meter conversion 
-#define AB_PI 3.14159                // pi 
-#define AB_PI_OVER_2 1.57080         // pi/2 
-#define AB_DEG_TO_RAD AB_PI/180      // Degrees to radians conversion 
 
 // Manual Control 
 #define AB_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
@@ -71,31 +58,6 @@
 
 // Thrusters 
 #define AB_NO_THRUST 0               // Force thruster output to zero 
-
-// Conditional compilation 
-#define AB_GPS_LOC_FILTER 1          // GPS location low pass filter enable 
-#define AB_GPS_RAD_FILTER 0          // GPS radius calculation low pass filter enable 
-#define AB_GPS_HEAD_FILTER 0         // GPS heading calculation low pass filter enable 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Enums 
-
-/**
- * @brief System states 
- */
-typedef enum {
-    AB_INIT_STATE,         // State 0: startup 
-    AB_NOT_READY_STATE,    // State 1: not ready 
-    AB_READY_STATE,        // State 2: ready 
-    AB_MANUAL_STATE,       // State 3: manual control mode 
-    AB_AUTO_STATE,         // State 4: autonomous mode 
-    AB_LOW_PWR_STATE,      // State 5: low power 
-    AB_FAULT_STATE,        // State 6: fault 
-    AB_RESET_STATE         // State 7: reset 
-} ab_states_t; 
 
 //=======================================================================================
 
@@ -112,65 +74,6 @@ typedef struct ab_cmds_s
 }
 ab_cmds_t; 
 
-
-// Data record for the system 
-typedef struct ab_data_s 
-{
-    // System information 
-    ab_states_t state;                       // State machine state 
-    ADC_TypeDef *adc;                        // ADC port battery soc and pots 
-    nrf24l01_data_pipe_t pipe;               // Data pipe number for the radio module 
-    uint16_t fault_code;                     // System fault code 
-
-    // Timing information 
-    TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
-    tim_compare_t delay_timer;               // General purpose delay timing info 
-    tim_compare_t nav_timer;                 // Navigation timing info 
-    tim_compare_t led_timer;                 // LED output timing info 
-    tim_compare_t hb_timer;                  // Heartbeat timing info 
-    uint8_t hb_timeout;                      // Heartbeat timeout count 
-
-    // System data 
-    uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
-    uint32_t led_data[WS2812_LED_NUM];       // Bits: Green: 16-23, Red: 8-15, Blue: 0-7 
-    uint32_t led_strobe;                     // LED strobe colour 
-
-    // Payload data 
-    uint8_t read_buff[AB_PL_LEN];            // Data read by PRX from PTX device 
-    uint8_t cmd_id[AB_MAX_CMD_SIZE];         // Stores the ID of the external command 
-    uint8_t cmd_value;                       // Stores the value of the external command 
-    uint8_t hb_msg[AB_PL_LEN];               // Heartbeat message 
-
-    // Navigation data 
-    gps_waypoints_t current;                 // Current location coordinates 
-    gps_waypoints_t target;                  // Desired waypoint coordinates 
-    uint8_t waypoint_index;                  // GPS coordinate index 
-    int32_t radius;                          // Distance between current and target location 
-    uint8_t navstat;                         // Position lock status 
-
-    // Heading 
-    int16_t coordinate_heading;              // Heading between current and desired location 
-    int16_t compass_heading;                 // Current compass heading 
-    int16_t error_heading;                   // Error between compass and coordinate heading 
-
-    // Thrusters 
-    int16_t right_thruster;                  // Right thruster throttle 
-    int16_t left_thruster;                   // Left thruster throttle 
-
-    // Control flags 
-    uint8_t connect     : 1;                 // Radio connection status flag 
-    uint8_t mc_data     : 1;                 // Manual control new data check flag 
-    uint8_t state_entry : 1;                 // State entry flag 
-    uint8_t init        : 1;                 // Initialization state flag 
-    uint8_t ready       : 1;                 // Ready state flag 
-    uint8_t idle        : 1;                 // Idle flag - for leaving manual and auto modes 
-    uint8_t manual      : 1;                 // Manual control mode state flag 
-    uint8_t autonomous  : 1;                 // Autonomous mode state flag 
-    uint8_t low_pwr     : 1;                 // Low power state flag 
-    uint8_t fault       : 1;                 // Fault state flag 
-    uint8_t reset       : 1;                 // Reset state flag 
-}
-ab_data_t; 
 
 // Data record instance 
 static ab_data_t ab_data; 
@@ -527,75 +430,35 @@ void ab_app_init(
     ab_data.state = AB_INIT_STATE; 
     ab_data.adc = adc; 
     ab_data.pipe = pipe_num; 
-    // ab_data.fault_code = CLEAR; 
 
     // Timing information 
     uint32_t clock_frequency = tim_get_pclk_freq(timer_nonblocking); 
     ab_data.timer_nonblocking = timer_nonblocking; 
 
     ab_data.delay_timer.clk_freq = clock_frequency; 
-    // ab_data.delay_timer.time_cnt_total = CLEAR; 
-    // ab_data.delay_timer.time_cnt = CLEAR; 
     ab_data.delay_timer.time_start = SET_BIT; 
 
     ab_data.nav_timer.clk_freq = clock_frequency; 
-    // ab_data.nav_timer.time_cnt_total = CLEAR; 
-    // ab_data.nav_timer.time_cnt = CLEAR; 
     ab_data.nav_timer.time_start = SET_BIT; 
 
     ab_data.led_timer.clk_freq = clock_frequency; 
-    // ab_data.led_timer.time_cnt_total = CLEAR; 
-    // ab_data.led_timer.time_cnt = CLEAR; 
     ab_data.led_timer.time_start = SET_BIT; 
 
     ab_data.hb_timer.clk_freq = clock_frequency; 
-    // ab_data.hb_timer.time_cnt_total = CLEAR; 
-    // ab_data.hb_timer.time_cnt = CLEAR; 
     ab_data.hb_timer.time_start = SET_BIT; 
-    // ab_data.hb_timeout = CLEAR; 
 
     // System data 
-    // memset((void *)ab_data.adc_buff, CLEAR, sizeof(ab_data.adc_buff)); 
-    // memset((void *)ab_data.led_data, CLEAR, sizeof(ab_data.led_data)); 
-    // ab_data.led_strobe = CLEAR; 
     ws2812_send(DEVICE_ONE, ab_data.led_data); 
-
-    // Payload data 
-    // memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
-    // memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
-    // ab_data.cmd_value = CLEAR; 
-    // memset((void *)ab_data.hb_msg, CLEAR, sizeof(ab_data.hb_msg)); 
 
     // Navigation data 
     ab_data.current.lat = m8q_get_position_lat(); 
     ab_data.current.lon = m8q_get_position_lon(); 
     ab_data.target.lat = gps_waypoints[0].lat; 
     ab_data.target.lon = gps_waypoints[0].lon; 
-    // ab_data.waypoint_index = CLEAR; 
-    // ab_data.radius = CLEAR; 
-    // ab_data.navstat = FALSE; 
-
-    // Heading 
-    // ab_data.coordinate_heading = CLEAR; 
-    // ab_data.compass_heading = CLEAR; 
-    // ab_data.error_heading = CLEAR; 
-
-    // Thrusters 
-    // ab_data.right_thruster = AB_NO_THRUST; 
-    // ab_data.left_thruster = AB_NO_THRUST; 
 
     // Control flags 
-    // ab_data.connect = CLEAR_BIT; 
-    // ab_data.mc_data = CLEAR_BIT; 
     ab_data.state_entry = SET_BIT; 
     ab_data.init = SET_BIT; 
-    // ab_data.ready = CLEAR_BIT; 
-    // ab_data.idle = CLEAR_BIT; 
-    // ab_data.manual = CLEAR_BIT; 
-    // ab_data.autonomous = CLEAR_BIT; 
-    // ab_data.low_pwr = CLEAR_BIT; 
-    // ab_data.fault = CLEAR_BIT; 
-    // ab_data.reset = CLEAR_BIT; 
     
     //==================================================
 }
@@ -901,7 +764,7 @@ void ab_not_ready_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ab_led_not_ready; 
+        ab_data.led_strobe = ws2812_led_not_ready; 
     }
 
     //==================================================
@@ -947,7 +810,7 @@ void ab_ready_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ab_led_ready; 
+        ab_data.led_strobe = ws2812_led_ready; 
     }
 
     //==================================================
@@ -995,7 +858,7 @@ void ab_manual_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ab_led_manual; 
+        ab_data.led_strobe = ws2812_led_manual_strobe; 
     }
 
     //==================================================
@@ -1114,7 +977,7 @@ void ab_auto_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ab_led_auto; 
+        ab_data.led_strobe = ws2812_led_auto_strobe; 
     }
 
     //==================================================
@@ -1539,8 +1402,8 @@ void ab_led_strobe(void)
     {
         if (!led_counter)
         {
-            ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-            ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
+            ab_data.led_data[WS2812_LED_3] = ws2812_led_off; 
+            ab_data.led_data[WS2812_LED_4] = ws2812_led_off; 
             ws2812_send(DEVICE_ONE, ab_data.led_data); 
             led_counter++; 
         }
@@ -1562,7 +1425,7 @@ void ab_led_strobe(void)
 // LED strobe off 
 void ab_led_strobe_off(void)
 {
-    ab_data.led_strobe = ab_led_clear; 
+    ab_data.led_strobe = ws2812_led_off; 
     ab_data.led_data[WS2812_LED_3] = ab_data.led_strobe; 
     ab_data.led_data[WS2812_LED_4] = ab_data.led_strobe; 
     ws2812_send(DEVICE_ONE, ab_data.led_data); 
