@@ -40,5 +40,8 @@ mission_planning/missions/
 
 # Scripts 
 simulation/pc-scripts/file_locations.py 
+simulation/scripts/conversions.py 
+simulation/scripts/user_interface.py 
+simulation/simulation.py 
 
 #========================================================================================
