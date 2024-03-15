@@ -42,7 +42,6 @@
 #define AB_COORDINATE_LPF_GAIN 0.5   // Coordinate low pass filter gain 
 
 // Navigation 
-#define AB_NUM_COORDINATES 9         // Number of pre-defined GPS coordinates 
 #define AB_TN_COR 130                // True North direction correction 
 #define AB_WAYPOINT_RAD 100          // Threshold waypoint radius (meters*10) 
 #define AB_GPS_INDEX_CNT 3           // Successive index command count needed to update 
@@ -55,9 +54,6 @@
 #define AB_MC_FWD_THRUST 0x50        // "P" (plus) - indicates forward thrust 
 #define AB_MC_REV_THRUST 0x4D        // "M" (minus) - indicates reverse thrust 
 #define AB_MC_NEUTRAL 0x4E           // "N" (neutral) - indicates neutral gear or zero thrust 
-
-// Thrusters 
-#define AB_NO_THRUST 0               // Force thruster output to zero 
 
 //=======================================================================================
 
@@ -76,7 +72,7 @@ ab_cmds_t;
 
 
 // Data record instance 
-static ab_data_t ab_data; 
+ab_data_t ab_data; 
 
 //=======================================================================================
 
@@ -392,84 +388,12 @@ static ab_cmds_t cmd_table[AB_NUM_CMDS] =
 
 
 //=======================================================================================
-// Main functions 
+// Autonomous boat application 
 
-// Autonomous boat application initialization 
-void ab_app_init(
-    TIM_TypeDef *timer_nonblocking, 
-    DMA_Stream_TypeDef *adc_dma_stream, 
-    ADC_TypeDef *adc, 
-    nrf24l01_data_pipe_t pipe_num)
-{
-    // Autonomous boat application code initialization 
-
-    if ((timer_nonblocking == NULL) || (adc_dma_stream == NULL) || (adc == NULL))
-    {
-        while (TRUE); 
-    }
-
-    //==================================================
-    // System configuration 
-
-    // Configure the DMA stream 
-    dma_stream_config(
-        adc_dma_stream, 
-        (uint32_t)(&adc->DR), 
-        (uint32_t)ab_data.adc_buff, 
-        (uint16_t)AB_ADC_BUFF_SIZE); 
-    
-    //==================================================
-
-    //==================================================
-    // Data record initialization 
-
-    // Clear the data record 
-    memset((void *)&ab_data, CLEAR, sizeof(ab_data_t)); 
-    
-    // System information 
-    ab_data.state = AB_INIT_STATE; 
-    ab_data.adc = adc; 
-    ab_data.pipe = pipe_num; 
-
-    // Timing information 
-    uint32_t clock_frequency = tim_get_pclk_freq(timer_nonblocking); 
-    ab_data.timer_nonblocking = timer_nonblocking; 
-
-    ab_data.delay_timer.clk_freq = clock_frequency; 
-    ab_data.delay_timer.time_start = SET_BIT; 
-
-    ab_data.nav_timer.clk_freq = clock_frequency; 
-    ab_data.nav_timer.time_start = SET_BIT; 
-
-    ab_data.led_timer.clk_freq = clock_frequency; 
-    ab_data.led_timer.time_start = SET_BIT; 
-
-    ab_data.hb_timer.clk_freq = clock_frequency; 
-    ab_data.hb_timer.time_start = SET_BIT; 
-
-    // System data 
-    ws2812_send(DEVICE_ONE, ab_data.led_data); 
-
-    // Navigation data 
-    ab_data.current.lat = m8q_get_position_lat(); 
-    ab_data.current.lon = m8q_get_position_lon(); 
-    ab_data.target.lat = gps_waypoints[0].lat; 
-    ab_data.target.lon = gps_waypoints[0].lon; 
-
-    // Control flags 
-    ab_data.state_entry = SET_BIT; 
-    ab_data.init = SET_BIT; 
-    
-    //==================================================
-}
-
-
-// Autonomous boat application  
 void ab_app(void)
 {
-    // Autonomous boat application code 
+    // Autonomous boat application code here 
 
-    // Local variables 
     ab_states_t next_state = ab_data.state; 
 
     //==================================================
@@ -713,8 +637,6 @@ void ab_app(void)
 // Initialization state 
 void ab_init_state(void)
 {
-    // Local variables 
-
     //==================================================
     // State entry 
 
@@ -754,8 +676,6 @@ void ab_init_state(void)
 // Not ready state 
 void ab_not_ready_state(void)
 {
-    // Local variables 
-
     //==================================================
     // State entry 
     
@@ -800,8 +720,6 @@ void ab_not_ready_state(void)
 // Ready state 
 void ab_ready_state(void)
 {
-    // Local variables 
-
     //==================================================
     // State entry 
 
@@ -847,7 +765,6 @@ void ab_ready_state(void)
 // Manual control mode state 
 void ab_manual_state(void)
 {
-    // Local variables 
     int16_t cmd_value = CLEAR; 
 
     //==================================================
@@ -966,7 +883,6 @@ void ab_manual_state(void)
 // Autonomous mode state 
 void ab_auto_state(void)
 {
-    // Local variables 
     static uint8_t nav_period_counter = CLEAR; 
 
     //==================================================
@@ -1026,7 +942,7 @@ void ab_auto_state(void)
                 if (ab_data.radius < AB_WAYPOINT_RAD)
                 {
                     // Adjust waypoint index 
-                    if (++ab_data.waypoint_index >= AB_NUM_COORDINATES)
+                    if (++ab_data.waypoint_index >= NUM_GPS_WAYPOINTS)
                     {
                         ab_data.waypoint_index = CLEAR; 
                     }
@@ -1098,8 +1014,6 @@ void ab_auto_state(void)
 // Low power state 
 void ab_low_pwr_state(void)
 {
-    // Local variables 
-
     //==================================================
     // State entry 
 
@@ -1136,8 +1050,6 @@ void ab_low_pwr_state(void)
 // Fault state 
 void ab_fault_state(void)
 {
-    // Local variables 
-
     //==================================================
     // State entry 
 
@@ -1167,8 +1079,6 @@ void ab_fault_state(void)
 // Reset state 
 void ab_reset_state(void)
 {
-    // Local variables 
-
     //==================================================
     // State entry 
 
@@ -1252,7 +1162,6 @@ void ab_auto_cmd(uint8_t auto_cmd_value)
 // Index update command 
 void ab_index_cmd(uint8_t index_cmd_value)
 {
-    // Local variables 
     static uint8_t index_check = CLEAR; 
     static uint8_t index_last = CLEAR; 
 
@@ -1274,7 +1183,7 @@ void ab_index_cmd(uint8_t index_cmd_value)
 
     // Check that the index is within bounds and seen the last AB_GPS_INDEX_CNT times before 
     // updating the index (filters noise). 
-    if ((index_cmd_value < AB_NUM_COORDINATES) && (index_check >= AB_GPS_INDEX_CNT))
+    if ((index_cmd_value < NUM_GPS_WAYPOINTS) && (index_check >= AB_GPS_INDEX_CNT))
     {
         ab_data.waypoint_index = index_cmd_value; 
         ab_data.target.lat = gps_waypoints[ab_data.waypoint_index].lat; 
@@ -1309,7 +1218,6 @@ void ab_hb_cmd(uint8_t hb_cmd_value)
 // Parse the ground station command into an ID and value 
 uint8_t ab_parse_cmd(uint8_t *command_buffer)
 {
-    // Local variables 
     uint8_t id_flag = SET_BIT; 
     uint8_t id_index = CLEAR; 
     uint8_t data = CLEAR; 
@@ -1389,10 +1297,9 @@ uint8_t ab_parse_cmd(uint8_t *command_buffer)
 // LED strobe control 
 void ab_led_strobe(void)
 {
-    // Local variables 
     static uint8_t led_counter = CLEAR; 
 
-    // Toggle the strobe LEDs an LED to indicate the state to the user 
+    // Toggle the strobe LEDs to indicate the state to the user 
     if (tim_compare(ab_data.timer_nonblocking, 
                     ab_data.led_timer.clk_freq, 
                     AB_LED_PERIOD, 

@@ -36,6 +36,9 @@ extern "C" {
 #define AB_PL_LEN 32                 // Payload length 
 #define AB_MAX_CMD_SIZE 32           // Max external command size 
 
+// Thrusters 
+#define AB_NO_THRUST 0               // Force thruster output to zero 
+
 //=======================================================================================
 
 
@@ -121,6 +124,10 @@ typedef struct ab_data_s
 }
 ab_data_t; 
 
+
+// Data record instance 
+extern ab_data_t ab_data; 
+
 //=======================================================================================
 
 
@@ -134,24 +141,6 @@ ab_data_t;
  *          once at the start of the program. 
  */
 void ab_init(void); 
-
-
-/**
- * @brief Autonomous boat application initialization 
- * 
- * @details Initializes the data used to track and control the boat. Must be called once 
- *          at the start of the program. 
- * 
- * @param timer_nonblocking : timer port used for non-blocking delays 
- * @param adc_dma_stream : DMA stream for handling ADC readings 
- * @param adc : ADC port for ADC readings 
- * @param pipe_num : nRF24L01 data pipe number for talking to the ground station 
- */
-void ab_app_init(
-    TIM_TypeDef *timer_nonblocking, 
-    DMA_Stream_TypeDef *adc_dma_stream, 
-    ADC_TypeDef *adc, 
-    nrf24l01_data_pipe_t pipe_num); 
 
 
 /**
