@@ -68,7 +68,7 @@ typedef enum {
 // Structures 
 
 // Data record for the system 
-class boat_control 
+class Boat 
 {
 private: 
     // 
@@ -128,9 +128,8 @@ public:
 public:   // Public member function 
 
     // Constructor 
-    boat_control(
-        TIM_TypeDef *timer, 
-        ADC_TypeDef *adc_port) 
+    Boat(TIM_TypeDef *timer, 
+         ADC_TypeDef *adc_port) 
         : state(AB_INIT_STATE), 
           adc(adc_port), 
           pipe(NRF24L01_DP_1), 
@@ -184,12 +183,12 @@ public:   // Public member function
     } 
 
     // Destructor 
-    ~boat_control() {} 
+    ~Boat() {} 
 }; 
 
 
 // Data record instance 
-extern boat_control ab_data; 
+extern Boat ab_data; 
 
 //=======================================================================================
 

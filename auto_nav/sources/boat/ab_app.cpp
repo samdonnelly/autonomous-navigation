@@ -78,7 +78,7 @@ ab_cmds_t;
 // Clases 
 
 // Data record instance 
-boat_control ab_data(TIM9, ADC1); 
+Boat ab_data(TIM9, ADC1); 
 
 // GNSS navigation instance 
 static nav_calculations gnss_nav(AB_COORDINATE_LPF_GAIN, AB_TN_COR); 
@@ -216,9 +216,47 @@ void ab_reset_state(void);
 
 //==================================================
 
+//==================================================
+// System 
+
+/**
+ * @brief System checks 
+ * 
+ * @details Checks for faults and loss of critical data such as GPS location and radio 
+ *          communication. 
+ */
+void ab_system_checks(void); 
 
 //==================================================
-// Command functions 
+
+//==================================================
+// Radio command functions 
+
+/**
+ * @brief Checks for radio communication 
+ * 
+ * @details Checks the radio heartbeat to see if the boat can still talk to the ground 
+ *          station, and checks if there are any new commands to be read. If there is 
+ *          new input then the input is checked against the predefined commands and if 
+ *          a macth is found then the command function is called. 
+ */
+void ab_radio_comm_check(void); 
+
+
+/**
+ * @brief Parse the user command into an ID and value 
+ * 
+ * @details Takes a radio message received from the ground station and parses it into 
+ *          an ID and payload. If the ID and payload are of a valid format then the 
+ *          function will return true. Note that a payload is not needed for all 
+ *          commands. See the 'cmd_table' for a list of available commands/IDs and the 
+ *          states in which they're used. 
+ * 
+ * @param command_buffer : radio message string 
+ * @return uint8_t : status of the message parsing 
+ */
+uint8_t ab_parse_cmd(uint8_t *command_buffer); 
+
 
 /**
  * @brief Idle command 
@@ -303,26 +341,6 @@ void ab_hb_cmd(uint8_t hb_cmd_value);
 
 //==================================================
 
-
-//==================================================
-// Data handling 
-
-/**
- * @brief Parse the user command into an ID and value 
- * 
- * @details Takes a radio message received from the ground station and parses it into 
- *          an ID and payload. If the ID and payload are of a valid format then the 
- *          function will return true. Note that a payload is not needed for all 
- *          commands. See the 'cmd_table' for a list of available commands/IDs and the 
- *          states in which they're used. 
- * 
- * @param command_buffer : radio message string 
- * @return uint8_t : status of the message parsing 
- */
-uint8_t ab_parse_cmd(uint8_t *command_buffer); 
-
-//==================================================
-
 //=======================================================================================
 
 
@@ -379,118 +397,16 @@ void ab_app(void)
     ab_states_t next_state = ab_data.state; 
 
     //==================================================
-    // Device status checks 
-
-    if (m8q_get_fault_code())
-    {
-        ab_data.fault_code |= (SET_BIT << SHIFT_0); 
-    }
-    if (nrf24l01_get_status())
-    {
-        ab_data.fault_code |= (SET_BIT << SHIFT_2); 
-    }
-
-    //==================================================
-
-    //==================================================
-    // System requirements check 
-
-    // If these conditions are not met (excluding radio connection when in autonomous 
-    // mode) then take the system out of an active mode. 
-
-    ab_data.ready = SET_BIT; 
-
-    // Voltages 
-    // Set low power flag is voltage is below a threshold (but not zero because that means 
-    // the voltage source is not present). 
-    // If the low power flag gets set then the threshold to clear the flag has to be higher 
-    // than the one used to set the flag. 
-    
-    // GPS position lock check 
-    // If the system loses GPS position lock in manual mode then it continues on. 
-    ab_data.navstat = m8q_get_position_navstat_lock(); 
-
-    if (ab_data.navstat && (ab_data.state != AB_MANUAL_STATE))
-    {
-        ab_data.ready = CLEAR_BIT; 
-    }
-    
-    // Heartbeat check 
-    // If the system loses the heartbeat in autonomous mode then it continues on. 
-    if ((!ab_data.connect) && (ab_data.state != AB_AUTO_STATE))
-    {
-        ab_data.ready = CLEAR_BIT; 
-    }
-
-    //==================================================
-
-    //==================================================
-    // Heartbeat check 
-
-    // Increment the timeout counter periodically until the timeout limit at which 
-    // point the system assumes to have lost radio connection. Connection status is 
-    // re-established once a HB command is seen. 
-    if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.hb_timer.clk_freq, 
-                    AB_HB_PERIOD, 
-                    &ab_data.hb_timer.time_cnt_total, 
-                    &ab_data.hb_timer.time_cnt, 
-                    &ab_data.hb_timer.time_start))
-    {
-        if (ab_data.hb_timeout >= AB_HB_TIMEOUT)
-        {
-            ab_data.connect = CLEAR_BIT; 
-        }
-        else 
-        {
-            ab_data.hb_timeout++; 
-        }
-    }
-
-    //==================================================
-
-    //==================================================
-    // External command check 
-
-    // Check if a payload has been received 
-    if (nrf24l01_data_ready_status(ab_data.pipe))
-    {
-        // Payload has been received. Read the payload from the device RX FIFO. 
-        nrf24l01_receive_payload(ab_data.read_buff, ab_data.pipe); 
-
-        // Validate the input - parse into an ID and value if valid 
-        if (ab_parse_cmd(&ab_data.read_buff[1]))
-        {
-            // Valid input - compare the ID to each of the available pre-defined commands 
-            for (uint8_t i = CLEAR; i < AB_NUM_CMDS; i++) 
-            {
-                // Check that the command is available for the state before comparing it 
-                // against the ID. 
-                if (cmd_table[i].ab_cmd_mask & (SET_BIT << ab_data.state))
-                {
-                    // Command available. Compare with the ID. 
-                    if (str_compare(cmd_table[i].ab_cmd, (char *)ab_data.cmd_id, BYTE_0)) 
-                    {
-                        // ID matched to a command. Execute the command. 
-                        (cmd_table[i].ab_cmd_func_ptr)(ab_data.cmd_value); 
-                        break; 
-                    }
-                }
-            }
-        }
-
-        memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
-    }
-
-    //==================================================
-
-    //==================================================
     // System checks and updates 
+
+    // Check for critical info 
+    ab_system_checks(); 
+
+    // Check radio communication 
+    ab_radio_comm_check(); 
 
     // Update the LED strobe 
     led_control.strobe(); 
-
-    // Check for radio messages 
 
     //==================================================
 
@@ -1079,7 +995,194 @@ void ab_reset_state(void)
 
 
 //=======================================================================================
-// Command functions 
+// System 
+
+// System checks 
+void ab_system_checks(void)
+{
+    //==================================================
+    // Device status checks 
+
+    if (m8q_get_fault_code())
+    {
+        ab_data.fault_code |= (SET_BIT << SHIFT_0); 
+    }
+    if (nrf24l01_get_status())
+    {
+        ab_data.fault_code |= (SET_BIT << SHIFT_2); 
+    }
+
+    //==================================================
+
+    //==================================================
+    // System requirements check 
+
+    // If these conditions are not met (excluding radio connection when in autonomous 
+    // mode) then take the system out of an active mode. 
+
+    ab_data.ready = SET_BIT; 
+
+    // Voltages 
+    // Set low power flag is voltage is below a threshold (but not zero because that means 
+    // the voltage source is not present). 
+    // If the low power flag gets set then the threshold to clear the flag has to be higher 
+    // than the one used to set the flag. 
+    
+    // GPS position lock check 
+    // If the system loses GPS position lock in manual mode then it continues on. 
+    ab_data.navstat = m8q_get_position_navstat_lock(); 
+
+    if (ab_data.navstat && (ab_data.state != AB_MANUAL_STATE))
+    {
+        ab_data.ready = CLEAR_BIT; 
+    }
+    
+    // Heartbeat check 
+    // If the system loses the heartbeat in autonomous mode then it continues on. 
+    if ((!ab_data.connect) && (ab_data.state != AB_AUTO_STATE))
+    {
+        ab_data.ready = CLEAR_BIT; 
+    }
+
+    //==================================================
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Radio command functions 
+
+// Checks for radio communication 
+void ab_radio_comm_check(void)
+{
+    // Heartbeat check 
+    // Increment the timeout counter periodically until the timeout limit at which 
+    // point the system assumes to have lost radio connection. Connection status is 
+    // re-established once a HB command is seen. 
+    if (tim_compare(ab_data.timer_nonblocking, 
+                    ab_data.hb_timer.clk_freq, 
+                    AB_HB_PERIOD, 
+                    &ab_data.hb_timer.time_cnt_total, 
+                    &ab_data.hb_timer.time_cnt, 
+                    &ab_data.hb_timer.time_start))
+    {
+        if (ab_data.hb_timeout >= AB_HB_TIMEOUT)
+        {
+            ab_data.connect = CLEAR_BIT; 
+        }
+        else 
+        {
+            ab_data.hb_timeout++; 
+        }
+    }
+    
+    // External command check 
+    // Check if a payload has been received 
+    if (nrf24l01_data_ready_status(ab_data.pipe))
+    {
+        // Payload has been received. Read the payload from the device RX FIFO. 
+        nrf24l01_receive_payload(ab_data.read_buff, ab_data.pipe); 
+
+        // Validate the input - parse into an ID and value if valid 
+        if (ab_parse_cmd(&ab_data.read_buff[1]))
+        {
+            // Valid input - compare the ID to each of the available pre-defined commands 
+            for (uint8_t i = CLEAR; i < AB_NUM_CMDS; i++) 
+            {
+                // Check that the command is available for the state before comparing it 
+                // against the ID. 
+                if (cmd_table[i].ab_cmd_mask & (SET_BIT << ab_data.state))
+                {
+                    // Command available. Compare with the ID. 
+                    if (str_compare(cmd_table[i].ab_cmd, (char *)ab_data.cmd_id, BYTE_0)) 
+                    {
+                        // ID matched to a command. Execute the command. 
+                        (cmd_table[i].ab_cmd_func_ptr)(ab_data.cmd_value); 
+                        break; 
+                    }
+                }
+            }
+        }
+
+        memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
+    }
+}
+
+
+// Parse the ground station command into an ID and value 
+uint8_t ab_parse_cmd(uint8_t *command_buffer)
+{
+    uint8_t id_flag = SET_BIT; 
+    uint8_t id_index = CLEAR; 
+    uint8_t data = CLEAR; 
+    uint8_t cmd_value[AB_MAX_CMD_SIZE]; 
+    uint8_t value_size = CLEAR; 
+
+    // Initialize data 
+    memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
+    ab_data.cmd_value = CLEAR; 
+    memset((void *)cmd_value, CLEAR, sizeof(cmd_value)); 
+
+    // Parse the command into an ID and value 
+    for (uint8_t i = CLEAR; command_buffer[i] != NULL_CHAR; i++)
+    {
+        data = command_buffer[i]; 
+
+        if (id_flag)
+        {
+            // cmd ID parsing 
+
+            id_index = i; 
+
+            // Check that the command byte is within range 
+            if ((data >= A_LO_CHAR && data <= Z_LO_CHAR) || 
+                (data >= A_UP_CHAR && data <= Z_UP_CHAR))
+            {
+                // Valid character byte seen 
+                ab_data.cmd_id[i] = data; 
+            }
+            else if (data >= ZERO_CHAR && data <= NINE_CHAR)
+            {
+                // Valid digit character byte seen 
+                id_flag = CLEAR_BIT; 
+                ab_data.cmd_id[i] = NULL_CHAR; 
+                cmd_value[i-id_index] = data; 
+                value_size++; 
+            }
+            else 
+            {
+                // Valid data not seen 
+                return FALSE; 
+            }
+        }
+        else 
+        {
+            // cmd value parsing 
+
+            if (data >= ZERO_CHAR && data <= NINE_CHAR)
+            {
+                // Valid digit character byte seen 
+                cmd_value[i-id_index] = data; 
+                value_size++; 
+            }
+            else 
+            {
+                // Valid data not seen 
+                return FALSE; 
+            }
+        }
+    }
+
+    // Calculate the cmd value 
+    for (uint8_t i = CLEAR; i < value_size; i++)
+    {
+        ab_data.cmd_value += (uint8_t)char_to_int(cmd_value[i], value_size-i-1); 
+    }
+
+    return TRUE; 
+}
+
 
 // Idle command 
 void ab_idle_cmd(uint8_t idle_cmd_value)
@@ -1173,85 +1276,6 @@ void ab_hb_cmd(uint8_t hb_cmd_value)
 {
     ab_data.connect = SET_BIT; 
     ab_data.hb_timeout = CLEAR; 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Data handling 
-
-// Parse the ground station command into an ID and value 
-uint8_t ab_parse_cmd(uint8_t *command_buffer)
-{
-    uint8_t id_flag = SET_BIT; 
-    uint8_t id_index = CLEAR; 
-    uint8_t data = CLEAR; 
-    uint8_t cmd_value[AB_MAX_CMD_SIZE]; 
-    uint8_t value_size = CLEAR; 
-
-    // Initialize data 
-    memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
-    ab_data.cmd_value = CLEAR; 
-    memset((void *)cmd_value, CLEAR, sizeof(cmd_value)); 
-
-    // Parse the command into an ID and value 
-    for (uint8_t i = CLEAR; command_buffer[i] != NULL_CHAR; i++)
-    {
-        data = command_buffer[i]; 
-
-        if (id_flag)
-        {
-            // cmd ID parsing 
-
-            id_index = i; 
-
-            // Check that the command byte is within range 
-            if ((data >= A_LO_CHAR && data <= Z_LO_CHAR) || 
-                (data >= A_UP_CHAR && data <= Z_UP_CHAR))
-            {
-                // Valid character byte seen 
-                ab_data.cmd_id[i] = data; 
-            }
-            else if (data >= ZERO_CHAR && data <= NINE_CHAR)
-            {
-                // Valid digit character byte seen 
-                id_flag = CLEAR_BIT; 
-                ab_data.cmd_id[i] = NULL_CHAR; 
-                cmd_value[i-id_index] = data; 
-                value_size++; 
-            }
-            else 
-            {
-                // Valid data not seen 
-                return FALSE; 
-            }
-        }
-        else 
-        {
-            // cmd value parsing 
-
-            if (data >= ZERO_CHAR && data <= NINE_CHAR)
-            {
-                // Valid digit character byte seen 
-                cmd_value[i-id_index] = data; 
-                value_size++; 
-            }
-            else 
-            {
-                // Valid data not seen 
-                return FALSE; 
-            }
-        }
-    }
-
-    // Calculate the cmd value 
-    for (uint8_t i = CLEAR; i < value_size; i++)
-    {
-        ab_data.cmd_value += (uint8_t)char_to_int(cmd_value[i], value_size-i-1); 
-    }
-
-    return TRUE; 
 }
 
 //=======================================================================================
