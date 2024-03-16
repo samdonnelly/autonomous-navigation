@@ -122,6 +122,12 @@
 //=======================================================================================
 // Radio functions 
 
+// Internal (can be moved here) 
+// - 'hb_timeout' 
+
+// Shared 
+// - 'connect' bit --> can use a getter to check status 
+
 // Check for and handle commands 
 
 

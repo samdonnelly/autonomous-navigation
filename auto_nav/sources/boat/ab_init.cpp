@@ -53,43 +53,6 @@ void ab_init(void)
 {
     // Autonomous boat setup code here 
 
-    uint32_t clock_frequency; 
-
-    //==================================================
-    // Data record initialization 
-
-    // Clear the data record 
-    memset((void *)&ab_data, CLEAR, sizeof(ab_data_t)); 
-    
-    // System information 
-    ab_data.state = AB_INIT_STATE; 
-    ab_data.adc = ADC1; 
-    ab_data.pipe = NRF24L01_DP_1; 
-
-    // Timing information 
-    ab_data.timer_nonblocking = TIM9; 
-    clock_frequency = tim_get_pclk_freq(ab_data.timer_nonblocking); 
-    ab_data.delay_timer.clk_freq = clock_frequency; 
-    ab_data.delay_timer.time_start = SET_BIT; 
-    ab_data.nav_timer.clk_freq = clock_frequency; 
-    ab_data.nav_timer.time_start = SET_BIT; 
-    ab_data.led_timer.clk_freq = clock_frequency; 
-    ab_data.led_timer.time_start = SET_BIT; 
-    ab_data.hb_timer.clk_freq = clock_frequency; 
-    ab_data.hb_timer.time_start = SET_BIT; 
-
-    // Navigation data 
-    ab_data.current.lat = m8q_get_position_lat(); 
-    ab_data.current.lon = m8q_get_position_lon(); 
-    ab_data.target.lat = gps_waypoints[0].lat; 
-    ab_data.target.lon = gps_waypoints[0].lon; 
-
-    // Control flags 
-    ab_data.state_entry = SET_BIT; 
-    ab_data.init = SET_BIT; 
-    
-    //==================================================
-
     //===================================================
     // General setup 
 
@@ -363,9 +326,6 @@ void ab_init(void)
         TIMER_CH2, 
         GPIOB, 
         PIN_7); 
-
-    // Turn the LEDs off 
-    ws2812_send(DEVICE_ONE, ab_data.led_data); 
     
     //===================================================
 

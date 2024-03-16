@@ -25,6 +25,8 @@ extern "C" {
 #include "includes_drivers.h" 
 #include "includes_cpp_drivers.h" 
 
+#include "gps_coordinates.h" 
+
 //=======================================================================================
 
 
@@ -66,8 +68,12 @@ typedef enum {
 // Structures 
 
 // Data record for the system 
-typedef struct ab_data_s 
+class boat_control 
 {
+private: 
+    // 
+
+public: 
     // System information 
     ab_states_t state;                       // State machine state 
     ADC_TypeDef *adc;                        // ADC port battery soc and pots 
@@ -78,14 +84,11 @@ typedef struct ab_data_s
     TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
     tim_compare_t delay_timer;               // General purpose delay timing info 
     tim_compare_t nav_timer;                 // Navigation timing info 
-    tim_compare_t led_timer;                 // LED output timing info 
     tim_compare_t hb_timer;                  // Heartbeat timing info 
     uint8_t hb_timeout;                      // Heartbeat timeout count 
 
     // System data 
     uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
-    uint32_t led_data[WS2812_LED_NUM];       // Bits: Green: 16-23, Red: 8-15, Blue: 0-7 
-    uint32_t led_strobe;                     // LED strobe colour 
 
     // Payload data 
     uint8_t read_buff[AB_PL_LEN];            // Data read by PRX from PTX device 
@@ -121,12 +124,72 @@ typedef struct ab_data_s
     uint8_t low_pwr     : 1;                 // Low power state flag 
     uint8_t fault       : 1;                 // Fault state flag 
     uint8_t reset       : 1;                 // Reset state flag 
-}
-ab_data_t; 
+
+public:   // Public member function 
+
+    // Constructor 
+    boat_control(
+        TIM_TypeDef *timer, 
+        ADC_TypeDef *adc_port) 
+        : state(AB_INIT_STATE), 
+          adc(adc_port), 
+          pipe(NRF24L01_DP_1), 
+          fault_code(CLEAR), 
+          timer_nonblocking(timer), 
+          hb_timeout(CLEAR), 
+          cmd_value(CLEAR), 
+          waypoint_index(CLEAR), 
+          radius(CLEAR), 
+          navstat(CLEAR), 
+          coordinate_heading(CLEAR), 
+          compass_heading(CLEAR), 
+          error_heading(CLEAR), 
+          right_thruster(CLEAR), 
+          left_thruster(CLEAR), 
+          connect(CLEAR_BIT), 
+          mc_data(CLEAR_BIT), 
+          state_entry(SET_BIT), 
+          init(SET_BIT), 
+          ready(CLEAR_BIT), 
+          idle(CLEAR_BIT), 
+          manual(CLEAR_BIT), 
+          autonomous(CLEAR_BIT), 
+          low_pwr(CLEAR_BIT), 
+          fault(CLEAR_BIT), 
+          reset(CLEAR_BIT) 
+    {
+        // Timing 
+        uint32_t clock_frequency = tim_get_pclk_freq(timer); 
+        memset((void *)&delay_timer, CLEAR, sizeof(delay_timer)); 
+        delay_timer.clk_freq = clock_frequency; 
+        delay_timer.time_start = SET_BIT; 
+        memset((void *)&nav_timer, CLEAR, sizeof(nav_timer)); 
+        nav_timer.clk_freq = clock_frequency; 
+        nav_timer.time_start = SET_BIT; 
+        memset((void *)&hb_timer, CLEAR, sizeof(hb_timer)); 
+        hb_timer.clk_freq = clock_frequency; 
+        hb_timer.time_start = SET_BIT; 
+
+        // System 
+        memset((void *)adc_buff, CLEAR, sizeof(adc_buff)); 
+
+        // Payload 
+        memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
+        memset((void *)cmd_id, CLEAR, sizeof(cmd_id)); 
+        memset((void *)hb_msg, CLEAR, sizeof(hb_msg)); 
+
+        // Navigation 
+        memset((void *)&current, CLEAR, sizeof(current)); 
+        memset((void *)&target, CLEAR, sizeof(target)); 
+    } 
+
+    // Destructor 
+    ~boat_control() {} 
+}; 
 
 
 // Data record instance 
-extern ab_data_t ab_data; 
+extern boat_control ab_data; 
 
 //=======================================================================================
 

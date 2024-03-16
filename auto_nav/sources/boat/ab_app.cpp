@@ -18,6 +18,7 @@
 #include "ab_interface.h" 
 #include "ws2812_config.h" 
 #include "gps_coordinates.h" 
+#include "led_control.h" 
 
 //=======================================================================================
 
@@ -70,18 +71,20 @@ typedef struct ab_cmds_s
 }
 ab_cmds_t; 
 
-
-// Data record instance 
-ab_data_t ab_data; 
-
 //=======================================================================================
 
 
 //=======================================================================================
 // Clases 
 
+// Data record instance 
+boat_control ab_data(TIM9, ADC1); 
+
 // GNSS navigation instance 
 static nav_calculations gnss_nav(AB_COORDINATE_LPF_GAIN, AB_TN_COR); 
+
+// LED control instance 
+static boat_led_control led_control(TIM9); 
 
 //=======================================================================================
 
@@ -320,27 +323,6 @@ uint8_t ab_parse_cmd(uint8_t *command_buffer);
 
 //==================================================
 
-
-//==================================================
-// LED functions 
-
-/**
- * @brief LED strobe control 
- * 
- * @details Periodically flashes the boat LEDs in a certain colour. LED colour is set 
- *          cased on the boats state. This is used as a visual indicator of the boats 
- *          state and to make the boat visible to surrounding entities. 
- */
-void ab_led_strobe(void); 
-
-
-/**
- * @brief Turns LED strobe light off 
- */
-void ab_led_strobe_off(void); 
-
-//==================================================
-
 //=======================================================================================
 
 
@@ -503,6 +485,16 @@ void ab_app(void)
     //==================================================
 
     //==================================================
+    // System checks and updates 
+
+    // Update the LED strobe 
+    led_control.strobe(); 
+
+    // Check for radio messages 
+
+    //==================================================
+
+    //==================================================
     // System state machine 
 
     switch (next_state)
@@ -647,6 +639,12 @@ void ab_init_state(void)
         // Set the thruster throttle to zero to initialize the ESCs and motors. 
         esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
         esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+
+        // Grab the current location (if available) and set the default target waypoint. 
+        ab_data.current.lat = m8q_get_position_lat(); 
+        ab_data.current.lon = m8q_get_position_lon(); 
+        ab_data.target.lat = gps_waypoints[0].lat; 
+        ab_data.target.lon = gps_waypoints[0].lon; 
     }
 
     //==================================================
@@ -684,20 +682,12 @@ void ab_not_ready_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ws2812_led_not_ready; 
+        led_control.strobe_colour_set(ws2812_led_not_ready); 
     }
 
     //==================================================
 
     // Wait for the system requirements to be met - ready flag will be set 
-
-    //==================================================
-    // External feedback 
-
-    // Toggle an LED to indicate the state to the user 
-    ab_led_strobe(); 
-    
-    //==================================================
 
     //==================================================
     // State exit 
@@ -710,7 +700,7 @@ void ab_not_ready_state(void)
         ab_data.autonomous = CLEAR_BIT; 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        ab_led_strobe_off(); 
+        led_control.strobe_off(); 
     }
 
     //==================================================
@@ -728,20 +718,12 @@ void ab_ready_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ws2812_led_ready; 
+        led_control.strobe_colour_set(ws2812_led_ready); 
     }
 
     //==================================================
 
     // Wait for an active state to be chosen 
-
-    //==================================================
-    // External feedback 
-
-    // Toggle an LED to indicate the state to the user 
-    ab_led_strobe(); 
-    
-    //==================================================
 
     //==================================================
     // State exit 
@@ -755,7 +737,7 @@ void ab_ready_state(void)
         ab_data.idle = CLEAR_BIT; 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        ab_led_strobe_off(); 
+        led_control.strobe_off(); 
     }
 
     //==================================================
@@ -775,7 +757,7 @@ void ab_manual_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ws2812_led_manual_strobe; 
+        led_control.strobe_colour_set(ws2812_led_manual_strobe); 
     }
 
     //==================================================
@@ -848,14 +830,6 @@ void ab_manual_state(void)
     //==================================================
 
     //==================================================
-    // External feedback 
-
-    // Toggle an LED to indicate the state to the user 
-    ab_led_strobe(); 
-    
-    //==================================================
-
-    //==================================================
     // State exit 
 
     // the idle (ready) state exit condition comes from an external command received 
@@ -873,7 +847,7 @@ void ab_manual_state(void)
         esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        ab_led_strobe_off(); 
+        led_control.strobe_off(); 
     }
 
     //==================================================
@@ -893,7 +867,7 @@ void ab_auto_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ws2812_led_auto_strobe; 
+        led_control.strobe_colour_set(ws2812_led_auto_strobe); 
     }
 
     //==================================================
@@ -977,14 +951,6 @@ void ab_auto_state(void)
     //==================================================
 
     //==================================================
-    // External feedback 
-
-    // Toggle an LED to indicate the state to the user 
-    ab_led_strobe(); 
-    
-    //==================================================
-
-    //==================================================
     // State exit 
 
     // The idle (ready) state exit condition comes from an external command received 
@@ -1004,7 +970,7 @@ void ab_auto_state(void)
         esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        ab_led_strobe_off(); 
+        led_control.strobe_off(); 
     }
 
     //==================================================
@@ -1131,7 +1097,7 @@ void ab_idle_cmd(uint8_t idle_cmd_value)
     esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
 
     // Make sure the LEDs are off and reset the strobe timer 
-    ab_led_strobe_off(); 
+    led_control.strobe_off(); 
 }
 
 
@@ -1143,7 +1109,7 @@ void ab_manual_cmd(uint8_t manual_cmd_value)
     ab_data.idle = CLEAR_BIT; 
 
     // Make sure the LEDs are off and reset the strobe timer 
-    ab_led_strobe_off(); 
+    led_control.strobe_off(); 
 }
 
 
@@ -1155,7 +1121,7 @@ void ab_auto_cmd(uint8_t auto_cmd_value)
     ab_data.idle = CLEAR_BIT; 
 
     // Make sure the LEDs are off and reset the strobe timer 
-    ab_led_strobe_off(); 
+    led_control.strobe_off(); 
 }
 
 
@@ -1286,57 +1252,6 @@ uint8_t ab_parse_cmd(uint8_t *command_buffer)
     }
 
     return TRUE; 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// LED functions 
-
-// LED strobe control 
-void ab_led_strobe(void)
-{
-    static uint8_t led_counter = CLEAR; 
-
-    // Toggle the strobe LEDs to indicate the state to the user 
-    if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.led_timer.clk_freq, 
-                    AB_LED_PERIOD, 
-                    &ab_data.led_timer.time_cnt_total, 
-                    &ab_data.led_timer.time_cnt, 
-                    &ab_data.led_timer.time_start))
-    {
-        if (!led_counter)
-        {
-            ab_data.led_data[WS2812_LED_3] = ws2812_led_off; 
-            ab_data.led_data[WS2812_LED_4] = ws2812_led_off; 
-            ws2812_send(DEVICE_ONE, ab_data.led_data); 
-            led_counter++; 
-        }
-        else if (led_counter >= AB_LED_TIMEOUT)
-        {
-            ab_data.led_data[WS2812_LED_3] = ab_data.led_strobe; 
-            ab_data.led_data[WS2812_LED_4] = ab_data.led_strobe; 
-            ws2812_send(DEVICE_ONE, ab_data.led_data); 
-            led_counter = CLEAR; 
-        }
-        else 
-        {
-            led_counter++; 
-        }
-    }
-}
-
-
-// LED strobe off 
-void ab_led_strobe_off(void)
-{
-    ab_data.led_strobe = ws2812_led_off; 
-    ab_data.led_data[WS2812_LED_3] = ab_data.led_strobe; 
-    ab_data.led_data[WS2812_LED_4] = ab_data.led_strobe; 
-    ws2812_send(DEVICE_ONE, ab_data.led_data); 
-    ab_data.led_timer.time_start = SET_BIT; 
 }
 
 //=======================================================================================

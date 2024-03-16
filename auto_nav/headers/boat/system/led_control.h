@@ -21,26 +21,55 @@ extern "C" {
 
 //=======================================================================================
 // Includes 
+
+#include "includes_drivers.h" 
+
 //=======================================================================================
 
 
 //=======================================================================================
-// Prototypes 
+// Classes 
 
-// /**
-//  * @brief LED strobe control 
-//  * 
-//  * @details Periodically flashes the boat LEDs in a certain colour. LED colour is set 
-//  *          cased on the boats state. This is used as a visual indicator of the boats 
-//  *          state and to make the boat visible to surrounding entities. 
-//  */
-// void ab_led_strobe(void); 
+class boat_led_control 
+{
+private: 
+    // Timing 
+    TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
+    tim_compare_t led_timer;                 // LED output timing info  
 
+    // LEDs 
+    uint32_t led_data[WS2812_LED_NUM];       // Bits: Green: 16-23, Red: 8-15, Blue: 0-7 
+    uint32_t led_strobe;                     // LED strobe colour 
 
-// /**
-//  * @brief Turns LED strobe light off 
-//  */
-// void ab_led_strobe_off(void); 
+public: 
+    // Constructor 
+    boat_led_control(TIM_TypeDef *timer); 
+
+    // Destructor 
+    ~boat_led_control(); 
+
+    /**
+     * @brief Set strobe colour 
+     * 
+     * @param led_colour : strobe colour 
+     */
+    void strobe_colour_set(uint32_t led_colour); 
+
+    /**
+     * @brief Strobe control 
+     * 
+     * @details Periodically flashes the boat LEDs in a certain colour. LED colour is set 
+     *          cased on the boats state. This is used as a visual indicator of the boats 
+     *          state and to make the boat visible to surrounding entities. This should 
+     *          be called repeatedly to keep the strobe going. 
+     */
+    void strobe(void); 
+
+    /**
+     * @brief Turns strobe light off 
+     */
+    void strobe_off(void); 
+}; 
 
 //=======================================================================================
 
