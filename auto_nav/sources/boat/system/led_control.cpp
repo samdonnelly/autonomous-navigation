@@ -41,7 +41,7 @@ boat_led_control::boat_led_control(TIM_TypeDef *timer)
 {
     // Timing 
     memset((void *)&led_timer, CLEAR, sizeof(led_timer)); 
-    led_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
+    led_timer.clk_freq = tim_get_pclk_freq(timer); 
     led_timer.time_start = SET_BIT; 
 
     // LEDs 

@@ -28,6 +28,7 @@ extern "C" {
 #include "gps_coordinates.h" 
 
 #include "led_control.h" 
+#include "radio_comm.h" 
 #include "auto_mode.h" 
 
 //=======================================================================================
@@ -38,11 +39,6 @@ extern "C" {
 
 // Data sizes 
 #define AB_ADC_BUFF_SIZE 3           // Number of ADCs used 
-#define AB_PL_LEN 32                 // Payload length 
-#define AB_MAX_CMD_SIZE 32           // Max external command size 
-
-// Thrusters 
-#define AB_NO_THRUST 0               // Force thruster output to zero 
 
 //=======================================================================================
 
@@ -71,40 +67,33 @@ typedef enum {
 // Structures 
 
 // Data record for the system 
-class Boat : public boat_auto_mode, 
-             public boat_led_control 
+class Boat : public boat_led_control, 
+             public boat_radio_comms, 
+             public boat_auto_mode 
 {
-private: 
-    // 
+private:   // Private members 
 
-public: 
     // System information 
     ab_states_t state;                       // State machine state 
     ADC_TypeDef *adc;                        // ADC port battery soc and pots 
-    nrf24l01_data_pipe_t pipe;               // Data pipe number for the radio module 
-    uint16_t fault_code;                     // System fault code 
-
-    // Timing information 
-    TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
-    tim_compare_t delay_timer;               // General purpose delay timing info 
-    tim_compare_t hb_timer;                  // Heartbeat timing info 
-    uint8_t hb_timeout;                      // Heartbeat timeout count 
 
     // System data 
     uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
 
-    // Payload data 
-    uint8_t read_buff[AB_PL_LEN];            // Data read by PRX from PTX device 
-    uint8_t cmd_id[AB_MAX_CMD_SIZE];         // Stores the ID of the external command 
-    uint8_t cmd_value;                       // Stores the value of the external command 
-    uint8_t hb_msg[AB_PL_LEN];               // Heartbeat message 
+public:   // Public members 
+
+    // System info 
+    uint16_t fault_code;                     // System fault code 
+
+    // Timing 
+    TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
+    tim_compare_t state_timer;               // General purpose delay timing info 
 
     // Thrusters 
     int16_t right_thruster;                  // Right thruster throttle 
     int16_t left_thruster;                   // Left thruster throttle 
 
     // Control flags 
-    uint8_t connect     : 1;                 // Radio connection status flag 
     uint8_t mc_data     : 1;                 // Manual control new data check flag 
     uint8_t state_entry : 1;                 // State entry flag 
     uint8_t init        : 1;                 // Initialization state flag 
@@ -120,18 +109,15 @@ public:   // Public member function
 
     // Constructor 
     Boat(TIM_TypeDef *timer, ADC_TypeDef *adc_port) 
-        : boat_auto_mode(timer), 
-          boat_led_control(timer), 
+        : boat_led_control(timer), 
+          boat_radio_comms(timer), 
+          boat_auto_mode(timer), 
           state(AB_INIT_STATE), 
           adc(adc_port), 
-          pipe(NRF24L01_DP_1), 
           fault_code(CLEAR), 
           timer_nonblocking(timer), 
-          hb_timeout(CLEAR), 
-          cmd_value(CLEAR), 
           right_thruster(CLEAR), 
           left_thruster(CLEAR), 
-          connect(CLEAR_BIT), 
           mc_data(CLEAR_BIT), 
           state_entry(SET_BIT), 
           init(SET_BIT), 
@@ -144,52 +130,49 @@ public:   // Public member function
           reset(CLEAR_BIT) 
     {
         // Timing 
-        uint32_t clock_frequency = tim_get_pclk_freq(timer); 
-        memset((void *)&delay_timer, CLEAR, sizeof(delay_timer)); 
-        delay_timer.clk_freq = clock_frequency; 
-        delay_timer.time_start = SET_BIT; 
-        memset((void *)&hb_timer, CLEAR, sizeof(hb_timer)); 
-        hb_timer.clk_freq = clock_frequency; 
-        hb_timer.time_start = SET_BIT; 
+        memset((void *)&state_timer, CLEAR, sizeof(state_timer)); 
+        state_timer.clk_freq = tim_get_pclk_freq(timer); 
+        state_timer.time_start = SET_BIT; 
 
         // System 
         memset((void *)adc_buff, CLEAR, sizeof(adc_buff)); 
+    }
 
-        // Payload 
-        memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
-        memset((void *)cmd_id, CLEAR, sizeof(cmd_id)); 
-        memset((void *)hb_msg, CLEAR, sizeof(hb_msg)); 
-    } 
 
     // Destructor 
     ~Boat() {} 
+
+
+    /**
+     * @brief Boat initialization 
+     * 
+     * @details Initializes devices and peripherals used by the boat. Meant to be called 
+     *          once at the start of the program. 
+     */
+    void BoatInit(void); 
+
+
+    /**
+     * @brief Boat application 
+     * 
+     * @details Main control loop of the program that's called forever. 
+     */
+    void BoatApp(void); 
+
+private:   // Private member functions 
+
+    /**
+     * @brief System checks 
+     * 
+     * @details Checks for faults and loss of critical data such as GPS location and radio 
+     *          communication. 
+     */
+    void BoatSystemCheck(void); 
 }; 
 
 
 // Data record instance 
-extern Boat ab_data; 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Functions 
-
-/**
- * @brief Autonomous boat initialization 
- * 
- * @details Initializes devices and peripherals used by the boat. Meant to be called 
- *          once at the start of the program. 
- */
-void ab_init(void); 
-
-
-/**
- * @brief Autonomous boat application 
- * 
- * @details Main control loop of the program that's called forever. 
- */
-void ab_app(void); 
+extern Boat boat; 
 
 //=======================================================================================
 

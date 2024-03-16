@@ -88,7 +88,7 @@ int main(void)
 
     // Run application setup code
 #if AB_CODE 
-    ab_init(); 
+    boat.BoatInit(); 
 #else 
     gs_init(); 
 #endif 
@@ -101,7 +101,7 @@ int main(void)
     while (1)
     {
 #if AB_CODE 
-        ab_app(); 
+        boat.BoatApp(); 
 #else 
         gs_app(); 
 #endif 

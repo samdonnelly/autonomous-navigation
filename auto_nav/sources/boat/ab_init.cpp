@@ -33,7 +33,6 @@
 // Device setup 
 #define AB_IMU_STBY_MASK 0x00        // Axis standby status mask 
 #define AB_IMU_SMPLRT_DIVIDER 0      // Sample Rate Divider 
-#define AB_MAG_NUM_DIRS 8            // Number of directions of heading offset calcs 
 #define AB_RF_CH_FREQ 10             // Frequency channel for the RF module 
 #define AB_ESC_PERIOD 20000          // ESC PWM timer period (auto-reload register) 
 
@@ -47,9 +46,19 @@
 
 
 //=======================================================================================
+// Variables 
+
+// Boat instance 
+Boat boat(TIM9, ADC1); 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Autonomous boat initialization 
 
-void ab_init(void)
+// Boat initialization 
+void Boat::BoatInit(void)
 {
     // Autonomous boat setup code here 
 
@@ -194,7 +203,7 @@ void ab_init(void)
     dma_stream_config(
         DMA2_Stream0, 
         (uint32_t)(&ADC1->DR), 
-        (uint32_t)ab_data.adc_buff, 
+        (uint32_t)adc_buff, 
         (uint16_t)AB_ADC_BUFF_SIZE); 
 
     // Enable the DMA stream 

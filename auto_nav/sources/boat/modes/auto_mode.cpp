@@ -61,7 +61,7 @@ boat_auto_mode::boat_auto_mode(TIM_TypeDef *timer)
 {
     // Timing 
     memset((void *)&nav_timer, CLEAR, sizeof(nav_timer)); 
-    nav_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
+    nav_timer.clk_freq = tim_get_pclk_freq(timer); 
     nav_timer.time_start = SET_BIT; 
 
     // Navigation 
