@@ -27,6 +27,9 @@ extern "C" {
 
 #include "gps_coordinates.h" 
 
+#include "led_control.h" 
+#include "auto_mode.h" 
+
 //=======================================================================================
 
 
@@ -68,7 +71,8 @@ typedef enum {
 // Structures 
 
 // Data record for the system 
-class Boat 
+class Boat : public boat_auto_mode, 
+             public boat_led_control 
 {
 private: 
     // 
@@ -83,7 +87,6 @@ public:
     // Timing information 
     TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
     tim_compare_t delay_timer;               // General purpose delay timing info 
-    tim_compare_t nav_timer;                 // Navigation timing info 
     tim_compare_t hb_timer;                  // Heartbeat timing info 
     uint8_t hb_timeout;                      // Heartbeat timeout count 
 
@@ -95,18 +98,6 @@ public:
     uint8_t cmd_id[AB_MAX_CMD_SIZE];         // Stores the ID of the external command 
     uint8_t cmd_value;                       // Stores the value of the external command 
     uint8_t hb_msg[AB_PL_LEN];               // Heartbeat message 
-
-    // Navigation data 
-    gps_waypoints_t current;                 // Current location coordinates 
-    gps_waypoints_t target;                  // Desired waypoint coordinates 
-    uint8_t waypoint_index;                  // GPS coordinate index 
-    int32_t radius;                          // Distance between current and target location 
-    uint8_t navstat;                         // Position lock status 
-
-    // Heading 
-    int16_t coordinate_heading;              // Heading between current and desired location 
-    int16_t compass_heading;                 // Current compass heading 
-    int16_t error_heading;                   // Error between compass and coordinate heading 
 
     // Thrusters 
     int16_t right_thruster;                  // Right thruster throttle 
@@ -128,21 +119,16 @@ public:
 public:   // Public member function 
 
     // Constructor 
-    Boat(TIM_TypeDef *timer, 
-         ADC_TypeDef *adc_port) 
-        : state(AB_INIT_STATE), 
+    Boat(TIM_TypeDef *timer, ADC_TypeDef *adc_port) 
+        : boat_auto_mode(timer), 
+          boat_led_control(timer), 
+          state(AB_INIT_STATE), 
           adc(adc_port), 
           pipe(NRF24L01_DP_1), 
           fault_code(CLEAR), 
           timer_nonblocking(timer), 
           hb_timeout(CLEAR), 
           cmd_value(CLEAR), 
-          waypoint_index(CLEAR), 
-          radius(CLEAR), 
-          navstat(CLEAR), 
-          coordinate_heading(CLEAR), 
-          compass_heading(CLEAR), 
-          error_heading(CLEAR), 
           right_thruster(CLEAR), 
           left_thruster(CLEAR), 
           connect(CLEAR_BIT), 
@@ -162,9 +148,6 @@ public:   // Public member function
         memset((void *)&delay_timer, CLEAR, sizeof(delay_timer)); 
         delay_timer.clk_freq = clock_frequency; 
         delay_timer.time_start = SET_BIT; 
-        memset((void *)&nav_timer, CLEAR, sizeof(nav_timer)); 
-        nav_timer.clk_freq = clock_frequency; 
-        nav_timer.time_start = SET_BIT; 
         memset((void *)&hb_timer, CLEAR, sizeof(hb_timer)); 
         hb_timer.clk_freq = clock_frequency; 
         hb_timer.time_start = SET_BIT; 
@@ -176,10 +159,6 @@ public:   // Public member function
         memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
         memset((void *)cmd_id, CLEAR, sizeof(cmd_id)); 
         memset((void *)hb_msg, CLEAR, sizeof(hb_msg)); 
-
-        // Navigation 
-        memset((void *)&current, CLEAR, sizeof(current)); 
-        memset((void *)&target, CLEAR, sizeof(target)); 
     } 
 
     // Destructor 

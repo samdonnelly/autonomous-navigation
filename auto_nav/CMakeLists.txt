@@ -49,6 +49,7 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/headers
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/system
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/modes
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/core
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/ground_station
@@ -90,6 +91,8 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/system/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/system/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modes/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/core/*.c

@@ -18,7 +18,6 @@
 #include "ab_interface.h" 
 #include "ws2812_config.h" 
 #include "gps_coordinates.h" 
-#include "led_control.h" 
 
 //=======================================================================================
 
@@ -32,22 +31,11 @@
 
 // Timing 
 #define AB_INIT_DELAY 1000000        // Init state delay (us) 
-#define AB_NAV_UPDATE 100000         // Navigation calculation update period (us) 
-#define AB_NAV_COUNTER 10            // update*counter = time between nav calc updates 
 #define AB_HB_PERIOD 500000          // Time between heartbeat checks (us) 
 #define AB_HB_TIMEOUT 30             // period*timeout = time before conection lost status 
-#define AB_LED_PERIOD 100000         // LED update period 
-#define AB_LED_TIMEOUT 30            // period*timeout = time between LED flashes 
-
-// Configuration 
-#define AB_COORDINATE_LPF_GAIN 0.5   // Coordinate low pass filter gain 
 
 // Navigation 
-#define AB_TN_COR 130                // True North direction correction 
-#define AB_WAYPOINT_RAD 100          // Threshold waypoint radius (meters*10) 
 #define AB_GPS_INDEX_CNT 3           // Successive index command count needed to update 
-#define AB_AUTO_BASE_SPEED 50        // Base throttle of each thruster (%) 
-#define AB_AUTO_MAX_ERROR 600        // Max heading error (degrees*10) - must be within +/-1800 
 
 // Manual Control 
 #define AB_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
@@ -79,12 +67,6 @@ ab_cmds_t;
 
 // Data record instance 
 Boat ab_data(TIM9, ADC1); 
-
-// GNSS navigation instance 
-static nav_calculations gnss_nav(AB_COORDINATE_LPF_GAIN, AB_TN_COR); 
-
-// LED control instance 
-static boat_led_control led_control(TIM9); 
 
 //=======================================================================================
 
@@ -406,7 +388,7 @@ void ab_app(void)
     ab_radio_comm_check(); 
 
     // Update the LED strobe 
-    led_control.strobe(); 
+    ab_data.strobe(); 
 
     //==================================================
 
@@ -598,7 +580,7 @@ void ab_not_ready_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        led_control.strobe_colour_set(ws2812_led_not_ready); 
+        ab_data.strobe_colour_set(ws2812_led_not_ready); 
     }
 
     //==================================================
@@ -616,7 +598,7 @@ void ab_not_ready_state(void)
         ab_data.autonomous = CLEAR_BIT; 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        led_control.strobe_off(); 
+        ab_data.strobe_off(); 
     }
 
     //==================================================
@@ -634,7 +616,7 @@ void ab_ready_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        led_control.strobe_colour_set(ws2812_led_ready); 
+        ab_data.strobe_colour_set(ws2812_led_ready); 
     }
 
     //==================================================
@@ -653,7 +635,7 @@ void ab_ready_state(void)
         ab_data.idle = CLEAR_BIT; 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        led_control.strobe_off(); 
+        ab_data.strobe_off(); 
     }
 
     //==================================================
@@ -673,7 +655,7 @@ void ab_manual_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        led_control.strobe_colour_set(ws2812_led_manual_strobe); 
+        ab_data.strobe_colour_set(ws2812_led_manual_strobe); 
     }
 
     //==================================================
@@ -696,15 +678,15 @@ void ab_manual_state(void)
                 switch (ab_data.cmd_id[1])
                 {
                     case AB_MC_FWD_THRUST: 
-                        ab_data.right_thruster += (cmd_value - 
-                                                        ab_data.right_thruster) >> SHIFT_3; 
+                        ab_data.right_thruster += (cmd_value - ab_data.right_thruster) >> SHIFT_3; 
                         esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
                         break; 
+                    
                     case AB_MC_REV_THRUST: 
-                        ab_data.right_thruster += ((~cmd_value + 1) - 
-                                                        ab_data.right_thruster) >> SHIFT_3; 
+                        ab_data.right_thruster += ((~cmd_value + 1) - ab_data.right_thruster) >> SHIFT_3; 
                         esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
                         break; 
+                    
                     case AB_MC_NEUTRAL: 
                         if (cmd_value == AB_NO_THRUST)
                         {
@@ -712,6 +694,7 @@ void ab_manual_state(void)
                             esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
                         }
                         break; 
+                    
                     default: 
                         break; 
                 }
@@ -721,15 +704,15 @@ void ab_manual_state(void)
                 switch (ab_data.cmd_id[1])
                 {
                     case AB_MC_FWD_THRUST: 
-                        ab_data.left_thruster += (cmd_value - 
-                                                        ab_data.left_thruster) >> SHIFT_3; 
+                        ab_data.left_thruster += (cmd_value - ab_data.left_thruster) >> SHIFT_3; 
                         esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
                         break; 
+                    
                     case AB_MC_REV_THRUST: 
-                        ab_data.left_thruster += ((~cmd_value + 1) - 
-                                                        ab_data.left_thruster) >> SHIFT_3; 
+                        ab_data.left_thruster += ((~cmd_value + 1) - ab_data.left_thruster) >> SHIFT_3; 
                         esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
                         break; 
+                    
                     case AB_MC_NEUTRAL: 
                         if (cmd_value == AB_NO_THRUST)
                         {
@@ -737,6 +720,7 @@ void ab_manual_state(void)
                             esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
                         }
                         break; 
+                    
                     default: 
                         break; 
                 }
@@ -757,13 +741,11 @@ void ab_manual_state(void)
         ab_data.manual = CLEAR_BIT; 
 
         // Set the throttle to zero to stop the thrusters 
-        ab_data.right_thruster = AB_NO_THRUST; 
-        ab_data.left_thruster = AB_NO_THRUST; 
         esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
         esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        led_control.strobe_off(); 
+        ab_data.strobe_off(); 
     }
 
     //==================================================
@@ -773,7 +755,7 @@ void ab_manual_state(void)
 // Autonomous mode state 
 void ab_auto_state(void)
 {
-    static uint8_t nav_period_counter = CLEAR; 
+    // static uint8_t nav_period_counter = CLEAR; 
 
     //==================================================
     // State entry 
@@ -783,7 +765,7 @@ void ab_auto_state(void)
         ab_data.state_entry = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        led_control.strobe_colour_set(ws2812_led_auto_strobe); 
+        ab_data.strobe_colour_set(ws2812_led_auto_strobe); 
     }
 
     //==================================================
@@ -791,78 +773,7 @@ void ab_auto_state(void)
     //==================================================
     // Navigation calculations 
 
-    // Update the navigation calculations 
-    if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.nav_timer.clk_freq, 
-                    AB_NAV_UPDATE, 
-                    &ab_data.nav_timer.time_cnt_total, 
-                    &ab_data.nav_timer.time_cnt, 
-                    &ab_data.nav_timer.time_start))
-    {
-        // Update the compass heading, determine the true north heading and find the 
-        // error between the current (compass) and desired (GPS) headings. Heading error 
-        // is determined here and not with each location update so it's updated faster. 
-        lsm303agr_m_update();   // Add status return storage 
-        ab_data.compass_heading = gnss_nav.true_north_heading(lsm303agr_m_get_heading()); 
-        ab_data.error_heading = gnss_nav.heading_error(ab_data.compass_heading, ab_data.coordinate_heading); 
-
-        // Update the GPS information and user navigation info 
-        if (nav_period_counter++ >= AB_NAV_COUNTER)
-        {
-            nav_period_counter = CLEAR; 
-
-            if (ab_data.navstat)
-            {
-                // Get the updated location by reading the GPS device coordinates then filtering 
-                // the result. 
-                gps_waypoints_t device_coordinates = 
-                {
-                    .lat = m8q_get_position_lat(), 
-                    .lon = m8q_get_position_lon() 
-                }; 
-                gnss_nav.coordinate_filter(device_coordinates, ab_data.current); 
-
-                // Calculate the distance to the target location and the heading needed to get 
-                // there. 
-                ab_data.radius = gnss_nav.gps_radius(ab_data.current, ab_data.target); 
-                ab_data.coordinate_heading = gnss_nav.gps_heading(ab_data.current, ab_data.target); 
-
-                // Check if the distance to the target is within the threshold. If so, the 
-                // target is considered "hit" and we can move to the next target. 
-                if (ab_data.radius < AB_WAYPOINT_RAD)
-                {
-                    // Adjust waypoint index 
-                    if (++ab_data.waypoint_index >= NUM_GPS_WAYPOINTS)
-                    {
-                        ab_data.waypoint_index = CLEAR; 
-                    }
-
-                    // Update the target waypoint 
-                    ab_data.target.lat = gps_waypoints[ab_data.waypoint_index].lat; 
-                    ab_data.target.lon = gps_waypoints[ab_data.waypoint_index].lon; 
-                }
-            }
-        }
-
-        // Cap the error if needed so the throttle calculation works 
-        if (ab_data.error_heading > AB_AUTO_MAX_ERROR)
-        {
-            ab_data.error_heading = AB_AUTO_MAX_ERROR; 
-        }
-        else if (ab_data.error_heading < -AB_AUTO_MAX_ERROR)
-        {
-            ab_data.error_heading = -AB_AUTO_MAX_ERROR; 
-        }
-
-        // Calculate the thruster command: throttle = (base throttle) + error*slope 
-        ab_data.right_thruster = AB_AUTO_BASE_SPEED - ab_data.error_heading*ESC_MAX_THROTTLE / 
-                                                      (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
-        ab_data.left_thruster = AB_AUTO_BASE_SPEED +  ab_data.error_heading*ESC_MAX_THROTTLE / 
-                                                      (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
-
-        esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
-        esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
-    }
+    ab_data.auto_mode(); 
 
     //==================================================
 
@@ -876,17 +787,12 @@ void ab_auto_state(void)
     {
         ab_data.state_entry = SET_BIT; 
         ab_data.autonomous = CLEAR_BIT; 
-        nav_period_counter = CLEAR; 
-        ab_data.nav_timer.time_start = SET_BIT; 
 
-        // Set the throttle to zero to stop the thrusters 
-        ab_data.right_thruster = AB_NO_THRUST; 
-        ab_data.left_thruster = AB_NO_THRUST; 
-        esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
-        esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+        // Stop auto mode 
+        ab_data.auto_mode_exit(); 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        led_control.strobe_off(); 
+        ab_data.strobe_off(); 
     }
 
     //==================================================
@@ -1191,16 +1097,12 @@ void ab_idle_cmd(uint8_t idle_cmd_value)
     ab_data.state_entry = SET_BIT; 
     ab_data.manual = CLEAR_BIT; 
     ab_data.autonomous = CLEAR_BIT; 
-    ab_data.nav_timer.time_start = SET_BIT; 
 
-    // Set the throttle to zero to stop the thrusters 
-    ab_data.right_thruster = AB_NO_THRUST; 
-    ab_data.left_thruster = AB_NO_THRUST; 
-    esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
-    esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+    // Stop thrusters and reset timer 
+    ab_data.auto_mode_exit(); 
 
     // Make sure the LEDs are off and reset the strobe timer 
-    led_control.strobe_off(); 
+    ab_data.strobe_off(); 
 }
 
 
@@ -1212,7 +1114,7 @@ void ab_manual_cmd(uint8_t manual_cmd_value)
     ab_data.idle = CLEAR_BIT; 
 
     // Make sure the LEDs are off and reset the strobe timer 
-    led_control.strobe_off(); 
+    ab_data.strobe_off(); 
 }
 
 
@@ -1224,7 +1126,7 @@ void ab_auto_cmd(uint8_t auto_cmd_value)
     ab_data.idle = CLEAR_BIT; 
 
     // Make sure the LEDs are off and reset the strobe timer 
-    led_control.strobe_off(); 
+    ab_data.strobe_off(); 
 }
 
 
