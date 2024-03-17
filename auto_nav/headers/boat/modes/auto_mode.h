@@ -12,8 +12,8 @@
  * 
  */
 
-#ifndef _AUTO_MODE_H_ 
-#define _AUTO_MODE_H_ 
+#ifndef _BOAT_AUTO_MODE_H_ 
+#define _BOAT_AUTO_MODE_H_ 
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,7 +33,8 @@ extern "C" {
 
 class boat_auto_mode : public nav_calculations 
 {
-private: 
+private:   // Private members 
+
     // Timing 
     TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
     tim_compare_t nav_timer;                 // LED output timing info 
@@ -50,14 +51,16 @@ private:
     int16_t right_thruster;                  // Right thruster throttle 
     int16_t left_thruster;                   // Left thruster throttle 
 
-public: 
+public:   // Public members 
+
     // Nav data 
     gps_waypoints_t current;                 // Current location coordinates 
     gps_waypoints_t target;                  // Desired waypoint coordinates 
     uint8_t waypoint_index;                  // GPS coordinate index 
     uint8_t navstat;                         // Position lock status 
 
-public: 
+public:   // Public member functions 
+    
     // Constructor 
     boat_auto_mode(TIM_TypeDef *timer); 
 
@@ -77,4 +80,4 @@ public:
 }
 #endif
 
-#endif   // _AUTO_MODE_H_ 
+#endif   // _BOAT_AUTO_MODE_H_ 

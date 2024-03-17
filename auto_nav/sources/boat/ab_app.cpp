@@ -31,13 +31,6 @@
 // Timing 
 #define AB_INIT_DELAY 1000000        // Init state delay (us) 
 
-// Manual Control 
-#define AB_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
-#define AB_MC_RIGHT_MOTOR 0x52       // "R" character that indicates right motor 
-#define AB_MC_FWD_THRUST 0x50        // "P" (plus) - indicates forward thrust 
-#define AB_MC_REV_THRUST 0x4D        // "M" (minus) - indicates reverse thrust 
-#define AB_MC_NEUTRAL 0x4E           // "N" (neutral) - indicates neutral gear or zero thrust 
-
 // Thrusters 
 #define AB_NO_THRUST 0               // Force thruster output to zero 
 
@@ -505,8 +498,6 @@ void ab_ready_state(void)
 // Manual control mode state 
 void ab_manual_state(void)
 {
-    int16_t cmd_value = CLEAR; 
-
     //==================================================
     // State entry 
 
@@ -523,69 +514,7 @@ void ab_manual_state(void)
     //==================================================
     // External thruster control 
 
-    // Only attempt a throttle command update if a new data command was received 
-    if (boat.mc_data)
-    {
-        boat.mc_data = CLEAR_BIT; 
-
-        // Check that the command matches a valid throttle command. If it does then update 
-        // the thruster command. 
-        
-        cmd_value = (int16_t)boat.cmd_value; 
-
-        if (boat.cmd_id[0] == AB_MC_RIGHT_MOTOR)
-            {
-                switch (boat.cmd_id[1])
-                {
-                    case AB_MC_FWD_THRUST: 
-                        boat.right_thruster += (cmd_value - boat.right_thruster) >> SHIFT_3; 
-                        esc_readytosky_send(DEVICE_ONE, boat.right_thruster); 
-                        break; 
-                    
-                    case AB_MC_REV_THRUST: 
-                        boat.right_thruster += ((~cmd_value + 1) - boat.right_thruster) >> SHIFT_3; 
-                        esc_readytosky_send(DEVICE_ONE, boat.right_thruster); 
-                        break; 
-                    
-                    case AB_MC_NEUTRAL: 
-                        if (cmd_value == AB_NO_THRUST)
-                        {
-                            boat.right_thruster = AB_NO_THRUST; 
-                            esc_readytosky_send(DEVICE_ONE, boat.right_thruster); 
-                        }
-                        break; 
-                    
-                    default: 
-                        break; 
-                }
-            }
-            else if (boat.cmd_id[0] == AB_MC_LEFT_MOTOR)
-            {
-                switch (boat.cmd_id[1])
-                {
-                    case AB_MC_FWD_THRUST: 
-                        boat.left_thruster += (cmd_value - boat.left_thruster) >> SHIFT_3; 
-                        esc_readytosky_send(DEVICE_TWO, boat.left_thruster); 
-                        break; 
-                    
-                    case AB_MC_REV_THRUST: 
-                        boat.left_thruster += ((~cmd_value + 1) - boat.left_thruster) >> SHIFT_3; 
-                        esc_readytosky_send(DEVICE_TWO, boat.left_thruster); 
-                        break; 
-                    
-                    case AB_MC_NEUTRAL: 
-                        if (cmd_value == AB_NO_THRUST)
-                        {
-                            boat.left_thruster = AB_NO_THRUST; 
-                            esc_readytosky_send(DEVICE_TWO, boat.left_thruster); 
-                        }
-                        break; 
-                    
-                    default: 
-                        break; 
-                }
-            }
-    }
+    boat.manual_mode(boat.mc_data, boat.cmd_id, boat.cmd_value); 
 
     //==================================================
 
@@ -600,9 +529,8 @@ void ab_manual_state(void)
         boat.state_entry = SET_BIT; 
         boat.manual = CLEAR_BIT; 
 
-        // Set the throttle to zero to stop the thrusters 
-        esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
-        esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+        // Stop manual mode 
+        boat.manual_mode_exit(); 
 
         // Make sure the LEDs are off and reset the strobe timer 
         boat.strobe_off(); 

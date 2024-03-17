@@ -30,6 +30,7 @@ extern "C" {
 #include "led_control.h" 
 #include "radio_comm.h" 
 #include "auto_mode.h" 
+#include "manual_mode.h" 
 
 //=======================================================================================
 
@@ -69,7 +70,8 @@ typedef enum {
 // Data record for the system 
 class Boat : public boat_led_control, 
              public boat_radio_comms, 
-             public boat_auto_mode 
+             public boat_auto_mode, 
+             public boat_manual_mode 
 {
 private:   // Private members 
 
@@ -84,17 +86,13 @@ public:   // Public members
 
     // System info 
     uint16_t fault_code;                     // System fault code 
+    uint8_t mc_data;                         // Manual control new data check flag 
 
     // Timing 
     TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
     tim_compare_t state_timer;               // General purpose delay timing info 
 
-    // Thrusters 
-    int16_t right_thruster;                  // Right thruster throttle 
-    int16_t left_thruster;                   // Left thruster throttle 
-
-    // Control flags 
-    uint8_t mc_data     : 1;                 // Manual control new data check flag 
+    // State flags 
     uint8_t state_entry : 1;                 // State entry flag 
     uint8_t init        : 1;                 // Initialization state flag 
     uint8_t ready       : 1;                 // Ready state flag 
@@ -115,10 +113,8 @@ public:   // Public member function
           state(AB_INIT_STATE), 
           adc(adc_port), 
           fault_code(CLEAR), 
-          timer_nonblocking(timer), 
-          right_thruster(CLEAR), 
-          left_thruster(CLEAR), 
           mc_data(CLEAR_BIT), 
+          timer_nonblocking(timer), 
           state_entry(SET_BIT), 
           init(SET_BIT), 
           ready(CLEAR_BIT), 
