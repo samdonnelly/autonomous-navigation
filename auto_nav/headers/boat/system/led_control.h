@@ -32,16 +32,22 @@ extern "C" {
 
 class boat_led_control 
 {
-private: 
+private:   // Private members 
+
     // Timing 
     TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
-    tim_compare_t led_timer;                 // LED output timing info  
 
     // LEDs 
     uint32_t led_data[WS2812_LED_NUM];       // Bits: Green: 16-23, Red: 8-15, Blue: 0-7 
     uint32_t led_strobe;                     // LED strobe colour 
 
-public: 
+public:   // Public members 
+
+    // Timing 
+    tim_compare_t led_timer;                 // LED output timing info  
+
+public:   // Public member functions 
+    
     // Constructor 
     boat_led_control(TIM_TypeDef *timer); 
 

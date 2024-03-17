@@ -25,8 +25,6 @@ extern "C" {
 #include "includes_drivers.h" 
 #include "includes_cpp_drivers.h" 
 
-#include "gps_coordinates.h" 
-
 #include "led_control.h" 
 #include "radio_comm.h" 
 #include "auto_mode.h" 
@@ -93,15 +91,15 @@ public:   // Public members
     tim_compare_t state_timer;               // General purpose delay timing info 
 
     // State flags 
-    uint8_t state_entry : 1;                 // State entry flag 
-    uint8_t init        : 1;                 // Initialization state flag 
-    uint8_t ready       : 1;                 // Ready state flag 
-    uint8_t idle        : 1;                 // Idle flag - for leaving manual and auto modes 
-    uint8_t manual      : 1;                 // Manual control mode state flag 
-    uint8_t autonomous  : 1;                 // Autonomous mode state flag 
-    uint8_t low_pwr     : 1;                 // Low power state flag 
-    uint8_t fault       : 1;                 // Fault state flag 
-    uint8_t reset       : 1;                 // Reset state flag 
+    uint8_t state_entry_flag : 1;            // State entry flag 
+    uint8_t init_flag        : 1;            // Initialization state flag 
+    uint8_t ready_flag       : 1;            // Ready state flag 
+    uint8_t idle_flag        : 1;            // Idle flag - for leaving manual and auto modes 
+    uint8_t manual_flag      : 1;            // Manual control mode state flag 
+    uint8_t autonomous_flag  : 1;            // Autonomous mode state flag 
+    uint8_t low_pwr_flag     : 1;            // Low power state flag 
+    uint8_t fault_flag       : 1;            // Fault state flag 
+    uint8_t reset_flag       : 1;            // Reset state flag 
 
 public:   // Public member function 
 
@@ -115,15 +113,15 @@ public:   // Public member function
           fault_code(CLEAR), 
           mc_data(CLEAR_BIT), 
           timer_nonblocking(timer), 
-          state_entry(SET_BIT), 
-          init(SET_BIT), 
-          ready(CLEAR_BIT), 
-          idle(CLEAR_BIT), 
-          manual(CLEAR_BIT), 
-          autonomous(CLEAR_BIT), 
-          low_pwr(CLEAR_BIT), 
-          fault(CLEAR_BIT), 
-          reset(CLEAR_BIT) 
+          state_entry_flag(SET_BIT), 
+          init_flag(SET_BIT), 
+          ready_flag(CLEAR_BIT), 
+          idle_flag(CLEAR_BIT), 
+          manual_flag(CLEAR_BIT), 
+          autonomous_flag(CLEAR_BIT), 
+          low_pwr_flag(CLEAR_BIT), 
+          fault_flag(CLEAR_BIT), 
+          reset_flag(CLEAR_BIT) 
     {
         // Timing 
         memset((void *)&state_timer, CLEAR, sizeof(state_timer)); 
@@ -134,10 +132,8 @@ public:   // Public member function
         memset((void *)adc_buff, CLEAR, sizeof(adc_buff)); 
     }
 
-
     // Destructor 
     ~Boat() {} 
-
 
     /**
      * @brief Boat initialization 
@@ -146,7 +142,6 @@ public:   // Public member function
      *          once at the start of the program. 
      */
     void BoatInit(void); 
-
 
     /**
      * @brief Boat application 

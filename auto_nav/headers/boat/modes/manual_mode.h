@@ -45,13 +45,29 @@ public:   // Public member functions
     // Destructor 
     ~boat_manual_mode(); 
 
-    // Autonomous mode 
+    /**
+     * @brief Manual mode 
+     * 
+     * @details While in manual control mode, if there is a valid new manual throttle 
+     *          command then use the command will be translated into a thruster output. 
+     *          Throttle commands get sent by the ground station. This function is only 
+     *          called while in manual control mode. 
+     * 
+     * @param manual_cmd_ready : new manual control command flag 
+     * @param cmd_id : command that identifies the thruster and direction 
+     * @param command_value : throttle level 
+     */
     void manual_mode(
         uint8_t& manual_cmd_ready, 
         uint8_t *cmd_id, 
         uint8_t command_value); 
 
-    // Autonomous mode exit 
+    /**
+     * @brief Manual mode exit 
+     * 
+     * @details Called when the boat is exiting manual control mode. Makes sure manual 
+     *          mode is left in a safe state including turning the thrusters off. 
+     */
     void manual_mode_exit(void); 
 }; 
 

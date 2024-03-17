@@ -183,7 +183,6 @@ boat_radio_comms::boat_radio_comms(TIM_TypeDef *timer)
 {
     // Timing 
     memset((void *)&hb_timer, CLEAR, sizeof(hb_timer)); 
-    hb_timer.clk_freq = tim_get_pclk_freq(timer); 
     hb_timer.time_start = SET_BIT; 
 
     // Payload 
@@ -348,15 +347,14 @@ uint8_t boat_radio_comms::connect_status(void)
 // Idle command 
 void ab_idle_cmd(uint8_t idle_cmd_value)
 {
-    boat.idle = SET_BIT; 
-    boat.state_entry = SET_BIT; 
-    boat.manual = CLEAR_BIT; 
-    boat.autonomous = CLEAR_BIT; 
+    boat.idle_flag = SET_BIT; 
+    boat.state_entry_flag = SET_BIT; 
+    boat.manual_flag = CLEAR_BIT; 
+    boat.autonomous_flag = CLEAR_BIT; 
 
-    // Stop thrusters and reset timer 
+    // Stop thrusters and make sure the LEDs are off. 
     boat.auto_mode_exit(); 
-
-    // Make sure the LEDs are off and reset the strobe timer 
+    boat.manual_mode_exit(); 
     boat.strobe_off(); 
 }
 
@@ -364,9 +362,9 @@ void ab_idle_cmd(uint8_t idle_cmd_value)
 // Manual control mode command 
 void ab_manual_cmd(uint8_t manual_cmd_value)
 {
-    boat.manual = SET_BIT; 
-    boat.state_entry = SET_BIT; 
-    boat.idle = CLEAR_BIT; 
+    boat.manual_flag = SET_BIT; 
+    boat.state_entry_flag = SET_BIT; 
+    boat.idle_flag = CLEAR_BIT; 
 
     // Make sure the LEDs are off and reset the strobe timer 
     boat.strobe_off(); 
@@ -376,9 +374,9 @@ void ab_manual_cmd(uint8_t manual_cmd_value)
 // Autonomous mode command 
 void ab_auto_cmd(uint8_t auto_cmd_value)
 {
-    boat.autonomous = SET_BIT; 
-    boat.state_entry = SET_BIT; 
-    boat.idle = CLEAR_BIT; 
+    boat.autonomous_flag = SET_BIT; 
+    boat.state_entry_flag = SET_BIT; 
+    boat.idle_flag = CLEAR_BIT; 
 
     // Make sure the LEDs are off and reset the strobe timer 
     boat.strobe_off(); 

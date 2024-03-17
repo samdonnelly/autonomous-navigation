@@ -37,7 +37,6 @@ private:   // Private members
 
     // Timing 
     TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
-    tim_compare_t nav_timer;                 // LED output timing info 
 
     // Nav data 
     int32_t radius;                          // Distance between current and target location 
@@ -53,6 +52,9 @@ private:   // Private members
 
 public:   // Public members 
 
+    // Timing 
+    tim_compare_t nav_timer;                 // LED output timing info 
+
     // Nav data 
     gps_waypoints_t current;                 // Current location coordinates 
     gps_waypoints_t target;                  // Desired waypoint coordinates 
@@ -67,10 +69,22 @@ public:   // Public member functions
     // Destructor 
     ~boat_auto_mode(); 
 
-    // Autonomous mode 
+    /**
+     * @brief Autonomous mode 
+     * 
+     * @details Autonomously navigates a predefined waypoint mission using the boats 
+     *          location, target location and heading to generate a thruster output. 
+     *          Called continuously in in auto mode. 
+     */
     void auto_mode(void); 
 
-    // Autonomous mode exit 
+    /**
+     * @brief Autonomous mode exit 
+     * 
+     * @details Called when the boat is exiting auto mode. Makes sure auto mode is left 
+     *          in an appropriate state including turning the thrusters off and resetting 
+     *          data sampling timers. 
+     */
     void auto_mode_exit(void); 
 }; 
 

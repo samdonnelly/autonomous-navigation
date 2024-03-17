@@ -41,10 +41,10 @@ extern "C" {
 
 class boat_radio_comms 
 {
-private: 
+private:   // Private members 
+
     // Timing information 
     TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
-    tim_compare_t hb_timer;                  // Heartbeat timing info 
     uint8_t hb_timeout;                      // Heartbeat timeout count 
 
     // Radio info 
@@ -56,12 +56,17 @@ private:
     // Flags 
     uint8_t connect_flag;                    // Connect flag 
 
-public: 
+public:   // Public members 
+
+    // Timing 
+    tim_compare_t hb_timer;                  // Heartbeat timing info 
+    
     // Payload data 
     uint8_t cmd_id[AB_MAX_CMD_SIZE];         // Stores the ID of the external command 
     uint8_t cmd_value;                       // Stores the value of the external command 
 
-public: 
+public:   // Public member functions 
+
     // Constructor 
     boat_radio_comms(TIM_TypeDef *timer); 
 
@@ -78,10 +83,15 @@ public:
      */
     void radio_comm_check(uint8_t state); 
 
-    // Connection status 
+    /**
+     * @brief Connection status 
+     * 
+     * @return uint8_t : 'connect_flag' - used to indicate radio connection 
+     */
     uint8_t connect_status(void); 
 
-private: 
+private:   // Private member functions 
+
     /**
      * @brief Parse the user command into an ID and value 
      * 

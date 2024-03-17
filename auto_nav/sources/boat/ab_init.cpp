@@ -369,6 +369,17 @@ void Boat::BoatInit(void)
     tim_enable(TIM3); 
 
     //===================================================
+
+    //==================================================
+    // Update boat system data 
+
+    uint32_t clock_frequency = tim_get_pclk_freq(TIM9); 
+    boat.state_timer.clk_freq = clock_frequency; 
+    boat.led_timer.clk_freq = clock_frequency; 
+    boat.hb_timer.clk_freq = clock_frequency; 
+    boat.nav_timer.clk_freq = clock_frequency; 
+
+    //==================================================
 }
 
 //=======================================================================================
