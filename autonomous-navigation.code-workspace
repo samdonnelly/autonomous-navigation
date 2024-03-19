@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../STM32F4-driver-library"
+		},
+		{
+			"path": "../cpputest"
 		}
 	],
 	"settings": {
@@ -26,7 +29,16 @@
 			"stm32f4xx_it.h": "c",
 			"*.tcc": "cpp",
 			"memory": "cpp",
-			"optional": "cpp"
+			"optional": "cpp",
+			"stm32f411xe.h": "c",
+			"hw125_controller.h": "c",
+			"fatfs.h": "c",
+			"ff.h": "c",
+			"integer.h": "c",
+			"ffconf.h": "c",
+			"stm32f4xx_setup.h": "c",
+			"system_settings.h": "c",
+			"stm32f4xx_hal_tim.h": "c"
 		}
 	},
 	"launch": {

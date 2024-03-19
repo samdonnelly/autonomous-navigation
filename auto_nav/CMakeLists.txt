@@ -40,6 +40,9 @@ set(STM32CUBEMX_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/FATFS/Target
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/FATFS/App
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Drivers/CMSIS/Device/ST/STM32F4xx/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Drivers/CMSIS/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Drivers/STM32F4xx_HAL_Driver/Inc
@@ -68,6 +71,10 @@ file(GLOB_RECURSE STM32CUBEMX_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src/ff_gen_drv.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src/option/syscall.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src/option/ccsbcs.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/stmcode/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c
