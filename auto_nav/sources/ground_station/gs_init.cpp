@@ -15,16 +15,17 @@
 //=======================================================================================
 // Includes 
 
-#include "gs_init.h"
+#include "gs_interface.h" 
+#include "stm32f4xx_it.h" 
+#include "nrf24l01_config.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Global variables 
+// Macros 
 
-// Address sent by the PTX and address accepted by the PRX 
-static uint8_t pipe_addr_buff[NRF24l01_ADDR_WIDTH] = {0xB3, 0xB4, 0xB5, 0xB6, 0x05}; 
+#define GS_RF_FREQ 10 
 
 //=======================================================================================
 
@@ -103,8 +104,6 @@ void gs_init(void)
 
     //==================================================
     // ADC 
-
-    // TODO add another pin for battery voltage status 
 
     // Initialize the ADC port (called once) 
     adc1_clock_enable(RCC); 
@@ -210,7 +209,7 @@ void gs_init(void)
     nrf24l01_set_rf_pwr(NRF24L01_RF_PWR_6DBM); 
 
     // Configure the PTX settings depending on the devices role/purpose 
-    nrf24l01_ptx_config(pipe_addr_buff); 
+    nrf24l01_ptx_config(nrf24l01_pipe_addr); 
 
     //==================================================
 
@@ -230,7 +229,6 @@ void gs_init(void)
     dma_stream_enable(DMA1_Stream5); 
     dma_stream_enable(DMA2_Stream0); 
 
-    // TODO start and stop the ADC in manual control mode instead of always on 
     // Start the ADC conversions (continuous mode) - done after the DMA is done setting up 
     adc_start(ADC1); 
 
