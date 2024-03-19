@@ -21,8 +21,7 @@
 
 // Application 
 #include "ab_interface.h" 
-#include "gs_init.h"
-#include "gs_app.h"
+#include "gs_interface.h"
 
 //=======================================================================================
 
