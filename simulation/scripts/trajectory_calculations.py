@@ -29,17 +29,6 @@
 
 
 #================================================================================
-# TODO 
-# - Add a conversion between the different coordinate formats (here or in another file?) 
-# - Scatter points (coordinates) can only be seen on the surface plot at some angles 
-# - Clear old plot points (or keep them?) 
-# - Update plot without closing the plot 
-# - Convert a user defined geofence into linspace ranges and plot that portion of the 
-#   sphere. The input coordinates would then have to be checked against this. 
-#================================================================================
-
-
-#================================================================================
 # Includes 
 
 # Math and data libraries 
@@ -93,11 +82,7 @@ terminate = "exit"                  # Exit program string input
 # @return 1 : True if user input matches expected format, False otherwise 
 # @return 2 : contents of the user input formatted as needed if it's a valid input 
 #
-def user_input(
-    prompt, 
-    check, 
-    data_type): 
-
+def user_input(prompt, check, data_type): 
     # Get the user input 
     command = input(prompt) 
         
@@ -203,12 +188,7 @@ def exit_handler():
 # @param lon2 : coordinate 2 (final/destination location) longitude 
 # @return init_heading : initial heading (degrees) between coordinates 
 #
-def compass_heading(
-    lat1, 
-    lon1, 
-    lat2, 
-    lon2): 
-    
+def compass_heading(lat1, lon1, lat2, lon2): 
     # Convert angles to radians 
     lat1 = deg_to_rad(lat1) 
     lon1 = deg_to_rad(lon1) 
@@ -252,21 +232,8 @@ def compass_heading(
 
 #
 # brief: Coordinate location on sphere calculation 
-# 
-# description: 
-# 
-# @param lat : 
-# @param lon : 
-# @return lat : 
-# @return lon : 
-# @return x : 
-# @return y : 
-# @return z : 
 #
-def xyz_gps_coordinate(
-    lat, 
-    lon): 
-    
+def xyz_gps_coordinate(lat, lon): 
     # Adjust the coordinates - adjusted based on matplotlib plot orientation 
     lat = deg_to_rad(90.0 - lat) 
     lon = deg_to_rad(lon) 
@@ -305,14 +272,8 @@ def xyz_gps_coordinate(
 #              Note: Within this code the path calculation only serves as a 
 #                    representation. It will serve in calculating heading variations 
 #                    along the great circle later. 
-# 
-# @param r1 : 
-# @param r2 : 
 #
-def great_circle_path(
-    r1, 
-    r2):
-    
+def great_circle_path(r1, r2):
     # Local variables 
     num_points = 100       # Number of great circle plot points 
     angle = []             # Empty array to hold great circle coordinate angles 
@@ -396,18 +357,11 @@ def great_circle_path(
 #
 # brief: Calculates the central angle between two points on the great circle 
 # 
-# description: 
-#              The cos and sin inputs were readjusted to their original input from 
-#              their converted matplotlib axis format so that the correct angle 
-#              would be calculated. 
-# 
-# @param gps1 : 
-# @param gps2 : 
+# note: The cos and sin inputs were readjusted to their original input from 
+#       their converted matplotlib axis format so that the correct angle 
+#       would be calculated. 
 #
-def central_angle(
-    gps1, 
-    gps2): 
-    
+def central_angle(gps1, gps2): 
     # Calculate the parts of the central angle equation 
     eq1 = np.cos(np.pi/2 - gps2[0])*np.sin(gps2[1]-gps1[1]) 
     eq2 = np.cos(np.pi/2 - gps1[0])*np.sin(np.pi/2 - gps2[0]) 

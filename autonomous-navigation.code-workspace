@@ -22,7 +22,11 @@
 			"ws2812_config.h": "c",
 			"ab_includes_app.h": "c",
 			"gs_includes_app.h": "c",
-			"random": "cpp"
+			"random": "cpp",
+			"stm32f4xx_it.h": "c",
+			"*.tcc": "cpp",
+			"memory": "cpp",
+			"optional": "cpp"
 		}
 	},
 	"launch": {

@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Autonomous boat initialization code 
+ * @brief Autonomous boat application code 
  * 
  * @version 0.1
  * @date 2023-07-20
@@ -16,8 +16,7 @@
 // Includes 
 
 #include "ab_interface.h" 
-#include "includes_cpp_drivers.h" 
-#include "ab_led_colours.h" 
+#include "ws2812_config.h" 
 #include "gps_coordinates.h" 
 
 //=======================================================================================
@@ -26,163 +25,9 @@
 //=======================================================================================
 // Macros 
 
-// System info 
 #define AB_NUM_STATES 8              // Number of system states 
-#define AB_NUM_CMDS 9                // Total number of external commands available 
-
-// Timing 
 #define AB_INIT_DELAY 1000000        // Init state delay (us) 
-#define AB_NAV_UPDATE 100000         // Navigation calculation update period (us) 
-#define AB_NAV_COUNTER 10            // update*counter = time between nav calc updates 
-#define AB_HB_PERIOD 500000          // Time between heartbeat checks (us) 
-#define AB_HB_TIMEOUT 30             // period*timeout = time before conection lost status 
-#define AB_LED_PERIOD 100000         // LED update period 
-#define AB_LED_TIMEOUT 30            // period*timeout = time between LED flashes 
-
-// Data sizes 
-#define AB_MAX_CMD_SIZE 32           // Max external command size 
-#define AB_PL_LEN 32                 // Payload length 
-
-// Configuration 
-#define AB_COORDINATE_LPF_GAIN 0.5   // Coordinate low pass filter gain 
-
-// Navigation 
-#define AB_NUM_COORDINATES 9         // Number of pre-defined GPS coordinates 
-#define AB_TN_COR 130                // True North direction correction 
-#define AB_WAYPOINT_RAD 100          // Threshold waypoint radius (meters*10) 
-#define AB_GPS_INDEX_CNT 3           // Successive index command count needed to update 
-#define AB_AUTO_BASE_SPEED 50        // Base throttle of each thruster (%) 
-#define AB_AUTO_MAX_ERROR 600        // Max heading error (degrees*10) - must be within +/-1800 
-#define AB_NAV_SCALAR 10             // Scalar used to remove decimal place in nav calcs 
-
-// Calculations 
-#define AB_EARTH_RADIUS 6371         // Earth average radius (km) 
-#define AB_KM_TO_M 1000              // Kilometer to meter conversion 
-#define AB_PI 3.14159                // pi 
-#define AB_PI_OVER_2 1.57080         // pi/2 
-#define AB_DEG_TO_RAD AB_PI/180      // Degrees to radians conversion 
-
-// Manual Control 
-#define AB_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
-#define AB_MC_RIGHT_MOTOR 0x52       // "R" character that indicates right motor 
-#define AB_MC_FWD_THRUST 0x50        // "P" (plus) - indicates forward thrust 
-#define AB_MC_REV_THRUST 0x4D        // "M" (minus) - indicates reverse thrust 
-#define AB_MC_NEUTRAL 0x4E           // "N" (neutral) - indicates neutral gear or zero thrust 
-
-// Thrusters 
 #define AB_NO_THRUST 0               // Force thruster output to zero 
-
-// Conditional compilation 
-#define AB_GPS_LOC_FILTER 1          // GPS location low pass filter enable 
-#define AB_GPS_RAD_FILTER 0          // GPS radius calculation low pass filter enable 
-#define AB_GPS_HEAD_FILTER 0         // GPS heading calculation low pass filter enable 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Enums 
-
-/**
- * @brief System states 
- */
-typedef enum {
-    AB_INIT_STATE,         // State 0: startup 
-    AB_NOT_READY_STATE,    // State 1: not ready 
-    AB_READY_STATE,        // State 2: ready 
-    AB_MANUAL_STATE,       // State 3: manual control mode 
-    AB_AUTO_STATE,         // State 4: autonomous mode 
-    AB_LOW_PWR_STATE,      // State 5: low power 
-    AB_FAULT_STATE,        // State 6: fault 
-    AB_RESET_STATE         // State 7: reset 
-} ab_states_t; 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Structures 
-
-// Ground station commands 
-typedef struct ab_cmds_s 
-{
-    char ab_cmd[AB_MAX_CMD_SIZE]; 
-    void (*ab_cmd_func_ptr)(uint8_t); 
-    uint8_t ab_cmd_mask; 
-}
-ab_cmds_t; 
-
-
-// Data record for the system 
-typedef struct ab_data_s 
-{
-    // System information 
-    ab_states_t state;                       // State machine state 
-    ADC_TypeDef *adc;                        // ADC port battery soc and pots 
-    nrf24l01_data_pipe_t pipe;               // Data pipe number for the radio module 
-    uint16_t fault_code;                     // System fault code 
-
-    // Timing information 
-    TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
-    tim_compare_t delay_timer;               // General purpose delay timing info 
-    tim_compare_t nav_timer;                 // Navigation timing info 
-    tim_compare_t led_timer;                 // LED output timing info 
-    tim_compare_t hb_timer;                  // Heartbeat timing info 
-    uint8_t hb_timeout;                      // Heartbeat timeout count 
-
-    // System data 
-    uint16_t adc_buff[AB_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
-    uint32_t led_data[WS2812_LED_NUM];       // Bits: Green: 16-23, Red: 8-15, Blue: 0-7 
-    uint32_t led_strobe;                     // LED strobe colour 
-
-    // Payload data 
-    uint8_t read_buff[AB_PL_LEN];            // Data read by PRX from PTX device 
-    uint8_t cmd_id[AB_MAX_CMD_SIZE];         // Stores the ID of the external command 
-    uint8_t cmd_value;                       // Stores the value of the external command 
-    uint8_t hb_msg[AB_PL_LEN];               // Heartbeat message 
-
-    // Navigation data 
-    gps_waypoints_t current;                 // Current location coordinates 
-    gps_waypoints_t target;                  // Desired waypoint coordinates 
-    uint8_t waypoint_index;                  // GPS coordinate index 
-    int32_t radius;                          // Distance between current and target location 
-    uint8_t navstat;                         // Position lock status 
-
-    // Heading 
-    int16_t coordinate_heading;              // Heading between current and desired location 
-    int16_t compass_heading;                 // Current compass heading 
-    int16_t error_heading;                   // Error between compass and coordinate heading 
-
-    // Thrusters 
-    int16_t right_thruster;                  // Right thruster throttle 
-    int16_t left_thruster;                   // Left thruster throttle 
-
-    // Control flags 
-    uint8_t connect     : 1;                 // Radio connection status flag 
-    uint8_t mc_data     : 1;                 // Manual control new data check flag 
-    uint8_t state_entry : 1;                 // State entry flag 
-    uint8_t init        : 1;                 // Initialization state flag 
-    uint8_t ready       : 1;                 // Ready state flag 
-    uint8_t idle        : 1;                 // Idle flag - for leaving manual and auto modes 
-    uint8_t manual      : 1;                 // Manual control mode state flag 
-    uint8_t autonomous  : 1;                 // Autonomous mode state flag 
-    uint8_t low_pwr     : 1;                 // Low power state flag 
-    uint8_t fault       : 1;                 // Fault state flag 
-    uint8_t reset       : 1;                 // Reset state flag 
-}
-ab_data_t; 
-
-// Data record instance 
-static ab_data_t ab_data; 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Clases 
-
-// GNSS navigation instance 
-static nav_calculations gnss_nav(AB_COORDINATE_LPF_GAIN, AB_TN_COR); 
 
 //=======================================================================================
 
@@ -200,9 +45,6 @@ typedef void (*ab_state_func_ptr_t)(void);
 
 //=======================================================================================
 // Prototypes 
-
-//==================================================
-// State functions 
 
 /**
  * @brief Initialization state 
@@ -312,136 +154,6 @@ void ab_fault_state(void);
  */
 void ab_reset_state(void); 
 
-//==================================================
-
-
-//==================================================
-// Command functions 
-
-/**
- * @brief Idle command 
- * 
- * @details Run when the ground station sends an "idle" command while in an applicable 
- *          state. This will trigger idle mode and turn the thrusters off. See the 
- *          "cmd_table" for states in which this command is valid. 
- * 
- * @param idle_cmd_value : generic idle command argument 
- */
-void ab_idle_cmd(uint8_t idle_cmd_value); 
-
-
-/**
- * @brief Manual control mode command 
- * 
- * @details Run when the ground station sends a "manual" command while in an applicable 
- *          state. This will trigger manual control mode. See the "cmd_table" for states 
- *          in which this command is valid. 
- * 
- * @param manual_cmd_value : generic manual mode command argument 
- */
-void ab_manual_cmd(uint8_t manual_cmd_value); 
-
-
-/**
- * @brief Autonomous mode command 
- * 
- * @details Run when the ground station sends an "auto" command while in an applicable 
- *          state. Puts the system in autonomous mode. See the "cmd_table" for states in 
- *          which this command is valid. 
- * 
- * @param auto_cmd_value : generic autonomous mode command argument 
- */
-void ab_auto_cmd(uint8_t auto_cmd_value); 
-
-
-/**
- * @brief Index update command 
- * 
- * @details Run when the ground station sends an "index" command while in an applicable 
- *          state. The payload of the index command ("index <payload>" - passed as the 
- *          'index_cmd_value' argument) contains the index used to set the target 
- *          location within the pre-defined waypoint mission. This function will verify 
- *          the index value and update the target location if the index is valid. See 
- *          the "cmd_table" for states in which this command is valid. 
- * 
- * @param index_cmd_value : generic index update command argument 
- */
-void ab_index_cmd(uint8_t index_cmd_value); 
-
-
-/**
- * @brief Manual throttle command 
- * 
- * @details Run when the ground station sends an "RP", "RN", "LP", or "LN" command while 
- *          in an applicable state. These indicate right or left thruster as well as 
- *          positive (forward) and negative (reverse) thrust. Each command will be 
- *          followed by a payload (ex. "RP <payload>") that indicates the thruster 
- *          command (%), however this payload is used in the "manual" state function and 
- *          not here. This function will indicate when a manual control message has been 
- *          received and will reset the heartbeat timeout counter. See the "cmd_table" 
- *          for states in which this command is valid. 
- * 
- * @param throttle_cmd_value : generic manual throttle command argument 
- */
-void ab_throttle_cmd(uint8_t throttle_cmd_value); 
-
-
-/**
- * @brief Heartbeat command 
- * 
- * @details Run when the ground station sends an "ping" command while in an applicable 
- *          state. This function resets the heartbeat timeout counter. The ground 
- *          station will periodically send a "ping" and the boat uses this to know if 
- *          it still has radio communication with the ground station. See the "cmd_table"
- *          for states in which this command is valid. 
- * 
- * @param hb_cmd_value : generic heartbeat command argument 
- */
-void ab_hb_cmd(uint8_t hb_cmd_value); 
-
-//==================================================
-
-
-//==================================================
-// Data handling 
-
-/**
- * @brief Parse the user command into an ID and value 
- * 
- * @details Takes a radio message received from the ground station and parses it into 
- *          an ID and payload. If the ID and payload are of a valid format then the 
- *          function will return true. Note that a payload is not needed for all 
- *          commands. See the 'cmd_table' for a list of available commands/IDs and the 
- *          states in which they're used. 
- * 
- * @param command_buffer : radio message string 
- * @return uint8_t : status of the message parsing 
- */
-uint8_t ab_parse_cmd(uint8_t *command_buffer); 
-
-//==================================================
-
-
-//==================================================
-// LED functions 
-
-/**
- * @brief LED strobe control 
- * 
- * @details Periodically flashes the boat LEDs in a certain colour. LED colour is set 
- *          cased on the boats state. This is used as a visual indicator of the boats 
- *          state and to make the boat visible to surrounding entities. 
- */
-void ab_led_strobe(void); 
-
-
-/**
- * @brief Turns LED strobe light off 
- */
-void ab_led_strobe_off(void); 
-
-//==================================================
-
 //=======================================================================================
 
 
@@ -461,248 +173,29 @@ static ab_state_func_ptr_t state_table[AB_NUM_STATES] =
     &ab_reset_state 
 }; 
 
-
-// Ground station command table 
-static ab_cmds_t cmd_table[AB_NUM_CMDS] = 
-{
-    {"idle",   &ab_idle_cmd,     (SET_BIT << AB_MANUAL_STATE)    | 
-                                 (SET_BIT << AB_AUTO_STATE)}, 
-    {"manual", &ab_manual_cmd,   (SET_BIT << AB_READY_STATE)}, 
-    {"auto",   &ab_auto_cmd,     (SET_BIT << AB_READY_STATE)}, 
-    {"index",  &ab_index_cmd,    (SET_BIT << AB_READY_STATE)     | 
-                                 (SET_BIT << AB_AUTO_STATE)}, 
-    {"RP",     &ab_throttle_cmd, (SET_BIT << AB_MANUAL_STATE)}, 
-    {"RN",     &ab_throttle_cmd, (SET_BIT << AB_MANUAL_STATE)}, 
-    {"LP",     &ab_throttle_cmd, (SET_BIT << AB_MANUAL_STATE)}, 
-    {"LN",     &ab_throttle_cmd, (SET_BIT << AB_MANUAL_STATE)}, 
-    {"ping",   &ab_hb_cmd,       (SET_BIT << AB_INIT_STATE)      | 
-                                 (SET_BIT << AB_NOT_READY_STATE) | 
-                                 (SET_BIT << AB_READY_STATE)     | 
-                                 (SET_BIT << AB_MANUAL_STATE)    | 
-                                 (SET_BIT << AB_AUTO_STATE)      | 
-                                 (SET_BIT << AB_LOW_PWR_STATE)   | 
-                                 (SET_BIT << AB_FAULT_STATE)     | 
-                                 (SET_BIT << AB_RESET_STATE)} 
-}; 
-
 //=======================================================================================
 
 
 //=======================================================================================
-// Main functions 
+// Autonomous boat application 
 
-// Autonomous boat application initialization 
-void ab_app_init(
-    TIM_TypeDef *timer_nonblocking, 
-    DMA_Stream_TypeDef *adc_dma_stream, 
-    ADC_TypeDef *adc, 
-    nrf24l01_data_pipe_t pipe_num)
+void Boat::BoatApp(void)
 {
-    // Autonomous boat application code initialization 
+    // Autonomous boat application code here 
+
+    ab_states_t next_state = state; 
 
     //==================================================
-    // System configuration 
+    // System checks and updates 
 
-    // Configure the DMA stream 
-    dma_stream_config(
-        adc_dma_stream, 
-        (uint32_t)(&adc->DR), 
-        (uint32_t)ab_data.adc_buff, 
-        (uint16_t)AB_ADC_BUFF_SIZE); 
-    
-    //==================================================
+    // Check for critical info 
+    BoatSystemCheck(); 
 
-    //==================================================
-    // Data record initialization 
-    
-    // System information 
-    ab_data.state = AB_INIT_STATE; 
-    ab_data.adc = adc; 
-    ab_data.pipe = pipe_num; 
-    ab_data.fault_code = CLEAR; 
+    // Check radio communication 
+    radio_comm_check(next_state); 
 
-    // Timing information 
-    ab_data.timer_nonblocking = timer_nonblocking; 
-
-    ab_data.delay_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
-    ab_data.delay_timer.time_cnt_total = CLEAR; 
-    ab_data.delay_timer.time_cnt = CLEAR; 
-    ab_data.delay_timer.time_start = SET_BIT; 
-
-    ab_data.nav_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
-    ab_data.nav_timer.time_cnt_total = CLEAR; 
-    ab_data.nav_timer.time_cnt = CLEAR; 
-    ab_data.nav_timer.time_start = SET_BIT; 
-
-    ab_data.led_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
-    ab_data.led_timer.time_cnt_total = CLEAR; 
-    ab_data.led_timer.time_cnt = CLEAR; 
-    ab_data.led_timer.time_start = SET_BIT; 
-
-    ab_data.hb_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
-    ab_data.hb_timer.time_cnt_total = CLEAR; 
-    ab_data.hb_timer.time_cnt = CLEAR; 
-    ab_data.hb_timer.time_start = SET_BIT; 
-    ab_data.hb_timeout = CLEAR; 
-
-    // System data 
-    memset((void *)ab_data.adc_buff, CLEAR, sizeof(ab_data.adc_buff)); 
-    memset((void *)ab_data.led_data, CLEAR, sizeof(ab_data.led_data)); 
-    ab_data.led_strobe = CLEAR; 
-    ws2812_send(DEVICE_ONE, ab_data.led_data); 
-
-    // Payload data 
-    memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
-    memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
-    ab_data.cmd_value = CLEAR; 
-    memset((void *)ab_data.hb_msg, CLEAR, sizeof(ab_data.hb_msg)); 
-
-    // Navigation data 
-    ab_data.current.lat = m8q_get_position_lat(); 
-    ab_data.current.lon = m8q_get_position_lon(); 
-    ab_data.target.lat = gps_waypoints[0].lat; 
-    ab_data.target.lon = gps_waypoints[0].lon; 
-    ab_data.waypoint_index = CLEAR; 
-    ab_data.radius = CLEAR; 
-    ab_data.navstat = FALSE; 
-
-    // Heading 
-    ab_data.coordinate_heading = CLEAR; 
-    ab_data.compass_heading = CLEAR; 
-    ab_data.error_heading = CLEAR; 
-
-    // Thrusters 
-    ab_data.right_thruster = AB_NO_THRUST; 
-    ab_data.left_thruster = AB_NO_THRUST; 
-
-    // Control flags 
-    ab_data.connect = CLEAR_BIT; 
-    ab_data.mc_data = CLEAR_BIT; 
-    ab_data.state_entry = SET_BIT; 
-    ab_data.init = SET_BIT; 
-    ab_data.ready = CLEAR_BIT; 
-    ab_data.idle = CLEAR_BIT; 
-    ab_data.manual = CLEAR_BIT; 
-    ab_data.autonomous = CLEAR_BIT; 
-    ab_data.low_pwr = CLEAR_BIT; 
-    ab_data.fault = CLEAR_BIT; 
-    ab_data.reset = CLEAR_BIT; 
-    
-    //==================================================
-}
-
-
-// Autonomous boat application  
-void ab_app(void)
-{
-    // Autonomous boat application code 
-
-    // Local variables 
-    ab_states_t next_state = ab_data.state; 
-
-    //==================================================
-    // Device status checks 
-
-    if (m8q_get_fault_code())
-    {
-        ab_data.fault_code |= (SET_BIT << SHIFT_0); 
-    }
-    if (nrf24l01_get_status())
-    {
-        ab_data.fault_code |= (SET_BIT << SHIFT_2); 
-    }
-
-    //==================================================
-
-    //==================================================
-    // System requirements check 
-
-    // If these conditions are not met (excluding radio connection when in autonomous 
-    // mode) then take the system out of an active mode. 
-
-    ab_data.ready = SET_BIT; 
-
-    // Voltages 
-    // Set low power flag is voltage is below a threshold (but not zero because that means 
-    // the voltage source is not present). 
-    // If the low power flag gets set then the threshold to clear the flag has to be higher 
-    // than the one used to set the flag. 
-    
-    // GPS position lock check 
-    // If the system loses GPS position lock in manual mode then it continues on. 
-    ab_data.navstat = m8q_get_position_navstat_lock(); 
-
-    if (ab_data.navstat && (ab_data.state != AB_MANUAL_STATE))
-    {
-        ab_data.ready = CLEAR_BIT; 
-    }
-    
-    // Heartbeat check 
-    // If the system loses the heartbeat in autonomous mode then it continues on. 
-    if ((!ab_data.connect) && (ab_data.state != AB_AUTO_STATE))
-    {
-        ab_data.ready = CLEAR_BIT; 
-    }
-
-    //==================================================
-
-    //==================================================
-    // Heartbeat check 
-
-    // Increment the timeout counter periodically until the timeout limit at which 
-    // point the system assumes to have lost radio connection. Connection status is 
-    // re-established once a HB command is seen. 
-    if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.hb_timer.clk_freq, 
-                    AB_HB_PERIOD, 
-                    &ab_data.hb_timer.time_cnt_total, 
-                    &ab_data.hb_timer.time_cnt, 
-                    &ab_data.hb_timer.time_start))
-    {
-        if (ab_data.hb_timeout >= AB_HB_TIMEOUT)
-        {
-            ab_data.connect = CLEAR_BIT; 
-        }
-        else 
-        {
-            ab_data.hb_timeout++; 
-        }
-    }
-
-    //==================================================
-
-    //==================================================
-    // External command check 
-
-    // Check if a payload has been received 
-    if (nrf24l01_data_ready_status(ab_data.pipe))
-    {
-        // Payload has been received. Read the payload from the device RX FIFO. 
-        nrf24l01_receive_payload(ab_data.read_buff, ab_data.pipe); 
-
-        // Validate the input - parse into an ID and value if valid 
-        if (ab_parse_cmd(&ab_data.read_buff[1]))
-        {
-            // Valid input - compare the ID to each of the available pre-defined commands 
-            for (uint8_t i = CLEAR; i < AB_NUM_CMDS; i++) 
-            {
-                // Check that the command is available for the state before comparing it 
-                // against the ID. 
-                if (cmd_table[i].ab_cmd_mask & (SET_BIT << ab_data.state))
-                {
-                    // Command available. Compare with the ID. 
-                    if (str_compare(cmd_table[i].ab_cmd, (char *)ab_data.cmd_id, BYTE_0)) 
-                    {
-                        // ID matched to a command. Execute the command. 
-                        (cmd_table[i].ab_cmd_func_ptr)(ab_data.cmd_value); 
-                        break; 
-                    }
-                }
-            }
-        }
-
-        memset((void *)ab_data.read_buff, CLEAR, sizeof(ab_data.read_buff)); 
-    }
+    // Update the LED strobe 
+    strobe(); 
 
     //==================================================
 
@@ -712,104 +205,104 @@ void ab_app(void)
     switch (next_state)
     {
         case AB_INIT_STATE: 
-            if (!ab_data.init)
+            if (!init_flag)
             {
                 next_state = AB_NOT_READY_STATE; 
             }
             break; 
         
         case AB_NOT_READY_STATE: 
-            if (ab_data.fault)
+            if (fault_flag)
             {
                 next_state = AB_FAULT_STATE; 
             }
-            else if (ab_data.low_pwr)
+            else if (low_pwr_flag)
             {
                 next_state = AB_LOW_PWR_STATE; 
             }
-            else if (ab_data.idle)
+            else if (idle_flag)
             {
                 next_state = AB_READY_STATE; 
             }
             break; 
         
         case AB_READY_STATE: 
-            if (ab_data.fault)
+            if (fault_flag)
             {
                 next_state = AB_FAULT_STATE; 
             }
-            else if (ab_data.low_pwr)
+            else if (low_pwr_flag)
             {
                 next_state = AB_LOW_PWR_STATE; 
             }
-            else if (!ab_data.ready)
+            else if (!ready_flag)
             {
                 next_state = AB_NOT_READY_STATE; 
             }
-            else if (ab_data.manual)
+            else if (manual_flag)
             {
                 next_state = AB_MANUAL_STATE; 
             }
-            else if (ab_data.autonomous)
+            else if (autonomous_flag)
             {
                 next_state = AB_AUTO_STATE; 
             }
             break; 
         
         case AB_MANUAL_STATE: 
-            if (ab_data.fault)
+            if (fault_flag)
             {
                 next_state = AB_FAULT_STATE; 
             }
-            else if (ab_data.low_pwr)
+            else if (low_pwr_flag)
             {
                 next_state = AB_LOW_PWR_STATE; 
             }
-            else if (!ab_data.ready)
+            else if (!ready_flag)
             {
                 next_state = AB_NOT_READY_STATE; 
             }
-            else if (ab_data.idle)
+            else if (idle_flag)
             {
                 next_state = AB_READY_STATE; 
             }
             break; 
         
         case AB_AUTO_STATE: 
-            if (ab_data.fault)
+            if (fault_flag)
             {
                 next_state = AB_FAULT_STATE; 
             }
-            else if (ab_data.low_pwr)
+            else if (low_pwr_flag)
             {
                 next_state = AB_LOW_PWR_STATE; 
             }
-            else if (!ab_data.ready)
+            else if (!ready_flag)
             {
                 next_state = AB_NOT_READY_STATE; 
             }
-            else if (ab_data.idle)
+            else if (idle_flag)
             {
                 next_state = AB_READY_STATE; 
             }
             break; 
         
         case AB_LOW_PWR_STATE: 
-            if (ab_data.reset)
+            if (reset_flag)
             {
                 next_state = AB_RESET_STATE; 
             }
             break; 
         
         case AB_FAULT_STATE: 
-            if (ab_data.reset)
+            if (reset_flag)
             {
                 next_state = AB_RESET_STATE; 
             }
             break; 
         
         case AB_RESET_STATE: 
-            if (ab_data.init)
+            if (init_flag)
             {
                 next_state = AB_INIT_STATE; 
             }
@@ -826,10 +319,50 @@ void ab_app(void)
     state_table[next_state](); 
 
     // Update the state 
-    ab_data.state = next_state; 
+    state = next_state; 
 
     // Run the controllers 
     m8q_controller(); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// System 
+
+// System checks 
+void Boat::BoatSystemCheck(void)
+{
+    // Device status checks 
+    if (m8q_get_fault_code())
+    {
+        fault_code |= (SET_BIT << SHIFT_0); 
+    }
+    if (nrf24l01_get_status())
+    {
+        fault_code |= (SET_BIT << SHIFT_2); 
+    }
+
+    // System requirements check. If these conditions are not met then take the system 
+    // out of an active mode. 
+    ready_flag = SET_BIT; 
+    
+    // GPS position lock check. If the system loses GPS position lock in manual mode then 
+    // it continues on. 
+    navstat = m8q_get_position_navstat_lock(); 
+
+    if (navstat && (state != AB_MANUAL_STATE))
+    {
+        ready_flag = CLEAR_BIT; 
+    }
+    
+    // Heartbeat check. If the system loses the heartbeat in autonomous mode then it 
+    // continues on. 
+    if ((!connect_status()) && (state != AB_AUTO_STATE))
+    {
+        ready_flag = CLEAR_BIT; 
+    }
 }
 
 //=======================================================================================
@@ -841,723 +374,230 @@ void ab_app(void)
 // Initialization state 
 void ab_init_state(void)
 {
-    // Local variables 
-
-    //==================================================
     // State entry 
-
-    if (ab_data.state_entry)
+    if (boat.state_entry_flag)
     {
-        ab_data.state_entry = CLEAR_BIT; 
+        boat.state_entry_flag = CLEAR_BIT; 
 
         // Set the thruster throttle to zero to initialize the ESCs and motors. 
         esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
         esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+
+        // Grab the current location (if available) and set the default target waypoint. 
+        boat.current.lat = m8q_get_position_lat(); 
+        boat.current.lon = m8q_get_position_lon(); 
+        boat.target.lat = gps_waypoints[0].lat; 
+        boat.target.lon = gps_waypoints[0].lon; 
+
+        // Set up the file system 
     }
 
-    //==================================================
-
-    // Set up the file system 
-
-    //==================================================
     // State exit 
-
-    // Short delay to let the system set up before moving into the next state 
-    if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.delay_timer.clk_freq, 
+    if (tim_compare(boat.timer_nonblocking, 
+                    boat.state_timer.clk_freq, 
                     AB_INIT_DELAY, 
-                    &ab_data.delay_timer.time_cnt_total, 
-                    &ab_data.delay_timer.time_cnt, 
-                    &ab_data.delay_timer.time_start))
+                    &boat.state_timer.time_cnt_total, 
+                    &boat.state_timer.time_cnt, 
+                    &boat.state_timer.time_start))
     {
-        ab_data.delay_timer.time_start = SET_BIT; 
-        ab_data.state_entry = SET_BIT; 
-        ab_data.init = CLEAR_BIT; 
-    }
+        // Short delay to let the system set up before moving into the next state 
 
-    //==================================================
+        boat.state_timer.time_start = SET_BIT; 
+        boat.state_entry_flag = SET_BIT; 
+        boat.init_flag = CLEAR_BIT; 
+    }
 }
 
 
 // Not ready state 
 void ab_not_ready_state(void)
 {
-    // Local variables 
-
-    //==================================================
     // State entry 
-    
-    if (ab_data.state_entry)
+    if (boat.state_entry_flag)
     {
-        ab_data.state_entry = CLEAR_BIT; 
+        boat.state_entry_flag = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ab_led_not_ready; 
+        boat.strobe_colour_set(ws2812_led_not_ready); 
     }
-
-    //==================================================
 
     // Wait for the system requirements to be met - ready flag will be set 
 
-    //==================================================
-    // External feedback 
-
-    // Toggle an LED to indicate the state to the user 
-    ab_led_strobe(); 
-    
-    //==================================================
-
-    //==================================================
     // State exit 
-
-    if (ab_data.fault | ab_data.low_pwr | ab_data.ready)
+    if (boat.fault_flag | boat.low_pwr_flag | boat.ready_flag)
     {
-        ab_data.state_entry = SET_BIT; 
-        ab_data.idle = SET_BIT; 
-        ab_data.manual = CLEAR_BIT; 
-        ab_data.autonomous = CLEAR_BIT; 
+        boat.state_entry_flag = SET_BIT; 
+        boat.idle_flag = SET_BIT; 
+        boat.manual_flag = CLEAR_BIT; 
+        boat.autonomous_flag = CLEAR_BIT; 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        ab_led_strobe_off(); 
+        boat.strobe_off(); 
     }
-
-    //==================================================
 }
 
 
 // Ready state 
 void ab_ready_state(void)
 {
-    // Local variables 
-
-    //==================================================
     // State entry 
-
-    if (ab_data.state_entry)
+    if (boat.state_entry_flag)
     {
-        ab_data.state_entry = CLEAR_BIT; 
+        boat.state_entry_flag = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ab_led_ready; 
+        boat.strobe_colour_set(ws2812_led_ready); 
     }
-
-    //==================================================
 
     // Wait for an active state to be chosen 
 
-    //==================================================
-    // External feedback 
-
-    // Toggle an LED to indicate the state to the user 
-    ab_led_strobe(); 
-    
-    //==================================================
-
-    //==================================================
     // State exit 
-
-    // Manual and autonomous mode exit conditions come from external commands received so 
-    // they're not included here. 
-
-    if (ab_data.fault | ab_data.low_pwr | !ab_data.ready)
+    if (boat.fault_flag | boat.low_pwr_flag | !boat.ready_flag)
     {
-        ab_data.state_entry = SET_BIT; 
-        ab_data.idle = CLEAR_BIT; 
+        // Manual and autonomous mode exit conditions come from external commands 
+        // received so they're not included here. 
+
+        boat.state_entry_flag = SET_BIT; 
+        boat.idle_flag = CLEAR_BIT; 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        ab_led_strobe_off(); 
+        boat.strobe_off(); 
     }
-
-    //==================================================
 }
 
 
 // Manual control mode state 
 void ab_manual_state(void)
 {
-    // Local variables 
-    int16_t cmd_value = CLEAR; 
-
-    //==================================================
     // State entry 
-
-    if (ab_data.state_entry)
+    if (boat.state_entry_flag)
     {
-        ab_data.state_entry = CLEAR_BIT; 
+        boat.state_entry_flag = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ab_led_manual; 
+        boat.strobe_colour_set(ws2812_led_manual_strobe); 
     }
 
-    //==================================================
-
-    //==================================================
     // External thruster control 
+    boat.manual_mode(boat.mc_data, boat.cmd_id, boat.cmd_value); 
 
-    // Only attempt a throttle command update if a new data command was received 
-    if (ab_data.mc_data)
-    {
-        ab_data.mc_data = CLEAR_BIT; 
-
-        // Check that the command matches a valid throttle command. If it does then update 
-        // the thruster command. 
-        
-        cmd_value = (int16_t)ab_data.cmd_value; 
-
-        if (ab_data.cmd_id[0] == AB_MC_RIGHT_MOTOR)
-            {
-                switch (ab_data.cmd_id[1])
-                {
-                    case AB_MC_FWD_THRUST: 
-                        ab_data.right_thruster += (cmd_value - 
-                                                        ab_data.right_thruster) >> SHIFT_3; 
-                        esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
-                        break; 
-                    case AB_MC_REV_THRUST: 
-                        ab_data.right_thruster += ((~cmd_value + 1) - 
-                                                        ab_data.right_thruster) >> SHIFT_3; 
-                        esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
-                        break; 
-                    case AB_MC_NEUTRAL: 
-                        if (cmd_value == AB_NO_THRUST)
-                        {
-                            ab_data.right_thruster = AB_NO_THRUST; 
-                            esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
-                        }
-                        break; 
-                    default: 
-                        break; 
-                }
-            }
-            else if (ab_data.cmd_id[0] == AB_MC_LEFT_MOTOR)
-            {
-                switch (ab_data.cmd_id[1])
-                {
-                    case AB_MC_FWD_THRUST: 
-                        ab_data.left_thruster += (cmd_value - 
-                                                        ab_data.left_thruster) >> SHIFT_3; 
-                        esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
-                        break; 
-                    case AB_MC_REV_THRUST: 
-                        ab_data.left_thruster += ((~cmd_value + 1) - 
-                                                        ab_data.left_thruster) >> SHIFT_3; 
-                        esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
-                        break; 
-                    case AB_MC_NEUTRAL: 
-                        if (cmd_value == AB_NO_THRUST)
-                        {
-                            ab_data.left_thruster = AB_NO_THRUST; 
-                            esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
-                        }
-                        break; 
-                    default: 
-                        break; 
-                }
-            }
-    }
-
-    //==================================================
-
-    //==================================================
-    // External feedback 
-
-    // Toggle an LED to indicate the state to the user 
-    ab_led_strobe(); 
-    
-    //==================================================
-
-    //==================================================
     // State exit 
-
-    // the idle (ready) state exit condition comes from an external command received 
-    // so it's not included here. 
-
-    if (ab_data.fault | ab_data.low_pwr | !ab_data.ready)
+    if (boat.fault_flag | boat.low_pwr_flag | !boat.ready_flag)
     {
-        ab_data.state_entry = SET_BIT; 
-        ab_data.manual = CLEAR_BIT; 
+        // The idle (ready) state exit condition comes from an external command 
+        // received so it's not included here. 
 
-        // Set the throttle to zero to stop the thrusters 
-        ab_data.right_thruster = AB_NO_THRUST; 
-        ab_data.left_thruster = AB_NO_THRUST; 
-        esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
-        esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+        boat.state_entry_flag = SET_BIT; 
+        boat.manual_flag = CLEAR_BIT; 
 
-        // Make sure the LEDs are off and reset the strobe timer 
-        ab_led_strobe_off(); 
+        // Stop manual mode and make sure the LEDs are off. 
+        boat.manual_mode_exit(); 
+        boat.strobe_off(); 
     }
-
-    //==================================================
 }
 
 
 // Autonomous mode state 
 void ab_auto_state(void)
 {
-    // Local variables 
-    static uint8_t nav_period_counter = CLEAR; 
-
-    //==================================================
     // State entry 
-
-    if (ab_data.state_entry)
+    if (boat.state_entry_flag)
     {
-        ab_data.state_entry = CLEAR_BIT; 
+        boat.state_entry_flag = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        ab_data.led_strobe = ab_led_auto; 
+        boat.strobe_colour_set(ws2812_led_auto_strobe); 
     }
 
-    //==================================================
+    // Navigate the predefined waypoint mission autonomously 
+    boat.auto_mode(); 
 
-    //==================================================
-    // Navigation calculations 
-
-    // Update the navigation calculations 
-    if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.nav_timer.clk_freq, 
-                    AB_NAV_UPDATE, 
-                    &ab_data.nav_timer.time_cnt_total, 
-                    &ab_data.nav_timer.time_cnt, 
-                    &ab_data.nav_timer.time_start))
-    {
-        // Update the compass heading, determine the true north heading and find the 
-        // error between the current (compass) and desired (GPS) headings. Heading error 
-        // is determined here and not with each location update so it's updated faster. 
-        lsm303agr_m_update();   // Add status return storage 
-        ab_data.compass_heading = gnss_nav.true_north_heading(lsm303agr_m_get_heading()); 
-        ab_data.error_heading = gnss_nav.heading_error(ab_data.compass_heading, ab_data.coordinate_heading); 
-
-        // Update the GPS information and user navigation info 
-        if (nav_period_counter++ >= AB_NAV_COUNTER)
-        {
-            nav_period_counter = CLEAR; 
-
-            if (ab_data.navstat)
-            {
-                // Get the updated location by reading the GPS device coordinates then filtering 
-                // the result. 
-                gps_waypoints_t device_coordinates = 
-                {
-                    .lat = m8q_get_position_lat(), 
-                    .lon = m8q_get_position_lon() 
-                }; 
-                gnss_nav.coordinate_filter(device_coordinates, ab_data.current); 
-
-                // Calculate the distance to the target location and the heading needed to get 
-                // there. 
-                ab_data.radius = gnss_nav.gps_radius(ab_data.current, ab_data.target); 
-                ab_data.coordinate_heading = gnss_nav.gps_heading(ab_data.current, ab_data.target); 
-
-                // Check if the distance to the target is within the threshold. If so, the 
-                // target is considered "hit" and we can move to the next target. 
-                if (ab_data.radius < AB_WAYPOINT_RAD)
-                {
-                    // Adjust waypoint index 
-                    if (++ab_data.waypoint_index >= AB_NUM_COORDINATES)
-                    {
-                        ab_data.waypoint_index = CLEAR; 
-                    }
-
-                    // Update the target waypoint 
-                    ab_data.target.lat = gps_waypoints[ab_data.waypoint_index].lat; 
-                    ab_data.target.lon = gps_waypoints[ab_data.waypoint_index].lon; 
-                }
-            }
-        }
-
-        // Cap the error if needed so the throttle calculation works 
-        if (ab_data.error_heading > AB_AUTO_MAX_ERROR)
-        {
-            ab_data.error_heading = AB_AUTO_MAX_ERROR; 
-        }
-        else if (ab_data.error_heading < -AB_AUTO_MAX_ERROR)
-        {
-            ab_data.error_heading = -AB_AUTO_MAX_ERROR; 
-        }
-
-        // Calculate the thruster command: throttle = (base throttle) + error*slope 
-        ab_data.right_thruster = AB_AUTO_BASE_SPEED - ab_data.error_heading*ESC_MAX_THROTTLE / 
-                                                      (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
-        ab_data.left_thruster = AB_AUTO_BASE_SPEED +  ab_data.error_heading*ESC_MAX_THROTTLE / 
-                                                      (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
-
-        esc_readytosky_send(DEVICE_ONE, ab_data.right_thruster); 
-        esc_readytosky_send(DEVICE_TWO, ab_data.left_thruster); 
-    }
-
-    //==================================================
-
-    //==================================================
-    // External feedback 
-
-    // Toggle an LED to indicate the state to the user 
-    ab_led_strobe(); 
-    
-    //==================================================
-
-    //==================================================
     // State exit 
-
-    // The idle (ready) state exit condition comes from an external command received 
-    // so it's not included here. 
-
-    if (ab_data.fault | ab_data.low_pwr | !ab_data.ready)
+    if (boat.fault_flag | boat.low_pwr_flag | !boat.ready_flag)
     {
-        ab_data.state_entry = SET_BIT; 
-        ab_data.autonomous = CLEAR_BIT; 
-        nav_period_counter = CLEAR; 
-        ab_data.nav_timer.time_start = SET_BIT; 
+        // The idle (ready) state exit condition comes from an external command 
+        // received so it's not included here. 
 
-        // Set the throttle to zero to stop the thrusters 
-        ab_data.right_thruster = AB_NO_THRUST; 
-        ab_data.left_thruster = AB_NO_THRUST; 
-        esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
-        esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
+        boat.state_entry_flag = SET_BIT; 
+        boat.autonomous_flag = CLEAR_BIT; 
 
-        // Make sure the LEDs are off and reset the strobe timer 
-        ab_led_strobe_off(); 
+        // Stop auto mode and makes ure LEDs are off. 
+        boat.auto_mode_exit(); 
+        boat.strobe_off(); 
     }
-
-    //==================================================
 }
 
 
 // Low power state 
 void ab_low_pwr_state(void)
 {
-    // Local variables 
-
-    //==================================================
     // State entry 
-
-    if (ab_data.state_entry)
+    if (boat.state_entry_flag)
     {
-        ab_data.state_entry = CLEAR_BIT; 
+        boat.state_entry_flag = CLEAR_BIT; 
 
         // Put devices in low power mode 
         m8q_set_low_pwr_flag(); 
     }
 
-    //==================================================
+    // Wait for a system reset. Currently the system will hang here until it's power 
+    // cycled because there is no setter for the reset flag. This is ok because if the 
+    // battery voltage is low the system should not be doing anything. 
 
-    // Wait for a system reset 
-    // Currently the system would hang here until it's power cycled because there is no 
-    // setter for the reset flag. This is ok because if the battery voltage is low there 
-    // is nothing the system can and should do. 
-
-    //==================================================
     // State exit 
-
-    if (ab_data.reset)
+    if (boat.reset_flag)
     {
-        ab_data.state_entry = SET_BIT; 
+        boat.state_entry_flag = SET_BIT; 
 
         // Take devices out of low power mode 
         m8q_clear_low_pwr_flag(); 
     }
-
-    //==================================================
 }
 
 
 // Fault state 
 void ab_fault_state(void)
 {
-    // Local variables 
-
-    //==================================================
     // State entry 
-
-    if (ab_data.state_entry)
+    if (boat.state_entry_flag)
     {
-        ab_data.state_entry = CLEAR_BIT; 
+        boat.state_entry_flag = CLEAR_BIT; 
     }
-
-    //==================================================
 
     // Go directly to the reset state 
-    ab_data.reset = SET_BIT; 
+    boat.reset_flag = SET_BIT; 
 
-    //==================================================
     // State exit 
-
-    if (ab_data.reset)
+    if (boat.reset_flag)
     {
-        ab_data.state_entry = SET_BIT; 
-        ab_data.fault = CLEAR_BIT; 
+        boat.state_entry_flag = SET_BIT; 
+        boat.fault_flag = CLEAR_BIT; 
     }
-
-    //==================================================
 }
 
 
 // Reset state 
 void ab_reset_state(void)
 {
-    // Local variables 
-
-    //==================================================
     // State entry 
-
-    if (ab_data.state_entry)
+    if (boat.state_entry_flag)
     {
-        ab_data.state_entry = CLEAR_BIT; 
+        boat.state_entry_flag = CLEAR_BIT; 
     }
 
-    //==================================================
-
-    // Go directly to the init function 
-    ab_data.init = SET_BIT; 
-
-    // Clear fault and status codes 
-    ab_data.fault_code = CLEAR; 
+    // Go directly to the init state function. Clear and fault and status codes before 
+    // doing so. 
+    boat.init_flag = SET_BIT; 
+    boat.fault_code = CLEAR; 
     m8q_set_reset_flag(); 
     nrf24l01_clear_status(); 
 
-    //==================================================
     // State exit 
-
-    if (ab_data.init)
+    if (boat.init_flag)
     {
-        ab_data.state_entry = SET_BIT; 
-        ab_data.reset = CLEAR_BIT; 
+        boat.state_entry_flag = SET_BIT; 
+        boat.reset_flag = CLEAR_BIT; 
     }
-
-    //==================================================
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Command functions 
-
-// Idle command 
-void ab_idle_cmd(uint8_t idle_cmd_value)
-{
-    ab_data.idle = SET_BIT; 
-    ab_data.state_entry = SET_BIT; 
-    ab_data.manual = CLEAR_BIT; 
-    ab_data.autonomous = CLEAR_BIT; 
-    ab_data.nav_timer.time_start = SET_BIT; 
-
-    // Set the throttle to zero to stop the thrusters 
-    ab_data.right_thruster = AB_NO_THRUST; 
-    ab_data.left_thruster = AB_NO_THRUST; 
-    esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
-    esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
-
-    // Make sure the LEDs are off and reset the strobe timer 
-    ab_led_strobe_off(); 
-}
-
-
-// Manual control mode command 
-void ab_manual_cmd(uint8_t manual_cmd_value)
-{
-    ab_data.manual = SET_BIT; 
-    ab_data.state_entry = SET_BIT; 
-    ab_data.idle = CLEAR_BIT; 
-
-    // Make sure the LEDs are off and reset the strobe timer 
-    ab_led_strobe_off(); 
-}
-
-
-// Autonomous mode command 
-void ab_auto_cmd(uint8_t auto_cmd_value)
-{
-    ab_data.autonomous = SET_BIT; 
-    ab_data.state_entry = SET_BIT; 
-    ab_data.idle = CLEAR_BIT; 
-
-    // Make sure the LEDs are off and reset the strobe timer 
-    ab_led_strobe_off(); 
-}
-
-
-// Index update command 
-void ab_index_cmd(uint8_t index_cmd_value)
-{
-    // Local variables 
-    static uint8_t index_check = CLEAR; 
-    static uint8_t index_last = CLEAR; 
-
-    // Compare the previous index command to the new index command. The radio messages 
-    // between the ground station and boat are poor meaning a complete and correct 
-    // message often does not get transmitted and received successfully. This can lead 
-    // to the index not being updated to the desired value and therefore the boat moving 
-    // to a target it's not supposed to. To combat this, the index has to been seen 
-    // successively at least "AB_GPS_INDEX_CNT" times before the index will be updated. 
-    if (index_cmd_value != index_last)
-    {
-        index_last = index_cmd_value; 
-        index_check = SET_BIT; 
-    }
-    else 
-    {
-        index_check++; 
-    }
-
-    // Check that the index is within bounds and seen the last AB_GPS_INDEX_CNT times before 
-    // updating the index (filters noise). 
-    if ((index_cmd_value < AB_NUM_COORDINATES) && (index_check >= AB_GPS_INDEX_CNT))
-    {
-        ab_data.waypoint_index = index_cmd_value; 
-        ab_data.target.lat = gps_waypoints[ab_data.waypoint_index].lat; 
-        ab_data.target.lon = gps_waypoints[ab_data.waypoint_index].lon; 
-        index_check = CLEAR; 
-    }
-}
-
-
-// Manual throttle command 
-void ab_throttle_cmd(uint8_t throttle_cmd_value)
-{
-    ab_data.mc_data = SET_BIT; 
-    ab_data.connect = SET_BIT; 
-    ab_data.hb_timeout = CLEAR; 
-}
-
-
-// Heartbeat command 
-void ab_hb_cmd(uint8_t hb_cmd_value)
-{
-    ab_data.connect = SET_BIT; 
-    ab_data.hb_timeout = CLEAR; 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Data handling 
-
-// Parse the ground station command into an ID and value 
-uint8_t ab_parse_cmd(uint8_t *command_buffer)
-{
-    // Local variables 
-    uint8_t id_flag = SET_BIT; 
-    uint8_t id_index = CLEAR; 
-    uint8_t data = CLEAR; 
-    uint8_t cmd_value[AB_MAX_CMD_SIZE]; 
-    uint8_t value_size = CLEAR; 
-
-    // Initialize data 
-    memset((void *)ab_data.cmd_id, CLEAR, sizeof(ab_data.cmd_id)); 
-    ab_data.cmd_value = CLEAR; 
-    memset((void *)cmd_value, CLEAR, sizeof(cmd_value)); 
-
-    // Parse the command into an ID and value 
-    for (uint8_t i = CLEAR; command_buffer[i] != NULL_CHAR; i++)
-    {
-        data = command_buffer[i]; 
-
-        if (id_flag)
-        {
-            // cmd ID parsing 
-
-            id_index = i; 
-
-            // Check that the command byte is within range 
-            if ((data >= A_LO_CHAR && data <= Z_LO_CHAR) || 
-                (data >= A_UP_CHAR && data <= Z_UP_CHAR))
-            {
-                // Valid character byte seen 
-                ab_data.cmd_id[i] = data; 
-            }
-            else if (data >= ZERO_CHAR && data <= NINE_CHAR)
-            {
-                // Valid digit character byte seen 
-                id_flag = CLEAR_BIT; 
-                ab_data.cmd_id[i] = NULL_CHAR; 
-                cmd_value[i-id_index] = data; 
-                value_size++; 
-            }
-            else 
-            {
-                // Valid data not seen 
-                return FALSE; 
-            }
-        }
-        else 
-        {
-            // cmd value parsing 
-
-            if (data >= ZERO_CHAR && data <= NINE_CHAR)
-            {
-                // Valid digit character byte seen 
-                cmd_value[i-id_index] = data; 
-                value_size++; 
-            }
-            else 
-            {
-                // Valid data not seen 
-                return FALSE; 
-            }
-        }
-    }
-
-    // Calculate the cmd value 
-    for (uint8_t i = CLEAR; i < value_size; i++)
-    {
-        ab_data.cmd_value += (uint8_t)char_to_int(cmd_value[i], value_size-i-1); 
-    }
-
-    return TRUE; 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// LED functions 
-
-// LED strobe control 
-void ab_led_strobe(void)
-{
-    // Local variables 
-    static uint8_t led_counter = CLEAR; 
-
-    // Toggle the strobe LEDs an LED to indicate the state to the user 
-    if (tim_compare(ab_data.timer_nonblocking, 
-                    ab_data.led_timer.clk_freq, 
-                    AB_LED_PERIOD, 
-                    &ab_data.led_timer.time_cnt_total, 
-                    &ab_data.led_timer.time_cnt, 
-                    &ab_data.led_timer.time_start))
-    {
-        if (!led_counter)
-        {
-            ab_data.led_data[WS2812_LED_3] = ab_led_clear; 
-            ab_data.led_data[WS2812_LED_4] = ab_led_clear; 
-            ws2812_send(DEVICE_ONE, ab_data.led_data); 
-            led_counter++; 
-        }
-        else if (led_counter >= AB_LED_TIMEOUT)
-        {
-            ab_data.led_data[WS2812_LED_3] = ab_data.led_strobe; 
-            ab_data.led_data[WS2812_LED_4] = ab_data.led_strobe; 
-            ws2812_send(DEVICE_ONE, ab_data.led_data); 
-            led_counter = CLEAR; 
-        }
-        else 
-        {
-            led_counter++; 
-        }
-    }
-}
-
-
-// LED strobe off 
-void ab_led_strobe_off(void)
-{
-    ab_data.led_strobe = ab_led_clear; 
-    ab_data.led_data[WS2812_LED_3] = ab_data.led_strobe; 
-    ab_data.led_data[WS2812_LED_4] = ab_data.led_strobe; 
-    ws2812_send(DEVICE_ONE, ab_data.led_data); 
-    ab_data.led_timer.time_start = SET_BIT; 
 }
 
 //=======================================================================================

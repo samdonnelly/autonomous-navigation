@@ -1,21 +1,22 @@
 /**
- * @file int_handlers.c
+ * @file stm32f4xx_it.c
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Interrupt handlers 
+ * @brief Interrupt Service Routines (ISRs) 
  * 
  * @version 0.1
- * @date 2022-11-05
+ * @date 2024-03-04
  * 
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2024
  * 
  */
 
 //=======================================================================================
 // Includes 
 
-#include "int_handlers.h"
+#include "stm32f4xx_it.h"
+#include "stm32f4xx_hal.h" 
 
 //=======================================================================================
 
@@ -35,61 +36,78 @@ int_handle_flags_t handler_flags;
 // Interrupt handler flag initialization 
 void int_handler_init(void)
 {
-    // EXTI interrupt flags 
-    handler_flags.exti0_flag = CLEAR; 
-    handler_flags.exti1_flag = CLEAR; 
-    handler_flags.exti2_flag = CLEAR; 
-    handler_flags.exti3_flag = CLEAR; 
-    handler_flags.exti4_flag = CLEAR; 
-    handler_flags.exti5_9_flag = CLEAR; 
-    handler_flags.exti10_15_flag = CLEAR; 
-
-    // DMA1 interrupt flags 
-    handler_flags.dma1_0_flag = CLEAR; 
-    handler_flags.dma1_1_flag = CLEAR; 
-    handler_flags.dma1_2_flag = CLEAR; 
-    handler_flags.dma1_3_flag = CLEAR; 
-    handler_flags.dma1_4_flag = CLEAR; 
-    handler_flags.dma1_5_flag = CLEAR; 
-    handler_flags.dma1_6_flag = CLEAR; 
-    handler_flags.dma1_7_flag = CLEAR; 
-
-    // DMA2 interrupt flags 
-    handler_flags.dma2_0_flag = CLEAR; 
-    handler_flags.dma2_1_flag = CLEAR; 
-    handler_flags.dma2_2_flag = CLEAR; 
-    handler_flags.dma2_3_flag = CLEAR; 
-    handler_flags.dma2_4_flag = CLEAR; 
-    handler_flags.dma2_5_flag = CLEAR; 
-    handler_flags.dma2_6_flag = CLEAR; 
-    handler_flags.dma2_7_flag = CLEAR; 
-
-    // Timer interrupt flags 
-    handler_flags.tim1_brk_tim9_glbl_flag = CLEAR; 
-    handler_flags.tim1_up_tim10_glbl_flag = CLEAR; 
-    handler_flags.tim1_trg_tim11_glbl_flag = CLEAR; 
-    handler_flags.tim1_cc_flag = CLEAR; 
-    handler_flags.tim2_glbl_flag = CLEAR; 
-    handler_flags.tim3_glbl_flag = CLEAR; 
-    handler_flags.tim4_glbl_flag = CLEAR; 
-    handler_flags.tim5_glbl_flag = CLEAR; 
-
-    // ADC interrupt flags 
-    handler_flags.adc_flag = CLEAR; 
-
-    // USART interrupt flags 
-    handler_flags.usart1_flag = CLEAR; 
-    handler_flags.usart2_flag = CLEAR; 
-    handler_flags.usart6_flag = CLEAR; 
+    // Clear all flags 
+    memset((void *)&handler_flags, CLEAR, sizeof(int_handle_flags_t)); 
 }
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Handlers 
+// Cortex-M4 Processor Interruption and Exception Handlers 
 
-// External interrupt handler names are defined in startup_stm32f411xe.s 
+// Non-maskable interrupt handler 
+void NMI_Handler(void)
+{
+    while (1) {}
+}
+
+// Hard fault interrupt handler 
+void HardFault_Handler(void)
+{
+    while (1) {}
+}
+
+// Memory management fault handler 
+void MemManage_Handler(void)
+{
+    while (1) {}
+}
+
+// Pre-fetch fault, memory access fault handler 
+void BusFault_Handler(void)
+{
+    while (1) {}
+}
+
+// Undefined instruction or illegal state handler 
+void UsageFault_Handler(void)
+{
+    while (1) {}
+}
+
+// Debug monitor handler 
+void DebugMon_Handler(void)
+{
+    // 
+}
+
+// This function handles System service call via SWI instruction 
+void SVC_Handler(void)
+{
+    // 
+}
+
+// This function handles Pendable request for system service 
+void PendSV_Handler(void)
+{
+    // 
+}
+
+// This function handles System tick timer 
+void SysTick_Handler(void)
+{
+    // HAL timer counter increment 
+    HAL_IncTick();
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// STM32F4xx Peripheral Interrupt Handlers 
+
+// Interrupt handler names are defined in startup_stm32f411xe.s 
 
 // EXTI Line 0 
 void EXTI0_IRQHandler(void)
@@ -293,7 +311,7 @@ void TIM1_UP_TIM10_IRQHandler(void)
 }
 
 
-// Timer 1 trigger and communication + timer 11 global 
+// Timer 1 trigger and communication + timer 11 global interrupts 
 void TIM1_TRG_COM_TIM11_IRQHandler(void)
 {
     handler_flags.tim1_trg_tim11_glbl_flag = SET_BIT; 

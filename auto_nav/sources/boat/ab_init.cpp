@@ -19,6 +19,7 @@
 #include "lsm303agr_config.h" 
 #include "m8q_config.h" 
 #include "nrf24l01_config.h" 
+#include "gps_coordinates.h" 
 
 //=======================================================================================
 
@@ -32,7 +33,6 @@
 // Device setup 
 #define AB_IMU_STBY_MASK 0x00        // Axis standby status mask 
 #define AB_IMU_SMPLRT_DIVIDER 0      // Sample Rate Divider 
-#define AB_MAG_NUM_DIRS 8            // Number of directions of heading offset calcs 
 #define AB_RF_CH_FREQ 10             // Frequency channel for the RF module 
 #define AB_ESC_PERIOD 20000          // ESC PWM timer period (auto-reload register) 
 
@@ -46,12 +46,21 @@
 
 
 //=======================================================================================
-// Functions 
+// Variables 
 
+// Boat instance 
+Boat boat(TIM9, ADC1); 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Autonomous boat initialization 
-void ab_init(void)
+
+// Boat initialization 
+void Boat::BoatInit(void)
 {
-    // Autonomous boat initialization code 
+    // Autonomous boat setup code here 
 
     //===================================================
     // General setup 
@@ -190,8 +199,15 @@ void ab_init(void)
         DMA_DATA_SIZE_HALF, 
         DMA_DATA_SIZE_HALF); 
 
-    // The DMA stream gets configured in the application code init (below) 
-    // The stream gets enabled after the application code init 
+    // Configure the DMA stream for the ADC 
+    dma_stream_config(
+        DMA2_Stream0, 
+        (uint32_t)(&ADC1->DR), 
+        (uint32_t)adc_buff, 
+        (uint16_t)AB_ADC_BUFF_SIZE); 
+
+    // Enable the DMA stream 
+    dma_stream_enable(DMA2_Stream0); 
 
     //===================================================
 
@@ -354,21 +370,16 @@ void ab_init(void)
 
     //===================================================
 
-    //===================================================
-    // System setup 
+    //==================================================
+    // Update boat system data 
 
-    // Application code setup 
-    ab_app_init(
-        TIM9, 
-        DMA2_Stream0, 
-        ADC1, 
-        NRF24L01_DP_1); 
+    uint32_t clock_frequency = tim_get_pclk_freq(TIM9); 
+    boat.state_timer.clk_freq = clock_frequency; 
+    boat.led_timer.clk_freq = clock_frequency; 
+    boat.hb_timer.clk_freq = clock_frequency; 
+    boat.nav_timer.clk_freq = clock_frequency; 
 
-    // Enable the DMA stream - done after the application code initialization so the 
-    // DMA can finish being set up. 
-    dma_stream_enable(DMA2_Stream0); 
-
-    //===================================================
+    //==================================================
 }
 
 //=======================================================================================
