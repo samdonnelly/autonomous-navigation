@@ -35,7 +35,10 @@
 			"fatfs.h": "c",
 			"ff.h": "c",
 			"integer.h": "c",
-			"ffconf.h": "c"
+			"ffconf.h": "c",
+			"stm32f4xx_setup.h": "c",
+			"system_settings.h": "c",
+			"stm32f4xx_hal_tim.h": "c"
 		}
 	},
 	"launch": {
