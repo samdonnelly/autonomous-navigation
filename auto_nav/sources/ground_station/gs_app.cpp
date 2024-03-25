@@ -15,7 +15,113 @@
 //=======================================================================================
 // Includes 
 
-#include "gs_app.h"
+#include "gs_interface.h" 
+#include "stm32f4xx_it.h" 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Macros 
+
+// System info 
+#define GS_NUM_STATES 3              // Total number of system states 
+
+// Timing 
+#define GS_HB_PERIOD 500000          // Time between heartbeat checks (us) 
+#define GS_MC_PERIOD 50000           // Time between throttle command sends (us) 
+#define GS_CMD_PERIOD 250000         // Time between command sends checks (us) 
+
+// User commands 
+#define GS_MAX_USER_INPUT 30         // Max data size for user input (bytes) 
+#define GS_NUM_CMDS 7                // Total number of external commands available 
+
+// Data sizes 
+#define GS_ADC_BUFF_SIZE 2           // Number of ADCs used 
+#define GS_CMD_SEND_COUNT 10         // Number of times a command gets sent 
+
+// Thrusters 
+#define GS_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
+#define GS_MC_RIGHT_MOTOR 0x52       // "R" character that indicates right motor 
+#define GS_MC_FWD_THRUST 0x50        // "P" (plus) - indicates forward thrust 
+#define GS_MC_REV_THRUST 0x4D        // "M" (minus) - indicates reverse thrust 
+#define GS_MC_NEUTRAL 0x4E           // "N" (neutral) - indicates neutral gear or zero thrust 
+#define GS_NO_THRUST 0               // Force thruster output to zero 
+#define GS_ADC_REV_LIM 100           // ADC value reverse command limit 
+#define GS_ADC_FWD_LIM 155           // ADC value forward command limit 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Enums 
+
+// Ground station states 
+typedef enum {
+    GS_HB_STATE,             // State 0: heartbeat 
+    GS_MC_STATE,             // State 1: manual control 
+    GS_CMD_STATE,            // State 2: command send 
+} gs_states_t; 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Structures 
+
+// User commands 
+typedef struct gs_cmds_s 
+{
+    char gs_cmd[GS_MAX_USER_INPUT]; 
+    void (*gs_cmd_func_ptr)(uint8_t); 
+    uint8_t gs_cmd_mask; 
+}
+gs_cmds_t; 
+
+
+// Data record for the system 
+typedef struct gs_data_s 
+{
+    // System information 
+    gs_states_t state;                            // State machine state 
+    USART_TypeDef *uart;                          // UART port used for user interface 
+
+    // Timing information 
+    TIM_TypeDef *timer_nonblocking;                // Timer used for non-blocking delays 
+    tim_compare_t delay_timer;                     // Delay timing info 
+
+    // User commands and payload data 
+    uint8_t user_buff[GS_MAX_USER_INPUT];          // Circular buffer (CB) that stores user inputs 
+    uint8_t buff_index;                            // CB index used for parsing commands 
+    uint8_t cmd_buff[GS_MAX_USER_INPUT];           // Stores a user command parsed from the CB 
+    uint8_t cmd_id[GS_MAX_USER_INPUT];             // Stores the ID of the user command 
+    uint8_t cmd_value;                             // Stores the value of the user command 
+    uint8_t hb_msg[NRF24L01_MAX_PAYLOAD_LEN];      // Heartbeat message 
+    uint8_t write_buff[NRF24L01_MAX_PAYLOAD_LEN];  // Data sent to PRX from PTX device 
+
+    // System data 
+    uint16_t adc_buff[GS_ADC_BUFF_SIZE];           // ADC buffer - thruster potentiometers 
+    uint8_t cmd_send_index;                        // Command send counter 
+
+    // Control flags 
+    uint8_t led_state   : 1;                       // LED state (on/off) 
+    uint8_t state_entry : 1;                       // State entry flag 
+    uint8_t hb          : 1;                       // Heartbeat state flag 
+    uint8_t mc          : 1;                       // Manual control mode state flag 
+    uint8_t cmd         : 1;                       // Command send state flag 
+}
+gs_data_t; 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Function pointers 
+
+/**
+ * @brief State machine function pointer 
+ */
+typedef void (*gs_state_func_ptr)(void); 
 
 //=======================================================================================
 
@@ -26,7 +132,11 @@
 /**
  * @brief Heartbeat state 
  * 
- * @details 
+ * @details Periodically sends a ping to the PRX device on the vehicle so the vehicle 
+ *          can see if it still has radio connection to the ground station. 
+ *          
+ *          Default system state. Enters/exits from/to the manual control and command 
+ *          send states. 
  */
 void gs_hb_state(void); 
 
@@ -34,7 +144,10 @@ void gs_hb_state(void);
 /**
  * @brief Manual control state 
  * 
- * @details 
+ * @details Sends formatted ADC potentiometer readings periodically for throttle control 
+ *          when the vehicle is in manual control mode. 
+ *          
+ *          Enters/exits from/to the heartbeat state. 
  */
 void gs_mc_state(void); 
 
@@ -42,7 +155,11 @@ void gs_mc_state(void);
 /**
  * @brief Command send state 
  * 
- * @details 
+ * @details Periodically sends the chosen command to the PRX device. This is done a set 
+ *          number of times then defaults back to the heartbeat state. This is done to 
+ *          make sure the message is received by the vehicle. 
+ *          
+ *          Enters/exits from/to the heartbeat state. 
  */
 void gs_cmd_send_state(void); 
 
@@ -50,43 +167,50 @@ void gs_cmd_send_state(void);
 /**
  * @brief Heartbeat command 
  * 
- * @param hb_cmd_value 
+ * @details Called when the user enters a heatbeat command. Puts the ground station into 
+ *          the heatbeat state. 
+ * 
+ * @param hb_cmd_value : not used 
  */
-void gs_hb_cmd(
-    uint8_t hb_cmd_value); 
+void gs_hb_cmd(uint8_t hb_cmd_value); 
 
 
 /**
  * @brief Manual control mode command 
  * 
- * @param mc_cmd_value 
+ * @details Called when the user enters a manual control command. Puts the ground station 
+ *          into the manual control state. 
+ * 
+ * @param mc_cmd_value : not used 
  */
-void gs_mc_mode_cmd(
-    uint8_t mc_cmd_value); 
+void gs_mc_mode_cmd(uint8_t mc_cmd_value); 
 
 
 /**
  * @brief Command send 
  * 
- * @param cmd_value 
+ * @details Called when the user enters a command to be sent to the boat (see 
+ *          'cmd_table'). puts the ground station into the send command state. 
+ * 
+ * @param cmd_value : not used 
  */
-void gs_cmd_send(
-    uint8_t cmd_value); 
+void gs_cmd_send(uint8_t cmd_value); 
 
 
 /**
  * @brief RF power output command 
  * 
- * @param rf_pwr 
+ * @details Called when the user enters a power output command. Sets the power output 
+ *          in the ground station RF module. The status of the operation gets displayed 
+ *          in the serial terminal. 
+ * 
+ * @param rf_pwr : power output setting to set 
  */
-void gs_pwr_cmd(
-    uint8_t rf_pwr); 
+void gs_pwr_cmd(uint8_t rf_pwr); 
 
 
 /**
- * @brief User serial terminal prompt 
- * 
- * @details 
+ * @brief Provides a prompt for the user at the serial terminal 
  */
 void gs_user_prompt(void); 
 
@@ -94,25 +218,26 @@ void gs_user_prompt(void);
 /**
  * @brief Parse the user command into an ID and value 
  * 
- * @details 
+ * @details Parses the user input at the serial terminal into an ID and command which 
+ *          is then used to match against the list of available commands (see 
+ *          'cmd_table'). 
  * 
- * @param command_buffer 
- * @return uint8_t 
+ * @param command_buffer : buffer that contains the user input 
+ * @return uint8_t : status of the parsing - true if a valid command is entered 
  */
-uint8_t gs_parse_cmd(
-    uint8_t *command_buffer); 
+uint8_t gs_parse_cmd(uint8_t *command_buffer); 
 
 
 /**
  * @brief ADC to ESC command mapping 
  * 
- * @details 
+ * @details Maps the ADC input to a throttle command which then gets sent to the vehicle. 
+ *          This is used during manual control mode only. 
  * 
- * @param adc_val 
- * @return int16_t 
+ * @param adc_val : ADC value read 
+ * @return int16_t : throttle command calculated 
  */
-int16_t gs_adc_mapping(
-    uint16_t adc_val); 
+int16_t gs_adc_mapping(uint16_t adc_val); 
 
 //=======================================================================================
 
@@ -325,15 +450,7 @@ void gs_app(void)
 // Heartbeat state 
 void gs_hb_state(void)
 {
-    // Local variables 
     static uint8_t led_state = GPIO_LOW; 
-
-    //==================================================
-    // State entry 
-
-    // No tasks needed for state entry 
-
-    //==================================================
 
     // Send a heartbeat message to the boat periodically 
 
@@ -352,32 +469,17 @@ void gs_hb_state(void)
             gpio_write(GPIOA, GPIOX_PIN_5, (gpio_pin_state_t)led_state); 
         } 
     }
-
-    //==================================================
-    // State exit 
-
-    // State exit contolled by user inputs and command functions so there isn't one here. 
-
-    //==================================================
 }
 
 
 // Heartbeat state 
 void gs_mc_state(void)
 {
-    // Local variables 
     static uint8_t led_state = GPIO_LOW; 
     static uint8_t thruster = CLEAR; 
     char side = CLEAR; 
     char sign = GS_MC_FWD_THRUST; 
     int16_t throttle = CLEAR; 
-
-    //==================================================
-    // State entry 
-
-    // No tasks needed for state entry 
-
-    //==================================================
 
     // Send formatted ADC potentiometer readings periodically for throttle control 
 
@@ -428,27 +530,13 @@ void gs_mc_state(void)
         // Toggle the thruster flag 
         thruster = SET_BIT - thruster; 
     }
-
-    //==================================================
-    // State exit 
-
-    // State exit contolled by user inputs and command functions so there isn't one here. 
-
-    //==================================================
 }
 
 
 // Command send state 
 void gs_cmd_send_state(void)
 {
-    //==================================================
-    // State entry 
-
-    // No tasks needed for state entry 
-
-    //==================================================
-
-    // Send the idle state command X number of times 
+    // Send a command X number of times 
 
     // Periodically send the command to the PRX device 
     if (tim_compare(gs_data.timer_nonblocking, 
@@ -468,9 +556,7 @@ void gs_cmd_send_state(void)
         gs_data.cmd_send_index--; 
     }
 
-    //==================================================
     // State exit 
-
     if (!gs_data.cmd_send_index)
     {
         gs_data.state_entry = SET_BIT; 
@@ -483,8 +569,6 @@ void gs_cmd_send_state(void)
         uart_sendstring(gs_data.uart, "\r\n\nHB state\r\n"); 
         gs_user_prompt(); 
     }
-
-    //==================================================
 }
 
 //=======================================================================================
@@ -494,8 +578,7 @@ void gs_cmd_send_state(void)
 // Command functions 
 
 // Heartbeat command 
-void gs_hb_cmd(
-    uint8_t hb_cmd_value)
+void gs_hb_cmd(uint8_t hb_cmd_value)
 {
     gs_data.hb = SET_BIT; 
     gs_data.mc = CLEAR_BIT; 
@@ -505,8 +588,7 @@ void gs_hb_cmd(
 
 
 // Manual control mode command 
-void gs_mc_mode_cmd(
-    uint8_t mc_cmd_value)
+void gs_mc_mode_cmd(uint8_t mc_cmd_value)
 {
     // gs_hb_state_exit(); 
     gs_data.mc = SET_BIT; 
@@ -517,8 +599,7 @@ void gs_mc_mode_cmd(
 
 
 // Command send 
-void gs_cmd_send(
-    uint8_t cmd_value)
+void gs_cmd_send(uint8_t cmd_value)
 {
     // gs_hb_state_exit(); 
     gs_data.cmd = SET_BIT; 
@@ -529,8 +610,7 @@ void gs_cmd_send(
 
 
 // RF power output command 
-void gs_pwr_cmd(
-    uint8_t rf_pwr)
+void gs_pwr_cmd(uint8_t rf_pwr)
 {
     // Check that input is within bounds 
     if (rf_pwr <= (uint8_t)NRF24L01_RF_PWR_0DBM)
@@ -563,8 +643,7 @@ void gs_user_prompt(void)
 // Test functions 
 
 // Parse the user command into an ID and value 
-uint8_t gs_parse_cmd(
-    uint8_t *command_buffer)
+uint8_t gs_parse_cmd(uint8_t *command_buffer)
 {
     // Local variables 
     uint8_t id_flag = SET_BIT; 
@@ -639,8 +718,7 @@ uint8_t gs_parse_cmd(
 
 
 // ADC to ESC command mapping 
-int16_t gs_adc_mapping(
-    uint16_t adc_val)
+int16_t gs_adc_mapping(uint16_t adc_val)
 {
     // Local variables 
     int16_t throttle_cmd = CLEAR;   // Assume 0% throttle and change if different 

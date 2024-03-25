@@ -1,37 +1,30 @@
 /**
-  ******************************************************************************
-  * @file    system_stm32f4xx.c
-  * @author  MCD Application Team
-  * @brief   CMSIS Cortex-M4 Device Peripheral Access Layer System Source File.
-  *
-  *   This file provides two functions and one global variable to be called from 
-  *   user application:
-  *      - SystemInit(): This function is called at startup just after reset and 
-  *                      before branch to main program. This call is made inside
-  *                      the "startup_stm32f4xx.s" file.
-  *
-  *      - SystemCoreClock variable: Contains the core clock (HCLK), it can be used
-  *                                  by the user application to setup the SysTick 
-  *                                  timer or configure other parameters.
-  *                                     
-  *      - SystemCoreClockUpdate(): Updates the variable SystemCoreClock and must
-  *                                 be called whenever the core clock is changed
-  *                                 during program execution.
-  *
-  *
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2017 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ * @file system_stm32f4xx.c
+ * 
+ * @author Sam Donnelly (samueldonnelly11@gmail.com)
+ * 
+ * @brief CMSIS Cortex-M4 Device Peripheral Access Layer System Source File 
+ * 
+ * @details This file provides two functions and one global variable to be called from 
+ *          user application:
+ *             - SystemInit(): This function is called at startup just after reset and 
+ *                             before branch to main program. This call is made inside
+ *                             the "startup_stm32f4xx.s" file.
+ *          
+ *             - SystemCoreClock variable: Contains the core clock (HCLK), it can be used
+ *                                         by the user application to setup the SysTick 
+ *                                         timer or configure other parameters.
+ *          
+ *             - SystemCoreClockUpdate(): Updates the variable SystemCoreClock and must
+ *                                        be called whenever the core clock is changed
+ *                                        during program execution.
+ * 
+ * @version 0.1
+ * @date 2024-03-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 /** @addtogroup CMSIS
   * @{
@@ -45,8 +38,12 @@
   * @{
   */
 
+//=======================================================================================
+// Includes 
 
 #include "stm32f4xx.h"
+
+//=======================================================================================
 
 #if !defined  (HSE_VALUE) 
   #define HSE_VALUE    ((uint32_t)25000000) /*!< Default value of the External oscillator in Hz */

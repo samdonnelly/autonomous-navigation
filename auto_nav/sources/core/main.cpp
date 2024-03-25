@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file main.cpp
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
@@ -15,22 +15,30 @@
 //=======================================================================================
 // Includes 
 
+// Configuration 
+#include "system_settings.h" 
+
 // Library 
 #include "stm32f4xx_hal.h" 
 #include "fatfs.h"
 
 // Application 
+#include "gs_interface.h" 
 #include "ab_interface.h" 
-#include "gs_init.h"
-#include "gs_app.h"
+
+// FreeRTOS 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "cmsis_os2.h"
+#include "queue.h" 
+#include "semphr.h" 
+#include "timers.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
 // Macros 
-
-#define AB_CODE 1   // Toggle between AB and GS code. AB=1, GS=0. 
 
 // Ports and pins 
 #define B1_Pin GPIO_PIN_13
@@ -81,29 +89,36 @@ int main(void)
 
     // Reset of all peripherals, initialize the Flash interface, then initialize and set 
     // the time base source. 
-    HAL_Init();
+    HAL_Init(); 
 
     // Configure the system clock 
-    SystemClock_Config();
+    SystemClock_Config(); 
 
     // Run application setup code
-#if AB_CODE 
-    boat.BoatInit(); 
-#else 
+#if GROUND_STATION 
     gs_init(); 
+#elif BOAT 
+    // Init 
+    // Initialize FreeRTOS scheduler - add this to the init function 
+    // osKernelInitialize(); 
+
+    boat.BoatInit(); 
 #endif 
 
     //  Initialize all configured peripherals 
-    MX_GPIO_Init();
-    MX_FATFS_Init();
+    MX_GPIO_Init(); 
+    MX_FATFS_Init(); 
 
     // Main loop 
     while (1)
     {
-#if AB_CODE 
-        boat.BoatApp(); 
-#else 
+#if GROUND_STATION 
         gs_app(); 
+#elif BOAT 
+        // Start scheduler. 
+        // osKernelStart(); 
+
+        boat.BoatApp(); 
 #endif 
     }
 }
@@ -117,8 +132,6 @@ int main(void)
 // System Clock Configuration 
 void SystemClock_Config(void)
 {
-    // RCC_OscInitTypeDef RCC_OscInitStruct = {0}; 
-    // RCC_ClkInitTypeDef RCC_ClkInitStruct = {0}; 
     RCC_OscInitTypeDef RCC_OscInitStruct; 
     RCC_ClkInitTypeDef RCC_ClkInitStruct; 
 

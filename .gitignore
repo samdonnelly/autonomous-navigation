@@ -45,3 +45,16 @@ simulation/scripts/user_interface.py
 simulation/simulation.py 
 
 #========================================================================================
+
+#========================================================================================
+# Unit tests 
+
+auto_nav/unit_tests/sources
+
+auto_nav/unit_tests/boat/your_tests
+auto_nav/unit_tests/boat/test-lib
+auto_nav/unit_tests/boat/test-obj
+auto_nav/unit_tests/boat/*.exe
+auto_nav/unit_tests/boat/*.exe.stackdump
+
+#========================================================================================

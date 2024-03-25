@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Interrupt Service Routines (ISRs) 
+ * @brief Interrupt Service Routines (ISRs) interface 
  * 
  * @version 0.1
  * @date 2024-03-04
@@ -16,13 +16,14 @@
 #define _STM32F4XX_IT_H_
 
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
 
 //=======================================================================================
 // Includes 
 
-#include "includes_drivers.h"
+#include "system_settings.h" 
+#include "includes_drivers.h" 
 
 //=======================================================================================
 
@@ -143,6 +144,7 @@ void UsageFault_Handler(void);
  */
 void DebugMon_Handler(void); 
 
+#if !FREERTOS_ENABLE 
 
 /**
  * @brief This function handles System service call via SWI instruction 
@@ -160,6 +162,8 @@ void PendSV_Handler(void);
  * @brief This function handles System tick timer 
  */
 void SysTick_Handler(void); 
+
+#endif   // !FREERTOS_ENABLE 
 
 //=======================================================================================
 
