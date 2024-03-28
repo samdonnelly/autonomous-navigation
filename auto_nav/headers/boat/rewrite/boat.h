@@ -1,9 +1,9 @@
 /**
- * @file boat_app.cpp
+ * @file boat.h
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Autonomous RC boat application implementation 
+ * @brief Boat interface 
  * 
  * @version 0.1
  * @date 2024-01-31
@@ -12,15 +12,12 @@
  * 
  */
 
-//=======================================================================================
-// Includes 
+#ifndef _BOAT_H_
+#define _BOAT_H_ 
 
-#include "boat_app.h" 
-
-#include "stm32f411xe.h"
-
-//=======================================================================================
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //=======================================================================================
 // Notes 
@@ -94,128 +91,74 @@
 
 
 //=======================================================================================
-// Prototypes 
+// Includes 
 
-/**
- * @brief 
- */
-void boat_state0(void); 
+#include "includes_drivers.h" 
+#include "includes_cpp_drivers.h" 
+#include "stm32f4xx_it.h" 
+
+// FreeRTOS 
+#include "FreeRTOS.h" 
+// #include "task.h" 
+#include "cmsis_os2.h" 
+#include "queue.h" 
+// #include "semphr.h" 
+// #include "timers.h" 
+
+//=======================================================================================
 
 
-/**
- * @brief 
- */
-void boat_state1(void); 
-
+//=======================================================================================
+// Macros 
 //=======================================================================================
 
 
 //=======================================================================================
-// Classes 
+// Boat object 
 
-class boat_state_data 
+class Boat 
 {
-private:   // Private data 
-    
-    // State function pointer 
-    typedef void (*state_ptr)(void); 
+private:   // Private members 
 
-    // Data 
-    uint8_t state;   // Application state 
+    // States 
 
-public:   // Public data 
+    // Events 
 
-    // Store the states + indexes 
-    enum 
-    {
-        STATE0,      // State 0 
-        STATE1,      // State 1 
-        NUM_STATES   // Keeps track of the number of states. Not a state itself. 
-    }; 
+    // Flags 
+
+public:   // Public members 
+
+    // 
+
+private:   // Private member functions 
+
+    // Dispatch function(s) 
+    static void BoatMainDispatch(Event event); 
+
+    // State functions 
 
     // State table 
-    state_ptr state_table[NUM_STATES] = 
-    {
-        &boat_state0, 
-        &boat_state1 
-    }; 
 
-public:   // Setup and teardown 
+    // Helper functions 
 
-    // Constructor 
-    boat_state_data() {} 
+public:   // Public member functions 
+
+    // Constructor(s) 
+    Boat() {} 
 
     // Destructor 
-    ~boat_state_data() {} 
+    ~Boat() {} 
 
-public: 
-    
-    // Main state machine 
-    void state_machine(void); 
+    // Setup 
+    void BoatSetup(void); 
 }; 
 
-
-static boat_state_data boat; 
-
-//=======================================================================================
-
+extern Boat boat; 
 
 //=======================================================================================
-// Main application 
 
-void boat_app(void)
-{
-    boat.state_machine(); 
+#ifdef __cplusplus
 }
+#endif
 
-//=======================================================================================
-
-
-//=======================================================================================
-// State machine 
-
-// Top level state machine 
-void boat_state_data::state_machine(void) 
-{
-    uint8_t next_state = state; 
-
-    switch(next_state)
-    {
-        case STATE0: 
-            next_state = STATE1; 
-            break; 
-
-        case STATE1: 
-            next_state = STATE0; 
-            break; 
-        
-        default: 
-            next_state = STATE0; 
-            break; 
-    }
-
-    // Execute the state and update the state record 
-    state_table[next_state](); 
-    state = next_state; 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// States 
-
-// State 0 
-void boat_state0(void)
-{
-    // 
-}
-
-
-// State 1 
-void boat_state1(void)
-{
-    // 
-}
-
-//=======================================================================================
+#endif   // _BOAT_H_ 

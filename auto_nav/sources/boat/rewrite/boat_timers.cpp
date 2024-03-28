@@ -1,12 +1,12 @@
 /**
- * @file boat_init.cpp
+ * @file boat_timers.cpp
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Autonomous RC boat initialization implementation 
+ * @brief Boat software timers thread 
  * 
  * @version 0.1
- * @date 2024-01-31
+ * @date 2024-03-27
  * 
  * @copyright Copyright (c) 2024
  * 
@@ -15,6 +15,11 @@
 //=======================================================================================
 // Includes 
 
-#include "boat_init.h" 
+#include "boat.h" 
 
+//=======================================================================================
+
+
+//=======================================================================================
+// Callbacks 
 //=======================================================================================
