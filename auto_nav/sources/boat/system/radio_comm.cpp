@@ -347,39 +347,39 @@ uint8_t boat_radio_comms::connect_status(void)
 // Idle command 
 void ab_idle_cmd(uint8_t idle_cmd_value)
 {
-    boat.idle_flag = SET_BIT; 
-    boat.state_entry_flag = SET_BIT; 
-    boat.manual_flag = CLEAR_BIT; 
-    boat.autonomous_flag = CLEAR_BIT; 
+    boat_test.idle_flag = SET_BIT; 
+    boat_test.state_entry_flag = SET_BIT; 
+    boat_test.manual_flag = CLEAR_BIT; 
+    boat_test.autonomous_flag = CLEAR_BIT; 
 
     // Stop thrusters and make sure the LEDs are off. 
-    boat.auto_mode_exit(); 
-    boat.manual_mode_exit(); 
-    boat.strobe_off(); 
+    boat_test.auto_mode_exit(); 
+    boat_test.manual_mode_exit(); 
+    boat_test.strobe_off(); 
 }
 
 
 // Manual control mode command 
 void ab_manual_cmd(uint8_t manual_cmd_value)
 {
-    boat.manual_flag = SET_BIT; 
-    boat.state_entry_flag = SET_BIT; 
-    boat.idle_flag = CLEAR_BIT; 
+    boat_test.manual_flag = SET_BIT; 
+    boat_test.state_entry_flag = SET_BIT; 
+    boat_test.idle_flag = CLEAR_BIT; 
 
     // Make sure the LEDs are off and reset the strobe timer 
-    boat.strobe_off(); 
+    boat_test.strobe_off(); 
 }
 
 
 // Autonomous mode command 
 void ab_auto_cmd(uint8_t auto_cmd_value)
 {
-    boat.autonomous_flag = SET_BIT; 
-    boat.state_entry_flag = SET_BIT; 
-    boat.idle_flag = CLEAR_BIT; 
+    boat_test.autonomous_flag = SET_BIT; 
+    boat_test.state_entry_flag = SET_BIT; 
+    boat_test.idle_flag = CLEAR_BIT; 
 
     // Make sure the LEDs are off and reset the strobe timer 
-    boat.strobe_off(); 
+    boat_test.strobe_off(); 
 }
 
 
@@ -409,9 +409,9 @@ void ab_index_cmd(uint8_t index_cmd_value)
     // updating the index (filters noise). 
     if ((index_cmd_value < NUM_GPS_WAYPOINTS) && (index_check >= AB_GPS_INDEX_CNT))
     {
-        boat.waypoint_index = index_cmd_value; 
-        boat.target.lat = gps_waypoints[boat.waypoint_index].lat; 
-        boat.target.lon = gps_waypoints[boat.waypoint_index].lon; 
+        boat_test.waypoint_index = index_cmd_value; 
+        boat_test.target.lat = gps_waypoints[boat_test.waypoint_index].lat; 
+        boat_test.target.lon = gps_waypoints[boat_test.waypoint_index].lon; 
         index_check = CLEAR; 
     }
 }
@@ -420,7 +420,7 @@ void ab_index_cmd(uint8_t index_cmd_value)
 // Manual throttle command 
 void ab_throttle_cmd(uint8_t throttle_cmd_value)
 {
-    boat.mc_data = SET_BIT; 
+    boat_test.mc_data = SET_BIT; 
 }
 
 

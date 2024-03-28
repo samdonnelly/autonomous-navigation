@@ -1,19 +1,19 @@
 /**
- * @file nrf24l01_config.h
+ * @file mpu6050_config.h
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief nRF24L01 module configuration interface 
+ * @brief MPU-6050 module configuration interface 
  * 
  * @version 0.1
- * @date 2024-03-01
+ * @date 2024-03-28
  * 
  * @copyright Copyright (c) 2024
  * 
  */
 
-#ifndef _NRF24L01_CONFIG_H_ 
-#define _NRF24L01_CONFIG_H_ 
+#ifndef _MPU6050_CONFIG_H_ 
+#define _MPU6050_CONFIG_H_ 
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,19 +22,19 @@ extern "C" {
 //=======================================================================================
 // Includes 
 
-#include "nrf24l01_driver.h" 
+#include "includes_drivers.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Data 
+// Device parameters 
 
-// RF pipe address sent by the PTX and address accepted by the PRX 
-extern const uint8_t nrf24l01_pipe_addr[NRF24l01_ADDR_WIDTH]; 
+// Axis standby status mask 
+extern const uint8_t mpu6050_standby_mask; 
 
-// Frequency channel for the RF module 
-extern const uint8_t nrf24l01_rf_channel_freq; 
+// Sample Rate Divider 
+extern const MPU6050_SMPLRT_DIV mpu6050_sample_rate_divider; 
 
 //=======================================================================================
 
@@ -42,4 +42,4 @@ extern const uint8_t nrf24l01_rf_channel_freq;
 }
 #endif
 
-#endif   // _NRF24L01_CONFIG_H_ 
+#endif   // _MPU6050_CONFIG_H_ 

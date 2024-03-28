@@ -40,7 +40,8 @@
 			"system_settings.h": "c",
 			"stm32f4xx_hal_tim.h": "c",
 			"hc05_controller.h": "c",
-			"mpu6050_driver.h": "c"
+			"mpu6050_driver.h": "c",
+			"typeinfo": "cpp"
 		}
 	},
 	"launch": {

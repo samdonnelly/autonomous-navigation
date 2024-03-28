@@ -163,7 +163,7 @@ private:   // Private member functions
 
 
 // Data record instance 
-extern Boat boat; 
+extern Boat boat_test; 
 
 //=======================================================================================
 

@@ -24,7 +24,8 @@
 
 // Application 
 #include "gs_interface.h" 
-#include "ab_interface.h" 
+// #include "ab_interface.h" 
+#include "boat.h" 
 
 // FreeRTOS 
 #include "FreeRTOS.h"
@@ -94,18 +95,14 @@ int main(void)
     // Configure the system clock 
     SystemClock_Config(); 
 
-    // Run application setup code
+    // Run application setup code 
 #if GROUND_STATION 
     gs_init(); 
 #elif BOAT 
-    // Init 
-    // Initialize FreeRTOS scheduler - add this to the init function 
-    // osKernelInitialize(); 
-
-    boat.BoatInit(); 
+    boat.BoatSetup(); 
 #endif 
 
-    //  Initialize all configured peripherals 
+    // Initialize all configured peripherals 
     MX_GPIO_Init(); 
     MX_FATFS_Init(); 
 
@@ -115,10 +112,8 @@ int main(void)
 #if GROUND_STATION 
         gs_app(); 
 #elif BOAT 
-        // Start scheduler. 
-        // osKernelStart(); 
-
-        boat.BoatApp(); 
+        // Start scheduler 
+        osKernelStart(); 
 #endif 
     }
 }

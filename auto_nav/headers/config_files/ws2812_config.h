@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief WS2812 LEDs (Neopixels) configuration file interface 
+ * @brief WS2812 LEDs (Neopixels) configuration interface 
  * 
  * @version 0.1
  * @date 2024-01-31
@@ -14,6 +14,10 @@
 
 #ifndef _WS2812_CONFIG_H_ 
 #define _WS2812_CONFIG_H_ 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //=======================================================================================
 // Includes 
@@ -44,5 +48,9 @@ extern uint32_t ws2812_led_not_ready;       // Not ready indicator
 extern uint32_t ws2812_led_ready;           // Ready indicator 
 
 //=======================================================================================
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif   // _WS2812_CONFIG_H_ 

@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.12)
 include(./arm-none-eabi-gcc.cmake)
 
 # Set project name and source code folder location
-project(autonomous_boat)
+project(autonomous_navigation)
 
 option(DUMP_ASM "Create full assembly of final executable" OFF)
 
@@ -51,6 +51,7 @@ set(STM32CUBEMX_INCLUDE_DIRECTORIES
 set(PROJECT_INCLUDE_DIRECTORIES 
     ${CMAKE_CURRENT_SOURCE_DIR}/headers
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/system
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/modes
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files
@@ -96,6 +97,8 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/system/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/system/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modes/*.c

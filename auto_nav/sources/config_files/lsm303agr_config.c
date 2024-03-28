@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief LSM303AGR 6-axis magnetometer and accelerometer configuration file implementation 
+ * @brief LSM303AGR module configuration 
  * 
  * @version 0.1
  * @date 2024-01-31
@@ -35,5 +35,8 @@ const int16_t lsm303agr_config_dir_offsets[LSM303AGR_M_NUM_DIR] =
     -450,     // W  (270deg) 
     -365      // NW (315deg) 
 }; 
+
+// Heading calculation low pass filter gain 
+const double lsm303agr_lpf_gain = 0.2; 
 
 //=======================================================================================

@@ -375,36 +375,36 @@ void Boat::BoatSystemCheck(void)
 void ab_init_state(void)
 {
     // State entry 
-    if (boat.state_entry_flag)
+    if (boat_test.state_entry_flag)
     {
-        boat.state_entry_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = CLEAR_BIT; 
 
         // Set the thruster throttle to zero to initialize the ESCs and motors. 
         esc_readytosky_send(DEVICE_ONE, AB_NO_THRUST); 
         esc_readytosky_send(DEVICE_TWO, AB_NO_THRUST); 
 
         // Grab the current location (if available) and set the default target waypoint. 
-        boat.current.lat = m8q_get_position_lat(); 
-        boat.current.lon = m8q_get_position_lon(); 
-        boat.target.lat = gps_waypoints[0].lat; 
-        boat.target.lon = gps_waypoints[0].lon; 
+        boat_test.current.lat = m8q_get_position_lat(); 
+        boat_test.current.lon = m8q_get_position_lon(); 
+        boat_test.target.lat = gps_waypoints[0].lat; 
+        boat_test.target.lon = gps_waypoints[0].lon; 
 
         // Set up the file system 
     }
 
     // State exit 
-    if (tim_compare(boat.timer_nonblocking, 
-                    boat.state_timer.clk_freq, 
+    if (tim_compare(boat_test.timer_nonblocking, 
+                    boat_test.state_timer.clk_freq, 
                     AB_INIT_DELAY, 
-                    &boat.state_timer.time_cnt_total, 
-                    &boat.state_timer.time_cnt, 
-                    &boat.state_timer.time_start))
+                    &boat_test.state_timer.time_cnt_total, 
+                    &boat_test.state_timer.time_cnt, 
+                    &boat_test.state_timer.time_start))
     {
         // Short delay to let the system set up before moving into the next state 
 
-        boat.state_timer.time_start = SET_BIT; 
-        boat.state_entry_flag = SET_BIT; 
-        boat.init_flag = CLEAR_BIT; 
+        boat_test.state_timer.time_start = SET_BIT; 
+        boat_test.state_entry_flag = SET_BIT; 
+        boat_test.init_flag = CLEAR_BIT; 
     }
 }
 
@@ -413,26 +413,26 @@ void ab_init_state(void)
 void ab_not_ready_state(void)
 {
     // State entry 
-    if (boat.state_entry_flag)
+    if (boat_test.state_entry_flag)
     {
-        boat.state_entry_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        boat.strobe_colour_set(ws2812_led_not_ready); 
+        boat_test.strobe_colour_set(ws2812_led_not_ready); 
     }
 
     // Wait for the system requirements to be met - ready flag will be set 
 
     // State exit 
-    if (boat.fault_flag | boat.low_pwr_flag | boat.ready_flag)
+    if (boat_test.fault_flag | boat_test.low_pwr_flag | boat_test.ready_flag)
     {
-        boat.state_entry_flag = SET_BIT; 
-        boat.idle_flag = SET_BIT; 
-        boat.manual_flag = CLEAR_BIT; 
-        boat.autonomous_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = SET_BIT; 
+        boat_test.idle_flag = SET_BIT; 
+        boat_test.manual_flag = CLEAR_BIT; 
+        boat_test.autonomous_flag = CLEAR_BIT; 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        boat.strobe_off(); 
+        boat_test.strobe_off(); 
     }
 }
 
@@ -441,27 +441,27 @@ void ab_not_ready_state(void)
 void ab_ready_state(void)
 {
     // State entry 
-    if (boat.state_entry_flag)
+    if (boat_test.state_entry_flag)
     {
-        boat.state_entry_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        boat.strobe_colour_set(ws2812_led_ready); 
+        boat_test.strobe_colour_set(ws2812_led_ready); 
     }
 
     // Wait for an active state to be chosen 
 
     // State exit 
-    if (boat.fault_flag | boat.low_pwr_flag | !boat.ready_flag)
+    if (boat_test.fault_flag | boat_test.low_pwr_flag | !boat_test.ready_flag)
     {
         // Manual and autonomous mode exit conditions come from external commands 
         // received so they're not included here. 
 
-        boat.state_entry_flag = SET_BIT; 
-        boat.idle_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = SET_BIT; 
+        boat_test.idle_flag = CLEAR_BIT; 
 
         // Make sure the LEDs are off and reset the strobe timer 
-        boat.strobe_off(); 
+        boat_test.strobe_off(); 
     }
 }
 
@@ -470,29 +470,29 @@ void ab_ready_state(void)
 void ab_manual_state(void)
 {
     // State entry 
-    if (boat.state_entry_flag)
+    if (boat_test.state_entry_flag)
     {
-        boat.state_entry_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        boat.strobe_colour_set(ws2812_led_manual_strobe); 
+        boat_test.strobe_colour_set(ws2812_led_manual_strobe); 
     }
 
     // External thruster control 
-    boat.manual_mode(boat.mc_data, boat.cmd_id, boat.cmd_value); 
+    boat_test.manual_mode(boat_test.mc_data, boat_test.cmd_id, boat_test.cmd_value); 
 
     // State exit 
-    if (boat.fault_flag | boat.low_pwr_flag | !boat.ready_flag)
+    if (boat_test.fault_flag | boat_test.low_pwr_flag | !boat_test.ready_flag)
     {
         // The idle (ready) state exit condition comes from an external command 
         // received so it's not included here. 
 
-        boat.state_entry_flag = SET_BIT; 
-        boat.manual_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = SET_BIT; 
+        boat_test.manual_flag = CLEAR_BIT; 
 
         // Stop manual mode and make sure the LEDs are off. 
-        boat.manual_mode_exit(); 
-        boat.strobe_off(); 
+        boat_test.manual_mode_exit(); 
+        boat_test.strobe_off(); 
     }
 }
 
@@ -501,29 +501,29 @@ void ab_manual_state(void)
 void ab_auto_state(void)
 {
     // State entry 
-    if (boat.state_entry_flag)
+    if (boat_test.state_entry_flag)
     {
-        boat.state_entry_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = CLEAR_BIT; 
 
         // Update the LED strobe colour 
-        boat.strobe_colour_set(ws2812_led_auto_strobe); 
+        boat_test.strobe_colour_set(ws2812_led_auto_strobe); 
     }
 
     // Navigate the predefined waypoint mission autonomously 
-    boat.auto_mode(); 
+    boat_test.auto_mode(); 
 
     // State exit 
-    if (boat.fault_flag | boat.low_pwr_flag | !boat.ready_flag)
+    if (boat_test.fault_flag | boat_test.low_pwr_flag | !boat_test.ready_flag)
     {
         // The idle (ready) state exit condition comes from an external command 
         // received so it's not included here. 
 
-        boat.state_entry_flag = SET_BIT; 
-        boat.autonomous_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = SET_BIT; 
+        boat_test.autonomous_flag = CLEAR_BIT; 
 
         // Stop auto mode and makes ure LEDs are off. 
-        boat.auto_mode_exit(); 
-        boat.strobe_off(); 
+        boat_test.auto_mode_exit(); 
+        boat_test.strobe_off(); 
     }
 }
 
@@ -532,9 +532,9 @@ void ab_auto_state(void)
 void ab_low_pwr_state(void)
 {
     // State entry 
-    if (boat.state_entry_flag)
+    if (boat_test.state_entry_flag)
     {
-        boat.state_entry_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = CLEAR_BIT; 
 
         // Put devices in low power mode 
         m8q_set_low_pwr_flag(); 
@@ -545,9 +545,9 @@ void ab_low_pwr_state(void)
     // battery voltage is low the system should not be doing anything. 
 
     // State exit 
-    if (boat.reset_flag)
+    if (boat_test.reset_flag)
     {
-        boat.state_entry_flag = SET_BIT; 
+        boat_test.state_entry_flag = SET_BIT; 
 
         // Take devices out of low power mode 
         m8q_clear_low_pwr_flag(); 
@@ -559,19 +559,19 @@ void ab_low_pwr_state(void)
 void ab_fault_state(void)
 {
     // State entry 
-    if (boat.state_entry_flag)
+    if (boat_test.state_entry_flag)
     {
-        boat.state_entry_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = CLEAR_BIT; 
     }
 
     // Go directly to the reset state 
-    boat.reset_flag = SET_BIT; 
+    boat_test.reset_flag = SET_BIT; 
 
     // State exit 
-    if (boat.reset_flag)
+    if (boat_test.reset_flag)
     {
-        boat.state_entry_flag = SET_BIT; 
-        boat.fault_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = SET_BIT; 
+        boat_test.fault_flag = CLEAR_BIT; 
     }
 }
 
@@ -580,23 +580,23 @@ void ab_fault_state(void)
 void ab_reset_state(void)
 {
     // State entry 
-    if (boat.state_entry_flag)
+    if (boat_test.state_entry_flag)
     {
-        boat.state_entry_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = CLEAR_BIT; 
     }
 
     // Go directly to the init state function. Clear and fault and status codes before 
     // doing so. 
-    boat.init_flag = SET_BIT; 
-    boat.fault_code = CLEAR; 
+    boat_test.init_flag = SET_BIT; 
+    boat_test.fault_code = CLEAR; 
     m8q_set_reset_flag(); 
     nrf24l01_clear_status(); 
 
     // State exit 
-    if (boat.init_flag)
+    if (boat_test.init_flag)
     {
-        boat.state_entry_flag = SET_BIT; 
-        boat.reset_flag = CLEAR_BIT; 
+        boat_test.state_entry_flag = SET_BIT; 
+        boat_test.reset_flag = CLEAR_BIT; 
     }
 }
 

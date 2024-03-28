@@ -49,7 +49,7 @@
 // Variables 
 
 // Boat instance 
-Boat boat(TIM9, ADC1); 
+Boat boat_test(TIM9, ADC1); 
 
 //=======================================================================================
 
@@ -374,10 +374,10 @@ void Boat::BoatInit(void)
     // Update boat system data 
 
     uint32_t clock_frequency = tim_get_pclk_freq(TIM9); 
-    boat.state_timer.clk_freq = clock_frequency; 
-    boat.led_timer.clk_freq = clock_frequency; 
-    boat.hb_timer.clk_freq = clock_frequency; 
-    boat.nav_timer.clk_freq = clock_frequency; 
+    boat_test.state_timer.clk_freq = clock_frequency; 
+    boat_test.led_timer.clk_freq = clock_frequency; 
+    boat_test.hb_timer.clk_freq = clock_frequency; 
+    boat_test.nav_timer.clk_freq = clock_frequency; 
 
     //==================================================
 }

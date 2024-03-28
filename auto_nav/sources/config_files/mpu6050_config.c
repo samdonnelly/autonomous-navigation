@@ -1,12 +1,12 @@
 /**
- * @file nrf24l01_config.c
+ * @file mpu6050_config.c
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief nRF24L01 module configuration 
+ * @brief MPU-6050 module configuration 
  * 
  * @version 0.1
- * @date 2024-03-01
+ * @date 2024-03-28
  * 
  * @copyright Copyright (c) 2024
  * 
@@ -15,21 +15,15 @@
 //=======================================================================================
 // Includes 
 
-#include "nrf24l01_config.h" 
+#include "mpu6050_config.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Data 
+// Device parameters 
 
-// RF pipe address sent by the PTX and address accepted by the PRX 
-const uint8_t nrf24l01_pipe_addr[NRF24l01_ADDR_WIDTH] = 
-{
-    0xB3, 0xB4, 0xB5, 0xB6, 0x05
-}; 
-
-// Frequency channel for the RF module 
-const uint8_t nrf24l01_rf_channel_freq = 10; 
+const uint8_t mpu6050_standby_mask = 0x00; 
+const MPU6050_SMPLRT_DIV mpu6050_sample_rate_divider = 0; 
 
 //=======================================================================================

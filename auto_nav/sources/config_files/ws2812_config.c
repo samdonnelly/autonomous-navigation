@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief WS2812 LEDs (Neopixels) configuration file 
+ * @brief WS2812 LEDs (Neopixels) configuration 
  * 
  * @version 0.1
  * @date 2024-01-31

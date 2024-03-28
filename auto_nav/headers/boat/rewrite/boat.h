@@ -110,6 +110,10 @@ extern "C" {
 
 //=======================================================================================
 // Macros 
+
+// Data 
+#define BOAT_ADC_BUFF_SIZE 3   // Number of ADCs used 
+
 //=======================================================================================
 
 
@@ -120,11 +124,17 @@ class Boat
 {
 private:   // Private members 
 
+    // Threads info 
+    ThreadEventData boat_main; 
+
     // States 
 
     // Events 
 
     // Flags 
+
+    // System data 
+    uint16_t adc_buff[BOAT_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
 
 public:   // Public members 
 
@@ -144,7 +154,7 @@ private:   // Private member functions
 public:   // Public member functions 
 
     // Constructor(s) 
-    Boat() {} 
+    Boat(); 
 
     // Destructor 
     ~Boat() {} 

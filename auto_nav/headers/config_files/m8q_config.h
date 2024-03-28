@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief SAM-M8Q GPS configuration file 
+ * @brief SAM-M8Q module configuration interface 
  * 
  * @version 0.1
  * @date 2022-10-02
@@ -15,10 +15,9 @@
 #ifndef _M8Q_CONFIG_H_ 
 #define _M8Q_CONFIG_H_ 
 
-//=======================================================================================
-// Includes 
-//=======================================================================================
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //=======================================================================================
 // Macros 
@@ -38,5 +37,9 @@
 extern const char m8q_config_msgs[M8Q_CONFIG_MSG_NUM][M8Q_CONFIG_MSG_MAX_LEN]; 
 
 //=======================================================================================
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // _M8Q_CONFIG_H_
