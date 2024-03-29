@@ -26,16 +26,21 @@ endif
 # production code C and CPP files.
 #
 
-# ------------- BOAT ---------------
-
 SRC_FILES += 
-SRC_DIRS += ./../../sources/boat           # Production code 
-SRC_DIRS += ./../../sources/boat/modes     # Production code 
-SRC_DIRS += ./../../sources/boat/system    # Production code 
-SRC_DIRS += ./../../sources/config_files   # Production code 
-SRC_DIRS += tests                          # Test doubles 
+SRC_DIRS += 
 
-# ----------------------------------
+SRC_FILES += ./../../sources/boat/ab_app.cpp   # Production code 
+SRC_DIRS += ./../../sources/boat/modes         # Production code 
+SRC_DIRS += ./../../sources/boat/system        # Production code 
+
+SRC_FILES += ./../../sources/boat/rewrite/boat_main.cpp     # Production code 
+SRC_FILES += ./../../sources/boat/rewrite/boat_timers.cpp   # Production code 
+
+SRC_DIRS += ./../../sources/config_files   # Production code 
+SRC_DIRS += ./../../sources/system_data    # Production code 
+
+SRC_DIRS += tests           # Test doubles 
+SRC_DIRS += tests/threads   # Test doubles 
 
 # --------------------------------------------------------------------
 
@@ -53,12 +58,9 @@ SRC_DIRS += tests                          # Test doubles
 TEST_SRC_DIRS += tests
 TEST_SRC_FILES += 
 
-# ------------- BOAT ---------------
-
-TEST_SRC_DIRS += tests                    # Unit tests 
+# Threads 
+TEST_SRC_DIRS += tests/threads   # Unit tests 
 TEST_SRC_FILES += 
-
-# ----------------------------------
 
 # --------------------------------------------------------------------
 
@@ -94,13 +96,18 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Drivers/CMSIS/Core/
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/FATFS/App
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/FATFS/Target
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src
+INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
+INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/include
+INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Production code 
-INCLUDE_DIRS += ./../../headers/includes 
 INCLUDE_DIRS += ./../../headers/boat 
 INCLUDE_DIRS += ./../../headers/boat/modes 
 INCLUDE_DIRS += ./../../headers/boat/system 
+INCLUDE_DIRS += ./../../headers/boat/rewrite 
 INCLUDE_DIRS += ./../../headers/config_files 
+INCLUDE_DIRS += ./../../headers/core 
+INCLUDE_DIRS += ./../../headers/includes 
 INCLUDE_DIRS += ./../../headers/system_data 
 
 # Library 
@@ -110,7 +117,7 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/tools
 
 # Test files 
 INCLUDE_DIRS += mocks                          # Mocks 
-INCLUDE_DIRS += tests                          # Test doubles 
+INCLUDE_DIRS += tests/threads                  # Test doubles 
 
 # --------------------------------------------------------------------
 

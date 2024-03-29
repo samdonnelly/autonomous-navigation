@@ -49,28 +49,14 @@ Boat boat;
 //=======================================================================================
 // Boat initialization 
 
+// Constructor 
 Boat::Boat() 
 {
     memset((void *)adc_buff, CLEAR, sizeof(adc_buff)); 
-
-    boat_main = 
-    {
-        .attr = { .name = "BoatMainThread", 
-                  .attr_bits = CLEAR, 
-                  .cb_mem = NULL, 
-                  .cb_size = CLEAR, 
-                  .stack_mem = NULL, 
-                  .stack_size = BOAT_MAIN_STACK_SIZE, 
-                  .priority = (osPriority_t)osPriorityLow, 
-                  .tz_module = CLEAR, 
-                  .reserved = CLEAR }, 
-        .event = CLEAR, 
-        .ThreadEventQueue = xQueueCreate(BOAT_MAIN_QUEUE_LEN, sizeof(uint32_t)), 
-        .dispatch = BoatMainDispatch 
-    }; 
 }
 
 
+// Setup 
 void Boat::BoatSetup(void)
 {
     //==================================================
@@ -393,7 +379,7 @@ void Boat::BoatSetup(void)
     // Threads 
 
     // Thread definition 
-    boat_main = 
+    main_event_info = 
     {
         .attr = { .name = "BoatMainThread", 
                   .attr_bits = CLEAR, 
@@ -411,7 +397,7 @@ void Boat::BoatSetup(void)
     // Check that the queues were created successfully 
 
     // Create the thread(s) 
-    osThreadNew(eventLoop, (void *)&boat_main, &boat_main.attr); 
+    osThreadNew(eventLoop, (void *)&main_event_info, &main_event_info.attr); 
     // Check that the thread creation worked 
 
     //==================================================

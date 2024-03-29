@@ -15,6 +15,10 @@
 #ifndef _INCLUDES_DRIVERS_H_
 #define _INCLUDES_DRIVERS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //=======================================================================================
 // Includes 
 
@@ -57,5 +61,9 @@
 #include "fatfs.h"
 
 //=======================================================================================
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // _INCLUDES_DRIVERS_H_

@@ -41,7 +41,8 @@
 			"stm32f4xx_hal_tim.h": "c",
 			"hc05_controller.h": "c",
 			"mpu6050_driver.h": "c",
-			"typeinfo": "cpp"
+			"typeinfo": "cpp",
+			"active_object_framework.h": "c"
 		}
 	},
 	"launch": {

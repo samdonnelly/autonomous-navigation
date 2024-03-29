@@ -31,7 +31,6 @@ extern "C" {
 // - Requirements: (end goals of the features under the hood) 
 //   - Coordinates stored on the SD card (not hard coded) and nothing can happen if there 
 //     is no mission on the card. 
-//   - Indicators (such as lights) need to be 
 // 
 // - Functionality: (the way features are implemented under the hood) 
 //   - The ability to more easily write and read complicated files/data on the SD card 
@@ -105,6 +104,8 @@ extern "C" {
 // #include "semphr.h" 
 // #include "timers.h" 
 
+#include "boat_utest.h" 
+
 //=======================================================================================
 
 
@@ -122,16 +123,54 @@ extern "C" {
 
 class Boat 
 {
+public: 
+
+    // For unit testing only. Do not use anywhere else. 
+    friend class BoatUTest; 
+
 private:   // Private members 
 
+    //==================================================
+    // Main thread 
+    
     // Threads info 
-    ThreadEventData boat_main; 
+    ThreadEventData main_event_info; 
 
     // States 
+    enum class MainStates {
+        INIT_STATE, 
+        STANDBY_STATE, 
+        AUTO_STATE, 
+        MANUAL_STATE, 
+        LOW_PWR_STATE, 
+        FAULT_STATE, 
+        RESET_STATE, 
+        NUM_STATES 
+    } main_state; 
 
     // Events 
+    enum class MainEvents : uint8_t {
+        NO_EVENT 
+    } main_event; 
 
     // Flags 
+    struct MainFlags 
+    {
+        // System flags 
+        uint8_t state_entry : 1; 
+
+        // State flags 
+        uint8_t init_state    : 1; 
+        uint8_t standby_state : 1; 
+        uint8_t auto_state    : 1; 
+        uint8_t manual_state  : 1; 
+        uint8_t low_pwr_state : 1; 
+        uint8_t fault_state   : 1; 
+        uint8_t reset_state   : 1; 
+    }
+    main_flags; 
+    
+    //==================================================
 
     // System data 
     uint16_t adc_buff[BOAT_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
@@ -142,14 +181,40 @@ public:   // Public members
 
 private:   // Private member functions 
 
+    // State function pointer 
+    typedef void (*state_func_ptr)(Boat *data, Event event); 
+
+    //==================================================
+    // Main thread 
+
     // Dispatch function(s) 
     static void BoatMainDispatch(Event event); 
 
     // State functions 
+    static void MainInitState(Boat *data, Event event); 
+    static void MainStandbyState(Boat *data, Event event); 
+    static void MainAutoState(Boat *data, Event event); 
+    static void MainManualState(Boat *data, Event event); 
+    static void MainLowPwrState(Boat *data, Event event); 
+    static void MainFaultState(Boat *data, Event event); 
+    static void MainResetState(Boat *data, Event event); 
 
     // State table 
+    const state_func_ptr main_state_table[(uint8_t)MainStates::NUM_STATES] = 
+    {
+        &MainInitState, 
+        &MainStandbyState, 
+        &MainAutoState, 
+        &MainManualState, 
+        &MainLowPwrState, 
+        &MainFaultState, 
+        &MainResetState 
+    }; 
 
     // Helper functions 
+    void MainEventQueue(Event event); 
+
+    //==================================================
 
 public:   // Public member functions 
 

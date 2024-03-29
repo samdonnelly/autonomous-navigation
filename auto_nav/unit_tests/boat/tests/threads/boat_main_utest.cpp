@@ -1,9 +1,9 @@
 /**
- * @file boat_utest.cpp
+ * @file boat_main_utest.cpp
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Boat main code unit tests 
+ * @brief Boat main thread unit tests 
  * 
  * @version 0.1
  * @date 2024-03-19
@@ -21,6 +21,8 @@
 // Includes 
 
 #include "CppUTest/TestHarness.h"
+
+#include "boat_utest.h" 
 
 extern "C"
 {
