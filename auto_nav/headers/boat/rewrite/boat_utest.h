@@ -42,6 +42,9 @@ public:
     //==================================================
     // Main thread 
 
+    // Wrappers 
+    void MainThreadDispatch(Boat& boat_utest, Event new_event); 
+
     // Getters 
     uint8_t GetCurrentState(Boat& boat_utest); 
     uint8_t GetInitStateFlag(Boat& boat_utest); 

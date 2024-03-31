@@ -72,6 +72,8 @@ TEST_GROUP(boat_test)
 TEST(boat_test, test0)
 {
     // 
+    BoatUTest boat_utest; 
+    boat_utest.MainThreadDispatch(boat, 0); 
 }
 
 //=======================================================================================

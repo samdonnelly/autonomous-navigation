@@ -28,6 +28,23 @@
 // Main thread 
 
 //==================================================
+// Wrappers 
+
+// Main thread dispatch function (from event loop) 
+void BoatUTest::MainThreadDispatch(Boat& boat_utest, Event new_event)
+{
+    static Boat::MainEvents test_event = (Boat::MainEvents)new_event; 
+    switch (test_event)
+    {
+        default: 
+            break; 
+    }
+    boat_utest.BoatMainDispatch(new_event); 
+}
+
+//==================================================
+
+//==================================================
 // Getters 
 
 // State getter 
