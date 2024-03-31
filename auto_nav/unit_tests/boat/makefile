@@ -29,18 +29,25 @@ endif
 SRC_FILES += 
 SRC_DIRS += 
 
-SRC_FILES += ./../../sources/boat/ab_app.cpp   # Production code 
-SRC_DIRS += ./../../sources/boat/modes         # Production code 
-SRC_DIRS += ./../../sources/boat/system        # Production code 
+# Old boat code 
+SRC_FILES += ./../../sources/boat/ab_app.cpp 
+SRC_DIRS += ./../../sources/boat/modes 
+SRC_DIRS += ./../../sources/boat/system 
 
-SRC_FILES += ./../../sources/boat/rewrite/boat_main.cpp     # Production code 
-SRC_FILES += ./../../sources/boat/rewrite/boat_timers.cpp   # Production code 
+# New boat code 
+SRC_FILES += ./../../sources/boat/rewrite/boat_main.cpp 
+SRC_FILES += ./../../sources/boat/rewrite/boat_timers.cpp 
 
-SRC_DIRS += ./../../sources/config_files   # Production code 
-SRC_DIRS += ./../../sources/system_data    # Production code 
+# General vehicle code 
+SRC_DIRS += ./../../sources/config_files 
+SRC_DIRS += ./../../sources/system_data 
 
-SRC_DIRS += tests           # Test doubles 
-SRC_DIRS += tests/threads   # Test doubles 
+# Test code 
+SRC_DIRS += tests 
+SRC_DIRS += tests/threads 
+
+# Library code 
+SRC_FILES += 
 
 # --------------------------------------------------------------------
 

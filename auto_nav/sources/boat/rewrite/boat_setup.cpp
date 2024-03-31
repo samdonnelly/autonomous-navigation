@@ -51,7 +51,15 @@ Boat boat;
 
 // Constructor 
 Boat::Boat() 
+    : main_state(MainStates::INIT_STATE), 
+      main_event(MainEvents::NO_EVENT) 
 {
+    // State information 
+    memset((void *)&main_flags, CLEAR, sizeof(main_flags)); 
+    main_flags.state_entry = SET_BIT; 
+    main_flags.init_state = SET_BIT; 
+
+    // System data 
     memset((void *)adc_buff, CLEAR, sizeof(adc_buff)); 
 }
 

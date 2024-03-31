@@ -25,72 +25,176 @@
 
 
 //=======================================================================================
+// Boat redefinition for unit testing 
+
+Boat boat; 
+
+Boat::Boat() {} 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Main thread 
 
 //==================================================
 // Wrappers 
 
-// Main thread dispatch function (from event loop) 
-void BoatUTest::MainThreadDispatch(Boat& boat_utest, Event new_event)
+// Dispatch function (from event loop) 
+void BoatUTest::MainThreadDispatch(Boat& boat_utest)
 {
-    static Boat::MainEvents test_event = (Boat::MainEvents)new_event; 
-    switch (test_event)
-    {
-        default: 
-            break; 
-    }
-    boat_utest.BoatMainDispatch(new_event); 
+    boat_utest.BoatMainDispatch(main_event); 
+}
+
+// Init state 
+void BoatUTest::MainInitStateWrapper(Boat& boat_utest)
+{
+    boat_utest.MainInitState(boat_utest, main_event); 
+}
+
+// Standby state 
+void BoatUTest::MainStandbyStateWrapper(Boat& boat_utest)
+{
+    boat_utest.MainStandbyState(boat_utest, main_event); 
+}
+
+// Auto state 
+void BoatUTest::MainAutoStateWrapper(Boat& boat_utest)
+{
+    boat_utest.MainAutoState(boat_utest, main_event); 
+}
+
+// Manual state 
+void BoatUTest::MainManualStateWrapper(Boat& boat_utest)
+{
+    boat_utest.MainManualState(boat_utest, main_event); 
+}
+
+// Low Power state 
+void BoatUTest::MainLowPwrStateWrapper(Boat& boat_utest)
+{
+    boat_utest.MainLowPwrState(boat_utest, main_event); 
+}
+
+// Fault state 
+void BoatUTest::MainFaultStateWrapper(Boat& boat_utest)
+{
+    boat_utest.MainFaultState(boat_utest, main_event); 
+}
+
+// Reset state 
+void BoatUTest::MainResetStateWrapper(Boat& boat_utest)
+{
+    boat_utest.MainResetState(boat_utest, main_event); 
 }
 
 //==================================================
 
 //==================================================
-// Getters 
+// Current state getter 
 
 // State getter 
-uint8_t BoatUTest::GetCurrentState(Boat& boat_utest)
+uint8_t BoatUTest::GetMainCurrentState(Boat& boat_utest)
 {
     return (uint8_t)boat_utest.main_state; 
 }
 
+//==================================================
+
+//==================================================
+// State type getters 
+
+// Get init state value 
+uint8_t BoatUTest::GetMainInitStateType(void)
+{
+    return (uint8_t)Boat::MainStates::INIT_STATE; 
+}
+
+// Get standby state value 
+uint8_t BoatUTest::GetMainStandbyStateType(void)
+{
+    return (uint8_t)Boat::MainStates::STANDBY_STATE; 
+}
+
+// Get auto state value 
+uint8_t BoatUTest::GetMainAutoStateType(void)
+{
+    return (uint8_t)Boat::MainStates::AUTO_STATE; 
+}
+
+// Get manual state value 
+uint8_t BoatUTest::GetMainManualStateType(void)
+{
+    return (uint8_t)Boat::MainStates::MANUAL_STATE; 
+}
+
+// Get low power state value 
+uint8_t BoatUTest::GetMainLowPwrStateType(void)
+{
+    return (uint8_t)Boat::MainStates::LOW_PWR_STATE; 
+}
+
+// Get fault state value 
+uint8_t BoatUTest::GetMainFaultStateType(void)
+{
+    return (uint8_t)Boat::MainStates::FAULT_STATE; 
+}
+
+// Get reset state value 
+uint8_t BoatUTest::GetMainResetStateType(void)
+{
+    return (uint8_t)Boat::MainStates::RESET_STATE; 
+}
+
+//==================================================
+
+//==================================================
+// Main thread flag getters 
+
+// State entry flag getter 
+uint8_t BoatUTest::GetMainStateEntryFlag(Boat& boat_utest)
+{
+    return boat_utest.main_flags.state_entry; 
+}
+
 // Init state flag getter 
-uint8_t BoatUTest::GetInitStateFlag(Boat& boat_utest)
+uint8_t BoatUTest::GetMainInitStateFlag(Boat& boat_utest)
 {
     return boat_utest.main_flags.init_state; 
 }
 
 // Standby state flag getter 
-uint8_t BoatUTest::GetStandbyStateFlag(Boat& boat_utest)
+uint8_t BoatUTest::GetMainStandbyStateFlag(Boat& boat_utest)
 {
     return boat_utest.main_flags.standby_state; 
 }
 
 // Auto state flag getter 
-uint8_t BoatUTest::GetAutoStateFlag(Boat& boat_utest)
+uint8_t BoatUTest::GetMainAutoStateFlag(Boat& boat_utest)
 {
     return boat_utest.main_flags.auto_state; 
 }
 
 // Manual state flag getter 
-uint8_t BoatUTest::GetManualStateFlag(Boat& boat_utest)
+uint8_t BoatUTest::GetMainManualStateFlag(Boat& boat_utest)
 {
     return boat_utest.main_flags.manual_state; 
 }
 
 // Low power state flag getter 
-uint8_t BoatUTest::GetLowPwrStateFlag(Boat& boat_utest)
+uint8_t BoatUTest::GetMainLowPwrStateFlag(Boat& boat_utest)
 {
     return boat_utest.main_flags.low_pwr_state; 
 }
 
 // Fault state flag getter 
-uint8_t BoatUTest::GetFaultStateFlag(Boat& boat_utest)
+uint8_t BoatUTest::GetMainFaultStateFlag(Boat& boat_utest)
 {
     return boat_utest.main_flags.fault_state; 
 }
 
 // Reset state flag getter 
-uint8_t BoatUTest::GetResetStateFlag(Boat& boat_utest)
+uint8_t BoatUTest::GetMainResetStateFlag(Boat& boat_utest)
 {
     return boat_utest.main_flags.reset_state; 
 }
@@ -98,48 +202,118 @@ uint8_t BoatUTest::GetResetStateFlag(Boat& boat_utest)
 //==================================================
 
 //==================================================
-// Setters 
+// Current state setters 
+
+// Set to the init state 
+void BoatUTest::SetMainInitState(Boat& boat_utest)
+{
+    boat_utest.main_state = Boat::MainStates::INIT_STATE; 
+}
+
+// Set to the standby state 
+void BoatUTest::SetMainStandbyState(Boat& boat_utest)
+{
+    boat_utest.main_state = Boat::MainStates::STANDBY_STATE; 
+}
+
+// Set to the auto state 
+void BoatUTest::SetMainAutoState(Boat& boat_utest)
+{
+    boat_utest.main_state = Boat::MainStates::AUTO_STATE; 
+}
+
+// Set to the manual state 
+void BoatUTest::SetMainManualState(Boat& boat_utest)
+{
+    boat_utest.main_state = Boat::MainStates::MANUAL_STATE; 
+}
+
+// Set to the low power state 
+void BoatUTest::SetMainLowPwrState(Boat& boat_utest)
+{
+    boat_utest.main_state = Boat::MainStates::LOW_PWR_STATE; 
+}
+
+// Set to the fault state 
+void BoatUTest::SetMainFaultState(Boat& boat_utest)
+{
+    boat_utest.main_state = Boat::MainStates::FAULT_STATE; 
+}
+
+// Set to the rest state 
+void BoatUTest::SetMainResetState(Boat& boat_utest)
+{
+    boat_utest.main_state = Boat::MainStates::RESET_STATE; 
+}
+
+//==================================================
+
+//==================================================
+// Main thread flag setters 
+
+// State entry flag setter 
+void BoatUTest::SetMainStateEntryFlag(Boat& boat_utest)
+{
+    boat_utest.main_flags.state_entry = SET_BIT; 
+}
 
 // Init state flag setter 
-void BoatUTest::SetInitStateFlag(Boat& boat_utest)
+void BoatUTest::SetMainInitStateFlag(Boat& boat_utest)
 {
     boat_utest.main_flags.init_state = SET_BIT; 
 }
 
 // Standby state flag setter 
-void BoatUTest::SetStandbyStateFlag(Boat& boat_utest)
+void BoatUTest::SetMainStandbyStateFlag(Boat& boat_utest)
 {
-    boat_utest.main_flags.init_state = SET_BIT; 
+    boat_utest.main_flags.standby_state = SET_BIT; 
 }
 
 // Auto state flag setter 
-void BoatUTest::SetAutoStateFlag(Boat& boat_utest)
+void BoatUTest::SetMainAutoStateFlag(Boat& boat_utest)
 {
-    boat_utest.main_flags.init_state = SET_BIT; 
+    boat_utest.main_flags.auto_state = SET_BIT; 
 }
 
 // Manual state flag setter 
-void BoatUTest::SetManualStateFlag(Boat& boat_utest)
+void BoatUTest::SetMainManualStateFlag(Boat& boat_utest)
 {
-    boat_utest.main_flags.init_state = SET_BIT; 
+    boat_utest.main_flags.manual_state = SET_BIT; 
 }
 
 // Low power state flag setter 
-void BoatUTest::SetLowPwrStateFlag(Boat& boat_utest)
+void BoatUTest::SetMainLowPwrStateFlag(Boat& boat_utest)
 {
-    boat_utest.main_flags.init_state = SET_BIT; 
+    boat_utest.main_flags.low_pwr_state = SET_BIT; 
 }
 
 // Fault state flag setter 
-void BoatUTest::SetFaultStateFlag(Boat& boat_utest)
+void BoatUTest::SetMainFaultStateFlag(Boat& boat_utest)
 {
-    boat_utest.main_flags.init_state = SET_BIT; 
+    boat_utest.main_flags.fault_state = SET_BIT; 
 }
 
 // Reset state flag setter 
-void BoatUTest::SetResetStateFlag(Boat& boat_utest)
+void BoatUTest::SetMainResetStateFlag(Boat& boat_utest)
 {
-    boat_utest.main_flags.init_state = SET_BIT; 
+    boat_utest.main_flags.reset_state = SET_BIT; 
+}
+
+// Clear all state flags 
+void BoatUTest::ClearMainStateFlags(Boat& boat_utest)
+{
+    memset((void*)&boat_utest.main_flags, CLEAR, sizeof(boat_utest.main_flags)); 
+}
+
+//==================================================
+
+//==================================================
+// Event setters 
+
+// Set event to NO_EVENT 
+void BoatUTest::SetMainNoEvent(void)
+{
+    main_event = (Event)Boat::MainEvents::NO_EVENT; 
 }
 
 //==================================================

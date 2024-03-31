@@ -42,29 +42,71 @@ public:
     //==================================================
     // Main thread 
 
+    // Data 
+    Event main_event; 
+
     // Wrappers 
-    void MainThreadDispatch(Boat& boat_utest, Event new_event); 
+    void MainThreadDispatch(Boat& boat_utest); 
+    void MainInitStateWrapper(Boat& boat_utest); 
+    void MainStandbyStateWrapper(Boat& boat_utest); 
+    void MainAutoStateWrapper(Boat& boat_utest); 
+    void MainManualStateWrapper(Boat& boat_utest); 
+    void MainLowPwrStateWrapper(Boat& boat_utest); 
+    void MainFaultStateWrapper(Boat& boat_utest); 
+    void MainResetStateWrapper(Boat& boat_utest); 
 
-    // Getters 
-    uint8_t GetCurrentState(Boat& boat_utest); 
-    uint8_t GetInitStateFlag(Boat& boat_utest); 
-    uint8_t GetStandbyStateFlag(Boat& boat_utest); 
-    uint8_t GetAutoStateFlag(Boat& boat_utest); 
-    uint8_t GetManualStateFlag(Boat& boat_utest); 
-    uint8_t GetLowPwrStateFlag(Boat& boat_utest); 
-    uint8_t GetFaultStateFlag(Boat& boat_utest); 
-    uint8_t GetResetStateFlag(Boat& boat_utest); 
+    // Current state getter 
+    uint8_t GetMainCurrentState(Boat& boat_utest); 
 
-    // Setters 
-    void SetInitStateFlag(Boat& boat_utest); 
-    void SetStandbyStateFlag(Boat& boat_utest); 
-    void SetAutoStateFlag(Boat& boat_utest); 
-    void SetManualStateFlag(Boat& boat_utest); 
-    void SetLowPwrStateFlag(Boat& boat_utest); 
-    void SetFaultStateFlag(Boat& boat_utest); 
-    void SetResetStateFlag(Boat& boat_utest); 
+    // State type getters 
+    uint8_t GetMainInitStateType(void); 
+    uint8_t GetMainStandbyStateType(void); 
+    uint8_t GetMainAutoStateType(void); 
+    uint8_t GetMainManualStateType(void); 
+    uint8_t GetMainLowPwrStateType(void); 
+    uint8_t GetMainFaultStateType(void); 
+    uint8_t GetMainResetStateType(void); 
+
+    // Main thread flag getters 
+    uint8_t GetMainStateEntryFlag(Boat& boat_utest); 
+    uint8_t GetMainInitStateFlag(Boat& boat_utest); 
+    uint8_t GetMainStandbyStateFlag(Boat& boat_utest); 
+    uint8_t GetMainAutoStateFlag(Boat& boat_utest); 
+    uint8_t GetMainManualStateFlag(Boat& boat_utest); 
+    uint8_t GetMainLowPwrStateFlag(Boat& boat_utest); 
+    uint8_t GetMainFaultStateFlag(Boat& boat_utest); 
+    uint8_t GetMainResetStateFlag(Boat& boat_utest); 
+
+    // Current state setters 
+    void SetMainInitState(Boat& boat_utest); 
+    void SetMainStandbyState(Boat& boat_utest); 
+    void SetMainAutoState(Boat& boat_utest); 
+    void SetMainManualState(Boat& boat_utest); 
+    void SetMainLowPwrState(Boat& boat_utest); 
+    void SetMainFaultState(Boat& boat_utest); 
+    void SetMainResetState(Boat& boat_utest); 
+
+    // Main thread flag setters 
+    void SetMainStateEntryFlag(Boat& boat_utest); 
+    void SetMainInitStateFlag(Boat& boat_utest); 
+    void SetMainStandbyStateFlag(Boat& boat_utest); 
+    void SetMainAutoStateFlag(Boat& boat_utest); 
+    void SetMainManualStateFlag(Boat& boat_utest); 
+    void SetMainLowPwrStateFlag(Boat& boat_utest); 
+    void SetMainFaultStateFlag(Boat& boat_utest); 
+    void SetMainResetStateFlag(Boat& boat_utest); 
+    void ClearMainStateFlags(Boat& boat_utest); 
+
+    // Event setters 
+    void SetMainNoEvent(void); 
         
     //==================================================
+
+    // Constructor 
+    BoatUTest() {} 
+
+    // Destructor 
+    ~BoatUTest() {} 
 
 private: 
 

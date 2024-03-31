@@ -182,7 +182,7 @@ public:   // Public members
 private:   // Private member functions 
 
     // State function pointer 
-    typedef void (*state_func_ptr)(Boat *data, Event event); 
+    typedef void (*state_func_ptr)(Boat& data, Event event); 
 
     //==================================================
     // Main thread 
@@ -191,13 +191,13 @@ private:   // Private member functions
     static void BoatMainDispatch(Event event); 
 
     // State functions 
-    static void MainInitState(Boat *data, Event event); 
-    static void MainStandbyState(Boat *data, Event event); 
-    static void MainAutoState(Boat *data, Event event); 
-    static void MainManualState(Boat *data, Event event); 
-    static void MainLowPwrState(Boat *data, Event event); 
-    static void MainFaultState(Boat *data, Event event); 
-    static void MainResetState(Boat *data, Event event); 
+    static void MainInitState(Boat& data, Event event); 
+    static void MainStandbyState(Boat& data, Event event); 
+    static void MainAutoState(Boat& data, Event event); 
+    static void MainManualState(Boat& data, Event event); 
+    static void MainLowPwrState(Boat& data, Event event); 
+    static void MainFaultState(Boat& data, Event event); 
+    static void MainResetState(Boat& data, Event event); 
 
     // State table 
     const state_func_ptr main_state_table[(uint8_t)MainStates::NUM_STATES] = 
