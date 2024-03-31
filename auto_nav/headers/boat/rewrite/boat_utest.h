@@ -88,6 +88,7 @@ public:
 
     // Main thread flag setters 
     void SetMainStateEntryFlag(Boat& boat_utest); 
+    void SetMainStateExitFlag(Boat& boat_utest); 
     void SetMainInitStateFlag(Boat& boat_utest); 
     void SetMainStandbyStateFlag(Boat& boat_utest); 
     void SetMainAutoStateFlag(Boat& boat_utest); 

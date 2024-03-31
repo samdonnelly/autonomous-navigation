@@ -298,15 +298,8 @@ TEST(boat_main_test, state_init_state)
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainInitStateFlag(boat)); 
 
-    // State exit check: fault state flag set 
-    boat_utest.SetMainFaultStateFlag(boat); 
-    boat_utest.MainInitStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainInitStateFlag(boat)); 
-
-    // State exit check: standby state flag set 
-    boat_utest.SetMainInitStateFlag(boat); 
-    boat_utest.SetMainStandbyStateFlag(boat); 
+    // State exit check 
+    boat_utest.SetMainStateExitFlag(boat); 
     boat_utest.MainInitStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainInitStateFlag(boat)); 
@@ -323,29 +316,8 @@ TEST(boat_main_test, state_standby_state)
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
 
-    // State exit check: fault state flag set 
-    boat_utest.SetMainFaultStateFlag(boat); 
-    boat_utest.MainStandbyStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
-
-    // State exit check: low power state flag set 
-    boat_utest.SetMainStandbyStateFlag(boat); 
-    boat_utest.SetMainLowPwrStateFlag(boat); 
-    boat_utest.MainStandbyStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
-    
-    // State exit check: auto state flag set 
-    boat_utest.SetMainStandbyStateFlag(boat); 
-    boat_utest.SetMainAutoStateFlag(boat); 
-    boat_utest.MainStandbyStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
-    
-    // State exit check: manual state flag set 
-    boat_utest.SetMainStandbyStateFlag(boat); 
-    boat_utest.SetMainManualStateFlag(boat); 
+    // State exit check 
+    boat_utest.SetMainStateExitFlag(boat); 
     boat_utest.MainStandbyStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
@@ -362,29 +334,8 @@ TEST(boat_main_test, state_auto_state)
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
 
-    // State exit check: fault state flag set 
-    boat_utest.SetMainFaultStateFlag(boat); 
-    boat_utest.MainAutoStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
-
-    // State exit check: low power state flag set 
-    boat_utest.SetMainAutoStateFlag(boat); 
-    boat_utest.SetMainLowPwrStateFlag(boat); 
-    boat_utest.MainAutoStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
-
-    // State exit check: standby state flag set 
-    boat_utest.SetMainAutoStateFlag(boat); 
-    boat_utest.SetMainStandbyStateFlag(boat); 
-    boat_utest.MainAutoStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
-
-    // State exit check: manual state flag set 
-    boat_utest.SetMainAutoStateFlag(boat); 
-    boat_utest.SetMainManualStateFlag(boat); 
+    // State exit check 
+    boat_utest.SetMainStateExitFlag(boat); 
     boat_utest.MainAutoStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
@@ -401,29 +352,8 @@ TEST(boat_main_test, state_manual_state)
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainManualStateFlag(boat)); 
 
-    // State exit check: fault state flag set 
-    boat_utest.SetMainFaultStateFlag(boat); 
-    boat_utest.MainManualStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainManualStateFlag(boat)); 
-
-    // State exit check: low power state flag set 
-    boat_utest.SetMainManualStateFlag(boat); 
-    boat_utest.SetMainLowPwrStateFlag(boat); 
-    boat_utest.MainManualStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainManualStateFlag(boat)); 
-
-    // State exit check: standby state flag set 
-    boat_utest.SetMainManualStateFlag(boat); 
-    boat_utest.SetMainStandbyStateFlag(boat); 
-    boat_utest.MainManualStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainManualStateFlag(boat)); 
-
-    // State exit check: auto state flag set 
-    boat_utest.SetMainManualStateFlag(boat); 
-    boat_utest.SetMainAutoStateFlag(boat); 
+    // State exit check 
+    boat_utest.SetMainStateExitFlag(boat); 
     boat_utest.MainManualStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainManualStateFlag(boat)); 
@@ -440,15 +370,8 @@ TEST(boat_main_test, state_low_pwr_state)
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainLowPwrStateFlag(boat)); 
 
-    // State exit check: standby state flag set 
-    boat_utest.SetMainStandbyStateFlag(boat); 
-    boat_utest.MainLowPwrStateWrapper(boat); 
-    UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
-    UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainLowPwrStateFlag(boat)); 
-
-    // State exit check: reset state flag set 
-    boat_utest.SetMainLowPwrStateFlag(boat); 
-    boat_utest.SetMainResetStateFlag(boat); 
+    // State exit check 
+    boat_utest.SetMainStateExitFlag(boat); 
     boat_utest.MainLowPwrStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainLowPwrStateFlag(boat)); 
@@ -465,8 +388,8 @@ TEST(boat_main_test, state_fault_state)
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainFaultStateFlag(boat)); 
 
-    // State exit check: reset state flag set 
-    boat_utest.SetMainResetStateFlag(boat); 
+    // State exit check 
+    boat_utest.SetMainStateExitFlag(boat); 
     boat_utest.MainFaultStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainFaultStateFlag(boat)); 
@@ -483,8 +406,8 @@ TEST(boat_main_test, state_reset_state)
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainResetStateFlag(boat)); 
 
-    // State exit check: init state flag set 
-    boat_utest.SetMainInitStateFlag(boat); 
+    // State exit check 
+    boat_utest.SetMainStateExitFlag(boat); 
     boat_utest.MainResetStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainResetStateFlag(boat)); 

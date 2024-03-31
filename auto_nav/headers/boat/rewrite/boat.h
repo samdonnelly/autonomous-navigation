@@ -150,7 +150,10 @@ private:   // Private members
 
     // Events 
     enum class MainEvents : uint8_t {
-        NO_EVENT 
+        NO_EVENT, 
+        STATE_CHANGE, 
+        NAV_CALCS, 
+        REMOTE_CONTROL 
     } main_event; 
 
     // Flags 
@@ -158,6 +161,7 @@ private:   // Private members
     {
         // System flags 
         uint8_t state_entry : 1; 
+        uint8_t state_exit  : 1; 
 
         // State flags 
         uint8_t init_state    : 1; 

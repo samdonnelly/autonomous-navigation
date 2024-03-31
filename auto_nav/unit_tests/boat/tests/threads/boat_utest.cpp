@@ -257,6 +257,12 @@ void BoatUTest::SetMainStateEntryFlag(Boat& boat_utest)
     boat_utest.main_flags.state_entry = SET_BIT; 
 }
 
+// State exit flag setter 
+void BoatUTest::SetMainStateExitFlag(Boat& boat_utest)
+{
+    boat_utest.main_flags.state_exit = SET_BIT; 
+}
+
 // Init state flag setter 
 void BoatUTest::SetMainInitStateFlag(Boat& boat_utest)
 {
