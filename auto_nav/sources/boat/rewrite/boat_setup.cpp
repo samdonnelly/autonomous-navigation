@@ -34,6 +34,10 @@
 #define BOAT_MAIN_STACK_SIZE configMINIMAL_STACK_SIZE * BOAT_MAIN_STACK_MULTIPLIER 
 #define BOAT_MAIN_QUEUE_LEN 10 
 
+// LEDs 
+#define STROBE_LEDS 0x3C   // LEDs used as strobe lights - 1-bit per LED (8 total) 
+#define STROBE_PERIOD 10   // LED update software timer x this gives strobe period (s) 
+
 //=======================================================================================
 
 
@@ -52,7 +56,8 @@ Boat boat;
 // Constructor 
 Boat::Boat() 
     : main_state(MainStates::INIT_STATE), 
-      main_event(MainEvents::NO_EVENT) 
+      main_event(MainEvents::NO_EVENT), 
+      leds(DEVICE_ONE, STROBE_LEDS, STROBE_PERIOD) 
 {
     // State information 
     memset((void *)&main_flags, CLEAR, sizeof(main_flags)); 

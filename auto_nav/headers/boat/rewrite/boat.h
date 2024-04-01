@@ -104,6 +104,10 @@ extern "C" {
 // #include "semphr.h" 
 // #include "timers.h" 
 
+// Modules 
+#include "ws2812_controller.h" 
+
+// Testing 
 #include "boat_utest.h" 
 
 //=======================================================================================
@@ -176,8 +180,27 @@ private:   // Private members
     
     //==================================================
 
+    //==================================================
+    // Communication thread 
+
+    // Threads info 
+    ThreadEventData comms_event_info; 
+
+    // Events 
+    enum class CommsEvents : uint8_t {
+        NO_EVENT, 
+        LED_CHANGE 
+    } comms_event; 
+
+    //==================================================
+
+    //==================================================
     // System data 
+
     uint16_t adc_buff[BOAT_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
+    WS2812_Controller leds; 
+    
+    //==================================================
 
 public:   // Public members 
 
@@ -191,7 +214,7 @@ private:   // Private member functions
     //==================================================
     // Main thread 
 
-    // Dispatch function(s) 
+    // Dispatch function 
     static void BoatMainDispatch(Event event); 
 
     // State functions 
@@ -217,6 +240,14 @@ private:   // Private member functions
 
     // Helper functions 
     void MainEventQueue(Event event); 
+
+    //==================================================
+
+    //==================================================
+    // Comms thread 
+
+    // Dispatch function 
+    static void BoatCommsDispatch(Event event); 
 
     //==================================================
 

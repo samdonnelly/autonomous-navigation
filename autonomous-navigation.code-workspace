@@ -42,7 +42,8 @@
 			"hc05_controller.h": "c",
 			"mpu6050_driver.h": "c",
 			"typeinfo": "cpp",
-			"active_object_framework.h": "c"
+			"active_object_framework.h": "c",
+			"ws2812_driver.h": "c"
 		}
 	},
 	"launch": {
