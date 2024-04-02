@@ -31,21 +31,32 @@ extern "C" {
 // LED colours 
 
 // LED off 
-extern uint32_t ws2812_led_off; 
+extern const uint32_t ws2812_led_off; 
 
 // Autonomous state 
-extern uint32_t ws2812_led_auto_star;       // Starbird side indicator 
-extern uint32_t ws2812_led_auto_port;       // Port side indicator 
-extern uint32_t ws2812_led_auto_strobe;     // Strobe light 
+extern const uint32_t ws2812_led_auto_star;       // Starbird side indicator 
+extern const uint32_t ws2812_led_auto_port;       // Port side indicator 
+extern const uint32_t ws2812_led_auto_strobe;     // Strobe light 
 
 // Manual control state 
-extern uint32_t ws2812_led_manual_strobe;   // Strobe light 
+extern const uint32_t ws2812_led_manual_strobe;   // Strobe light 
 
 // Not ready state 
-extern uint32_t ws2812_led_not_ready;       // Not ready indicator 
+extern const uint32_t ws2812_led_not_ready;       // Not ready indicator 
 
 // Ready state 
-extern uint32_t ws2812_led_ready;           // Ready indicator 
+extern const uint32_t ws2812_led_ready;           // Ready indicator 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Controller settings 
+
+// LEDs used as strobe lights - 1-bit per LED (8 total) 
+extern const uint8_t ws2812_strobe_leds; 
+ // LED update software timer x this gives strobe period (s) 
+extern const uint8_t ws2812_strobe_period; 
 
 //=======================================================================================
 

@@ -22,6 +22,10 @@ extern "C" {
 //=======================================================================================
 // Includes 
 
+// Controllers 
+#include "ws2812_controller.h" 
+
+// Tools 
 #include "nav_calcs.h" 
 #include "pid_control.h"
 

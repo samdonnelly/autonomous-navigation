@@ -102,7 +102,7 @@ extern "C" {
 #include "cmsis_os2.h" 
 #include "queue.h" 
 // #include "semphr.h" 
-// #include "timers.h" 
+#include "timers.h" 
 
 // Modules 
 #include "ws2812_controller.h" 
@@ -189,8 +189,15 @@ private:   // Private members
     // Events 
     enum class CommsEvents : uint8_t {
         NO_EVENT, 
-        LED_CHANGE 
+        LED_STROBE 
     } comms_event; 
+
+    //==================================================
+
+    //==================================================
+    // Software timers thread 
+
+    TimerHandle_t periodic_timer_100ms; 
 
     //==================================================
 
@@ -201,10 +208,6 @@ private:   // Private members
     WS2812_Controller leds; 
     
     //==================================================
-
-public:   // Public members 
-
-    // 
 
 private:   // Private member functions 
 
@@ -248,6 +251,14 @@ private:   // Private member functions
 
     // Dispatch function 
     static void BoatCommsDispatch(Event event); 
+
+    //==================================================
+
+    //==================================================
+    // Software timer thread 
+
+    // Callback function(s) 
+    static void TimerCallback100ms(TimerHandle_t xTimer); 
 
     //==================================================
 

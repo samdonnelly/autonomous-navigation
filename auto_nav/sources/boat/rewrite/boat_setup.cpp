@@ -22,6 +22,7 @@
 #include "m8q_config.h" 
 #include "mpu6050_config.h" 
 #include "nrf24l01_config.h" 
+#include "ws2812_config.h" 
 
 //=======================================================================================
 
@@ -30,13 +31,17 @@
 // Macros 
 
 // Main thread memory 
-#define BOAT_MAIN_STACK_MULTIPLIER 8 
-#define BOAT_MAIN_STACK_SIZE configMINIMAL_STACK_SIZE * BOAT_MAIN_STACK_MULTIPLIER 
-#define BOAT_MAIN_QUEUE_LEN 10 
+#define MAIN_STACK_MULTIPLIER 8 
+#define MAIN_STACK_SIZE configMINIMAL_STACK_SIZE * MAIN_STACK_MULTIPLIER 
+#define MAIN_QUEUE_LEN 10 
 
-// LEDs 
-#define STROBE_LEDS 0x3C   // LEDs used as strobe lights - 1-bit per LED (8 total) 
-#define STROBE_PERIOD 10   // LED update software timer x this gives strobe period (s) 
+// Communication thread memory 
+#define COMMS_STACK_MULTIPLIER 8 
+#define COMMS_STACK_SIZE configMINIMAL_STACK_SIZE * COMMS_STACK_MULTIPLIER 
+#define COMMS_QUEUE_LEN 10 
+
+// Software timers thread 
+#define PERIODIC_TIMER_100MS_PERIOD 20   // Ticks 
 
 //=======================================================================================
 
@@ -57,7 +62,7 @@ Boat boat;
 Boat::Boat() 
     : main_state(MainStates::INIT_STATE), 
       main_event(MainEvents::NO_EVENT), 
-      leds(DEVICE_ONE, STROBE_LEDS, STROBE_PERIOD) 
+      leds(DEVICE_ONE, ws2812_strobe_leds, ws2812_strobe_period) 
 {
     // State information 
     memset((void *)&main_flags, CLEAR, sizeof(main_flags)); 
@@ -399,19 +404,43 @@ void Boat::BoatSetup(void)
                   .cb_mem = NULL, 
                   .cb_size = CLEAR, 
                   .stack_mem = NULL, 
-                  .stack_size = BOAT_MAIN_STACK_SIZE, 
+                  .stack_size = MAIN_STACK_SIZE, 
                   .priority = (osPriority_t)osPriorityLow, 
                   .tz_module = CLEAR, 
                   .reserved = CLEAR }, 
         .event = CLEAR, 
-        .ThreadEventQueue = xQueueCreate(BOAT_MAIN_QUEUE_LEN, sizeof(uint32_t)), 
+        .ThreadEventQueue = xQueueCreate(MAIN_QUEUE_LEN, sizeof(uint32_t)), 
         .dispatch = BoatMainDispatch 
+    }; 
+    comms_event_info = 
+    {
+        .attr = { .name = "BoatCommsThread", 
+                  .attr_bits = CLEAR, 
+                  .cb_mem = NULL, 
+                  .cb_size = CLEAR, 
+                  .stack_mem = NULL, 
+                  .stack_size = COMMS_STACK_SIZE, 
+                  .priority = (osPriority_t)osPriorityNormal, 
+                  .tz_module = CLEAR, 
+                  .reserved = CLEAR }, 
+        .event = CLEAR, 
+        .ThreadEventQueue = xQueueCreate(COMMS_QUEUE_LEN, sizeof(uint32_t)), 
+        .dispatch = BoatCommsDispatch 
     }; 
     // Check that the queues were created successfully 
 
     // Create the thread(s) 
     osThreadNew(eventLoop, (void *)&main_event_info, &main_event_info.attr); 
+    osThreadNew(eventLoop, (void *)&comms_event_info, &comms_event_info.attr); 
     // Check that the thread creation worked 
+
+    // Software timers 
+    periodic_timer_100ms = xTimerCreate(
+        "100ms",                        // Name of timer 
+        PERIODIC_TIMER_100MS_PERIOD,    // Period of timer (ticks) 
+        pdTRUE,                         // Auto-relead --> pdTRUE == Repeat Timer 
+        (void *)0,                      // Timer ID 
+        TimerCallback100ms);            // Callback function 
 
     //==================================================
 

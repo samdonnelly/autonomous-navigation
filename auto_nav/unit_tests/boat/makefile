@@ -36,6 +36,7 @@ SRC_DIRS += ./../../sources/boat/system
 
 # New boat code 
 SRC_FILES += ./../../sources/boat/rewrite/boat_main.cpp 
+SRC_FILES += ./../../sources/boat/rewrite/boat_comms.cpp 
 SRC_FILES += ./../../sources/boat/rewrite/boat_timers.cpp 
 
 # General vehicle code 
@@ -48,6 +49,7 @@ SRC_DIRS += tests/threads
 
 # Library code 
 SRC_FILES += 
+SRC_DIRS += 
 
 # --------------------------------------------------------------------
 

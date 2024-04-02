@@ -23,14 +23,14 @@
 //=======================================================================================
 // Dispatch 
 
-// Event loop dispatch function for the main thread 
+// Event loop dispatch function for the comms thread 
 void Boat::BoatCommsDispatch(Event event)
 {
     boat.comms_event = (CommsEvents)event; 
 
     switch (boat.comms_event)
     {
-        case CommsEvents::LED_CHANGE: 
+        case CommsEvents::LED_STROBE: 
             break; 
 
         default: 

@@ -145,6 +145,9 @@ void Boat::MainInitState(Boat& data, Event event)
     {
         data.main_flags.state_entry = CLEAR_BIT; 
         data.main_flags.standby_state = SET_BIT; 
+
+        // Start the 100ms software timer 
+        xTimerStart(data.periodic_timer_100ms, 0); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -290,6 +293,9 @@ void Boat::MainFaultState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = CLEAR_BIT; 
+
+        // Stop the 100ms software timer 
+        xTimerStop(data.periodic_timer_100ms, 0); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -317,6 +323,9 @@ void Boat::MainResetState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = CLEAR_BIT; 
+
+        // Stop the 100ms software timer 
+        xTimerStop(data.periodic_timer_100ms, 0); 
     }
 
     data.main_event = (MainEvents)event; 

@@ -22,4 +22,17 @@
 
 //=======================================================================================
 // Callbacks 
+
+// Note that the frequency of these callback is dependent on the tick period for 
+// FreeRTOS. 
+
+// 100ms timer 
+void Boat::TimerCallback100ms(TimerHandle_t xTimer)
+{
+    // Update the LED strobe 
+    boat.comms_event_info.event = (Event)CommsEvents::LED_STROBE; 
+    xQueueSend(boat.comms_event_info.ThreadEventQueue, 
+        (void *)&boat.comms_event_info.event, 0); 
+}
+
 //=======================================================================================
