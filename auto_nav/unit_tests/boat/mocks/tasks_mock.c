@@ -1,24 +1,23 @@
 /**
- * @file queue_mock.c
+ * @file tasks_mock.c
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief "queue.c" mock functions 
+ * @brief "tasks.c" mock functions 
  * 
  * @version 0.1
- * @date 2024-03-31
+ * @date 2024-04-02
  * 
  * @copyright Copyright (c) 2024
  * 
  */
 
 //=======================================================================================
-// Include 
+// Includes 
 
 #include "FreeRTOS.h" 
-#include "queue.h" 
+#include "task.h" 
 #include "portmacro.h" 
-#include "projdefs.h" 
 
 //=======================================================================================
 
@@ -26,13 +25,9 @@
 //=======================================================================================
 // Mock implementations 
 
-BaseType_t xQueueGenericSend(
-    QueueHandle_t xQueue, 
-    const void * const pvItemToQueue, 
-    TickType_t xTicksToWait, 
-    const BaseType_t xCopyPosition)
+TickType_t xTaskGetTickCount( void )
 {
-    return pdTRUE; 
+	return 0;
 }
 
 //=======================================================================================
