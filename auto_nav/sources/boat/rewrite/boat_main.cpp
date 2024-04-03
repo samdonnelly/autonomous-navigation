@@ -17,6 +17,8 @@
 
 #include "boat.h" 
 
+#include "ws2812_config.h" 
+
 //=======================================================================================
 
 
@@ -179,6 +181,9 @@ void Boat::MainStandbyState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = CLEAR_BIT; 
+
+        // Update the strobe colour 
+        data.leds.SetStrobeColour(ws2812_led_standby_not_ready); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -206,6 +211,9 @@ void Boat::MainAutoState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = CLEAR_BIT; 
+
+        // Update the LED colours 
+        data.leds.SetStrobeColour(ws2812_led_auto_strobe); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -236,6 +244,11 @@ void Boat::MainManualState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = CLEAR_BIT; 
+
+        // Update the strobe colour 
+        data.leds.SetStrobeColour(ws2812_led_manual_strobe); 
+        // data.leds.SetLEDsColour((SET_3 << WS2812_LED_6), ws2812_led_auto_port); 
+        // data.leds.SetLEDsColour((SET_3 << WS2812_LED_0), ws2812_led_auto_star); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -255,6 +268,10 @@ void Boat::MainManualState(Boat& data, Event event)
         data.main_flags.state_exit = CLEAR_BIT; 
         data.main_flags.state_entry = SET_BIT; 
         data.main_flags.manual_state = CLEAR_BIT; 
+
+        // Turn port and starbird LEDs off 
+        // data.leds.SetLEDsColour((SET_3 << WS2812_LED_6), ws2812_led_off); 
+        // data.leds.SetLEDsColour((SET_3 << WS2812_LED_0), ws2812_led_off); 
     }
 }
 
@@ -266,6 +283,9 @@ void Boat::MainLowPwrState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = CLEAR_BIT; 
+
+        // Update the strobe colour 
+        data.leds.SetStrobeColour(ws2812_led_low_pwr); 
     }
 
     data.main_event = (MainEvents)event; 

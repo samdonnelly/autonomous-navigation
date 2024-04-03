@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief 
+ * @brief Boat communication thread 
  * 
  * @version 0.1
  * @date 2024-04-01
@@ -31,6 +31,7 @@ void Boat::BoatCommsDispatch(Event event)
     switch (boat.comms_event)
     {
         case CommsEvents::LED_STROBE: 
+            boat.leds.Strobe(); 
             break; 
 
         default: 

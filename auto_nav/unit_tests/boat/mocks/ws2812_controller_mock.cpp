@@ -41,7 +41,7 @@ WS2812_Controller::WS2812_Controller(
 
 
 // Set LED to the specified colour 
-void SetLEDColour(
+void WS2812_Controller::SetLEDColour(
     ws2812_led_index_t led_num, 
     uint32_t led_colour)
 {
@@ -50,7 +50,7 @@ void SetLEDColour(
 
 
 // Set LEDs to the specified colour 
-void SetLEDsColour(
+void WS2812_Controller::SetLEDsColour(
     uint8_t led_nums, 
     uint32_t led_colour)
 {
@@ -59,21 +59,21 @@ void SetLEDsColour(
 
 
 // Set strobe colour 
-void SetStrobeColour(uint32_t led_colour)
+void WS2812_Controller::SetStrobeColour(uint32_t led_colour)
 {
     // 
 }
 
 
 // Strobe control 
-void Strobe(void)
+void WS2812_Controller::Strobe(void)
 {
     // 
 }
 
 
 // Turns strobe light off 
-void StrobeOff(void)
+void WS2812_Controller::StrobeOff(void)
 {
     // 
 }

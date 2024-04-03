@@ -33,19 +33,25 @@ extern "C" {
 // LED off 
 extern const uint32_t ws2812_led_off; 
 
+extern const uint32_t ws2812_led_standby_not_ready; 
+extern const uint32_t ws2812_led_standby_ready; 
+
 // Autonomous state 
 extern const uint32_t ws2812_led_auto_star;       // Starbird side indicator 
 extern const uint32_t ws2812_led_auto_port;       // Port side indicator 
 extern const uint32_t ws2812_led_auto_strobe;     // Strobe light 
 
 // Manual control state 
-extern const uint32_t ws2812_led_manual_strobe;   // Strobe light 
+extern const uint32_t ws2812_led_manual_strobe; 
+
+// Low power state 
+extern const uint32_t ws2812_led_low_pwr; 
 
 // Not ready state 
-extern const uint32_t ws2812_led_not_ready;       // Not ready indicator 
+extern const uint32_t ws2812_led_not_ready; 
 
 // Ready state 
-extern const uint32_t ws2812_led_ready;           // Ready indicator 
+extern const uint32_t ws2812_led_ready; 
 
 //=======================================================================================
 
