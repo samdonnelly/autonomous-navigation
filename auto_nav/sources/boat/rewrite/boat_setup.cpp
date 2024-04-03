@@ -394,7 +394,7 @@ void Boat::BoatSetup(void)
     //==================================================
 
     //==================================================
-    // Threads 
+    // RTOS info 
 
     // Thread definition 
     main_event_info = 
@@ -434,13 +434,16 @@ void Boat::BoatSetup(void)
     osThreadNew(eventLoop, (void *)&comms_event_info, &comms_event_info.attr); 
     // Check that the thread creation worked 
 
-    // Software timers 
+    // Software timers (within the software timers thread) 
     periodic_timer_100ms = xTimerCreate(
         "100ms",                        // Name of timer 
         PERIODIC_TIMER_100MS_PERIOD,    // Period of timer (ticks) 
         pdTRUE,                         // Auto-relead --> pdTRUE == Repeat Timer 
         (void *)0,                      // Timer ID 
         TimerCallback100ms);            // Callback function 
+
+    // Create mutex 
+    comms_mutex = xSemaphoreCreateMutex(); 
 
     //==================================================
 

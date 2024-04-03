@@ -183,7 +183,9 @@ void Boat::MainStandbyState(Boat& data, Event event)
         data.main_flags.state_entry = CLEAR_BIT; 
 
         // Update the strobe colour 
+        xSemaphoreTake(data.comms_mutex, portMAX_DELAY); 
         data.leds.SetStrobeColour(ws2812_led_standby_not_ready); 
+        xSemaphoreGive(data.comms_mutex); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -200,6 +202,10 @@ void Boat::MainStandbyState(Boat& data, Event event)
         data.main_flags.state_exit = CLEAR_BIT; 
         data.main_flags.state_entry = SET_BIT; 
         data.main_flags.standby_state = CLEAR_BIT; 
+
+        xSemaphoreTake(data.comms_mutex, portMAX_DELAY); 
+        data.leds.SetStrobeColour(ws2812_led_off); 
+        xSemaphoreGive(data.comms_mutex); 
     }
 }
 
@@ -212,8 +218,15 @@ void Boat::MainAutoState(Boat& data, Event event)
     {
         data.main_flags.state_entry = CLEAR_BIT; 
 
-        // Update the LED colours 
+        xSemaphoreTake(data.comms_mutex, portMAX_DELAY); 
+        // Update LED colour 
         data.leds.SetStrobeColour(ws2812_led_auto_strobe); 
+        data.leds.SetLEDsColour((SET_3 << WS2812_LED_6), ws2812_led_auto_port); 
+        data.leds.SetLEDsColour((SET_3 << WS2812_LED_0), ws2812_led_auto_star); 
+        xSemaphoreGive(data.comms_mutex); 
+
+        // Queue an LED write event 
+        data.CommsEventQueue((Event)CommsEvents::LED_WRITE); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -233,6 +246,15 @@ void Boat::MainAutoState(Boat& data, Event event)
         data.main_flags.state_exit = CLEAR_BIT; 
         data.main_flags.state_entry = SET_BIT; 
         data.main_flags.auto_state = CLEAR_BIT; 
+
+        xSemaphoreTake(data.comms_mutex, portMAX_DELAY); 
+        data.leds.SetStrobeColour(ws2812_led_off); 
+        data.leds.SetLEDsColour((SET_3 << WS2812_LED_6), ws2812_led_off); 
+        data.leds.SetLEDsColour((SET_3 << WS2812_LED_0), ws2812_led_off); 
+        xSemaphoreGive(data.comms_mutex); 
+
+        // Queue an LED write event 
+        data.CommsEventQueue((Event)CommsEvents::LED_WRITE); 
     }
 }
 
@@ -246,9 +268,9 @@ void Boat::MainManualState(Boat& data, Event event)
         data.main_flags.state_entry = CLEAR_BIT; 
 
         // Update the strobe colour 
+        xSemaphoreTake(data.comms_mutex, portMAX_DELAY); 
         data.leds.SetStrobeColour(ws2812_led_manual_strobe); 
-        // data.leds.SetLEDsColour((SET_3 << WS2812_LED_6), ws2812_led_auto_port); 
-        // data.leds.SetLEDsColour((SET_3 << WS2812_LED_0), ws2812_led_auto_star); 
+        xSemaphoreGive(data.comms_mutex); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -269,9 +291,9 @@ void Boat::MainManualState(Boat& data, Event event)
         data.main_flags.state_entry = SET_BIT; 
         data.main_flags.manual_state = CLEAR_BIT; 
 
-        // Turn port and starbird LEDs off 
-        // data.leds.SetLEDsColour((SET_3 << WS2812_LED_6), ws2812_led_off); 
-        // data.leds.SetLEDsColour((SET_3 << WS2812_LED_0), ws2812_led_off); 
+        xSemaphoreTake(data.comms_mutex, portMAX_DELAY); 
+        data.leds.SetStrobeColour(ws2812_led_off); 
+        xSemaphoreGive(data.comms_mutex); 
     }
 }
 
@@ -285,7 +307,9 @@ void Boat::MainLowPwrState(Boat& data, Event event)
         data.main_flags.state_entry = CLEAR_BIT; 
 
         // Update the strobe colour 
+        xSemaphoreTake(data.comms_mutex, portMAX_DELAY); 
         data.leds.SetStrobeColour(ws2812_led_low_pwr); 
+        xSemaphoreGive(data.comms_mutex); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -302,6 +326,10 @@ void Boat::MainLowPwrState(Boat& data, Event event)
         data.main_flags.state_exit = CLEAR_BIT; 
         data.main_flags.state_entry = SET_BIT; 
         data.main_flags.low_pwr_state = CLEAR_BIT; 
+
+        xSemaphoreTake(data.comms_mutex, portMAX_DELAY); 
+        data.leds.SetStrobeColour(ws2812_led_off); 
+        xSemaphoreGive(data.comms_mutex); 
     }
 }
 

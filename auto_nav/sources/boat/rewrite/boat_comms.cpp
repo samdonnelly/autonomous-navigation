@@ -28,15 +28,42 @@ void Boat::BoatCommsDispatch(Event event)
 {
     boat.comms_event = (CommsEvents)event; 
 
+    // General communication thread mutex grab 
+    xSemaphoreTake(boat.comms_mutex, portMAX_DELAY); 
+
     switch (boat.comms_event)
     {
         case CommsEvents::LED_STROBE: 
             boat.leds.Strobe(); 
             break; 
 
+        case CommsEvents::LED_STROBE_OFF: 
+            boat.leds.StrobeOff(); 
+            break; 
+
+        case CommsEvents::LED_WRITE: 
+            boat.leds.LEDWrite(); 
+            break; 
+
         default: 
             break; 
     }
+
+    // General communication thread mutex release 
+    xSemaphoreGive(boat.comms_mutex); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Helper functions 
+
+// Queue an event for the comms thread 
+void Boat::CommsEventQueue(Event event)
+{
+    comms_event_info.event = event; 
+    xQueueSend(comms_event_info.ThreadEventQueue, (void *)&comms_event_info.event, 0); 
 }
 
 //=======================================================================================

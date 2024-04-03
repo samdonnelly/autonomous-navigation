@@ -101,7 +101,7 @@ extern "C" {
 // #include "task.h" 
 #include "cmsis_os2.h" 
 #include "queue.h" 
-// #include "semphr.h" 
+#include "semphr.h" 
 #include "timers.h" 
 
 // Modules 
@@ -189,7 +189,9 @@ private:   // Private members
     // Events 
     enum class CommsEvents : uint8_t {
         NO_EVENT, 
-        LED_STROBE 
+        LED_STROBE, 
+        LED_STROBE_OFF, 
+        LED_WRITE 
     } comms_event; 
 
     //==================================================
@@ -198,6 +200,14 @@ private:   // Private members
     // Software timers thread 
 
     TimerHandle_t periodic_timer_100ms; 
+
+    //==================================================
+
+    //==================================================
+    // Thread synchronization 
+
+    // General communication thread mutex 
+    SemaphoreHandle_t comms_mutex; 
 
     //==================================================
 
@@ -251,6 +261,9 @@ private:   // Private member functions
 
     // Dispatch function 
     static void BoatCommsDispatch(Event event); 
+
+    // Helper functions 
+    void CommsEventQueue(Event event); 
 
     //==================================================
 
