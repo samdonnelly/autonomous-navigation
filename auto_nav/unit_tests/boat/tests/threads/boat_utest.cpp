@@ -326,3 +326,38 @@ void BoatUTest::SetMainNoEvent(void)
 //==================================================
 
 //=======================================================================================
+
+
+//=======================================================================================
+// Comms thread 
+
+//==================================================
+// Event type getters 
+
+// Get NO_EVENT value 
+uint8_t BoatUTest::GetCommsNoEventType(void)
+{
+    return (uint8_t)Boat::CommsEvents::NO_EVENT; 
+}
+
+// Get LED_STROBE value 
+uint8_t BoatUTest::GetCommsLEDStrobeEventType(void)
+{
+    return (uint8_t)Boat::CommsEvents::LED_STROBE; 
+}
+
+// Get LED_STROBE_OFF value 
+uint8_t BoatUTest::GetCommsLEDStrobeOffEventType(void)
+{
+    return (uint8_t)Boat::CommsEvents::LED_STROBE_OFF; 
+}
+
+// Get LED_WRITE value 
+uint8_t BoatUTest::GetCommsLEDWriteEventType(void)
+{
+    return (uint8_t)Boat::CommsEvents::LED_WRITE; 
+}
+
+//==================================================
+
+//=======================================================================================

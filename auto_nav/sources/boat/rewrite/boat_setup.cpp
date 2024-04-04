@@ -427,7 +427,6 @@ void Boat::BoatSetup(void)
         .ThreadEventQueue = xQueueCreate(COMMS_QUEUE_LEN, sizeof(uint32_t)), 
         .dispatch = BoatCommsDispatch 
     }; 
-    // Check that the queues were created successfully 
 
     // Create the thread(s) 
     osThreadNew(eventLoop, (void *)&main_event_info, &main_event_info.attr); 

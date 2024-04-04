@@ -40,6 +40,13 @@ WS2812_Controller::WS2812_Controller(
 }
 
 
+// Set strobe colour 
+void WS2812_Controller::SetStrobeColour(uint32_t led_colour)
+{
+    // 
+}
+
+
 // Set LED to the specified colour 
 void WS2812_Controller::SetLEDColour(
     ws2812_led_index_t led_num, 
@@ -58,13 +65,6 @@ void WS2812_Controller::SetLEDsColour(
 }
 
 
-// Set strobe colour 
-void WS2812_Controller::SetStrobeColour(uint32_t led_colour)
-{
-    // 
-}
-
-
 // Strobe control 
 void WS2812_Controller::Strobe(void)
 {
@@ -74,6 +74,13 @@ void WS2812_Controller::Strobe(void)
 
 // Turns strobe light off 
 void WS2812_Controller::StrobeOff(void)
+{
+    // 
+}
+
+
+// Write the current values to the device 
+void WS2812_Controller::LEDWrite(void)
 {
     // 
 }

@@ -103,6 +103,17 @@ public:
         
     //==================================================
 
+    //==================================================
+    // Comms thread 
+
+    // Event type getters 
+    uint8_t GetCommsNoEventType(void); 
+    uint8_t GetCommsLEDStrobeEventType(void); 
+    uint8_t GetCommsLEDStrobeOffEventType(void); 
+    uint8_t GetCommsLEDWriteEventType(void); 
+
+    //==================================================
+
     // Constructor 
     BoatUTest() {} 
 

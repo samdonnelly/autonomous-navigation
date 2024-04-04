@@ -27,6 +27,7 @@
 extern "C"
 {
 	// Add your C-only include files here 
+    #include "queue_mock.h" 
 }
 
 //=======================================================================================
@@ -50,6 +51,7 @@ TEST_GROUP(boat_main_test)
     {
         boat_utest.ClearMainStateFlags(boat); 
         boat_utest.SetMainNoEvent(); 
+        QueueMockInit(); 
     }
 
     // Destructor 
@@ -282,14 +284,14 @@ TEST(boat_main_test, state_machine_reset_state)
 
 
 //=======================================================================================
-// State test 
+// State entry/exit test 
 
 // These tests test the entry and exit of each state in the main thread. They do not test 
 // how and why a state enters or exits. They all run with a "NO_EVENT" event so nothing 
 // else takes place. 
 
 // State: Init 
-TEST(boat_main_test, state_init_state)
+TEST(boat_main_test, state_enter_exit_init_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -307,7 +309,7 @@ TEST(boat_main_test, state_init_state)
 
 
 // State: Standby 
-TEST(boat_main_test, state_standby_state)
+TEST(boat_main_test, state_enter_exit_standby_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -321,11 +323,14 @@ TEST(boat_main_test, state_standby_state)
     boat_utest.MainStandbyStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
+
+    // Check queue was filled correctly 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetCommsLEDStrobeOffEventType(), QueueMockGetNextEvent()); 
 }
 
 
 // State: Auto 
-TEST(boat_main_test, state_auto_state)
+TEST(boat_main_test, state_enter_exit_auto_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -339,11 +344,16 @@ TEST(boat_main_test, state_auto_state)
     boat_utest.MainAutoStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
+
+    // Check queue was filled correctly 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetCommsLEDWriteEventType(), QueueMockGetNextEvent()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetCommsLEDStrobeOffEventType(), QueueMockGetNextEvent()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetCommsLEDWriteEventType(), QueueMockGetNextEvent()); 
 }
 
 
 // State: Manual 
-TEST(boat_main_test, state_manual_state)
+TEST(boat_main_test, state_enter_exit_manual_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -357,11 +367,14 @@ TEST(boat_main_test, state_manual_state)
     boat_utest.MainManualStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainManualStateFlag(boat)); 
+
+    // Check queue was filled correctly 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetCommsLEDStrobeOffEventType(), QueueMockGetNextEvent()); 
 }
 
 
 // State: Low Power 
-TEST(boat_main_test, state_low_pwr_state)
+TEST(boat_main_test, state_enter_exit_low_pwr_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -375,11 +388,14 @@ TEST(boat_main_test, state_low_pwr_state)
     boat_utest.MainLowPwrStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainLowPwrStateFlag(boat)); 
+
+    // Check queue was filled correctly 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetCommsLEDStrobeOffEventType(), QueueMockGetNextEvent()); 
 }
 
 
 // State: Fault 
-TEST(boat_main_test, state_fault_state)
+TEST(boat_main_test, state_enter_exit_fault_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -397,7 +413,7 @@ TEST(boat_main_test, state_fault_state)
 
 
 // State: Reset 
-TEST(boat_main_test, state_reset_state)
+TEST(boat_main_test, state_enter_exit_reset_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -411,6 +427,63 @@ TEST(boat_main_test, state_reset_state)
     boat_utest.MainResetStateWrapper(boat); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainResetStateFlag(boat)); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// State event test 
+
+// These tests test the events available in each state of the main thread. They do not 
+// test how and why state event is requested. 
+
+// State: Init 
+TEST(boat_main_test, state_events_init_state)
+{
+    // 
+}
+
+
+// State: Standby 
+TEST(boat_main_test, state_events_standby_state)
+{
+    // 
+}
+
+
+// State: Auto 
+TEST(boat_main_test, state_events_auto_state)
+{
+    // 
+}
+
+
+// State: Manual 
+TEST(boat_main_test, state_events_manual_state)
+{
+    // 
+}
+
+
+// State: Low Power 
+TEST(boat_main_test, state_events_low_pwr_state)
+{
+    // 
+}
+
+
+// State: Fault 
+TEST(boat_main_test, state_events_fault_state)
+{
+    // 
+}
+
+
+// State: Reset 
+TEST(boat_main_test, state_events_reset_state)
+{
+    // 
 }
 
 //=======================================================================================

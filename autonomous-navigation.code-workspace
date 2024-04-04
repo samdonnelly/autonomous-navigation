@@ -45,7 +45,8 @@
 			"active_object_framework.h": "c",
 			"ws2812_driver.h": "c",
 			"portmacro.h": "c",
-			"timers.h": "c"
+			"timers.h": "c",
+			"numeric": "cpp"
 		}
 	},
 	"launch": {

@@ -251,6 +251,22 @@ private:   // Private member functions
         &MainResetState 
     }; 
 
+    // State entry/exit functions 
+    void MainInitStateEntry(void); 
+    void MainInitStateExit(void); 
+    void MainStandbyStateEntry(void); 
+    void MainStandbyStateExit(void); 
+    void MainAutoStateEntry(void); 
+    void MainAutoStateExit(void); 
+    void MainManualStateEntry(void); 
+    void MainManualStateExit(void); 
+    void MainLowPwrStateEntry(void); 
+    void MainLowPwrStateExit(void); 
+    void MainFaultStateEntry(void); 
+    void MainFaultStateExit(void); 
+    void MainResetStateEntry(void); 
+    void MainResetStateExit(void); 
+
     // Helper functions 
     void MainEventQueue(Event event); 
 
@@ -272,6 +288,17 @@ private:   // Private member functions
 
     // Callback function(s) 
     static void TimerCallback100ms(TimerHandle_t xTimer); 
+
+    //==================================================
+
+    //==================================================
+    // Modules 
+
+    void BoatStrobeUpdate(uint32_t led_colour); 
+    void BoatStrobeOff(void); 
+    void BoatLEDUpdate(
+        uint32_t starbird_led_colour, 
+        uint32_t port_led_colour); 
 
     //==================================================
 
