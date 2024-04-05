@@ -79,7 +79,7 @@ TEST_GROUP(boat_main_test)
 // set. 
 
 // State machine: Init state 
-TEST(boat_main_test, state_machine_init_state)
+TEST(boat_main_test, boat_main_state_machine_init_state)
 {
     // Check init state 
     boat_utest.SetMainInitState(boat); 
@@ -104,7 +104,7 @@ TEST(boat_main_test, state_machine_init_state)
 
 
 // State machine: Standby state 
-TEST(boat_main_test, state_machine_standby_state)
+TEST(boat_main_test, boat_main_state_machine_standby_state)
 {
     // Check standby state 
     boat_utest.SetMainStandbyState(boat); 
@@ -143,7 +143,7 @@ TEST(boat_main_test, state_machine_standby_state)
 
 
 // State machine: Auto state 
-TEST(boat_main_test, state_machine_auto_state)
+TEST(boat_main_test, boat_main_state_machine_auto_state)
 {
     // Check auto state 
     boat_utest.SetMainAutoState(boat); 
@@ -182,7 +182,7 @@ TEST(boat_main_test, state_machine_auto_state)
 
 
 // State machine: Manual state 
-TEST(boat_main_test, state_machine_manual_state)
+TEST(boat_main_test, boat_main_state_machine_manual_state)
 {
     // Check manual state 
     boat_utest.SetMainManualState(boat); 
@@ -221,7 +221,7 @@ TEST(boat_main_test, state_machine_manual_state)
 
 
 // State machine: Low Power state 
-TEST(boat_main_test, state_machine_low_pwr_state)
+TEST(boat_main_test, boat_main_state_machine_low_pwr_state)
 {
     // Check low power state 
     boat_utest.SetMainLowPwrState(boat); 
@@ -246,7 +246,7 @@ TEST(boat_main_test, state_machine_low_pwr_state)
 
 
 // State machine: Fault state 
-TEST(boat_main_test, state_machine_fault_state)
+TEST(boat_main_test, boat_main_state_machine_fault_state)
 {
     // Check fault state 
     boat_utest.SetMainFaultState(boat); 
@@ -264,7 +264,7 @@ TEST(boat_main_test, state_machine_fault_state)
 
 
 // State machine: Reset state 
-TEST(boat_main_test, state_machine_reset_state)
+TEST(boat_main_test, boat_main_state_machine_reset_state)
 {
     // Check reset state 
     boat_utest.SetMainResetState(boat); 
@@ -291,7 +291,7 @@ TEST(boat_main_test, state_machine_reset_state)
 // else takes place. 
 
 // State: Init 
-TEST(boat_main_test, state_enter_exit_init_state)
+TEST(boat_main_test, boat_main_state_enter_exit_init_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -309,7 +309,7 @@ TEST(boat_main_test, state_enter_exit_init_state)
 
 
 // State: Standby 
-TEST(boat_main_test, state_enter_exit_standby_state)
+TEST(boat_main_test, boat_main_state_enter_exit_standby_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -330,7 +330,7 @@ TEST(boat_main_test, state_enter_exit_standby_state)
 
 
 // State: Auto 
-TEST(boat_main_test, state_enter_exit_auto_state)
+TEST(boat_main_test, boat_main_state_enter_exit_auto_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -353,7 +353,7 @@ TEST(boat_main_test, state_enter_exit_auto_state)
 
 
 // State: Manual 
-TEST(boat_main_test, state_enter_exit_manual_state)
+TEST(boat_main_test, boat_main_state_enter_exit_manual_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -374,7 +374,7 @@ TEST(boat_main_test, state_enter_exit_manual_state)
 
 
 // State: Low Power 
-TEST(boat_main_test, state_enter_exit_low_pwr_state)
+TEST(boat_main_test, boat_main_state_enter_exit_low_pwr_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -395,7 +395,7 @@ TEST(boat_main_test, state_enter_exit_low_pwr_state)
 
 
 // State: Fault 
-TEST(boat_main_test, state_enter_exit_fault_state)
+TEST(boat_main_test, boat_main_state_enter_exit_fault_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -413,7 +413,7 @@ TEST(boat_main_test, state_enter_exit_fault_state)
 
 
 // State: Reset 
-TEST(boat_main_test, state_enter_exit_reset_state)
+TEST(boat_main_test, boat_main_state_enter_exit_reset_state)
 {
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
@@ -439,49 +439,49 @@ TEST(boat_main_test, state_enter_exit_reset_state)
 // test how and why state event is requested. 
 
 // State: Init 
-TEST(boat_main_test, state_events_init_state)
+TEST(boat_main_test, boat_main_state_events_init_state)
 {
     // 
 }
 
 
 // State: Standby 
-TEST(boat_main_test, state_events_standby_state)
+TEST(boat_main_test, boat_main_state_events_standby_state)
 {
     // 
 }
 
 
 // State: Auto 
-TEST(boat_main_test, state_events_auto_state)
+TEST(boat_main_test, boat_main_state_events_auto_state)
 {
     // 
 }
 
 
 // State: Manual 
-TEST(boat_main_test, state_events_manual_state)
+TEST(boat_main_test, boat_main_state_events_manual_state)
 {
     // 
 }
 
 
 // State: Low Power 
-TEST(boat_main_test, state_events_low_pwr_state)
+TEST(boat_main_test, boat_main_state_events_low_pwr_state)
 {
     // 
 }
 
 
 // State: Fault 
-TEST(boat_main_test, state_events_fault_state)
+TEST(boat_main_test, boat_main_state_events_fault_state)
 {
     // 
 }
 
 
 // State: Reset 
-TEST(boat_main_test, state_events_reset_state)
+TEST(boat_main_test, boat_main_state_events_reset_state)
 {
     // 
 }
