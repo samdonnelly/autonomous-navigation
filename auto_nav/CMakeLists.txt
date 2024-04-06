@@ -52,6 +52,8 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/headers
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite/modules
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite/threads
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/system
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/modes
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files
@@ -99,6 +101,10 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/modules/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/modules/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/threads/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/threads/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/system/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/system/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modes/*.c

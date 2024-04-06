@@ -376,7 +376,7 @@ void Boat::MainInitStateExit(void)
 // Standby state entry 
 void Boat::MainStandbyStateEntry(void)
 {
-    BoatStrobeUpdate(ws2812_led_standby_not_ready); 
+    LEDStrobeUpdate(ws2812_led_standby_not_ready); 
     // If there is a position lock then light up an LED 
 }
 
@@ -384,7 +384,7 @@ void Boat::MainStandbyStateEntry(void)
 // Standby state exit 
 void Boat::MainStandbyStateExit(void)
 {
-    BoatStrobeOff(); 
+    LEDStrobeOff(); 
     // Turn off the position lock LED 
 }
 
@@ -392,44 +392,44 @@ void Boat::MainStandbyStateExit(void)
 // Auto state entry 
 void Boat::MainAutoStateEntry(void)
 {
-    BoatStrobeUpdate(ws2812_led_auto_strobe); 
-    BoatLEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
+    LEDStrobeUpdate(ws2812_led_auto_strobe); 
+    LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
 }
 
 
 // Auto state exit 
 void Boat::MainAutoStateExit(void)
 {
-    BoatStrobeOff(); 
-    BoatLEDUpdate(ws2812_led_off, ws2812_led_off); 
+    LEDStrobeOff(); 
+    LEDUpdate(ws2812_led_off, ws2812_led_off); 
 }
 
 
 // Manual state entry 
 void Boat::MainManualStateEntry(void)
 {
-    BoatStrobeUpdate(ws2812_led_manual_strobe); 
+    LEDStrobeUpdate(ws2812_led_manual_strobe); 
 }
 
 
 // Manual state exit 
 void Boat::MainManualStateExit(void)
 {
-    BoatStrobeOff(); 
+    LEDStrobeOff(); 
 }
 
 
 // Low power state entry 
 void Boat::MainLowPwrStateEntry(void)
 {
-    BoatStrobeUpdate(ws2812_led_low_pwr); 
+    LEDStrobeUpdate(ws2812_led_low_pwr); 
 }
 
 
 // Low power state exit 
 void Boat::MainLowPwrStateExit(void)
 {
-    BoatStrobeOff(); 
+    LEDStrobeOff(); 
 }
 
 
@@ -473,44 +473,6 @@ void Boat::MainEventQueue(Event event)
 {
     main_event_info.event = event; 
     xQueueSend(main_event_info.ThreadEventQueue, (void *)&main_event_info.event, 0); 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Module functions 
-
-// Update the colour of the boat strobe light 
-void Boat::BoatStrobeUpdate(uint32_t led_colour)
-{
-    // Update the strobe colour 
-    xSemaphoreTake(comms_mutex, portMAX_DELAY); 
-    leds.SetStrobeColour(led_colour); 
-    xSemaphoreGive(comms_mutex); 
-}
-
-
-// Turn the boat strobe light off 
-void Boat::BoatStrobeOff(void)
-{
-    // Set the strobe colour to off and queue an update event 
-    BoatStrobeUpdate(ws2812_led_off); 
-    CommsEventQueue((Event)CommsEvents::LED_STROBE_OFF); 
-}
-
-
-// Update the colour of the startbird and port LEDs 
-void Boat::BoatLEDUpdate(
-    uint32_t starbird_led_colour, 
-    uint32_t port_led_colour)
-{
-    // Update the port/starboard LED colours 
-    xSemaphoreTake(comms_mutex, portMAX_DELAY); 
-    leds.SetLEDsColour((SET_3 << WS2812_LED_0), starbird_led_colour); 
-    leds.SetLEDsColour((SET_3 << WS2812_LED_6), port_led_colour); 
-    xSemaphoreGive(comms_mutex); 
-    CommsEventQueue((Event)CommsEvents::LED_WRITE); 
 }
 
 //=======================================================================================

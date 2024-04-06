@@ -292,11 +292,11 @@ private:   // Private member functions
     //==================================================
 
     //==================================================
-    // Modules 
+    // LED module 
 
-    void BoatStrobeUpdate(uint32_t led_colour); 
-    void BoatStrobeOff(void); 
-    void BoatLEDUpdate(
+    void LEDStrobeUpdate(uint32_t led_colour); 
+    void LEDStrobeOff(void); 
+    void LEDUpdate(
         uint32_t starbird_led_colour, 
         uint32_t port_led_colour); 
 
