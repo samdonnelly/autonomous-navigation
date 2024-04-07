@@ -155,7 +155,7 @@ private:   // Private members
     // Events 
     enum class MainEvents : uint8_t {
         NO_EVENT, 
-        STATE_CHANGE, 
+        INIT, 
         NAV_CALCS, 
         REMOTE_CONTROL 
     } main_event; 
@@ -269,6 +269,7 @@ private:   // Private member functions
 
     // Helper functions 
     void MainEventQueue(Event event); 
+    void MainStateChange(void); 
 
     //==================================================
 

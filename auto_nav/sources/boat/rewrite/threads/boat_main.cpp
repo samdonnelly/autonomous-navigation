@@ -154,8 +154,8 @@ void Boat::MainInitState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::STATE_CHANGE: 
-            data.main_flags.state_exit = SET_BIT; 
+        case MainEvents::INIT: 
+            data.MainStateChange(); 
             break; 
 
         default: 
@@ -473,6 +473,14 @@ void Boat::MainEventQueue(Event event)
 {
     main_event_info.event = event; 
     xQueueSend(main_event_info.ThreadEventQueue, (void *)&main_event_info.event, 0); 
+}
+
+
+// Main thread state change 
+void Boat::MainStateChange(void)
+{
+    main_flags.state_exit = SET_BIT; 
+    MainEventQueue((Event)MainEvents::NO_EVENT); 
 }
 
 //=======================================================================================

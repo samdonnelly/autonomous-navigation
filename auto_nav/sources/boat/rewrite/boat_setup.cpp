@@ -444,6 +444,9 @@ void Boat::BoatSetup(void)
     // Create mutex 
     comms_mutex = xSemaphoreCreateMutex(); 
 
+    // Queue the first event to start the system 
+    MainEventQueue((Event)MainEvents::INIT); 
+
     //==================================================
 
     //==================================================
