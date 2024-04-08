@@ -191,7 +191,8 @@ private:   // Private members
         NO_EVENT, 
         LED_STROBE, 
         LED_STROBE_OFF, 
-        LED_WRITE 
+        LED_WRITE, 
+        RADIO_CHECK 
     } comms_event; 
 
     //==================================================
