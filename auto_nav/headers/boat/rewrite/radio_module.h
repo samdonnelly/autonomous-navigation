@@ -20,6 +20,9 @@
 
 #include "includes_drivers.h" 
 
+#include <string> 
+#include <unordered_map> 
+
 //=======================================================================================
 
 
@@ -34,12 +37,38 @@
 //=======================================================================================
 // Structs 
 
-// Ground station commands 
+// Resources: 
+// - https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key 
+// - https://en.cppreference.com/w/cpp/utility/hash 
+
+// Command identification 
+template <class C> 
+struct RadioCmdData_test 
+{
+    const std::string cmd[MAX_RADIO_CMD_SIZE]; 
+    void (*cmd_func_ptr)(C&, uint8_t); 
+    uint8_t cmd_enable; 
+}; 
+
+
+// Hash function 
+template<class C> 
+struct std::hash<RadioCmdData_test<C>>
+{
+    size_t operator()(const RadioCmdData_test<C>& cmd_data)
+    {
+        return std::hash<std::string>()(cmd_data.cmd); 
+    }
+}; 
+
+
+// Command identification 
 template <class C> 
 struct RadioCmdData 
 {
     const char cmd[MAX_RADIO_CMD_SIZE]; 
     void (*cmd_func_ptr)(C&, uint8_t); 
+    uint8_t cmd_enable; 
 }; 
 
 //=======================================================================================
@@ -53,9 +82,8 @@ class RadioModule
 private:   // Private members 
     
     uint8_t num_commands; 
-    uint16_t command_mask; 
 
-public:   // Public members 
+protected:   // Protected members 
 
     // Payload data 
     uint8_t cmd_id[MAX_RADIO_CMD_SIZE];         // Stores the ID of the external command 
@@ -69,19 +97,16 @@ private:   // Private member functions
 public:   // Public member functions 
 
     // Constructor(s) 
-    RadioModule() {} 
+    RadioModule(uint8_t num_cmds) 
+        : num_commands(num_cmds) {} 
 
     // Destructor 
     ~RadioModule() {} 
-
-    // Set command mask 
-    void SetCmdMask(uint16_t mask); 
 
     // Command check 
     template <class C> 
     uint8_t CmdCheck(
         uint8_t *cmd_buff, 
-        uint8_t state, 
         RadioCmdData<C>& cmd_table, 
         C& vehicle); 
 }; 

@@ -23,18 +23,10 @@
 //=======================================================================================
 // Radio communication 
 
-// Set command mask 
-void RadioModule::SetCmdMask(uint16_t mask)
-{
-    command_mask = mask; 
-}
-
-
 // Command check 
 template <class C> 
 uint8_t RadioModule::CmdCheck(
     uint8_t *cmd_buff, 
-    uint8_t state, 
     RadioCmdData<C>& cmd_table, 
     C& vehicle)
 {
@@ -51,7 +43,7 @@ uint8_t RadioModule::CmdCheck(
         {
             // Check that the command is available for the state before comparing it 
             // against the ID. 
-            if (command_mask & (SET_BIT << state))
+            if (cmd_table[i].cmd_enable)
             {
                 // Command available. Compare with the ID. 
                 if (str_compare(cmd_table[i].cmd, (char *)cmd_id, BYTE_0)) 
