@@ -52,8 +52,6 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/headers
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite
-    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite/modules
-    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite/threads
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/system
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/modes
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files

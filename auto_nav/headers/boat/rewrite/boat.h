@@ -15,10 +15,6 @@
 #ifndef _BOAT_H_
 #define _BOAT_H_ 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 //=======================================================================================
 // Notes 
 // - Features: (top level - what the user can see/do) 
@@ -92,6 +88,7 @@ extern "C" {
 //=======================================================================================
 // Includes 
 
+// System 
 #include "includes_drivers.h" 
 #include "includes_cpp_drivers.h" 
 #include "stm32f4xx_it.h" 
@@ -105,7 +102,7 @@ extern "C" {
 #include "timers.h" 
 
 // Modules 
-#include "ws2812_controller.h" 
+#include "boat_radio.h" 
 
 // Testing 
 #include "boat_utest.h" 
@@ -116,7 +113,6 @@ extern "C" {
 //=======================================================================================
 // Macros 
 
-// Data 
 #define BOAT_ADC_BUFF_SIZE 3   // Number of ADCs used 
 
 //=======================================================================================
@@ -127,7 +123,10 @@ extern "C" {
 
 class Boat 
 {
-public: 
+public:   // Friends 
+
+    // Modules 
+    friend class BoatRadio; 
 
     // For unit testing only. Do not use anywhere else. 
     friend class BoatUTest; 
@@ -216,7 +215,10 @@ private:   // Private members
     // System data 
 
     uint16_t adc_buff[BOAT_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
+
+    // Devices 
     WS2812_Controller leds; 
+    BoatRadio radio; 
     
     //==================================================
 
@@ -319,9 +321,5 @@ public:   // Public member functions
 extern Boat boat; 
 
 //=======================================================================================
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif   // _BOAT_H_ 
