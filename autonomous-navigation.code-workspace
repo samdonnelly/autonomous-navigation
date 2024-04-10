@@ -94,7 +94,12 @@
 			"thread": "cpp",
 			"cfenv": "cpp",
 			"cinttypes": "cpp",
-			"variant": "cpp"
+			"variant": "cpp",
+			"chrono": "cpp",
+			"ctime": "cpp",
+			"ratio": "cpp",
+			"semaphore": "cpp",
+			"sstream": "cpp"
 		}
 	},
 	"launch": {

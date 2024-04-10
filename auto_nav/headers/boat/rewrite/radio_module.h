@@ -20,6 +20,7 @@
 
 #include "includes_drivers.h" 
 
+// Standard library 
 #include <string> 
 #include <unordered_map> 
 
@@ -37,36 +38,10 @@
 //=======================================================================================
 // Structs 
 
-// Resources: 
-// - https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key 
-// - https://en.cppreference.com/w/cpp/utility/hash 
-
-// Command identification 
-template <class C> 
-struct RadioCmdData_test 
-{
-    const std::string cmd[MAX_RADIO_CMD_SIZE]; 
-    void (*cmd_func_ptr)(C&, uint8_t); 
-    uint8_t cmd_enable; 
-}; 
-
-
-// Hash function 
-template<class C> 
-struct std::hash<RadioCmdData_test<C>>
-{
-    size_t operator()(const RadioCmdData_test<C>& cmd_data)
-    {
-        return std::hash<std::string>()(cmd_data.cmd); 
-    }
-}; 
-
-
-// Command identification 
+// Command control 
 template <class C> 
 struct RadioCmdData 
 {
-    const char cmd[MAX_RADIO_CMD_SIZE]; 
     void (*cmd_func_ptr)(C&, uint8_t); 
     uint8_t cmd_enable; 
 }; 
@@ -77,6 +52,10 @@ struct RadioCmdData
 //=======================================================================================
 // Classes 
 
+// Forward declare classes that will use the radio module 
+class Boat; 
+
+// Radio base class 
 class RadioModule 
 {
 private:   // Private members 
@@ -92,7 +71,16 @@ protected:   // Protected members
 private:   // Private member functions 
 
     // Command parse into ID and value 
-    uint8_t CmdParse(uint8_t *cmd_buff); 
+    uint8_t CommandParse(uint8_t *cmd_buff); 
+
+protected:   // Protected member functions 
+
+    // Command check 
+    template <class C> 
+    uint8_t CommandLookUp(
+        uint8_t *cmd_buff, 
+        std::unordered_map<std::string, RadioCmdData<C>>& cmd_table, 
+        C& vehicle); 
 
 public:   // Public member functions 
 
@@ -102,13 +90,6 @@ public:   // Public member functions
 
     // Destructor 
     ~RadioModule() {} 
-
-    // Command check 
-    template <class C> 
-    uint8_t CmdCheck(
-        uint8_t *cmd_buff, 
-        RadioCmdData<C>& cmd_table, 
-        C& vehicle); 
 }; 
 
 //=======================================================================================

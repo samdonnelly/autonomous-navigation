@@ -45,7 +45,8 @@ void Boat::BoatCommsDispatch(Event event)
             boat.leds.LEDWrite(); 
             break; 
 
-        case CommsEvents::RADIO_CHECK: 
+        case CommsEvents::RADIO_READ: 
+            boat.radio.CommandRead(boat); 
             break; 
 
         default: 

@@ -30,9 +30,10 @@
 void Boat::TimerCallback100ms(TimerHandle_t xTimer)
 {
     // Update the LED strobe 
-    boat.comms_event_info.event = (Event)CommsEvents::LED_STROBE; 
-    xQueueSend(boat.comms_event_info.ThreadEventQueue, 
-        (void *)&boat.comms_event_info.event, 0); 
+    boat.CommsEventQueue((Event)CommsEvents::LED_STROBE); 
+
+    // Check for radio messages 
+    boat.CommsEventQueue((Event)CommsEvents::RADIO_READ); 
 }
 
 //=======================================================================================

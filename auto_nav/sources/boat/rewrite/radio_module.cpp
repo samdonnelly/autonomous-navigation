@@ -21,13 +21,23 @@
 
 
 //=======================================================================================
+// Instantiate the template for its use cases 
+
+// Boat 
+template uint8_t RadioModule::CommandLookUp(
+    uint8_t*, std::unordered_map<std::string, RadioCmdData<Boat>>&, Boat&); 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Radio communication 
 
 // Command check 
 template <class C> 
-uint8_t RadioModule::CmdCheck(
+uint8_t RadioModule::CommandLookUp(
     uint8_t *cmd_buff, 
-    RadioCmdData<C>& cmd_table, 
+    std::unordered_map<std::string, RadioCmdData<C>>& cmd_table, 
     C& vehicle)
 {
     if (cmd_buff == nullptr)
@@ -35,23 +45,24 @@ uint8_t RadioModule::CmdCheck(
         return FALSE; 
     }
 
-    // Validate the input - parse into an ID and value if valid 
-    if (CmdParse(&cmd_buff[1]))
+    // Parse the received command into an ID and value. 
+    if (CommandParse(cmd_buff))
     {
-        // Valid input - compare the ID to each of the available pre-defined commands 
-        for (uint8_t i = CLEAR; i < num_commands; i++) 
+        // The command is of a valid format. Check if the ID matches one of the available 
+        // vehicle commands. 
+        const auto& command_table = cmd_table; 
+        std::string cmd_id_str = (char *)cmd_id; 
+
+        if (command_table.find(cmd_id_str) != command_table.end())
         {
-            // Check that the command is available for the state before comparing it 
-            // against the ID. 
-            if (cmd_table[i].cmd_enable)
+            // Command exists. Check if the command is enabled. If so then call the 
+            // command callback function. 
+            const RadioCmdData<C>& command_data = command_table.at(cmd_id_str); 
+
+            if (command_data.cmd_enable)
             {
-                // Command available. Compare with the ID. 
-                if (str_compare(cmd_table[i].cmd, (char *)cmd_id, BYTE_0)) 
-                {
-                    // ID matched to a command. Execute the command. 
-                    cmd_table[i].cmd_func_ptr(vehicle, cmd_value); 
-                    return TRUE; 
-                }
+                command_data.cmd_func_ptr(vehicle, cmd_value); 
+                return TRUE; 
             }
         }
     }
@@ -61,7 +72,7 @@ uint8_t RadioModule::CmdCheck(
 
 
 // Command parse into ID and value 
-uint8_t RadioModule::CmdParse(uint8_t *cmd_buff)
+uint8_t RadioModule::CommandParse(uint8_t *cmd_buff)
 {
     uint8_t id_flag = SET_BIT; 
     uint8_t id_index = CLEAR; 

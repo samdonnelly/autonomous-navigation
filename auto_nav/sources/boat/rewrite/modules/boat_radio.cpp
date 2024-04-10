@@ -16,6 +16,24 @@
 // Includes 
 
 #include "boat_radio.h" 
+#include "boat.h" 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Messages 
+
+const std::string 
+boat_radio_ping = "ping",       // 0. Ping (heartbeat) 
+boat_radio_idle = "idle",       // 1. Idle (standby) state 
+boat_radio_auto = "auto",       // 2. Autonomous state 
+boat_radio_manual = "manual",   // 3. Manual (remote) control state 
+boat_radio_index = "index",     // 4. Waypoint index set 
+boat_radio_RP = "RP",           // 5. Right thruster - forward thrust 
+boat_radio_RN = "RN",           // 6. Right thruster - reverse thrust 
+boat_radio_LP = "LP",           // 7. Left thruster - forward thrust 
+boat_radio_LN = "LN";           // 8. Left thruster - reverse thrust 
 
 //=======================================================================================
 
@@ -23,7 +41,8 @@
 //=======================================================================================
 // User functions 
 
-void BoatRadio::CmdRead(void)
+// Command read 
+void BoatRadio::CommandRead(Boat& boat_radio)
 {
     // // Heartbeat check 
     // // Increment the timeout counter periodically until the timeout limit at which 
@@ -55,6 +74,23 @@ void BoatRadio::CmdRead(void)
 
     //     memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
     // }
+
+    // const auto& cmd = command_table; 
+    // if (cmd.find("auto") != cmd.end())
+    // {
+    //     // 
+    // }
+
+    // If new data is available then queue a data check 
+    boat_radio.MainEventQueue((Event)Boat::MainEvents::RADIO_CHECK); 
+}
+
+
+// Command check 
+void BoatRadio::CommandCheck(Boat& boat_radio)
+{
+    // First byte (0th byte) is the message length 
+    CommandLookUp(&read_buff[1], command_table, boat_radio); 
 }
 
 //=======================================================================================
@@ -62,6 +98,15 @@ void BoatRadio::CmdRead(void)
 
 //=======================================================================================
 // Command callbacks 
+
+// Heartbeat command 
+void BoatRadio::HBCmd(
+    Boat& boat_radio, 
+    uint8_t hb_cmd_value)
+{
+    // 
+}
+
 
 // Idle command 
 void BoatRadio::IdleCmd(
@@ -107,15 +152,6 @@ void BoatRadio::ThrottleCmd(
     // 
 }
 
-
-// Heartbeat command 
-void BoatRadio::HBCmd(
-    Boat& boat_radio, 
-    uint8_t hb_cmd_value)
-{
-    // 
-}
-
 //=======================================================================================
 
 
@@ -125,42 +161,45 @@ void BoatRadio::HBCmd(
 // Main thread: Standby state 
 void BoatRadio::MainStandbyStateCmdEnable(uint8_t cmd_state)
 {
-    cmd_table[1].cmd_enable = cmd_state;   // Auto 
-    cmd_table[2].cmd_enable = cmd_state;   // Manual 
-    cmd_table[3].cmd_enable = cmd_state;   // Index 
-    cmd_table[8].cmd_enable = cmd_state;   // Heartbeat 
+    command_table[boat_radio_auto].cmd_enable = cmd_state; 
+    command_table[boat_radio_manual].cmd_enable = cmd_state; 
+    command_table[boat_radio_index].cmd_enable = cmd_state; 
+    command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 
 // Main thread: Auto state 
 void BoatRadio::MainAutoStateCmdEnable(uint8_t cmd_state)
 {
-    // Idle 
-    // Throttle commands 
-    // Heartbeat 
+    command_table[boat_radio_idle].cmd_enable = cmd_state; 
+    command_table[boat_radio_RP].cmd_enable = cmd_state; 
+    command_table[boat_radio_RN].cmd_enable = cmd_state; 
+    command_table[boat_radio_LP].cmd_enable = cmd_state; 
+    command_table[boat_radio_LN].cmd_enable = cmd_state; 
+    command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 
 // Main thread: Manual state 
 void BoatRadio::MainManualStateCmdEnable(uint8_t cmd_state)
 {
-    // Idle 
-    // Index 
-    // Heartbeat 
+    command_table[boat_radio_idle].cmd_enable = cmd_state; 
+    command_table[boat_radio_index].cmd_enable = cmd_state; 
+    command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 
 // Main thread: Low Power state 
 void BoatRadio::MainLowPwrStateCmdEnable(uint8_t cmd_state)
 {
-    // Heartbeat 
+    command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 
 // Main thread: Fault state 
 void BoatRadio::MainFaultStateCmdEnable(uint8_t cmd_state)
 {
-    // Heartbeat 
+    command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 //=======================================================================================

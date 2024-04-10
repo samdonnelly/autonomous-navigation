@@ -154,6 +154,7 @@ private:   // Private members
     enum class MainEvents : uint8_t {
         NO_EVENT, 
         INIT, 
+        RADIO_CHECK, 
         NAV_CALCS, 
         REMOTE_CONTROL 
     } main_event; 
@@ -190,7 +191,7 @@ private:   // Private members
         LED_STROBE, 
         LED_STROBE_OFF, 
         LED_WRITE, 
-        RADIO_CHECK 
+        RADIO_READ 
     } comms_event; 
 
     //==================================================

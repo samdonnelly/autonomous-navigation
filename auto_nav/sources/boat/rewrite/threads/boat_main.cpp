@@ -187,6 +187,9 @@ void Boat::MainStandbyState(Boat& data, Event event)
 
     switch (data.main_event)
     {
+        case MainEvents::RADIO_CHECK: 
+            data.radio.CommandCheck(data); 
+        
         default: 
             break; 
     }
@@ -216,6 +219,9 @@ void Boat::MainAutoState(Boat& data, Event event)
 
     switch (data.main_event)
     {
+        case MainEvents::RADIO_CHECK: 
+            data.radio.CommandCheck(data); 
+        
         case MainEvents::NAV_CALCS: 
             break; 
         
@@ -248,6 +254,9 @@ void Boat::MainManualState(Boat& data, Event event)
 
     switch (data.main_event)
     {
+        case MainEvents::RADIO_CHECK: 
+            data.radio.CommandCheck(data); 
+        
         case MainEvents::REMOTE_CONTROL: 
             break; 
         
@@ -280,6 +289,9 @@ void Boat::MainLowPwrState(Boat& data, Event event)
 
     switch (data.main_event)
     {
+        case MainEvents::RADIO_CHECK: 
+            data.radio.CommandCheck(data); 
+        
         default: 
             break; 
     }
@@ -309,6 +321,9 @@ void Boat::MainFaultState(Boat& data, Event event)
 
     switch (data.main_event)
     {
+        case MainEvents::RADIO_CHECK: 
+            data.radio.CommandCheck(data); 
+        
         default: 
             break; 
     }
@@ -377,6 +392,7 @@ void Boat::MainInitStateExit(void)
 void Boat::MainStandbyStateEntry(void)
 {
     LEDStrobeUpdate(ws2812_led_standby_not_ready); 
+    radio.MainStandbyStateCmdEnable(SET_BIT); 
     // If there is a position lock then light up an LED 
 }
 
@@ -385,6 +401,7 @@ void Boat::MainStandbyStateEntry(void)
 void Boat::MainStandbyStateExit(void)
 {
     LEDStrobeOff(); 
+    radio.MainStandbyStateCmdEnable(CLEAR_BIT); 
     // Turn off the position lock LED 
 }
 
@@ -394,6 +411,7 @@ void Boat::MainAutoStateEntry(void)
 {
     LEDStrobeUpdate(ws2812_led_auto_strobe); 
     LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
+    radio.MainAutoStateCmdEnable(SET_BIT); 
 }
 
 
@@ -402,6 +420,7 @@ void Boat::MainAutoStateExit(void)
 {
     LEDStrobeOff(); 
     LEDUpdate(ws2812_led_off, ws2812_led_off); 
+    radio.MainAutoStateCmdEnable(CLEAR_BIT); 
 }
 
 
@@ -409,6 +428,7 @@ void Boat::MainAutoStateExit(void)
 void Boat::MainManualStateEntry(void)
 {
     LEDStrobeUpdate(ws2812_led_manual_strobe); 
+    radio.MainManualStateCmdEnable(SET_BIT); 
 }
 
 
@@ -416,6 +436,7 @@ void Boat::MainManualStateEntry(void)
 void Boat::MainManualStateExit(void)
 {
     LEDStrobeOff(); 
+    radio.MainManualStateCmdEnable(CLEAR_BIT); 
 }
 
 
@@ -423,6 +444,7 @@ void Boat::MainManualStateExit(void)
 void Boat::MainLowPwrStateEntry(void)
 {
     LEDStrobeUpdate(ws2812_led_low_pwr); 
+    radio.MainLowPwrStateCmdEnable(SET_BIT); 
 }
 
 
@@ -430,21 +452,22 @@ void Boat::MainLowPwrStateEntry(void)
 void Boat::MainLowPwrStateExit(void)
 {
     LEDStrobeOff(); 
+    radio.MainLowPwrStateCmdEnable(CLEAR_BIT); 
 }
 
 
 // Fault state entry 
 void Boat::MainFaultStateEntry(void)
 {
-    // Stop the 100ms software timer 
     xTimerStop(periodic_timer_100ms, 0); 
+    radio.MainFaultStateCmdEnable(SET_BIT); 
 }
 
 
 // Fault state exit 
 void Boat::MainFaultStateExit(void)
 {
-    // 
+    radio.MainFaultStateCmdEnable(CLEAR_BIT); 
 }
 
 
