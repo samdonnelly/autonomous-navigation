@@ -62,7 +62,8 @@ Boat boat;
 Boat::Boat() 
     : main_state(MainStates::INIT_STATE), 
       main_event(MainEvents::NO_EVENT), 
-      leds(DEVICE_ONE, ws2812_strobe_leds, ws2812_strobe_period) 
+      leds(DEVICE_ONE, ws2812_strobe_leds, ws2812_strobe_period), 
+      radio(NRF24L01_DP_1) 
 {
     // State information 
     memset((void *)&main_flags, CLEAR, sizeof(main_flags)); 

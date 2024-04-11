@@ -44,53 +44,31 @@ boat_radio_LN = "LN";           // 8. Left thruster - reverse thrust
 // Command read 
 void BoatRadio::CommandRead(Boat& boat_radio)
 {
-    // // Heartbeat check 
-    // // Increment the timeout counter periodically until the timeout limit at which 
-    // // point the system assumes to have lost radio connection. Connection status is 
-    // // re-established once a HB command is seen. 
-    // if (tim_compare(timer_nonblocking, 
-    //                 hb_timer.clk_freq, 
-    //                 AB_HB_PERIOD, 
-    //                 &hb_timer.time_cnt_total, 
-    //                 &hb_timer.time_cnt, 
-    //                 &hb_timer.time_start))
-    // {
-    //     if (hb_timeout >= AB_HB_TIMEOUT)
-    //     {
-    //         connect_flag = CLEAR_BIT; 
-    //     }
-    //     else 
-    //     {
-    //         hb_timeout++; 
-    //     }
-    // }
+    // Heartbeat check 
+    // Increment the timeout counter periodically until the timeout limit at which 
+    // point the system assumes to have lost radio connection. Connection status is 
+    // re-established once a HB command is seen. 
 
-    // // External command check 
-    // // Check if a payload has been received 
-    // if (nrf24l01_data_ready_status(pipe))
-    // {
-    //     // Payload has been received. Read the payload from the device RX FIFO. 
-    //     nrf24l01_receive_payload(read_buff, pipe); 
-
-    //     memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
-    // }
-
-    // const auto& cmd = command_table; 
-    // if (cmd.find("auto") != cmd.end())
-    // {
-    //     // 
-    // }
-
-    // If new data is available then queue a data check 
-    boat_radio.MainEventQueue((Event)Boat::MainEvents::RADIO_CHECK); 
+    // Check if a payload has been received 
+    if (nrf24l01_data_ready_status(pipe))
+    {
+        // Payload has been received. Read the payload from the device RX FIFO and 
+        // queue a data check event. 
+        memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
+        nrf24l01_receive_payload(read_buff, pipe); 
+        boat_radio.MainEventQueue((Event)Boat::MainEvents::RADIO_CHECK); 
+    }
 }
 
 
 // Command check 
 void BoatRadio::CommandCheck(Boat& boat_radio)
 {
-    // First byte (0th byte) is the message length 
-    CommandLookUp(&read_buff[1], command_table, boat_radio); 
+    // byte 0 is the message length so the message starts at byte 1 
+    if (CommandLookUp(&read_buff[1], command_table, boat_radio))
+    {
+        // Reset connection status timeout (heartbeat check) 
+    }
 }
 
 //=======================================================================================
@@ -104,43 +82,79 @@ void BoatRadio::HBCmd(
     Boat& boat_radio, 
     uint8_t hb_cmd_value)
 {
-    // 
+    // This function is here to provide a match for a valid command check. It's meant to 
+    // verify that there is a radio connection but the connection flag gets set when any 
+    // command matches. 
 }
 
 
-// Idle command 
+// Idle (standby) state command 
 void BoatRadio::IdleCmd(
     Boat& boat_radio, 
     uint8_t idle_cmd_value)
 {
-    // 
+    boat_radio.main_flags.state_exit = SET_BIT; 
+    boat_radio.main_flags.standby_state = SET_BIT; 
+    boat_radio.MainStateChange(); 
 }
 
 
-// Autonomous mode command 
+
+// Autonomous state command 
 void BoatRadio::AutoCmd(
     Boat& boat_radio, 
     uint8_t auto_cmd_value)
 {
-    // 
+    boat_radio.main_flags.state_exit = SET_BIT; 
+    boat_radio.main_flags.auto_state = SET_BIT; 
+    boat_radio.MainStateChange(); 
 }
 
 
-// Manual control mode command 
+// Manual control state command 
 void BoatRadio::ManualCmd(
     Boat& boat_radio, 
     uint8_t manual_cmd_value)
 {
-    // 
+    boat_radio.main_flags.state_exit = SET_BIT; 
+    boat_radio.main_flags.manual_state = SET_BIT; 
+    boat_radio.MainStateChange(); 
 }
 
 
-// Index update command 
+// Waypoint mission index update command 
 void BoatRadio::IndexCmd(
     Boat& boat_radio, 
     uint8_t index_cmd_value)
 {
-    // 
+    // static uint8_t index_check = CLEAR; 
+    // static uint8_t index_last = CLEAR; 
+
+    // // Compare the previous index command to the new index command. The radio messages 
+    // // between the ground station and boat are poor meaning a complete and correct 
+    // // message often does not get transmitted and received successfully. This can lead 
+    // // to the index not being updated to the desired value and therefore the boat moving 
+    // // to a target it's not supposed to. To combat this, the index has to been seen 
+    // // successively at least "AB_GPS_INDEX_CNT" times before the index will be updated. 
+    // if (index_cmd_value != index_last)
+    // {
+    //     index_last = index_cmd_value; 
+    //     index_check = SET_BIT; 
+    // }
+    // else 
+    // {
+    //     index_check++; 
+    // }
+
+    // // Check that the index is within bounds and seen the last AB_GPS_INDEX_CNT times before 
+    // // updating the index (filters noise). 
+    // if ((index_cmd_value < NUM_GPS_WAYPOINTS) && (index_check >= AB_GPS_INDEX_CNT))
+    // {
+    //     boat_test.waypoint_index = index_cmd_value; 
+    //     boat_test.target.lat = gps_waypoints[boat_test.waypoint_index].lat; 
+    //     boat_test.target.lon = gps_waypoints[boat_test.waypoint_index].lon; 
+    //     index_check = CLEAR; 
+    // }
 }
 
 

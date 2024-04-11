@@ -26,8 +26,6 @@
 //=======================================================================================
 // Messages/commands 
 
-#define BOAT_RADIO_NUM_CMDS 9 
-
 extern const std::string 
 boat_radio_ping,           // 0. Ping (heartbeat) 
 boat_radio_idle,           // 1. Idle (standby) state 
@@ -73,7 +71,7 @@ private:   // Private member functions
         {boat_radio_idle,   { &IdleCmd,     CLEAR_BIT} }, 
         {boat_radio_auto,   { &AutoCmd,     CLEAR_BIT} }, 
         {boat_radio_manual, { &ManualCmd,   CLEAR_BIT} }, 
-        {boat_radio_index,  { &IndexCmd,    CLEAR_BIT} },  
+        {boat_radio_index,  { &IndexCmd,    CLEAR_BIT} }, 
         {boat_radio_RP,     { &ThrottleCmd, CLEAR_BIT} }, 
         {boat_radio_RN,     { &ThrottleCmd, CLEAR_BIT} }, 
         {boat_radio_LP,     { &ThrottleCmd, CLEAR_BIT} }, 
@@ -85,8 +83,8 @@ private:   // Private member functions
 public:   // Public member functions 
 
     // Constructor(s) 
-    BoatRadio() 
-        : RadioModule(BOAT_RADIO_NUM_CMDS) {} 
+    BoatRadio(nrf24l01_data_pipe_t data_pipe) 
+        : pipe(data_pipe) {} 
 
     // Destructor 
     ~BoatRadio() {} 

@@ -58,13 +58,9 @@ class Boat;
 // Radio base class 
 class RadioModule 
 {
-private:   // Private members 
-    
-    uint8_t num_commands; 
-
 protected:   // Protected members 
 
-    // Payload data 
+    // Command payload data 
     uint8_t cmd_id[MAX_RADIO_CMD_SIZE];         // Stores the ID of the external command 
     uint8_t cmd_value;  
 
@@ -75,7 +71,7 @@ private:   // Private member functions
 
 protected:   // Protected member functions 
 
-    // Command check 
+    // Look for a matching command 
     template <class C> 
     uint8_t CommandLookUp(
         uint8_t *cmd_buff, 
@@ -85,8 +81,7 @@ protected:   // Protected member functions
 public:   // Public member functions 
 
     // Constructor(s) 
-    RadioModule(uint8_t num_cmds) 
-        : num_commands(num_cmds) {} 
+    RadioModule() {} 
 
     // Destructor 
     ~RadioModule() {} 

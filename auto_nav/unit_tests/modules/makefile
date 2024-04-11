@@ -29,28 +29,12 @@ endif
 SRC_FILES += 
 SRC_DIRS += 
 
-# Old boat code 
-SRC_FILES += ./../../sources/boat/ab_app.cpp 
-SRC_DIRS += ./../../sources/boat/modes 
-SRC_DIRS += ./../../sources/boat/system 
-
-# New boat code 
+# Modules - ***to be updated after rewrite 
 SRC_FILES += ./../../sources/boat/rewrite/radio_module.cpp 
-SRC_FILES += ./../../sources/boat/rewrite/modules/boat_led.cpp 
-SRC_FILES += ./../../sources/boat/rewrite/modules/boat_radio.cpp 
-SRC_FILES += ./../../sources/boat/rewrite/threads/boat_main.cpp 
-SRC_FILES += ./../../sources/boat/rewrite/threads/boat_comms.cpp 
-SRC_FILES += ./../../sources/boat/rewrite/threads/boat_timers.cpp 
-
-# General vehicle code 
-SRC_DIRS += ./../../sources/config_files 
-# SRC_DIRS += ./../../sources/modules 
-SRC_DIRS += ./../../sources/system_data 
+# SRC_FILES += ./../../sources/modules/radio_module.cpp 
 
 # Test code 
 SRC_DIRS += tests 
-SRC_DIRS += tests/threads 
-SRC_DIRS += tests/modules 
 
 # Library code 
 SRC_FILES += 
@@ -72,9 +56,8 @@ SRC_DIRS +=
 TEST_SRC_DIRS += tests
 TEST_SRC_FILES += 
 
-# Threads 
-TEST_SRC_DIRS += tests/threads 
-TEST_SRC_DIRS += tests/modules 
+# Modules 
+TEST_SRC_DIRS += tests/radio 
 TEST_SRC_FILES += 
 
 # --------------------------------------------------------------------
@@ -116,10 +99,8 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_P
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Production code 
-INCLUDE_DIRS += ./../../headers/boat 
-INCLUDE_DIRS += ./../../headers/boat/modes 
-INCLUDE_DIRS += ./../../headers/boat/system 
 INCLUDE_DIRS += ./../../headers/boat/rewrite 
+# INCLUDE_DIRS += ./../../headers/boat 
 INCLUDE_DIRS += ./../../headers/config_files 
 INCLUDE_DIRS += ./../../headers/core 
 INCLUDE_DIRS += ./../../headers/includes 
@@ -133,8 +114,7 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/tools
 
 # Test files 
 INCLUDE_DIRS += mocks 
-INCLUDE_DIRS += tests/threads 
-INCLUDE_DIRS += tests/modules 
+INCLUDE_DIRS += tests/radio 
 
 # --------------------------------------------------------------------
 

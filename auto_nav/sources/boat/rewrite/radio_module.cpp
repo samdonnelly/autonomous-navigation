@@ -33,7 +33,7 @@ template uint8_t RadioModule::CommandLookUp(
 //=======================================================================================
 // Radio communication 
 
-// Command check 
+// Look for a matching command 
 template <class C> 
 uint8_t RadioModule::CommandLookUp(
     uint8_t *cmd_buff, 
