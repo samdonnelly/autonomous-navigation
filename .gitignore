@@ -57,4 +57,10 @@ auto_nav/unit_tests/boat/test-obj
 auto_nav/unit_tests/boat/*.exe
 auto_nav/unit_tests/boat/*.exe.stackdump
 
+auto_nav/unit_tests/modules/your_tests
+auto_nav/unit_tests/modules/test-lib
+auto_nav/unit_tests/modules/test-obj
+auto_nav/unit_tests/modules/*.exe
+auto_nav/unit_tests/modules/*.exe.stackdump
+
 #========================================================================================

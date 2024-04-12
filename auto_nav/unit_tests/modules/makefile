@@ -35,6 +35,7 @@ SRC_FILES += ./../../sources/boat/rewrite/radio_module.cpp
 
 # Test code 
 SRC_DIRS += tests 
+SRC_DIRS += tests/radio 
 
 # Library code 
 SRC_FILES += 
