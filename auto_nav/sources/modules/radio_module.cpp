@@ -24,8 +24,7 @@
 // Instantiate the template for its use cases 
 
 // Boat 
-template uint8_t RadioModule::CommandLookUp(
-    uint8_t*, std::unordered_map<std::string, RadioCmdData<Boat>>&, Boat&); 
+template class RadioModule<Boat>; 
 
 //=======================================================================================
 
@@ -34,10 +33,10 @@ template uint8_t RadioModule::CommandLookUp(
 // Radio communication 
 
 // Look for a matching command 
-template <class C> 
-uint8_t RadioModule::CommandLookUp(
+template <typename C> 
+uint8_t RadioModule<C>::CommandLookUp(
     uint8_t *cmd_buff, 
-    std::unordered_map<std::string, RadioCmdData<C>>& cmd_table, 
+    std::unordered_map<std::string, RadioCmdData>& cmd_table, 
     C& vehicle)
 {
     if (cmd_buff == nullptr)
@@ -57,7 +56,7 @@ uint8_t RadioModule::CommandLookUp(
         {
             // Command exists. Check if the command is enabled. If so then call the 
             // command callback function. 
-            const RadioCmdData<C>& command_data = command_table.at(cmd_id_str); 
+            const RadioCmdData& command_data = command_table.at(cmd_id_str); 
 
             if (command_data.cmd_enable)
             {
@@ -72,7 +71,8 @@ uint8_t RadioModule::CommandLookUp(
 
 
 // Command parse into ID and value 
-uint8_t RadioModule::CommandParse(uint8_t *cmd_buff)
+template <typename C> 
+uint8_t RadioModule<C>::CommandParse(uint8_t *cmd_buff)
 {
     uint8_t id_flag = SET_BIT; 
     uint8_t id_index = CLEAR; 

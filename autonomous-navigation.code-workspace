@@ -99,7 +99,8 @@
 			"ctime": "cpp",
 			"ratio": "cpp",
 			"semaphore": "cpp",
-			"sstream": "cpp"
+			"sstream": "cpp",
+			"ranges": "cpp"
 		}
 	},
 	"launch": {

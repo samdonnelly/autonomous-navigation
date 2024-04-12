@@ -22,7 +22,7 @@
 
 #include "CppUTest/TestHarness.h"
 
-#include "boat_utest.h" 
+#include "boat.h" 
 
 extern "C"
 {

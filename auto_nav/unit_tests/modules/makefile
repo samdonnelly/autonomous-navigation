@@ -29,17 +29,8 @@ endif
 SRC_FILES += 
 SRC_DIRS += 
 
-# Modules - ***to be updated after rewrite 
-SRC_FILES += ./../../sources/boat/rewrite/radio_module.cpp 
-# SRC_FILES += ./../../sources/modules/radio_module.cpp 
-
-# Test code 
-SRC_DIRS += tests 
-SRC_DIRS += tests/radio 
-
-# Library code 
-SRC_FILES += 
-SRC_DIRS += 
+# Modules 
+SRC_FILES += ./../../sources/modules/radio_module.cpp 
 
 # --------------------------------------------------------------------
 
@@ -100,13 +91,9 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_P
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Production code 
-INCLUDE_DIRS += ./../../headers/boat/rewrite 
-# INCLUDE_DIRS += ./../../headers/boat 
 INCLUDE_DIRS += ./../../headers/config_files 
-INCLUDE_DIRS += ./../../headers/core 
 INCLUDE_DIRS += ./../../headers/includes 
-# INCLUDE_DIRS += ./../../headers/modules 
-INCLUDE_DIRS += ./../../headers/system_data 
+INCLUDE_DIRS += ./../../headers/modules 
 
 # Library 
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/devices 
@@ -115,6 +102,7 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/tools
 
 # Test files 
 INCLUDE_DIRS += mocks 
+INCLUDE_DIRS += tests 
 INCLUDE_DIRS += tests/radio 
 
 # --------------------------------------------------------------------

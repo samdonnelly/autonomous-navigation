@@ -15,14 +15,10 @@
 #ifndef _BOAT_UTEST_H_
 #define _BOAT_UTEST_H_ 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 //=======================================================================================
 // Includes 
 
-#include "boat.h" 
+#include "includes_drivers.h" 
 
 //=======================================================================================
 
@@ -119,16 +115,8 @@ public:
 
     // Destructor 
     ~BoatUTest() {} 
-
-private: 
-
-    // 
 }; 
 
 //=======================================================================================
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif   // _BOAT_UTEST_H_ 

@@ -52,12 +52,14 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/headers
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite/modules
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/system
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/modes
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/core
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/ground_station
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/includes
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/modules
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/system_data
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/devices
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/peripherals
@@ -113,6 +115,8 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/core/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/ground_station/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/ground_station/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/modules/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/modules/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/system_data/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/system_data/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/sources/devices/*.c

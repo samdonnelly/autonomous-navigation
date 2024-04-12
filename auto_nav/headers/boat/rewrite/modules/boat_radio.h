@@ -43,7 +43,7 @@ boat_radio_LN;             // 8. Left thruster - reverse thrust
 //=======================================================================================
 // Classes 
 
-class BoatRadio : public RadioModule 
+class BoatRadio : public RadioModule<Boat> 
 {
 private:   // Private members 
 
@@ -65,7 +65,7 @@ private:   // Private member functions
     static void ThrottleCmd(Boat& boat_radio, uint8_t throttle_cmd_value); 
 
     // Command table 
-    std::unordered_map<std::string, RadioCmdData<Boat>> command_table = 
+    std::unordered_map<std::string, RadioCmdData> command_table = 
     {
         {boat_radio_ping,   { &HBCmd,       CLEAR_BIT} }, 
         {boat_radio_idle,   { &IdleCmd,     CLEAR_BIT} }, 

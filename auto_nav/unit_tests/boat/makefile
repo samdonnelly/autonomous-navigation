@@ -29,32 +29,21 @@ endif
 SRC_FILES += 
 SRC_DIRS += 
 
-# Old boat code 
-SRC_FILES += ./../../sources/boat/ab_app.cpp 
-SRC_DIRS += ./../../sources/boat/modes 
-SRC_DIRS += ./../../sources/boat/system 
-
-# New boat code 
-SRC_FILES += ./../../sources/boat/rewrite/radio_module.cpp 
+# Boat code 
 SRC_FILES += ./../../sources/boat/rewrite/modules/boat_led.cpp 
 SRC_FILES += ./../../sources/boat/rewrite/modules/boat_radio.cpp 
 SRC_FILES += ./../../sources/boat/rewrite/threads/boat_main.cpp 
 SRC_FILES += ./../../sources/boat/rewrite/threads/boat_comms.cpp 
 SRC_FILES += ./../../sources/boat/rewrite/threads/boat_timers.cpp 
+# SRC_FILES += ./../../sources/boat/modules/boat_led.cpp 
+# SRC_FILES += ./../../sources/boat/modules/boat_radio.cpp 
+# SRC_FILES += ./../../sources/boat/threads/boat_main.cpp 
+# SRC_FILES += ./../../sources/boat/threads/boat_comms.cpp 
+# SRC_FILES += ./../../sources/boat/threads/boat_timers.cpp 
 
 # General vehicle code 
 SRC_DIRS += ./../../sources/config_files 
-# SRC_DIRS += ./../../sources/modules 
 SRC_DIRS += ./../../sources/system_data 
-
-# Test code 
-SRC_DIRS += tests 
-SRC_DIRS += tests/threads 
-SRC_DIRS += tests/modules 
-
-# Library code 
-SRC_FILES += 
-SRC_DIRS += 
 
 # --------------------------------------------------------------------
 
@@ -117,13 +106,12 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_P
 
 # Production code 
 INCLUDE_DIRS += ./../../headers/boat 
-INCLUDE_DIRS += ./../../headers/boat/modes 
-INCLUDE_DIRS += ./../../headers/boat/system 
 INCLUDE_DIRS += ./../../headers/boat/rewrite 
+INCLUDE_DIRS += ./../../headers/boat/rewrite/modules 
 INCLUDE_DIRS += ./../../headers/config_files 
 INCLUDE_DIRS += ./../../headers/core 
 INCLUDE_DIRS += ./../../headers/includes 
-# INCLUDE_DIRS += ./../../headers/modules 
+INCLUDE_DIRS += ./../../headers/modules 
 INCLUDE_DIRS += ./../../headers/system_data 
 
 # Library 
@@ -133,6 +121,7 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/tools
 
 # Test files 
 INCLUDE_DIRS += mocks 
+INCLUDE_DIRS += tests 
 INCLUDE_DIRS += tests/threads 
 INCLUDE_DIRS += tests/modules 
 
@@ -173,7 +162,6 @@ CPPUTEST_LIB_DIR = test-lib
 # The compiler is basically telling you how to fix the
 # build problem.  You would add this flag setting
 #     CPPUTEST_CXXFLAGS += -Wno-c++14-compat
-
 
 
 
