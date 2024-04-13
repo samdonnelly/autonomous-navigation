@@ -12,6 +12,13 @@
  * 
  */
 
+#ifndef _QUEUE_MOCK_H_ 
+#define _QUEUE_MOCK_H_ 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //=======================================================================================
 // Include 
 
@@ -40,3 +47,9 @@ void QueueMockInit(void);
 uint8_t QueueMockGetNextEvent(void); 
 
 //=======================================================================================
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif   // _QUEUE_MOCK_H_ 
