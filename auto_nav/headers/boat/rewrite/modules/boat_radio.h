@@ -26,6 +26,8 @@
 //=======================================================================================
 // Messages/commands 
 
+#define BOAT_RADIO_NUM_CMDS 9 
+
 extern const std::string 
 boat_radio_ping,           // 0. Ping (heartbeat) 
 boat_radio_idle,           // 1. Idle (standby) state 
@@ -43,7 +45,7 @@ boat_radio_LN;             // 8. Left thruster - reverse thrust
 //=======================================================================================
 // Classes 
 
-class BoatRadio : public RadioModule<Boat> 
+class BoatRadio : public RadioModule<Boat, BOAT_RADIO_NUM_CMDS> 
 {
 private:   // Private members 
 
@@ -65,18 +67,19 @@ private:   // Private member functions
     static void ThrottleCmd(Boat& boat_radio, uint8_t throttle_cmd_value); 
 
     // Command table 
-    std::unordered_map<std::string, RadioCmdData> command_table = 
-    {
-        {boat_radio_ping,   { &HBCmd,       CLEAR_BIT} }, 
-        {boat_radio_idle,   { &IdleCmd,     CLEAR_BIT} }, 
-        {boat_radio_auto,   { &AutoCmd,     CLEAR_BIT} }, 
-        {boat_radio_manual, { &ManualCmd,   CLEAR_BIT} }, 
-        {boat_radio_index,  { &IndexCmd,    CLEAR_BIT} }, 
-        {boat_radio_RP,     { &ThrottleCmd, CLEAR_BIT} }, 
-        {boat_radio_RN,     { &ThrottleCmd, CLEAR_BIT} }, 
-        {boat_radio_LP,     { &ThrottleCmd, CLEAR_BIT} }, 
-        {boat_radio_LN,     { &ThrottleCmd, CLEAR_BIT} } 
-    }; 
+    // std::unordered_map<std::string, RadioCmdData> command_table = 
+    std::array<RadioCmdData, BOAT_RADIO_NUM_CMDS> command_table = 
+    {{
+        {boat_radio_ping,   &HBCmd,       CLEAR_BIT}, 
+        {boat_radio_idle,   &IdleCmd,     CLEAR_BIT}, 
+        {boat_radio_auto,   &AutoCmd,     CLEAR_BIT}, 
+        {boat_radio_manual, &ManualCmd,   CLEAR_BIT}, 
+        {boat_radio_index,  &IndexCmd,    CLEAR_BIT}, 
+        {boat_radio_RP,     &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_RN,     &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_LP,     &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_LN,     &ThrottleCmd, CLEAR_BIT} 
+    }}; 
     
     //==================================================
 

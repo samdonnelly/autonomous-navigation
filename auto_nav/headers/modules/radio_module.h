@@ -22,7 +22,7 @@
 
 // Standard library 
 #include <string> 
-#include <unordered_map> 
+#include <array> 
 
 //=======================================================================================
 
@@ -42,7 +42,7 @@
 class Boat; 
 
 // Radio base class 
-template <typename C> 
+template <typename C, size_t SIZE> 
 class RadioModule 
 {
 protected:   // Protected members 
@@ -54,6 +54,7 @@ protected:   // Protected members
     // Command control 
     struct RadioCmdData 
     {
+        const std::string cmd; 
         void (*cmd_func_ptr)(C&, uint8_t); 
         uint8_t cmd_enable; 
     }; 
@@ -68,7 +69,7 @@ protected:   // Protected member functions
     // Look for a matching command 
     uint8_t CommandLookUp(
         uint8_t *cmd_buff, 
-        std::unordered_map<std::string, RadioCmdData>& cmd_table, 
+        std::array<RadioCmdData, SIZE>& cmd_table, 
         C& vehicle); 
 
 public:   // Public member functions 

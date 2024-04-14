@@ -24,7 +24,7 @@
 // Instantiate the template for its use cases 
 
 // Boat 
-template class RadioModule<Boat>; 
+// template class RadioModule<Boat>; 
 
 //=======================================================================================
 
@@ -33,10 +33,10 @@ template class RadioModule<Boat>;
 // Radio communication 
 
 // Look for a matching command 
-template <typename C> 
-uint8_t RadioModule<C>::CommandLookUp(
+template <typename C, size_t SIZE> 
+uint8_t RadioModule<C, SIZE>::CommandLookUp(
     uint8_t *cmd_buff, 
-    std::unordered_map<std::string, RadioCmdData>& cmd_table, 
+    std::array<RadioCmdData, SIZE>& cmd_table, 
     C& vehicle)
 {
     if (cmd_buff == nullptr)
@@ -44,35 +44,35 @@ uint8_t RadioModule<C>::CommandLookUp(
         return FALSE; 
     }
 
-    // Parse the received command into an ID and value. 
-    if (CommandParse(cmd_buff))
-    {
-        // The command is of a valid format. Check if the ID matches one of the available 
-        // vehicle commands. 
-        const auto& command_table = cmd_table; 
-        std::string cmd_id_str = (char *)cmd_id; 
+    // // Parse the received command into an ID and value. 
+    // if (CommandParse(cmd_buff))
+    // {
+    //     // The command is of a valid format. Check if the ID matches one of the available 
+    //     // vehicle commands. 
+    //     const auto& command_table = cmd_table; 
+    //     std::string cmd_id_str = (char *)cmd_id; 
 
-        if (command_table.find(cmd_id_str) != command_table.end())
-        {
-            // Command exists. Check if the command is enabled. If so then call the 
-            // command callback function. 
-            const RadioCmdData& command_data = command_table.at(cmd_id_str); 
+    //     if (command_table.find(cmd_id_str) != command_table.end())
+    //     {
+    //         // Command exists. Check if the command is enabled. If so then call the 
+    //         // command callback function. 
+    //         const RadioCmdData& command_data = command_table.at(cmd_id_str); 
 
-            if (command_data.cmd_enable)
-            {
-                command_data.cmd_func_ptr(vehicle, cmd_value); 
-                return TRUE; 
-            }
-        }
-    }
+    //         if (command_data.cmd_enable)
+    //         {
+    //             command_data.cmd_func_ptr(vehicle, cmd_value); 
+    //             return TRUE; 
+    //         }
+    //     }
+    // }
 
     return FALSE; 
 }
 
 
 // Command parse into ID and value 
-template <typename C> 
-uint8_t RadioModule<C>::CommandParse(uint8_t *cmd_buff)
+template <typename C, size_t SIZE> 
+uint8_t RadioModule<C, SIZE>::CommandParse(uint8_t *cmd_buff)
 {
     uint8_t id_flag = SET_BIT; 
     uint8_t id_index = CLEAR; 

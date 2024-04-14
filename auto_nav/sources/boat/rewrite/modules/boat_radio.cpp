@@ -174,45 +174,45 @@ void BoatRadio::ThrottleCmd(
 // Main thread: Standby state 
 void BoatRadio::MainStandbyStateCmdEnable(uint8_t cmd_state)
 {
-    command_table[boat_radio_auto].cmd_enable = cmd_state; 
-    command_table[boat_radio_manual].cmd_enable = cmd_state; 
-    command_table[boat_radio_index].cmd_enable = cmd_state; 
-    command_table[boat_radio_ping].cmd_enable = cmd_state; 
+    // command_table[boat_radio_auto].cmd_enable = cmd_state; 
+    // command_table[boat_radio_manual].cmd_enable = cmd_state; 
+    // command_table[boat_radio_index].cmd_enable = cmd_state; 
+    // command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 
 // Main thread: Auto state 
 void BoatRadio::MainAutoStateCmdEnable(uint8_t cmd_state)
 {
-    command_table[boat_radio_idle].cmd_enable = cmd_state; 
-    command_table[boat_radio_RP].cmd_enable = cmd_state; 
-    command_table[boat_radio_RN].cmd_enable = cmd_state; 
-    command_table[boat_radio_LP].cmd_enable = cmd_state; 
-    command_table[boat_radio_LN].cmd_enable = cmd_state; 
-    command_table[boat_radio_ping].cmd_enable = cmd_state; 
+    // command_table[boat_radio_idle].cmd_enable = cmd_state; 
+    // command_table[boat_radio_RP].cmd_enable = cmd_state; 
+    // command_table[boat_radio_RN].cmd_enable = cmd_state; 
+    // command_table[boat_radio_LP].cmd_enable = cmd_state; 
+    // command_table[boat_radio_LN].cmd_enable = cmd_state; 
+    // command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 
 // Main thread: Manual state 
 void BoatRadio::MainManualStateCmdEnable(uint8_t cmd_state)
 {
-    command_table[boat_radio_idle].cmd_enable = cmd_state; 
-    command_table[boat_radio_index].cmd_enable = cmd_state; 
-    command_table[boat_radio_ping].cmd_enable = cmd_state; 
+    // command_table[boat_radio_idle].cmd_enable = cmd_state; 
+    // command_table[boat_radio_index].cmd_enable = cmd_state; 
+    // command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 
 // Main thread: Low Power state 
 void BoatRadio::MainLowPwrStateCmdEnable(uint8_t cmd_state)
 {
-    command_table[boat_radio_ping].cmd_enable = cmd_state; 
+    // command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 
 // Main thread: Fault state 
 void BoatRadio::MainFaultStateCmdEnable(uint8_t cmd_state)
 {
-    command_table[boat_radio_ping].cmd_enable = cmd_state; 
+    // command_table[boat_radio_ping].cmd_enable = cmd_state; 
 }
 
 //=======================================================================================
