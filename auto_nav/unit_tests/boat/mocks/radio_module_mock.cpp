@@ -16,6 +16,7 @@
 // Includes 
 
 #include "radio_module.h" 
+#include "boat_radio.h" 
 
 //=======================================================================================
 
@@ -24,7 +25,7 @@
 // Instantiate the template for its use cases 
 
 // Boat 
-template class RadioModule<Boat>; 
+template class RadioModule<Boat, BOAT_RADIO_NUM_CMDS>; 
 
 //=======================================================================================
 
@@ -33,10 +34,10 @@ template class RadioModule<Boat>;
 // Radio communication 
 
 // Look for a matching command 
-template <typename C> 
-uint8_t RadioModule<C>::CommandLookUp(
+template <typename C, size_t SIZE> 
+uint8_t RadioModule<C, SIZE>::CommandLookUp(
     uint8_t *cmd_buff, 
-    std::unordered_map<std::string, RadioCmdData>& cmd_table, 
+    std::array<RadioCmdData, SIZE>& cmd_table, 
     C& vehicle)
 {
     return TRUE; 
@@ -44,8 +45,8 @@ uint8_t RadioModule<C>::CommandLookUp(
 
 
 // Command parse into ID and value 
-template <typename C> 
-uint8_t RadioModule<C>::CommandParse(uint8_t *cmd_buff)
+template <typename C, size_t SIZE> 
+uint8_t RadioModule<C, SIZE>::CommandParse(uint8_t *cmd_buff)
 {
     return TRUE; 
 }

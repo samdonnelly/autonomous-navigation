@@ -67,7 +67,6 @@ private:   // Private member functions
     static void ThrottleCmd(Boat& boat_radio, uint8_t throttle_cmd_value); 
 
     // Command table 
-    // std::unordered_map<std::string, RadioCmdData> command_table = 
     std::array<RadioCmdData, BOAT_RADIO_NUM_CMDS> command_table = 
     {{
         {boat_radio_ping,   &HBCmd,       CLEAR_BIT}, 
