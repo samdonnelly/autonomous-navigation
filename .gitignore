@@ -63,4 +63,7 @@ auto_nav/unit_tests/modules/test-obj
 auto_nav/unit_tests/modules/*.exe
 auto_nav/unit_tests/modules/*.exe.stackdump
 
+# Random build code 
+STM32F4-driver-library/sources/tools/
+
 #========================================================================================

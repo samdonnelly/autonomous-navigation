@@ -32,6 +32,9 @@ SRC_DIRS +=
 # Modules 
 SRC_FILES += ./../../sources/modules/radio_module.cpp 
 
+# Config files 
+SRC_FILES += ./../../sources/config_files/vehicles/boat_radio_config.cpp 
+
 # Library 
 SRC_FILES += ./../../../../STM32F4-driver-library/sources/tools/tools.c 
 
