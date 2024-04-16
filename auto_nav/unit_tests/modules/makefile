@@ -91,6 +91,7 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_P
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Production code 
+INCLUDE_DIRS += ./../../headers/boat/rewrite 
 INCLUDE_DIRS += ./../../headers/boat/rewrite/modules 
 INCLUDE_DIRS += ./../../headers/config_files 
 INCLUDE_DIRS += ./../../headers/includes 

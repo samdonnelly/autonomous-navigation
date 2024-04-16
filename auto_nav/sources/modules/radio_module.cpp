@@ -31,7 +31,7 @@ template class RadioModule<Boat, BOAT_RADIO_NUM_CMDS>;
 
 
 //=======================================================================================
-// Radio communication 
+// User functions 
 
 // Look for a matching command 
 template <typename C, size_t SIZE> 
@@ -70,6 +70,28 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
     return FALSE; 
 }
 
+
+// Enable/Disable the specified command 
+template <typename C, size_t SIZE> 
+void RadioModule<C, SIZE>::CommandEnable(
+    std::string cmd, 
+    std::array<RadioCmdData, SIZE>& cmd_table)
+{
+    // 
+    for (uint8_t i = CLEAR; i < 10; i++)
+    {
+        if (cmd.compare(cmd_table[i].cmd) == 0)
+        {
+            // 
+        }
+    }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Helper functions 
 
 // Command parse into ID and value 
 template <typename C, size_t SIZE> 

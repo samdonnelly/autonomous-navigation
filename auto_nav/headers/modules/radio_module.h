@@ -72,6 +72,11 @@ protected:   // Protected member functions
         std::array<RadioCmdData, SIZE>& cmd_table, 
         C& vehicle); 
 
+    // Enable/Disable the specified command 
+    void CommandEnable(
+        std::string cmd, 
+        std::array<RadioCmdData, SIZE>& cmd_table); 
+
 public:   // Public member functions 
 
     // Constructor(s) 
