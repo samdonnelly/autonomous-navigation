@@ -74,8 +74,9 @@ protected:   // Protected member functions
 
     // Enable/Disable the specified command 
     void CommandEnable(
-        std::string cmd, 
-        std::array<RadioCmdData, SIZE>& cmd_table); 
+        const std::string& cmd, 
+        std::array<RadioCmdData, SIZE>& cmd_table, 
+        uint8_t cmd_state); 
 
 public:   // Public member functions 
 

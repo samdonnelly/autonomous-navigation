@@ -16,7 +16,7 @@
 // Includes 
 
 #include "radio_module.h" 
-#include "boat_radio.h" 
+#include "boat_radio_config.h" 
 
 //=======================================================================================
 
@@ -45,27 +45,27 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
         return FALSE; 
     }
 
-    // // Parse the received command into an ID and value. 
-    // if (CommandParse(cmd_buff))
-    // {
-    //     // The command is of a valid format. Check if the ID matches one of the available 
-    //     // vehicle commands. 
-    //     const auto& command_table = cmd_table; 
-    //     std::string cmd_id_str = (char *)cmd_id; 
+    // Parse the command into an ID and value 
+    if (CommandParse(cmd_buff))
+    {
+        // The command has a valid format. Check if the ID matches one of the enabled 
+        // predefined commands. If so then call the command callback function. 
 
-    //     if (command_table.find(cmd_id_str) != command_table.end())
-    //     {
-    //         // Command exists. Check if the command is enabled. If so then call the 
-    //         // command callback function. 
-    //         const RadioCmdData& command_data = command_table.at(cmd_id_str); 
+        uint8_t num_cmds = (uint8_t)cmd_table.size(); 
+        std::string cmd_id_str = (char *)cmd_id; 
 
-    //         if (command_data.cmd_enable)
-    //         {
-    //             command_data.cmd_func_ptr(vehicle, cmd_value); 
-    //             return TRUE; 
-    //         }
-    //     }
-    // }
+        for (uint8_t i = CLEAR; i < num_cmds; i++)
+        {
+            if (cmd_table[i].cmd_enable)
+            {
+                if (cmd_id_str.compare(cmd_table[i].cmd))
+                {
+                    cmd_table[i].cmd_func_ptr(vehicle, cmd_value); 
+                    return TRUE; 
+                }
+            }
+        }
+    }
 
     return FALSE; 
 }
@@ -74,15 +74,18 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
 // Enable/Disable the specified command 
 template <typename C, size_t SIZE> 
 void RadioModule<C, SIZE>::CommandEnable(
-    std::string cmd, 
-    std::array<RadioCmdData, SIZE>& cmd_table)
+    const std::string& cmd, 
+    std::array<RadioCmdData, SIZE>& cmd_table, 
+    uint8_t cmd_state)
 {
-    // 
-    for (uint8_t i = CLEAR; i < 10; i++)
+    uint8_t num_cmds = (uint8_t)cmd_table.size(); 
+
+    for (uint8_t i = CLEAR; i < num_cmds; i++)
     {
         if (cmd.compare(cmd_table[i].cmd) == 0)
         {
-            // 
+            cmd_table[i].cmd_enable = cmd_state; 
+            break; 
         }
     }
 }
@@ -107,6 +110,16 @@ uint8_t RadioModule<C, SIZE>::CommandParse(uint8_t *cmd_buff)
     memset((void *)cmd_id, CLEAR, sizeof(cmd_id)); 
     cmd_value = CLEAR; 
     memset((void *)cmd_value_str, CLEAR, sizeof(cmd_value_str)); 
+
+    // Command format: 
+    // <ID><space><value> 
+    // - Number of spaces between ID and value does not matter 
+    // - Number of spaces after value does not matter 
+    // - Call the ID parse function that reads until a space or NULL --> seeing only 
+    //   characters then a space is valid 
+    // - If the ID part is valid then call the value parse function to read until a space 
+    //   or NULL --> seeing only numbers (or no number) and then a space or NULL is valid 
+    // 
 
     // Parse the command into an ID and value 
     for (uint8_t i = CLEAR; cmd_buff[i] != NULL_CHAR; i++)
@@ -133,6 +146,9 @@ uint8_t RadioModule<C, SIZE>::CommandParse(uint8_t *cmd_buff)
                 cmd_id[i] = NULL_CHAR; 
                 cmd_value_str[i-id_index] = data; 
                 value_size++; 
+
+                // id_index = i;   // Remove this line from up top 
+                // cmd_value_str[0] = data; 
             }
             else 
             {
@@ -143,6 +159,9 @@ uint8_t RadioModule<C, SIZE>::CommandParse(uint8_t *cmd_buff)
         else 
         {
             // cmd value parsing 
+
+            // If there is no number but a valid ID format then this part of the code will 
+            // not be reached but the parse will still return true. 
 
             if (data >= ZERO_CHAR && data <= NINE_CHAR)
             {

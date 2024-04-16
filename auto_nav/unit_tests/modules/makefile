@@ -32,6 +32,9 @@ SRC_DIRS +=
 # Modules 
 SRC_FILES += ./../../sources/modules/radio_module.cpp 
 
+# Library 
+SRC_FILES += ./../../../../STM32F4-driver-library/sources/tools/tools.c 
+
 # --------------------------------------------------------------------
 
 
@@ -91,9 +94,8 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_P
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Production code 
-INCLUDE_DIRS += ./../../headers/boat/rewrite 
-INCLUDE_DIRS += ./../../headers/boat/rewrite/modules 
-INCLUDE_DIRS += ./../../headers/config_files 
+INCLUDE_DIRS += ./../../headers/config_files/devices 
+INCLUDE_DIRS += ./../../headers/config_files/vehicles 
 INCLUDE_DIRS += ./../../headers/includes 
 INCLUDE_DIRS += ./../../headers/modules 
 

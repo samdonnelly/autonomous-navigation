@@ -55,7 +55,8 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite/modules
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/system
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/modes
-    ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files/devices
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files/vehicles
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/core
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/ground_station
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/includes
@@ -109,8 +110,10 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/system/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modes/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modes/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/devices*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/devices*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/vehicles*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/vehicles*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/core/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/core/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/ground_station/*.c

@@ -19,25 +19,7 @@
 // Includes 
 
 #include "radio_module.h" 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Messages/commands 
-
-#define BOAT_RADIO_NUM_CMDS 9 
-
-extern const std::string 
-boat_radio_ping,           // 0. Ping (heartbeat) 
-boat_radio_idle,           // 1. Idle (standby) state 
-boat_radio_auto,           // 2. Autonomous state 
-boat_radio_manual,         // 3. Manual (remote) control state 
-boat_radio_index,          // 4. Waypoint index set 
-boat_radio_RP,             // 5. Right thruster - forward thrust 
-boat_radio_RN,             // 6. Right thruster - reverse thrust 
-boat_radio_LP,             // 7. Left thruster - forward thrust 
-boat_radio_LN;             // 8. Left thruster - reverse thrust 
+#include "boat_radio_config.h" 
 
 //=======================================================================================
 
