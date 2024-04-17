@@ -66,6 +66,14 @@ TEST_GROUP(boat_radio_test)
 //=======================================================================================
 // Tests 
 
+// Simulate read from radio and: 
+// - check event queue is populated 
+// - check no callback is called when all are disabled 
+// - check no callback is called when an invalid input is received 
+// - check each callback with a valid command and all enabled 
+// Could use one of the state command enable functions to enable certain messages but 
+// these are trivial and don't need rigorous testing. 
+
 // Test 0 
 TEST(boat_radio_test, test0)
 {

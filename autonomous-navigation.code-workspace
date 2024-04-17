@@ -126,7 +126,8 @@
 			"valarray": "cpp",
 			"barrier": "cpp",
 			"latch": "cpp",
-			"syncstream": "cpp"
+			"syncstream": "cpp",
+			"queue_mock.h": "c"
 		}
 	},
 	"launch": {
