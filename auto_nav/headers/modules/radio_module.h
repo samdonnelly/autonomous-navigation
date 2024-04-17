@@ -18,7 +18,6 @@
 //=======================================================================================
 // Includes 
 
-// #include "includes_drivers.h" 
 #include "tools.h" 
 
 // Standard library 
@@ -62,14 +61,24 @@ protected:   // Protected members
 
 private:   // Private member functions 
 
-    // Command parse into ID and value 
-    uint8_t CommandParse(uint8_t *cmd_buff); 
+    // Parse command into ID and value 
+    uint8_t CommandParse(const uint8_t *cmd_buff); 
+
+    // Parse ID from the command 
+    uint8_t IDParse(
+        const uint8_t *cmd_buff, 
+        uint8_t& buff_index); 
+
+    // Parse value from the command 
+    uint8_t ValueParse(
+        const uint8_t *cmd_buff, 
+        uint8_t& buff_index); 
 
 protected:   // Protected member functions 
 
     // Look for a matching command 
     uint8_t CommandLookUp(
-        uint8_t *cmd_buff, 
+        const uint8_t *cmd_buff, 
         std::array<RadioCmdData, SIZE>& cmd_table, 
         C& vehicle); 
 
@@ -77,7 +86,7 @@ protected:   // Protected member functions
     void CommandEnable(
         const std::string& cmd, 
         std::array<RadioCmdData, SIZE>& cmd_table, 
-        uint8_t cmd_state); 
+        uint8_t cmd_state) const; 
 
 public:   // Public member functions 
 

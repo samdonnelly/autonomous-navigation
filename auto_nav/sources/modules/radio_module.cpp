@@ -36,7 +36,7 @@ template class RadioModule<Boat, BOAT_RADIO_NUM_CMDS>;
 // Look for a matching command 
 template <typename C, size_t SIZE> 
 uint8_t RadioModule<C, SIZE>::CommandLookUp(
-    uint8_t *cmd_buff, 
+    const uint8_t *cmd_buff, 
     std::array<RadioCmdData, SIZE>& cmd_table, 
     C& vehicle)
 {
@@ -58,7 +58,7 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
         {
             if (cmd_table[i].cmd_enable)
             {
-                if (cmd_id_str.compare(cmd_table[i].cmd))
+                if (cmd_id_str.compare(cmd_table[i].cmd) == 0)
                 {
                     cmd_table[i].cmd_func_ptr(vehicle, cmd_value); 
                     return TRUE; 
@@ -76,7 +76,7 @@ template <typename C, size_t SIZE>
 void RadioModule<C, SIZE>::CommandEnable(
     const std::string& cmd, 
     std::array<RadioCmdData, SIZE>& cmd_table, 
-    uint8_t cmd_state)
+    uint8_t cmd_state) const 
 {
     uint8_t num_cmds = (uint8_t)cmd_table.size(); 
 
@@ -96,94 +96,92 @@ void RadioModule<C, SIZE>::CommandEnable(
 //=======================================================================================
 // Helper functions 
 
-// Command parse into ID and value 
+// Parse command into ID and value 
 template <typename C, size_t SIZE> 
-uint8_t RadioModule<C, SIZE>::CommandParse(uint8_t *cmd_buff)
+uint8_t RadioModule<C, SIZE>::CommandParse(const uint8_t *cmd_buff)
 {
-    uint8_t id_flag = SET_BIT; 
-    uint8_t id_index = CLEAR; 
-    uint8_t data = CLEAR; 
-    uint8_t cmd_value_str[MAX_RADIO_CMD_SIZE]; 
-    uint8_t value_size = CLEAR; 
-
-    // Initialize data 
-    memset((void *)cmd_id, CLEAR, sizeof(cmd_id)); 
-    cmd_value = CLEAR; 
-    memset((void *)cmd_value_str, CLEAR, sizeof(cmd_value_str)); 
-
     // Command format: 
     // <ID><space><value> 
-    // - Number of spaces between ID and value does not matter 
-    // - Number of spaces after value does not matter 
-    // - Call the ID parse function that reads until a space or NULL --> seeing only 
-    //   characters then a space is valid 
-    // - If the ID part is valid then call the value parse function to read until a space 
-    //   or NULL --> seeing only numbers (or no number) and then a space or NULL is valid 
-    // 
 
-    // 
-    for (uint8_t i = CLEAR; cmd_buff[i] != NULL_CHAR; i++); 
+    uint8_t buff_index = 0; 
 
-    // Parse the command into an ID and value 
-    for (uint8_t i = CLEAR; cmd_buff[i] != NULL_CHAR; i++)
+    memset((void *)cmd_id, NULL_CHAR, sizeof(cmd_id)); 
+    cmd_value = CLEAR; 
+
+    if (IDParse(cmd_buff, buff_index))
     {
-        data = cmd_buff[i]; 
-
-        if (id_flag)
+        if (ValueParse(cmd_buff, buff_index)) 
         {
-            // cmd ID parsing 
-
-            id_index = i; 
-
-            // Check that the command byte is within range 
-            if ((data >= A_LO_CHAR && data <= Z_LO_CHAR) || 
-                (data >= A_UP_CHAR && data <= Z_UP_CHAR))
-            {
-                // Valid character byte seen 
-                cmd_id[i] = data; 
-            }
-            else if (data >= ZERO_CHAR && data <= NINE_CHAR)
-            {
-                // Valid digit character byte seen 
-                id_flag = CLEAR_BIT; 
-                cmd_id[i] = NULL_CHAR; 
-                cmd_value_str[i-id_index] = data; 
-                value_size++; 
-
-                // id_index = i;   // Remove this line from up top 
-                // cmd_value_str[0] = data; 
-            }
-            else 
-            {
-                // Valid data not seen 
-                return FALSE; 
-            }
-        }
-        else 
-        {
-            // cmd value parsing 
-
-            // If there is no number but a valid ID format then this part of the code will 
-            // not be reached but the parse will still return true. 
-
-            if (data >= ZERO_CHAR && data <= NINE_CHAR)
-            {
-                // Valid digit character byte seen 
-                cmd_value_str[i-id_index] = data; 
-                value_size++; 
-            }
-            else 
-            {
-                // Valid data not seen 
-                return FALSE; 
-            }
+            return TRUE; 
         }
     }
 
-    // Calculate the cmd value 
-    for (uint8_t i = CLEAR; i < value_size; i++)
+    return FALSE; 
+}
+
+
+// Parse ID from the command 
+template <typename C, size_t SIZE> 
+uint8_t RadioModule<C, SIZE>::IDParse(
+    const uint8_t *cmd_buff, 
+    uint8_t& buff_index)
+{
+    uint8_t data = cmd_buff[buff_index]; 
+
+    while ((data != NULL_CHAR) && (data != SPACE_CHAR))
     {
-        cmd_value += (uint8_t)char_to_int(cmd_value_str[i], value_size-i-1); 
+        if (((data >= A_LO_CHAR) && (data <= Z_LO_CHAR)) || 
+            ((data >= A_UP_CHAR) && (data <= Z_UP_CHAR)) || 
+            ((data >= ZERO_CHAR) && (data <= NINE_CHAR)))
+        {
+            cmd_id[buff_index] = data; 
+        }
+        else 
+        {
+            // Invalid character 
+            return FALSE; 
+        }
+
+        data = cmd_buff[++buff_index]; 
+    }
+
+    return TRUE; 
+}
+
+
+// Parse value from the command 
+template <typename C, size_t SIZE> 
+uint8_t RadioModule<C, SIZE>::ValueParse(
+    const uint8_t *cmd_buff, 
+    uint8_t& buff_index)
+{
+    uint8_t data = cmd_buff[buff_index], value_index = CLEAR; 
+    uint8_t cmd_value_str[MAX_RADIO_CMD_SIZE]; 
+
+    if (data != NULL_CHAR)
+    {
+        data = cmd_buff[++buff_index]; 
+
+        while ((data != NULL_CHAR) && (data != SPACE_CHAR))
+        {
+            if ((data >= ZERO_CHAR) && (data <= NINE_CHAR))
+            {
+                cmd_value_str[value_index++] = data; 
+            }
+            else 
+            {
+                // Invalid digit character 
+                return FALSE; 
+            }
+
+            data = cmd_buff[++buff_index]; 
+        }
+
+        // Convert to number 
+        for (uint8_t i = CLEAR; i < value_index; i++)
+        {
+            cmd_value += (uint8_t)char_to_int(cmd_value_str[i], value_index-i-1); 
+        }
     }
 
     return TRUE; 
