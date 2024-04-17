@@ -15,10 +15,6 @@
 #ifndef _INCLUDES_CPP_DRIVERS_H_ 
 #define _INCLUDES_CPP_DRIVERS_H_ 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 //=======================================================================================
 // Includes 
 
@@ -30,9 +26,5 @@ extern "C" {
 #include "pid_control.h"
 
 //=======================================================================================
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif   // _INCLUDES_CPP_DRIVERS_H_ 

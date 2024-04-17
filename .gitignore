@@ -49,21 +49,25 @@ simulation/simulation.py
 #========================================================================================
 # Unit tests 
 
-auto_nav/unit_tests/sources
-
+# Boat 
 auto_nav/unit_tests/boat/your_tests
 auto_nav/unit_tests/boat/test-lib
 auto_nav/unit_tests/boat/test-obj
 auto_nav/unit_tests/boat/*.exe
 auto_nav/unit_tests/boat/*.exe.stackdump
 
+# Ground station 
+auto_nav/unit_tests/ground_station/your_tests
+auto_nav/unit_tests/ground_station/test-lib
+auto_nav/unit_tests/ground_station/test-obj
+auto_nav/unit_tests/ground_station/*.exe
+auto_nav/unit_tests/ground_station/*.exe.stackdump
+
+# Radio module 
 auto_nav/unit_tests/modules/your_tests
 auto_nav/unit_tests/modules/test-lib
 auto_nav/unit_tests/modules/test-obj
 auto_nav/unit_tests/modules/*.exe
 auto_nav/unit_tests/modules/*.exe.stackdump
-
-# Random build code 
-STM32F4-driver-library/sources/tools/
 
 #========================================================================================

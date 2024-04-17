@@ -121,6 +121,9 @@ uint8_t RadioModule<C, SIZE>::CommandParse(uint8_t *cmd_buff)
     //   or NULL --> seeing only numbers (or no number) and then a space or NULL is valid 
     // 
 
+    // 
+    for (uint8_t i = CLEAR; cmd_buff[i] != NULL_CHAR; i++); 
+
     // Parse the command into an ID and value 
     for (uint8_t i = CLEAR; cmd_buff[i] != NULL_CHAR; i++)
     {

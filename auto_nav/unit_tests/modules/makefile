@@ -29,8 +29,9 @@ endif
 SRC_FILES += 
 SRC_DIRS += 
 
-# Modules 
+# Radio module 
 SRC_FILES += ./../../sources/modules/radio_module.cpp 
+SRC_DIRS += tests/radio 
 
 # Config files 
 SRC_FILES += ./../../sources/config_files/vehicles/boat_radio_config.cpp 
@@ -89,27 +90,23 @@ INCLUDE_DIRS += $(CPPUTEST_HOME)/include
 # stmcode headers needed to get the tests to build 
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Drivers/CMSIS/Device/ST/STM32F4xx/Include
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Drivers/CMSIS/Core/Include
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/FATFS/App
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/FATFS/Target
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/include
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
+# INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/FATFS/App
+# INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/FATFS/Target
+# INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src
+# INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
+# INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/include
+# INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Production code 
-INCLUDE_DIRS += ./../../headers/config_files/devices 
 INCLUDE_DIRS += ./../../headers/config_files/vehicles 
 INCLUDE_DIRS += ./../../headers/includes 
 INCLUDE_DIRS += ./../../headers/modules 
 
 # Library 
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/devices 
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/peripherals 
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/tools 
 
 # Test files 
 INCLUDE_DIRS += mocks 
-INCLUDE_DIRS += tests 
 INCLUDE_DIRS += tests/radio 
 
 # --------------------------------------------------------------------
@@ -131,6 +128,8 @@ INCLUDE_DIRS += tests/radio
 # This is kind of a kludge, but it causes the
 # .o and .d files to be put under objs.
 CPPUTEST_OBJS_DIR = test-obj
+CPPUTEST_OBJS_DIR = test-obj/1/2
+CPPUTEST_OBJS_DIR = test-obj/1/2/3/4
 
 CPPUTEST_LIB_DIR = test-lib
 
