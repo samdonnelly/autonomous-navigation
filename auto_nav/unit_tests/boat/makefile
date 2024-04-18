@@ -42,8 +42,13 @@ SRC_FILES += ./../../sources/boat/rewrite/threads/boat_timers.cpp
 # SRC_FILES += ./../../sources/boat/threads/boat_timers.cpp 
 
 # General vehicle code 
-SRC_DIRS += ./../../sources/config_files 
+SRC_DIRS += ./../../sources/config_files/devices 
+SRC_DIRS += ./../../sources/config_files/vehicles 
+SRC_DIRS += ./../../sources/modules 
 SRC_DIRS += ./../../sources/system_data 
+
+# Library 
+SRC_FILES += ./../../../../STM32F4-driver-library/sources/tools/tools.c 
 
 # --------------------------------------------------------------------
 
@@ -105,10 +110,11 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_P
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Production code 
-INCLUDE_DIRS += ./../../headers/boat 
 INCLUDE_DIRS += ./../../headers/boat/rewrite 
 INCLUDE_DIRS += ./../../headers/boat/rewrite/modules 
 INCLUDE_DIRS += ./../../headers/config_files 
+INCLUDE_DIRS += ./../../headers/config_files/devices 
+INCLUDE_DIRS += ./../../headers/config_files/vehicles 
 INCLUDE_DIRS += ./../../headers/core 
 INCLUDE_DIRS += ./../../headers/includes 
 INCLUDE_DIRS += ./../../headers/modules 
@@ -145,6 +151,7 @@ INCLUDE_DIRS += tests/modules
 # .o and .d files to be put under objs.
 CPPUTEST_OBJS_DIR = test-obj
 CPPUTEST_OBJS_DIR = test-obj/1/2
+CPPUTEST_OBJS_DIR = test-obj/1/2/3/4
 
 CPPUTEST_LIB_DIR = test-lib
 

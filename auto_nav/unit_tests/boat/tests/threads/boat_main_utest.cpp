@@ -49,7 +49,7 @@ TEST_GROUP(boat_main_test)
     // Constructor 
     void setup()
     {
-        boat_utest.ClearMainStateFlags(boat); 
+        boat_utest.ClearMainFlags(boat); 
         boat_utest.SetMainNoEvent(); 
         QueueMockInit(); 
     }

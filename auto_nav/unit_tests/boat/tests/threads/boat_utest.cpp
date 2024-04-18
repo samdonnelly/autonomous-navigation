@@ -151,12 +151,53 @@ uint8_t BoatUTest::GetMainResetStateType(void)
 //==================================================
 
 //==================================================
+// Event type getters 
+
+// Get NO_EVENT value 
+uint8_t BoatUTest::GetMainNoEventType(void)
+{
+    return (uint8_t)Boat::MainEvents::NO_EVENT; 
+}
+
+// Get INIT value 
+uint8_t BoatUTest::GetMainInitEventType(void)
+{
+    return (uint8_t)Boat::MainEvents::INIT; 
+}
+
+// Get RADIO_CHECK value 
+uint8_t BoatUTest::GetMainRadioCheckEventType(void)
+{
+    return (uint8_t)Boat::MainEvents::RADIO_CHECK; 
+}
+
+// Get NAV_CALCS value 
+uint8_t BoatUTest::GetMainNavCalcsEventType(void)
+{
+    return (uint8_t)Boat::MainEvents::NAV_CALCS; 
+}
+
+// Get REMOTE_CONTROL value 
+uint8_t BoatUTest::GetMainRemoteControlEventType(void)
+{
+    return (uint8_t)Boat::MainEvents::REMOTE_CONTROL; 
+}
+
+//==================================================
+
+//==================================================
 // Main thread flag getters 
 
 // State entry flag getter 
 uint8_t BoatUTest::GetMainStateEntryFlag(Boat& boat_utest)
 {
     return boat_utest.main_flags.state_entry; 
+}
+
+// State exit flag getter 
+uint8_t BoatUTest::GetMainStateExitFlag(Boat& boat_utest)
+{
+    return boat_utest.main_flags.state_exit; 
 }
 
 // Init state flag getter 
@@ -307,8 +348,8 @@ void BoatUTest::SetMainResetStateFlag(Boat& boat_utest)
     boat_utest.main_flags.reset_state = SET_BIT; 
 }
 
-// Clear all state flags 
-void BoatUTest::ClearMainStateFlags(Boat& boat_utest)
+// Clear all flags 
+void BoatUTest::ClearMainFlags(Boat& boat_utest)
 {
     memset((void*)&boat_utest.main_flags, CLEAR, sizeof(boat_utest.main_flags)); 
 }
@@ -359,6 +400,39 @@ uint8_t BoatUTest::GetCommsLEDWriteEventType(void)
     return (uint8_t)Boat::CommsEvents::LED_WRITE; 
 }
 
+// Get RADIO_READ value 
+uint8_t BoatUTest::GetCommsRadioReadEventType(void)
+{
+    return (uint8_t)Boat::CommsEvents::RADIO_READ; 
+}
+
 //==================================================
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Boat radio module 
+
+// Command Read 
+void BoatUTest::RadioCommandRead(Boat& boat_utest)
+{
+    boat_utest.radio.CommandRead(boat_utest); 
+}
+
+// Command Check 
+void BoatUTest::RadioCommandCheck(Boat& boat_utest)
+{
+    boat_utest.radio.CommandCheck(boat_utest); 
+}
+
+// Command Enable/Disable 
+void BoatUTest::RadioCommandEnable(
+    Boat& boat_utest, 
+    uint8_t cmd_state)
+{
+    boat_utest.radio.MainStandbyStateCmdEnable(cmd_state); 
+    boat_utest.radio.MainManualStateCmdEnable(cmd_state); 
+}
 
 //=======================================================================================

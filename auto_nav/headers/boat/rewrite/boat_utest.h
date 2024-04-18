@@ -63,8 +63,16 @@ public:
     uint8_t GetMainFaultStateType(void); 
     uint8_t GetMainResetStateType(void); 
 
+    // Event type getters 
+    uint8_t GetMainNoEventType(void); 
+    uint8_t GetMainInitEventType(void); 
+    uint8_t GetMainRadioCheckEventType(void); 
+    uint8_t GetMainNavCalcsEventType(void); 
+    uint8_t GetMainRemoteControlEventType(void); 
+
     // Main thread flag getters 
     uint8_t GetMainStateEntryFlag(Boat& boat_utest); 
+    uint8_t GetMainStateExitFlag(Boat& boat_utest); 
     uint8_t GetMainInitStateFlag(Boat& boat_utest); 
     uint8_t GetMainStandbyStateFlag(Boat& boat_utest); 
     uint8_t GetMainAutoStateFlag(Boat& boat_utest); 
@@ -92,7 +100,7 @@ public:
     void SetMainLowPwrStateFlag(Boat& boat_utest); 
     void SetMainFaultStateFlag(Boat& boat_utest); 
     void SetMainResetStateFlag(Boat& boat_utest); 
-    void ClearMainStateFlags(Boat& boat_utest); 
+    void ClearMainFlags(Boat& boat_utest); 
 
     // Event setters 
     void SetMainNoEvent(void); 
@@ -107,6 +115,19 @@ public:
     uint8_t GetCommsLEDStrobeEventType(void); 
     uint8_t GetCommsLEDStrobeOffEventType(void); 
     uint8_t GetCommsLEDWriteEventType(void); 
+    uint8_t GetCommsRadioReadEventType(void); 
+
+    //==================================================
+
+    //==================================================
+    // Boat radio module 
+
+    // Command read and check 
+    void RadioCommandRead(Boat& boat_utest); 
+    void RadioCommandCheck(Boat& boat_utest); 
+    void RadioCommandEnable(
+        Boat& boat_utest, 
+        uint8_t cmd_state); 
 
     //==================================================
 

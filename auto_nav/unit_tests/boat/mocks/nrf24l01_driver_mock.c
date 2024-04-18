@@ -15,7 +15,29 @@
 //=======================================================================================
 // Includes 
 
-#include "nrf24l01_driver.h" 
+#include "nrf24l01_driver_mock.h" 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Macros 
+
+#define MAX_BUFF_SIZE 32 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Variables 
+
+typedef struct 
+{
+    uint8_t read_buff[MAX_BUFF_SIZE]; 
+} 
+nrf24l01_mock; 
+
+static nrf24l01_mock mock_data; 
 
 //=======================================================================================
 
@@ -134,7 +156,10 @@ void nrf24l01_receive_payload(
     uint8_t *read_buff, 
     nrf24l01_data_pipe_t pipe_num)
 {
-    // 
+    if (read_buff != NULL)
+    {
+        memcpy((void *)read_buff, (void *)mock_data.read_buff, sizeof(mock_data.read_buff)); 
+    }
 }
 
 
@@ -142,6 +167,25 @@ void nrf24l01_receive_payload(
 uint8_t nrf24l01_send_payload(const uint8_t *data_buff)
 {
     return TRUE; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Mock functions 
+
+// Set the data to be read 
+void nrf24l01_mock_set_read_data(
+    uint8_t *read_buff_set, 
+    uint8_t buff_size) 
+{
+    memset((void *)mock_data.read_buff, CLEAR, sizeof(mock_data.read_buff)); 
+    
+    if (read_buff_set != NULL)
+    {
+        memcpy((void *)mock_data.read_buff, (void *)read_buff_set, buff_size); 
+    }
 }
 
 //=======================================================================================

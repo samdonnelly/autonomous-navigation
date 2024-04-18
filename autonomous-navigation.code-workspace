@@ -127,7 +127,8 @@
 			"barrier": "cpp",
 			"latch": "cpp",
 			"syncstream": "cpp",
-			"queue_mock.h": "c"
+			"queue_mock.h": "c",
+			"nrf24l01_driver_mock.h": "c"
 		}
 	},
 	"launch": {

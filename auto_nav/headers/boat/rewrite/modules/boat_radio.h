@@ -20,6 +20,7 @@
 
 #include "radio_module.h" 
 #include "boat_radio_config.h" 
+#include "nrf24l01_driver.h" 
 
 //=======================================================================================
 

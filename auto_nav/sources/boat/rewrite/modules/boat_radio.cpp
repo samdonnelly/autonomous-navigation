@@ -75,11 +75,9 @@ void BoatRadio::IdleCmd(
     Boat& boat_radio, 
     uint8_t idle_cmd_value)
 {
-    boat_radio.main_flags.state_exit = SET_BIT; 
     boat_radio.main_flags.standby_state = SET_BIT; 
     boat_radio.MainStateChange(); 
 }
-
 
 
 // Autonomous state command 
@@ -87,7 +85,6 @@ void BoatRadio::AutoCmd(
     Boat& boat_radio, 
     uint8_t auto_cmd_value)
 {
-    boat_radio.main_flags.state_exit = SET_BIT; 
     boat_radio.main_flags.auto_state = SET_BIT; 
     boat_radio.MainStateChange(); 
 }
@@ -98,7 +95,6 @@ void BoatRadio::ManualCmd(
     Boat& boat_radio, 
     uint8_t manual_cmd_value)
 {
-    boat_radio.main_flags.state_exit = SET_BIT; 
     boat_radio.main_flags.manual_state = SET_BIT; 
     boat_radio.MainStateChange(); 
 }
