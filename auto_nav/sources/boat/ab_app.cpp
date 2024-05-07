@@ -339,10 +339,10 @@ void Boat::BoatSystemCheck(void)
     {
         fault_code |= (SET_BIT << SHIFT_0); 
     }
-    if (nrf24l01_get_status())
-    {
-        fault_code |= (SET_BIT << SHIFT_2); 
-    }
+    // if (nrf24l01_get_status())
+    // {
+    //     fault_code |= (SET_BIT << SHIFT_2); 
+    // }
 
     // System requirements check. If these conditions are not met then take the system 
     // out of an active mode. 
@@ -590,7 +590,7 @@ void ab_reset_state(void)
     boat_test.init_flag = SET_BIT; 
     boat_test.fault_code = CLEAR; 
     m8q_set_reset_flag(); 
-    nrf24l01_clear_status(); 
+    // nrf24l01_clear_status(); 
 
     // State exit 
     if (boat_test.init_flag)

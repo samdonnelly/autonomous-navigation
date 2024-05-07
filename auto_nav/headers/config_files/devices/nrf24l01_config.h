@@ -33,6 +33,9 @@ extern "C" {
 // RF pipe address sent by the PTX and address accepted by the PRX 
 extern const uint8_t nrf24l01_pipe_addr[NRF24l01_ADDR_WIDTH]; 
 
+// Data pipe number 
+extern const nrf24l01_data_pipe_t nrf24l01_pipe; 
+
 // Frequency channel for the RF module 
 extern const uint8_t nrf24l01_rf_channel_freq; 
 

@@ -63,7 +63,7 @@ Boat::Boat()
     : main_state(MainStates::INIT_STATE), 
       main_event(MainEvents::NO_EVENT), 
       leds(DEVICE_ONE, ws2812_strobe_leds, ws2812_strobe_period), 
-      radio(NRF24L01_DP_1) 
+      radio(nrf24l01_pipe) 
 {
     // State information 
     memset((void *)&main_flags, CLEAR, sizeof(main_flags)); 
@@ -296,22 +296,37 @@ void Boat::BoatSetup(void)
     //==================================================
     // RF module 
 
-    // nRF24L01 module driver init 
-    nrf24l01_init(
-        SPI2,    // SPI port to use 
-        GPIOC,   // Slave select pin GPIO port 
-        PIN_1,   // Slave select pin number 
-        GPIOC,   // Enable pin (CE) GPIO port 
-        PIN_0,   // Enable pin (CE) number 
-        TIM9);   // General purpose timer port 
+    NRF24L01_STATUS nrf24l01_init_status = NRF24L01_OK; 
 
-    // Set the devices initial communication parameters - can be updated as needed 
-    nrf24l01_set_rf_channel(nrf24l01_rf_channel_freq); 
-    nrf24l01_set_rf_dr(NRF24L01_DR_2MBPS); 
-    nrf24l01_set_rf_pwr(NRF24L01_RF_PWR_6DBM); 
+    // General setup common to all device - must be called once during setup 
+    nrf24l01_init_status |= nrf24l01_init(
+        SPI2,                       // SPI port to use 
+        GPIOC,                      // Slave select pin GPIO port 
+        PIN_1,                      // Slave select pin number 
+        GPIOC,                      // Enable pin (CE) GPIO port 
+        PIN_0,                      // Enable pin (CE) number 
+        TIM9,                       // General purpose timer port 
+        nrf24l01_rf_channel_freq,   // Initial RF channel frequency 
+        NRF24L01_DR_2MBPS,          // Initial data rate to communicate at 
+        NRF24L01_RF_PWR_0DBM);      // Initial power output to us 
 
-    // Configure the devices PRX settings 
-    nrf24l01_prx_config(nrf24l01_pipe_addr, NRF24L01_DP_1); 
+    // Configure the PTX and PRX settings depending on the devices role/purpose. 
+    nrf24l01_init_status |= nrf24l01_ptx_config(nrf24l01_pipe_addr); 
+    nrf24l01_init_status |= nrf24l01_prx_config(nrf24l01_pipe_addr, nrf24l01_pipe); 
+
+    // Power up the device now that it is configured 
+    nrf24l01_init_status |= nrf24l01_pwr_up(); 
+
+    // Check init status 
+    if (nrf24l01_init_status)
+    {
+        uart_sendstring(USART2, "nRF24L01 init failed."); 
+        while(1); 
+    }
+    else 
+    {
+        uart_sendstring(USART2, "nRF24L01 init success."); 
+    }
 
     //==================================================
 

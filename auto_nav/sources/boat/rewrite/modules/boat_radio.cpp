@@ -32,12 +32,12 @@ void BoatRadio::CommandRead(Boat& boat_radio)
     // re-established once a HB command is seen. 
 
     // Check if a payload has been received 
-    if (nrf24l01_data_ready_status(pipe))
+    if (nrf24l01_data_ready_status())
     {
         // Payload has been received. Read the payload from the device RX FIFO and 
         // queue a data check event. 
         memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
-        nrf24l01_receive_payload(read_buff, pipe); 
+        nrf24l01_receive_payload(read_buff); 
         boat_radio.MainEventQueue((Event)Boat::MainEvents::RADIO_CHECK); 
     }
 }

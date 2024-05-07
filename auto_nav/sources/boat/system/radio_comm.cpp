@@ -225,10 +225,10 @@ void boat_radio_comms::radio_comm_check(uint8_t state)
     
     // External command check 
     // Check if a payload has been received 
-    if (nrf24l01_data_ready_status(pipe))
+    if (nrf24l01_data_ready_status())
     {
         // Payload has been received. Read the payload from the device RX FIFO. 
-        nrf24l01_receive_payload(read_buff, pipe); 
+        nrf24l01_receive_payload(read_buff); 
 
         // Validate the input - parse into an ID and value if valid 
         if (command_parse(&read_buff[1]))

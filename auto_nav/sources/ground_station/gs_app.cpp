@@ -615,9 +615,9 @@ void gs_pwr_cmd(uint8_t rf_pwr)
     // Check that input is within bounds 
     if (rf_pwr <= (uint8_t)NRF24L01_RF_PWR_0DBM)
     {
-        nrf24l01_set_rf_pwr((nrf24l01_rf_pwr_t)rf_pwr); 
+        nrf24l01_set_rf_setup_pwr((nrf24l01_rf_pwr_t)rf_pwr); 
 
-        if (nrf24l01_get_rf_pwr() == (nrf24l01_rf_pwr_t)rf_pwr)
+        if (nrf24l01_get_rf_setup_pwr() == (nrf24l01_rf_pwr_t)rf_pwr)
         {
             uart_sendstring(gs_data.uart, "\r\nSuccess.\r\n"); 
         }

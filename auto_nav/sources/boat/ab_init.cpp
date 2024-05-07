@@ -298,22 +298,22 @@ void Boat::BoatInit(void)
     //===================================================
     // RF module 
 
-    // General setup common to all device - must be called once during setup 
-    nrf24l01_init(
-        SPI2,    // SPI port to use 
-        GPIOC,   // Slave select pin GPIO port 
-        PIN_1,   // Slave select pin number 
-        GPIOC,   // Enable pin (CE) GPIO port 
-        PIN_0,   // Enable pin (CE) number 
-        TIM9);   // General purpose timer port 
+    // // General setup common to all device - must be called once during setup 
+    // nrf24l01_init(
+    //     SPI2,    // SPI port to use 
+    //     GPIOC,   // Slave select pin GPIO port 
+    //     PIN_1,   // Slave select pin number 
+    //     GPIOC,   // Enable pin (CE) GPIO port 
+    //     PIN_0,   // Enable pin (CE) number 
+    //     TIM9);   // General purpose timer port 
 
-    // Set the devices initial communication parameters - can be updated as needed 
-    nrf24l01_set_rf_channel(AB_RF_CH_FREQ); 
-    nrf24l01_set_rf_dr(NRF24L01_DR_2MBPS); 
-    nrf24l01_set_rf_pwr(NRF24L01_RF_PWR_6DBM); 
+    // // Set the devices initial communication parameters - can be updated as needed 
+    // nrf24l01_set_rf_channel(AB_RF_CH_FREQ); 
+    // nrf24l01_set_rf_dr(NRF24L01_DR_2MBPS); 
+    // nrf24l01_set_rf_pwr(NRF24L01_RF_PWR_6DBM); 
 
-    // Configure the devices PRX settings 
-    nrf24l01_prx_config(nrf24l01_pipe_addr, NRF24L01_DP_1); 
+    // // Configure the devices PRX settings 
+    // nrf24l01_prx_config(nrf24l01_pipe_addr, NRF24L01_DP_1); 
 
     //===================================================
 
