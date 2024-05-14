@@ -36,6 +36,34 @@
 
 
 //=======================================================================================
+// Enums 
+
+enum RadioCmdArgs 
+{
+    NRF24L01_CMD_ARG_NONE, 
+    NRF24L01_CMD_ARG_VALUE, 
+    NRF24L01_CMD_ARG_STR 
+}; 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Structs 
+
+// User command data 
+struct RadioCmdData 
+{
+    uint8_t cmd_buff[MAX_RADIO_CMD_SIZE];   // User command parsed from the CB 
+    uint8_t cmd_id[MAX_RADIO_CMD_SIZE];     // ID from the user command 
+    uint8_t cmd_value;                      // Value from the user command 
+    uint8_t cmd_str[MAX_RADIO_CMD_SIZE];    // String from the user command 
+}; 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Classes 
 
 // Forward declare the classes that will use the radio module 

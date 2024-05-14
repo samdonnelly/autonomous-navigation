@@ -21,36 +21,87 @@
 
 
 //=======================================================================================
+// Macros 
+
+#define GS_CONNECT_TIMEOUT 100   // Ground station radio connection timeout counter 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // User functions 
 
 // Command read 
 void BoatRadio::CommandRead(Boat& boat_radio)
 {
-    // Heartbeat check 
-    // Increment the timeout counter periodically until the timeout limit at which 
-    // point the system assumes to have lost radio connection. Connection status is 
-    // re-established once a HB command is seen. 
+    //==================================================
+    // Increment timeouts 
+
+    // Ground station timeout 
+    if (++gs_connect_timeout > GS_CONNECT_TIMEOUT)
+    {
+        // A command from the ground station has not been received within the timeout 
+        // limit so clear the connection status to indicate a loss of radio connection. 
+        // Connection status will change when a command is received. 
+        gs_connect_flag = CLEAR_BIT; 
+        gs_connect_timeout = CLEAR; 
+    }
+    
+    //==================================================
+
+    //==================================================
+    // Check for and read new data 
+
+    data_pipe = nrf24l01_data_ready_status(); 
 
     // Check if a payload has been received 
-    if (nrf24l01_data_ready_status())
+    if (data_pipe != NRF24L01_RX_FIFO_EMPTY)
     {
-        // Payload has been received. Read the payload from the device RX FIFO and 
-        // queue a data check event. 
-        memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
+        // New data available. Read the payload and queue a data check event. 
         nrf24l01_receive_payload(read_buff); 
         boat_radio.MainEventQueue((Event)Boat::MainEvents::RADIO_CHECK); 
     }
+
+    //==================================================
 }
 
 
 // Command check 
 void BoatRadio::CommandCheck(Boat& boat_radio)
 {
-    // byte 0 is the message length so the message starts at byte 1 
-    if (CommandLookUp(&read_buff[1], command_table, boat_radio))
+    // Choose an action based on which data pipe the payload was received on. If the data 
+    // pipe of the received payload doesn't match a pre-defined pipe then do nothing with 
+    // the data. 
+
+    // Ground station data pipe 
+    if (data_pipe == gs_pipe)
     {
-        // Reset connection status timeout (heartbeat check) 
+        // If the payload matches one of the ground station commands then set the 
+        // connection flag and reset the timeout. This helps the boat know if it has 
+        // a radio connection to the ground station. 
+        if (CommandLookUp(read_buff, gs_command_table, boat_radio))
+        {
+            gs_connect_flag = SET_BIT; 
+            gs_connect_timeout = CLEAR; 
+        }
     }
+}
+
+
+// Command set 
+void BoatRadio::CommandSet(
+    Boat& boat_radio, 
+    const std::string& command)
+{
+    write_ptr = (uint8_t *)command.c_str(); 
+    boat_radio.CommsEventQueue((Event)Boat::CommsEvents::RADIO_SEND); 
+}
+
+
+// Command send 
+void BoatRadio::CommandSend(void)
+{
+    nrf24l01_send_payload(write_ptr); 
 }
 
 //=======================================================================================
@@ -77,6 +128,7 @@ void BoatRadio::IdleCmd(
 {
     boat_radio.main_flags.standby_state = SET_BIT; 
     boat_radio.MainStateChange(); 
+    boat_radio.radio.CommandSet(boat_radio, boat_radio_confirm_res); 
 }
 
 
@@ -87,6 +139,7 @@ void BoatRadio::AutoCmd(
 {
     boat_radio.main_flags.auto_state = SET_BIT; 
     boat_radio.MainStateChange(); 
+    boat_radio.radio.CommandSet(boat_radio, boat_radio_confirm_res); 
 }
 
 
@@ -97,6 +150,7 @@ void BoatRadio::ManualCmd(
 {
     boat_radio.main_flags.manual_state = SET_BIT; 
     boat_radio.MainStateChange(); 
+    boat_radio.radio.CommandSet(boat_radio, boat_radio_confirm_res); 
 }
 
 
@@ -133,6 +187,8 @@ void BoatRadio::IndexCmd(
     //     boat_test.target.lon = gps_waypoints[boat_test.waypoint_index].lon; 
     //     index_check = CLEAR; 
     // }
+
+    boat_radio.radio.CommandSet(boat_radio, boat_radio_confirm_res); 
 }
 
 
@@ -153,45 +209,45 @@ void BoatRadio::ThrottleCmd(
 // Main thread: Standby state 
 void BoatRadio::MainStandbyStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_ping, command_table, cmd_state); 
-    CommandEnable(boat_radio_auto, command_table, cmd_state); 
-    CommandEnable(boat_radio_manual, command_table, cmd_state); 
-    CommandEnable(boat_radio_index, command_table, cmd_state); 
+    CommandEnable(boat_radio_ping_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_auto_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_manual_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_index_cmd, gs_command_table, cmd_state); 
 }
 
 
 // Main thread: Auto state 
 void BoatRadio::MainAutoStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_ping, command_table, cmd_state); 
-    CommandEnable(boat_radio_idle, command_table, cmd_state); 
-    CommandEnable(boat_radio_index, command_table, cmd_state); 
+    CommandEnable(boat_radio_ping_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_idle_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_index_cmd, gs_command_table, cmd_state); 
 }
 
 
 // Main thread: Manual state 
 void BoatRadio::MainManualStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_ping, command_table, cmd_state); 
-    CommandEnable(boat_radio_idle, command_table, cmd_state); 
-    CommandEnable(boat_radio_RP, command_table, cmd_state); 
-    CommandEnable(boat_radio_RN, command_table, cmd_state); 
-    CommandEnable(boat_radio_LP, command_table, cmd_state); 
-    CommandEnable(boat_radio_LN, command_table, cmd_state); 
+    CommandEnable(boat_radio_ping_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_idle_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_RP_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_RN_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_LP_cmd, gs_command_table, cmd_state); 
+    CommandEnable(boat_radio_LN_cmd, gs_command_table, cmd_state); 
 }
 
 
 // Main thread: Low Power state 
 void BoatRadio::MainLowPwrStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_ping, command_table, cmd_state); 
+    CommandEnable(boat_radio_ping_cmd, gs_command_table, cmd_state); 
 }
 
 
 // Main thread: Fault state 
 void BoatRadio::MainFaultStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_ping, command_table, cmd_state); 
+    CommandEnable(boat_radio_ping_cmd, gs_command_table, cmd_state); 
 }
 
 //=======================================================================================

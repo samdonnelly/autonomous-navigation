@@ -49,6 +49,10 @@ void Boat::BoatCommsDispatch(Event event)
             boat.radio.CommandRead(boat); 
             break; 
 
+        case CommsEvents::RADIO_SEND: 
+            boat.radio.CommandSend(boat); 
+            break; 
+
         default: 
             break; 
     }

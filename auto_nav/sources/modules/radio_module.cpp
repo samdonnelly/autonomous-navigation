@@ -117,6 +117,90 @@ uint8_t RadioModule<C, SIZE>::CommandParse(const uint8_t *cmd_buff)
     }
 
     return FALSE; 
+
+
+    //==================================================
+    // Dev 
+
+    // nrf24l01_cmd_arg_t cmd_arg_flag = NRF24L01_CMD_ARG_NONE; 
+    // uint8_t id_index = CLEAR; 
+    // uint8_t data = cmd_data->cmd_buff[0]; 
+    // uint8_t cmd_value_buff[NRF24L01_TEST_MAX_INPUT]; 
+    // uint8_t value_size = CLEAR; 
+
+    // // Initialize data 
+    // memset((void *)cmd_id, NULL_CHAR, sizeof(cmd_id)); 
+    // cmd_value = CLEAR; 
+    // memset((void *)cmd_str, CLEAR, sizeof(cmd_str)); 
+    // memset((void *)cmd_value_buff, CLEAR, sizeof(cmd_value_buff)); 
+
+    // // Parse the command into an ID and value 
+    // for (uint8_t i = CLEAR; data != NULL_CHAR; i++)
+    // {
+    //     switch (cmd_arg_flag)
+    //     {
+    //         case NRF24L01_CMD_ARG_NONE:   // Command ID parsing 
+
+    //             // Check that the command byte is within range 
+    //             if ((data >= A_LO_CHAR && data <= Z_LO_CHAR) || 
+    //                 (data >= A_UP_CHAR && data <= Z_UP_CHAR) || 
+    //                 (data >= ZERO_CHAR && data <= NINE_CHAR) || 
+    //                 (data == UNDERSCORE_CHAR))
+    //             {
+    //                 // Valid character byte seen 
+    //                 cmd_id[i] = data; 
+    //             }
+    //             else if (data == SPACE_CHAR)
+    //             {
+    //                 // End of ID, start of optional value 
+    //                 cmd_arg_flag = cmd_arg_type; 
+    //                 cmd_id[i] = NULL_CHAR; 
+    //                 id_index = i + 1; 
+    //             }
+    //             else 
+    //             {
+    //                 // Valid data not seen 
+    //                 return FALSE; 
+    //             }
+
+    //             break; 
+
+    //         case NRF24L01_CMD_ARG_VALUE:   // Command value parsing 
+
+    //             if (data >= ZERO_CHAR && data <= NINE_CHAR)
+    //             {
+    //                 // Valid digit character byte seen 
+    //                 cmd_value_buff[i-id_index] = data; 
+    //                 value_size++; 
+    //             }
+    //             else 
+    //             {
+    //                 // Valid data not seen 
+    //                 return FALSE; 
+    //             }
+
+    //             break; 
+
+    //         case NRF24L01_CMD_ARG_STR:   // Command string parsing 
+    //             cmd_data->cmd_str[i-id_index] = data; 
+    //             break; 
+
+    //         default: 
+    //             break; 
+    //     }
+
+    //     data = cmd_data->cmd_buff[i+1]; 
+    // }
+
+    // // Calculate the cmd value 
+    // for (uint8_t i = CLEAR; i < value_size; i++)
+    // {
+    //     cmd_value += (uint8_t)char_to_int(cmd_value_buff[i], value_size-i-1); 
+    // }
+
+    // return TRUE; 
+
+    //==================================================
 }
 
 

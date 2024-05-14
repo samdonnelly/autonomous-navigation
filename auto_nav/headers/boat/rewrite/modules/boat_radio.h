@@ -32,9 +32,15 @@ class BoatRadio : public RadioModule<Boat, BOAT_RADIO_NUM_CMDS>
 {
 private:   // Private members 
 
-    nrf24l01_data_pipe_t pipe;               // Data pipe number for the radio module 
-    uint8_t read_buff[MAX_RADIO_CMD_SIZE];   // Data read by PRX from PTX device 
-    uint8_t connect_flag;                    // Connect flag 
+    // nRF24L01 module data 
+    nrf24l01_data_pipe_t data_pipe;                // Payload data pipe 
+    const nrf24l01_data_pipe_t gs_pipe;            // Ground station (GS) data pipe 
+    uint8_t read_buff[NRF24L01_MAX_PAYLOAD_LEN];   // Data buffer in PRX mode 
+    uint8_t *write_ptr;                            // Pointer to write buffer in PTX mode 
+
+    // General radio data 
+    uint8_t gs_connect_flag;                       // Ground station connection status 
+    uint8_t gs_connect_timeout;                    // Ground station connection timeout 
 
 private:   // Private member functions 
 
@@ -50,35 +56,39 @@ private:   // Private member functions
     static void ThrottleCmd(Boat& boat_radio, uint8_t throttle_cmd_value); 
 
     // Command table 
-    std::array<RadioCmdData, BOAT_RADIO_NUM_CMDS> command_table = 
+    std::array<RadioCmdData, BOAT_RADIO_NUM_CMDS> gs_command_table = 
     {{
-        {boat_radio_ping,   &HBCmd,       CLEAR_BIT}, 
-        {boat_radio_idle,   &IdleCmd,     CLEAR_BIT}, 
-        {boat_radio_auto,   &AutoCmd,     CLEAR_BIT}, 
-        {boat_radio_manual, &ManualCmd,   CLEAR_BIT}, 
-        {boat_radio_index,  &IndexCmd,    CLEAR_BIT}, 
-        {boat_radio_RP,     &ThrottleCmd, CLEAR_BIT}, 
-        {boat_radio_RN,     &ThrottleCmd, CLEAR_BIT}, 
-        {boat_radio_LP,     &ThrottleCmd, CLEAR_BIT}, 
-        {boat_radio_LN,     &ThrottleCmd, CLEAR_BIT} 
+        {boat_radio_ping_cmd,   &HBCmd,       CLEAR_BIT}, 
+        {boat_radio_idle_cmd,   &IdleCmd,     CLEAR_BIT}, 
+        {boat_radio_auto_cmd,   &AutoCmd,     CLEAR_BIT}, 
+        {boat_radio_manual_cmd, &ManualCmd,   CLEAR_BIT}, 
+        {boat_radio_index_cmd,  &IndexCmd,    CLEAR_BIT}, 
+        {boat_radio_RP_cmd,     &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_RN_cmd,     &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_LP_cmd,     &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_LN_cmd,     &ThrottleCmd, CLEAR_BIT} 
     }}; 
     
     //==================================================
+    
 
 public:   // Public member functions 
 
     // Constructor(s) 
-    BoatRadio(nrf24l01_data_pipe_t data_pipe) 
-        : pipe(data_pipe) {} 
+    BoatRadio(nrf24l01_data_pipe_t gs_data_pipe) 
+        : data_pipe(NRF24L01_RX_FIFO_EMPTY), 
+          gs_pipe(gs_data_pipe), 
+          gs_connect_flag(CLEAR_BIT), 
+          gs_connect_timeout(CLEAR) {} 
 
     // Destructor 
     ~BoatRadio() {} 
 
-    // Command read 
+    // Command handling 
     void CommandRead(Boat& boat_radio); 
-
-    // Command check 
     void CommandCheck(Boat& boat_radio); 
+    void CommandSet(Boat& boat_radio, const std::string& command); 
+    void CommandSend(void); 
 
     // Command enable/disable 
     void MainStandbyStateCmdEnable(uint8_t cmd_state); 
