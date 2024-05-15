@@ -36,34 +36,6 @@
 
 
 //=======================================================================================
-// Enums 
-
-enum RadioCmdArgs 
-{
-    NRF24L01_CMD_ARG_NONE, 
-    NRF24L01_CMD_ARG_VALUE, 
-    NRF24L01_CMD_ARG_STR 
-}; 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Structs 
-
-// User command data 
-struct RadioCmdData 
-{
-    uint8_t cmd_buff[MAX_RADIO_CMD_SIZE];   // User command parsed from the CB 
-    uint8_t cmd_id[MAX_RADIO_CMD_SIZE];     // ID from the user command 
-    uint8_t cmd_value;                      // Value from the user command 
-    uint8_t cmd_str[MAX_RADIO_CMD_SIZE];    // String from the user command 
-}; 
-
-//=======================================================================================
-
-
-//=======================================================================================
 // Classes 
 
 // Forward declare the classes that will use the radio module 
@@ -75,30 +47,44 @@ class RadioModule
 {
 protected:   // Protected members 
 
-    // Command payload data 
-    uint8_t cmd_id[MAX_RADIO_CMD_SIZE];         // Stores the ID of the external command 
-    uint8_t cmd_value;  
+    // Command payload data (<ID> <value> or <ID> <string>). The size of the these 
+    // buffers must be able to accomodate anything the radio can send. This will depend 
+    // on the device being used. 
+    uint8_t cmd_id[MAX_RADIO_CMD_SIZE];     // ID from the command 
+    uint8_t cmd_value;                      // Value from the command 
+    uint8_t cmd_str[MAX_RADIO_CMD_SIZE];    // String of the command 
+
+    // Command argument types 
+    enum RadioCmdArgs 
+    {
+        CMD_ARG_NONE, 
+        CMD_ARG_VALUE, 
+        CMD_ARG_STR 
+    }; 
 
     // Command control 
     struct RadioCmdData 
     {
         const std::string cmd; 
-        void (*cmd_func_ptr)(C&, uint8_t); 
+        RadioCmdArgs cmd_arg_type; 
+        void (*cmd_func_ptr)(C&, uint8_t*); 
         uint8_t cmd_enable; 
     }; 
 
 private:   // Private member functions 
-
-    // Parse command into ID and value 
-    uint8_t CommandParse(const uint8_t *cmd_buff); 
 
     // Parse ID from the command 
     uint8_t IDParse(
         const uint8_t *cmd_buff, 
         uint8_t& buff_index); 
 
-    // Parse value from the command 
+    // Parse value argument from the command 
     uint8_t ValueParse(
+        const uint8_t *cmd_buff, 
+        uint8_t& buff_index); 
+
+    // Parse string argument from the command 
+    void StringParse(
         const uint8_t *cmd_buff, 
         uint8_t& buff_index); 
 

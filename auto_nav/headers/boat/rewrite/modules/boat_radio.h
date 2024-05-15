@@ -48,25 +48,26 @@ private:   // Private member functions
     // Commands 
 
     // Command callbacks 
-    static void HBCmd(Boat& boat_radio, uint8_t hb_cmd_value); 
-    static void IdleCmd(Boat& boat_radio, uint8_t idle_cmd_value); 
-    static void AutoCmd(Boat& boat_radio, uint8_t auto_cmd_value); 
-    static void ManualCmd(Boat& boat_radio, uint8_t manual_cmd_value); 
-    static void IndexCmd(Boat& boat_radio, uint8_t index_cmd_value); 
-    static void ThrottleCmd(Boat& boat_radio, uint8_t throttle_cmd_value); 
+    static void HBCmd(Boat& boat_radio, uint8_t *hb_cmd_arg); 
+    static void IdleCmd(Boat& boat_radio, uint8_t *idle_cmd_arg); 
+    static void AutoCmd(Boat& boat_radio, uint8_t *auto_cmd_arg); 
+    static void ManualCmd(Boat& boat_radio, uint8_t *manual_cmd_arg); 
+    static void IndexCmd(Boat& boat_radio, uint8_t *index_cmd_arg); 
+    static void ThrottleCmd(Boat& boat_radio, uint8_t *throttle_cmd_arg); 
 
     // Command table 
-    std::array<RadioCmdData, BOAT_RADIO_NUM_CMDS> gs_command_table = 
+    std::array<RadioCmdData, BOAT_RADIO_NUM_CMDS> command_table = 
     {{
-        {boat_radio_ping_cmd,   &HBCmd,       CLEAR_BIT}, 
-        {boat_radio_idle_cmd,   &IdleCmd,     CLEAR_BIT}, 
-        {boat_radio_auto_cmd,   &AutoCmd,     CLEAR_BIT}, 
-        {boat_radio_manual_cmd, &ManualCmd,   CLEAR_BIT}, 
-        {boat_radio_index_cmd,  &IndexCmd,    CLEAR_BIT}, 
-        {boat_radio_RP_cmd,     &ThrottleCmd, CLEAR_BIT}, 
-        {boat_radio_RN_cmd,     &ThrottleCmd, CLEAR_BIT}, 
-        {boat_radio_LP_cmd,     &ThrottleCmd, CLEAR_BIT}, 
-        {boat_radio_LN_cmd,     &ThrottleCmd, CLEAR_BIT} 
+        // Ground station commands 
+        {boat_radio_cmd_ping,   CMD_ARG_NONE,  &HBCmd,       CLEAR_BIT}, 
+        {boat_radio_cmd_idle,   CMD_ARG_NONE,  &IdleCmd,     CLEAR_BIT}, 
+        {boat_radio_cmd_auto,   CMD_ARG_NONE,  &AutoCmd,     CLEAR_BIT}, 
+        {boat_radio_cmd_manual, CMD_ARG_NONE,  &ManualCmd,   CLEAR_BIT}, 
+        {boat_radio_cmd_index,  CMD_ARG_VALUE, &IndexCmd,    CLEAR_BIT}, 
+        {boat_radio_cmd_RP,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_cmd_RN,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_cmd_LP,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_cmd_LN,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT} 
     }}; 
     
     //==================================================

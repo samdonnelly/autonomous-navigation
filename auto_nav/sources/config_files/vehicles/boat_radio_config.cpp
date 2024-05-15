@@ -21,23 +21,27 @@
 
 
 //=======================================================================================
-// Radio messages 
+// Incoming commands 
 
-// Ground station commands 
 const std::string 
-boat_radio_ping_cmd = "ping",          // 0. Ping (heartbeat) 
-boat_radio_idle_cmd = "idle",          // 1. Idle (standby) state 
-boat_radio_auto_cmd = "auto",          // 2. Autonomous state 
-boat_radio_manual_cmd = "manual",      // 3. Manual (remote) control state 
-boat_radio_index_cmd = "index",        // 4. Waypoint index set 
-boat_radio_RP_cmd = "RP",              // 5. Right thruster - forward thrust 
-boat_radio_RN_cmd = "RN",              // 6. Right thruster - reverse thrust 
-boat_radio_LP_cmd = "LP",              // 7. Left thruster - forward thrust 
-boat_radio_LN_cmd = "LN";              // 8. Left thruster - reverse thrust 
+// Ground station commands 
+boat_radio_cmd_ping = "ping",          // 0. Ping (heartbeat) 
+boat_radio_cmd_idle = "idle",          // 1. Idle (standby) state 
+boat_radio_cmd_auto = "auto",          // 2. Autonomous state 
+boat_radio_cmd_manual = "manual",      // 3. Manual (remote) control state 
+boat_radio_cmd_index = "index",        // 4. Waypoint index set 
+boat_radio_cmd_RP = "RP",              // 5. Right thruster - forward thrust 
+boat_radio_cmd_RN = "RN",              // 6. Right thruster - reverse thrust 
+boat_radio_cmd_LP = "LP",              // 7. Left thruster - forward thrust 
+boat_radio_cmd_LN = "LN";              // 8. Left thruster - reverse thrust 
+
+//=======================================================================================
 
 
-// Command response 
+//=======================================================================================
+// Outgoing messages 
+
 extern const std::string 
-boat_radio_confirm_res = "confirm";    // 0. Command confirm 
+boat_radio_msg_confirm = "confirm";    // Command confirm 
 
 //=======================================================================================

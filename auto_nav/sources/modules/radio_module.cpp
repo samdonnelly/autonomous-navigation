@@ -45,11 +45,14 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
         return FALSE; 
     }
 
-    // Parse the command into an ID and value 
-    if (CommandParse(cmd_buff))
+    uint8_t buff_index = CLEAR; 
+    uint8_t lookup_status = FALSE; 
+
+    // Parse the ID from the command. Only proceed if the ID has a valid format. 
+    if (IDParse(cmd_buff, buff_index))
     {
-        // The command has a valid format. Check if the ID matches one of the enabled 
-        // predefined commands. If so then call the command callback function. 
+        // Look for match to the ID. If a match is found then asses additional command 
+        // arguments. 
 
         uint8_t num_cmds = (uint8_t)cmd_table.size(); 
         std::string cmd_id_str = (char *)cmd_id; 
@@ -60,14 +63,44 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
             {
                 if (cmd_id_str.compare(cmd_table[i].cmd) == 0)
                 {
-                    cmd_table[i].cmd_func_ptr(vehicle, cmd_value); 
-                    return TRUE; 
+                    // ID matches an enabled pre-defined command. Check if the 
+                    // command contains a value or string argument then call the 
+                    // command callback. 
+
+                    cmd_value = CLEAR; 
+                    memset((void *)cmd_str, NULL_CHAR, sizeof(cmd_str)); 
+
+                    switch (cmd_table[i].cmd_arg_type)
+                    {
+                        // case RadioCmdArgs::CMD_ARG_VALUE: 
+                        case CMD_ARG_VALUE: 
+                            if (ValueParse(cmd_buff, buff_index))
+                            {
+                                cmd_table[i].cmd_func_ptr(vehicle, &cmd_value); 
+                                lookup_status = TRUE; 
+                            }
+                            break; 
+
+                        // case RadioCmdArgs::CMD_ARG_STR: 
+                        case CMD_ARG_STR: 
+                            StringParse(cmd_buff, buff_index); 
+                            cmd_table[i].cmd_func_ptr(vehicle, cmd_str); 
+                            lookup_status = TRUE; 
+                            break; 
+                        
+                        default:   // No argument command 
+                            cmd_table[i].cmd_func_ptr(vehicle, nullptr); 
+                            lookup_status = TRUE; 
+                            break; 
+                    }
+
+                    break; 
                 }
             }
         }
     }
 
-    return FALSE; 
+    return lookup_status; 
 }
 
 
@@ -96,140 +129,40 @@ void RadioModule<C, SIZE>::CommandEnable(
 //=======================================================================================
 // Helper functions 
 
-// Parse command into ID and value 
-template <typename C, size_t SIZE> 
-uint8_t RadioModule<C, SIZE>::CommandParse(const uint8_t *cmd_buff)
-{
-    // Command format: 
-    // <ID><space><value> 
-
-    uint8_t buff_index = 0; 
-
-    memset((void *)cmd_id, NULL_CHAR, sizeof(cmd_id)); 
-    cmd_value = CLEAR; 
-
-    if (IDParse(cmd_buff, buff_index))
-    {
-        if (ValueParse(cmd_buff, buff_index)) 
-        {
-            return TRUE; 
-        }
-    }
-
-    return FALSE; 
-
-
-    //==================================================
-    // Dev 
-
-    // nrf24l01_cmd_arg_t cmd_arg_flag = NRF24L01_CMD_ARG_NONE; 
-    // uint8_t id_index = CLEAR; 
-    // uint8_t data = cmd_data->cmd_buff[0]; 
-    // uint8_t cmd_value_buff[NRF24L01_TEST_MAX_INPUT]; 
-    // uint8_t value_size = CLEAR; 
-
-    // // Initialize data 
-    // memset((void *)cmd_id, NULL_CHAR, sizeof(cmd_id)); 
-    // cmd_value = CLEAR; 
-    // memset((void *)cmd_str, CLEAR, sizeof(cmd_str)); 
-    // memset((void *)cmd_value_buff, CLEAR, sizeof(cmd_value_buff)); 
-
-    // // Parse the command into an ID and value 
-    // for (uint8_t i = CLEAR; data != NULL_CHAR; i++)
-    // {
-    //     switch (cmd_arg_flag)
-    //     {
-    //         case NRF24L01_CMD_ARG_NONE:   // Command ID parsing 
-
-    //             // Check that the command byte is within range 
-    //             if ((data >= A_LO_CHAR && data <= Z_LO_CHAR) || 
-    //                 (data >= A_UP_CHAR && data <= Z_UP_CHAR) || 
-    //                 (data >= ZERO_CHAR && data <= NINE_CHAR) || 
-    //                 (data == UNDERSCORE_CHAR))
-    //             {
-    //                 // Valid character byte seen 
-    //                 cmd_id[i] = data; 
-    //             }
-    //             else if (data == SPACE_CHAR)
-    //             {
-    //                 // End of ID, start of optional value 
-    //                 cmd_arg_flag = cmd_arg_type; 
-    //                 cmd_id[i] = NULL_CHAR; 
-    //                 id_index = i + 1; 
-    //             }
-    //             else 
-    //             {
-    //                 // Valid data not seen 
-    //                 return FALSE; 
-    //             }
-
-    //             break; 
-
-    //         case NRF24L01_CMD_ARG_VALUE:   // Command value parsing 
-
-    //             if (data >= ZERO_CHAR && data <= NINE_CHAR)
-    //             {
-    //                 // Valid digit character byte seen 
-    //                 cmd_value_buff[i-id_index] = data; 
-    //                 value_size++; 
-    //             }
-    //             else 
-    //             {
-    //                 // Valid data not seen 
-    //                 return FALSE; 
-    //             }
-
-    //             break; 
-
-    //         case NRF24L01_CMD_ARG_STR:   // Command string parsing 
-    //             cmd_data->cmd_str[i-id_index] = data; 
-    //             break; 
-
-    //         default: 
-    //             break; 
-    //     }
-
-    //     data = cmd_data->cmd_buff[i+1]; 
-    // }
-
-    // // Calculate the cmd value 
-    // for (uint8_t i = CLEAR; i < value_size; i++)
-    // {
-    //     cmd_value += (uint8_t)char_to_int(cmd_value_buff[i], value_size-i-1); 
-    // }
-
-    // return TRUE; 
-
-    //==================================================
-}
-
-
 // Parse ID from the command 
 template <typename C, size_t SIZE> 
 uint8_t RadioModule<C, SIZE>::IDParse(
     const uint8_t *cmd_buff, 
     uint8_t& buff_index)
 {
+    uint8_t id_status = TRUE; 
     uint8_t data = cmd_buff[buff_index]; 
 
+    // Parse the ID from the command 
     while ((data != NULL_CHAR) && (data != SPACE_CHAR))
     {
+        // Check that the command byte is within range 
         if (((data >= A_LO_CHAR) && (data <= Z_LO_CHAR)) || 
             ((data >= A_UP_CHAR) && (data <= Z_UP_CHAR)) || 
-            ((data >= ZERO_CHAR) && (data <= NINE_CHAR)))
+            ((data >= ZERO_CHAR) && (data <= NINE_CHAR)) || 
+            (data == UNDERSCORE_CHAR))
         {
+            // Valid character byte seen 
             cmd_id[buff_index] = data; 
         }
         else 
         {
-            // Invalid character 
-            return FALSE; 
+            // Valid data not seen 
+            id_status = FALSE; 
+            break; 
         }
 
         data = cmd_buff[++buff_index]; 
     }
 
-    return TRUE; 
+    cmd_id[buff_index++] = NULL_CHAR; 
+
+    return id_status; 
 }
 
 
@@ -239,36 +172,48 @@ uint8_t RadioModule<C, SIZE>::ValueParse(
     const uint8_t *cmd_buff, 
     uint8_t& buff_index)
 {
-    uint8_t data = cmd_buff[buff_index], value_index = CLEAR; 
+    uint8_t data = cmd_buff[buff_index]; 
+    uint8_t value_index = CLEAR; 
     uint8_t cmd_value_str[MAX_RADIO_CMD_SIZE]; 
 
-    if (data != NULL_CHAR)
+    while ((data != NULL_CHAR) && (data != SPACE_CHAR))
     {
+        if ((data >= ZERO_CHAR) && (data <= NINE_CHAR))
+        {
+            cmd_value_str[value_index++] = data; 
+        }
+        else 
+        {
+            // Invalid digit character 
+            return FALSE; 
+        }
+
         data = cmd_buff[++buff_index]; 
+    }
 
-        while ((data != NULL_CHAR) && (data != SPACE_CHAR))
-        {
-            if ((data >= ZERO_CHAR) && (data <= NINE_CHAR))
-            {
-                cmd_value_str[value_index++] = data; 
-            }
-            else 
-            {
-                // Invalid digit character 
-                return FALSE; 
-            }
-
-            data = cmd_buff[++buff_index]; 
-        }
-
-        // Convert to number 
-        for (uint8_t i = CLEAR; i < value_index; i++)
-        {
-            cmd_value += (uint8_t)char_to_int(cmd_value_str[i], value_index-i-1); 
-        }
+    // Convert to number 
+    for (uint8_t i = CLEAR; i < value_index; i++)
+    {
+        cmd_value += (uint8_t)char_to_int(cmd_value_str[i], value_index-i-1); 
     }
 
     return TRUE; 
+}
+
+
+// Parse string argument from the command 
+template <typename C, size_t SIZE> 
+void RadioModule<C, SIZE>::StringParse(
+    const uint8_t *cmd_buff, 
+    uint8_t& buff_index)
+{
+    uint8_t data = cmd_buff[buff_index]; 
+
+    for (uint8_t i = CLEAR; data != NULL_CHAR; i++)
+    {
+        cmd_str[i] = data; 
+        data = cmd_buff[++buff_index]; 
+    }
 }
 
 //=======================================================================================
