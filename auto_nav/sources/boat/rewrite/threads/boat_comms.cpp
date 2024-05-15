@@ -50,7 +50,7 @@ void Boat::BoatCommsDispatch(Event event)
             break; 
 
         case CommsEvents::RADIO_SEND: 
-            boat.radio.CommandSend(boat); 
+            boat.radio.CommandSend(); 
             break; 
 
         default: 
