@@ -91,6 +91,9 @@ public:   // Public member functions
     void CommandSet(Boat& boat_radio, const std::string& command); 
     void CommandSend(void); 
 
+    // Status 
+    uint8_t ConnectionStatus(void); 
+
     // Command enable/disable 
     void MainStandbyStateCmdEnable(uint8_t cmd_state); 
     void MainAutoStateCmdEnable(uint8_t cmd_state); 

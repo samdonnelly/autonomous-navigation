@@ -116,6 +116,7 @@ public:
     uint8_t GetCommsLEDStrobeOffEventType(void); 
     uint8_t GetCommsLEDWriteEventType(void); 
     uint8_t GetCommsRadioReadEventType(void); 
+    uint8_t GetCommsRadioSendEventType(void); 
 
     //==================================================
 
@@ -125,9 +126,9 @@ public:
     // Command read and check 
     void RadioCommandRead(Boat& boat_utest); 
     void RadioCommandCheck(Boat& boat_utest); 
-    void RadioCommandEnable(
-        Boat& boat_utest, 
-        uint8_t cmd_state); 
+    uint8_t RadioConnectionStatus(Boat& boat_utest); 
+    void RadioCommandSend(Boat& boat_utest); 
+    void RadioCommandEnable(Boat& boat_utest, uint8_t cmd_state); 
 
     //==================================================
 

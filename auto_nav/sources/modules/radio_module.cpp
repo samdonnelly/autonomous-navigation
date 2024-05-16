@@ -72,7 +72,6 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
 
                     switch (cmd_table[i].cmd_arg_type)
                     {
-                        // case RadioCmdArgs::CMD_ARG_VALUE: 
                         case CMD_ARG_VALUE: 
                             if (ValueParse(cmd_buff, buff_index))
                             {
@@ -81,7 +80,6 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
                             }
                             break; 
 
-                        // case RadioCmdArgs::CMD_ARG_STR: 
                         case CMD_ARG_STR: 
                             StringParse(cmd_buff, buff_index); 
                             cmd_table[i].cmd_func_ptr(vehicle, cmd_str); 

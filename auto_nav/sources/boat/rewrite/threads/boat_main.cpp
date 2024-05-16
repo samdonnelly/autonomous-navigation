@@ -223,6 +223,7 @@ void Boat::MainAutoState(Boat& data, Event event)
             data.radio.CommandCheck(data); 
         
         case MainEvents::NAV_CALCS: 
+            // Check for a GPS connection. 
             break; 
         
         default: 
@@ -258,6 +259,8 @@ void Boat::MainManualState(Boat& data, Event event)
             data.radio.CommandCheck(data); 
         
         case MainEvents::REMOTE_CONTROL: 
+            // Pass radio connection status to the remote control module or check 
+            // for a connection. 
             break; 
         
         default: 

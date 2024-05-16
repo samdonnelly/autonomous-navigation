@@ -406,6 +406,12 @@ uint8_t BoatUTest::GetCommsRadioReadEventType(void)
     return (uint8_t)Boat::CommsEvents::RADIO_READ; 
 }
 
+// Get RADIO_SEND value 
+uint8_t BoatUTest::GetCommsRadioSendEventType(void)
+{
+    return (uint8_t)Boat::CommsEvents::RADIO_SEND; 
+}
+
 //==================================================
 
 //=======================================================================================
@@ -424,6 +430,18 @@ void BoatUTest::RadioCommandRead(Boat& boat_utest)
 void BoatUTest::RadioCommandCheck(Boat& boat_utest)
 {
     boat_utest.radio.CommandCheck(boat_utest); 
+}
+
+// Connection status 
+uint8_t BoatUTest::RadioConnectionStatus(Boat& boat_utest)
+{
+    return boat_utest.radio.ConnectionStatus(); 
+}
+
+// Command Send 
+void BoatUTest::RadioCommandSend(Boat& boat_utest)
+{
+    boat_utest.radio.CommandSend(); 
 }
 
 // Command Enable/Disable 

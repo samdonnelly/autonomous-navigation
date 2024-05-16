@@ -38,7 +38,7 @@ void BoatRadio::CommandRead(Boat& boat_radio)
     // Increment timeouts 
 
     // Ground station timeout 
-    if (++gs_connect_timeout > GS_CONNECT_TIMEOUT)
+    if (++gs_connect_timeout >= GS_CONNECT_TIMEOUT)
     {
         // A command from the ground station has not been received within the timeout 
         // limit so clear the connection status to indicate a loss of radio connection. 
@@ -104,6 +104,13 @@ void BoatRadio::CommandSend(void)
     nrf24l01_send_payload(write_ptr); 
 }
 
+
+// Radio connection status 
+uint8_t BoatRadio::ConnectionStatus(void)
+{
+    return gs_connect_flag; 
+}
+
 //=======================================================================================
 
 
@@ -137,6 +144,8 @@ void BoatRadio::AutoCmd(
     Boat& boat_radio, 
     uint8_t *auto_cmd_arg)
 {
+    // Check for GPS connection before triggering a state change 
+
     boat_radio.main_flags.auto_state = SET_BIT; 
     boat_radio.MainStateChange(); 
     boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
