@@ -173,6 +173,9 @@ void BoatRadio::IndexCmd(
         return; 
     }
 
+    // Temp (for testing) 
+    boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+
     // Check if the requested index is within range of the current loaded waypoint 
     // mission. If so then update the index (target waypoint number). 
 
@@ -181,9 +184,6 @@ void BoatRadio::IndexCmd(
     //      waypoint_index = index_cmd_arg; 
     //      boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
     // }
-
-    // Temp (for testing) 
-    boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
     
     // static uint8_t index_check = CLEAR; 
     // static uint8_t index_last = CLEAR; 
