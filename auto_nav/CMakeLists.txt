@@ -51,10 +51,10 @@ set(STM32CUBEMX_INCLUDE_DIRECTORIES
 set(PROJECT_INCLUDE_DIRECTORIES 
     ${CMAKE_CURRENT_SOURCE_DIR}/headers
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat
-    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite
-    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/rewrite/modules
-    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/system
-    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/modes
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/modules
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/old_code
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/old_code/modes
+    ${CMAKE_CURRENT_SOURCE_DIR}/headers/boat/old_code/system
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files/devices
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files/vehicles
@@ -101,16 +101,16 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/modules/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/modules/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/threads/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/rewrite/threads/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/system/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/system/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modes/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modules/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/modules/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/threads/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/threads/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/old_code/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/old_code/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/old_code/modes/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/old_code/modes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/old_code/system/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/boat/old_code/system/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/devices/*.c

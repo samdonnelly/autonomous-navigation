@@ -59,24 +59,15 @@ private:   // Private member functions
     std::array<RadioCmdData, BOAT_RADIO_NUM_CMDS> command_table = 
     {{
         // Ground station commands 
-        // {boat_radio_cmd_ping,   CMD_ARG_NONE,  &HBCmd,       CLEAR_BIT}, 
-        // {boat_radio_cmd_idle,   CMD_ARG_NONE,  &IdleCmd,     CLEAR_BIT}, 
-        // {boat_radio_cmd_auto,   CMD_ARG_NONE,  &AutoCmd,     CLEAR_BIT}, 
-        // {boat_radio_cmd_manual, CMD_ARG_NONE,  &ManualCmd,   CLEAR_BIT}, 
-        // {boat_radio_cmd_index,  CMD_ARG_VALUE, &IndexCmd,    CLEAR_BIT}, 
-        // {boat_radio_cmd_RP,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
-        // {boat_radio_cmd_RN,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
-        // {boat_radio_cmd_LP,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
-        // {boat_radio_cmd_LN,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT} 
-        {boat_radio_cmd_ping,   CMD_ARG_NONE,  &HBCmd,       SET_BIT}, 
-        {boat_radio_cmd_idle,   CMD_ARG_NONE,  &IdleCmd,     SET_BIT}, 
-        {boat_radio_cmd_auto,   CMD_ARG_NONE,  &AutoCmd,     SET_BIT}, 
-        {boat_radio_cmd_manual, CMD_ARG_NONE,  &ManualCmd,   SET_BIT}, 
-        {boat_radio_cmd_index,  CMD_ARG_VALUE, &IndexCmd,    SET_BIT}, 
-        {boat_radio_cmd_RP,     CMD_ARG_VALUE, &ThrottleCmd, SET_BIT}, 
-        {boat_radio_cmd_RN,     CMD_ARG_VALUE, &ThrottleCmd, SET_BIT}, 
-        {boat_radio_cmd_LP,     CMD_ARG_VALUE, &ThrottleCmd, SET_BIT}, 
-        {boat_radio_cmd_LN,     CMD_ARG_VALUE, &ThrottleCmd, SET_BIT} 
+        {boat_radio_cmd_ping,   CMD_ARG_NONE,  &HBCmd,       CLEAR_BIT}, 
+        {boat_radio_cmd_idle,   CMD_ARG_NONE,  &IdleCmd,     CLEAR_BIT}, 
+        {boat_radio_cmd_auto,   CMD_ARG_NONE,  &AutoCmd,     CLEAR_BIT}, 
+        {boat_radio_cmd_manual, CMD_ARG_NONE,  &ManualCmd,   CLEAR_BIT}, 
+        {boat_radio_cmd_index,  CMD_ARG_VALUE, &IndexCmd,    CLEAR_BIT}, 
+        {boat_radio_cmd_RP,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_cmd_RN,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_cmd_LP,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
+        {boat_radio_cmd_LN,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT} 
     }}; 
     
     //==================================================
@@ -97,7 +88,7 @@ public:   // Public member functions
     // Command handling 
     void CommandRead(Boat& boat_radio); 
     void CommandCheck(Boat& boat_radio); 
-    void CommandSet(Boat& boat_radio, const std::string& command); 
+    void CommandSet(Boat& boat_radio, const char *command); 
     void CommandSend(void); 
 
     // Status 

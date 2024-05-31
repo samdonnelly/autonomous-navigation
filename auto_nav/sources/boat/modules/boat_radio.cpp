@@ -91,9 +91,9 @@ void BoatRadio::CommandCheck(Boat& boat_radio)
 // Command set 
 void BoatRadio::CommandSet(
     Boat& boat_radio, 
-    const std::string& command)
+    const char *command)
 {
-    write_ptr = (uint8_t *)command.c_str(); 
+    write_ptr = (uint8_t *)command; 
     boat_radio.CommsEventQueue((Event)Boat::CommsEvents::RADIO_SEND); 
 }
 

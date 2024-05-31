@@ -30,16 +30,11 @@ SRC_FILES +=
 SRC_DIRS += 
 
 # Boat code 
-SRC_FILES += ./../../sources/boat/rewrite/modules/boat_led.cpp 
-SRC_FILES += ./../../sources/boat/rewrite/modules/boat_radio.cpp 
-SRC_FILES += ./../../sources/boat/rewrite/threads/boat_main.cpp 
-SRC_FILES += ./../../sources/boat/rewrite/threads/boat_comms.cpp 
-SRC_FILES += ./../../sources/boat/rewrite/threads/boat_timers.cpp 
-# SRC_FILES += ./../../sources/boat/modules/boat_led.cpp 
-# SRC_FILES += ./../../sources/boat/modules/boat_radio.cpp 
-# SRC_FILES += ./../../sources/boat/threads/boat_main.cpp 
-# SRC_FILES += ./../../sources/boat/threads/boat_comms.cpp 
-# SRC_FILES += ./../../sources/boat/threads/boat_timers.cpp 
+SRC_FILES += ./../../sources/boat/modules/boat_led.cpp 
+SRC_FILES += ./../../sources/boat/modules/boat_radio.cpp 
+SRC_FILES += ./../../sources/boat/threads/boat_main.cpp 
+SRC_FILES += ./../../sources/boat/threads/boat_comms.cpp 
+SRC_FILES += ./../../sources/boat/threads/boat_timers.cpp 
 
 # General vehicle code 
 SRC_DIRS += ./../../sources/config_files/devices 
@@ -110,8 +105,8 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_P
 INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Production code 
-INCLUDE_DIRS += ./../../headers/boat/rewrite 
-INCLUDE_DIRS += ./../../headers/boat/rewrite/modules 
+INCLUDE_DIRS += ./../../headers/boat 
+INCLUDE_DIRS += ./../../headers/boat/modules 
 INCLUDE_DIRS += ./../../headers/config_files 
 INCLUDE_DIRS += ./../../headers/config_files/devices 
 INCLUDE_DIRS += ./../../headers/config_files/vehicles 

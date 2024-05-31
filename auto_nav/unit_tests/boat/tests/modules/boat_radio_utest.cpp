@@ -69,6 +69,20 @@ TEST_GROUP(boat_radio_test)
 
 //=======================================================================================
 // Helper functions 
+
+// Get size of char string 
+uint8_t get_str_size(const char *string)
+{
+    uint8_t size = CLEAR; 
+
+    while (*string++ != NULL_CHAR)
+    {
+        size++; 
+    }
+
+    return size; 
+}
+
 //=======================================================================================
 
 
@@ -108,8 +122,10 @@ TEST(boat_radio_test, command_read_check_timeout_heartbeat)
     boat_utest.RadioCommandEnable(boat, SET_BIT); 
 
     // Set a valid message to read, then read it to get a true radio connection status. 
-    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_ping.c_str(), 
-                                (uint8_t)boat_radio_cmd_ping.size()); 
+    // nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_ping, 
+    //                             (uint8_t)sizeof(boat_radio_cmd_ping)); 
+    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_ping, 
+                                get_str_size(boat_radio_cmd_ping)); 
     boat_utest.RadioCommandRead(boat); 
     boat_utest.RadioCommandCheck(boat); 
     LONGS_EQUAL(SET_BIT, boat_utest.RadioConnectionStatus(boat)); 
@@ -129,8 +145,8 @@ TEST(boat_radio_test, command_read_check_timeout_heartbeat)
 
     // Now that the connection is lost, reestablish the connection using the heartbeat 
     // command to verify the callback. 
-    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_ping.c_str(), 
-                                (uint8_t)boat_radio_cmd_ping.size()); 
+    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_ping, 
+                                get_str_size(boat_radio_cmd_ping)); 
     boat_utest.RadioCommandRead(boat); 
     boat_utest.RadioCommandCheck(boat); 
     LONGS_EQUAL(SET_BIT, boat_utest.RadioConnectionStatus(boat)); 
@@ -148,8 +164,8 @@ TEST(boat_radio_test, command_check_not_enabled)
     // Disable all commands, clear main thread flags and set the message to be read 
     boat_utest.RadioCommandEnable(boat, CLEAR_BIT); 
     boat_utest.ClearMainFlags(boat); 
-    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_idle.c_str(), 
-                                (uint8_t)boat_radio_cmd_idle.size()); 
+    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_idle, 
+                                get_str_size(boat_radio_cmd_idle)); 
 
     // Verify that the idle state command callback has not been called yet 
     LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
@@ -180,8 +196,8 @@ TEST(boat_radio_test, command_check_idle_callback)
     // Enable all commands, clear main thread flags and set the message to be read 
     boat_utest.RadioCommandEnable(boat, SET_BIT); 
     boat_utest.ClearMainFlags(boat); 
-    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_idle.c_str(), 
-                                (uint8_t)boat_radio_cmd_idle.size()); 
+    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_idle, 
+                                get_str_size(boat_radio_cmd_idle)); 
 
     // Verify that the idle state command callback has not been called yet 
     LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
@@ -201,7 +217,7 @@ TEST(boat_radio_test, command_check_idle_callback)
     LONGS_EQUAL(boat_utest.GetCommsRadioSendEventType(), QueueMockGetNextEvent()); 
     boat_utest.RadioCommandSend(boat); 
     nrf24l01_mock_get_send_data(send_buffer); 
-    STRCMP_EQUAL(boat_radio_msg_confirm.c_str(), (char *)send_buffer); 
+    STRCMP_EQUAL(boat_radio_msg_confirm, (char *)send_buffer); 
 }
 
 
@@ -216,8 +232,8 @@ TEST(boat_radio_test, command_check_auto_callback)
     // Enable all commands, clear main thread flags and set the message to be read 
     boat_utest.RadioCommandEnable(boat, SET_BIT); 
     boat_utest.ClearMainFlags(boat); 
-    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_auto.c_str(), 
-                                (uint8_t)boat_radio_cmd_auto.size()); 
+    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_auto, 
+                                get_str_size(boat_radio_cmd_auto)); 
 
     // Verify that the auto command callback has not been called yet 
     LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
@@ -237,7 +253,7 @@ TEST(boat_radio_test, command_check_auto_callback)
     LONGS_EQUAL(boat_utest.GetCommsRadioSendEventType(), QueueMockGetNextEvent()); 
     boat_utest.RadioCommandSend(boat); 
     nrf24l01_mock_get_send_data(send_buffer); 
-    STRCMP_EQUAL(boat_radio_msg_confirm.c_str(), (char *)send_buffer); 
+    STRCMP_EQUAL(boat_radio_msg_confirm, (char *)send_buffer); 
 }
 
 
@@ -252,8 +268,8 @@ TEST(boat_radio_test, command_check_manual_callback)
     // Enable all commands, clear main thread flags and set the message to be read 
     boat_utest.RadioCommandEnable(boat, SET_BIT); 
     boat_utest.ClearMainFlags(boat); 
-    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_manual.c_str(), 
-                                (uint8_t)boat_radio_cmd_manual.size()); 
+    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_manual, 
+                                get_str_size(boat_radio_cmd_manual)); 
 
     // Verify that the manual command callback has not been called yet 
     LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainManualStateFlag(boat)); 
@@ -273,7 +289,7 @@ TEST(boat_radio_test, command_check_manual_callback)
     LONGS_EQUAL(boat_utest.GetCommsRadioSendEventType(), QueueMockGetNextEvent()); 
     boat_utest.RadioCommandSend(boat); 
     nrf24l01_mock_get_send_data(send_buffer); 
-    STRCMP_EQUAL(boat_radio_msg_confirm.c_str(), (char *)send_buffer); 
+    STRCMP_EQUAL(boat_radio_msg_confirm, (char *)send_buffer); 
 }
 
 
@@ -288,8 +304,8 @@ TEST(boat_radio_test, command_check_index_callback)
     // Enable all commands, clear main thread flags and set the message to be read 
     boat_utest.RadioCommandEnable(boat, SET_BIT); 
     boat_utest.ClearMainFlags(boat); 
-    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_index.c_str(), 
-                                (uint8_t)boat_radio_cmd_index.size()); 
+    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_index, 
+                                get_str_size(boat_radio_cmd_index)); 
 
     // Verify that the index command callback has not been called yet 
     LONGS_EQUAL(255, QueueMockGetNextEvent()); 
@@ -304,7 +320,7 @@ TEST(boat_radio_test, command_check_index_callback)
     LONGS_EQUAL(boat_utest.GetCommsRadioSendEventType(), QueueMockGetNextEvent()); 
     boat_utest.RadioCommandSend(boat); 
     nrf24l01_mock_get_send_data(send_buffer); 
-    STRCMP_EQUAL(boat_radio_msg_confirm.c_str(), (char *)send_buffer); 
+    STRCMP_EQUAL(boat_radio_msg_confirm, (char *)send_buffer); 
 
     // Check index value 
 }
@@ -319,8 +335,8 @@ TEST(boat_radio_test, command_check_throttle_input_callback)
     // Enable all commands, clear main thread flags and set the message to be read 
     boat_utest.RadioCommandEnable(boat, SET_BIT); 
     boat_utest.ClearMainFlags(boat); 
-    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_RP.c_str(), 
-                                (uint8_t)boat_radio_cmd_RP.size()); 
+    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_RP, 
+                                get_str_size(boat_radio_cmd_RP)); 
 
     // Verify that the throttle command callback has not been called yet 
 
