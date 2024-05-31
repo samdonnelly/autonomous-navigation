@@ -65,7 +65,9 @@ protected:   // Protected members
     // Command control 
     struct RadioCmdData 
     {
-        const std::string cmd; 
+        // const std::string cmd; 
+        // const std::string *cmd; 
+        const char *cmd; 
         RadioCmdArgs cmd_arg_type; 
         void (*cmd_func_ptr)(C&, uint8_t*); 
         uint8_t cmd_enable; 
@@ -98,7 +100,8 @@ protected:   // Protected member functions
 
     // Enable/Disable the specified command 
     void CommandEnable(
-        const std::string& cmd, 
+        // const std::string& cmd, 
+        const char *cmd, 
         std::array<RadioCmdData, SIZE>& cmd_table, 
         uint8_t cmd_state) const; 
 

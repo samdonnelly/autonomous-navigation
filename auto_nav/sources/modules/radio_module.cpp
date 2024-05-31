@@ -55,13 +55,16 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
         // arguments. 
 
         uint8_t num_cmds = (uint8_t)cmd_table.size(); 
-        std::string cmd_id_str = (char *)cmd_id; 
+        // std::string cmd_id_str = (char *)cmd_id; 
+        char *cmd_id_str = (char *)cmd_id; 
 
         for (uint8_t i = CLEAR; i < num_cmds; i++)
         {
             if (cmd_table[i].cmd_enable)
             {
-                if (cmd_id_str.compare(cmd_table[i].cmd) == 0)
+                // if (cmd_id_str.compare(cmd_table[i].cmd) == 0)
+                // if (cmd_id_str.compare(*cmd_table[i].cmd) == 0)
+                if (strcmp(cmd_id_str, cmd_table[i].cmd) == 0)
                 {
                     // ID matches an enabled pre-defined command. Check if the 
                     // command contains a value or string argument then call the 
@@ -105,7 +108,8 @@ uint8_t RadioModule<C, SIZE>::CommandLookUp(
 // Enable/Disable the specified command 
 template <typename C, size_t SIZE> 
 void RadioModule<C, SIZE>::CommandEnable(
-    const std::string& cmd, 
+    // const std::string& cmd, 
+    const char *cmd, 
     std::array<RadioCmdData, SIZE>& cmd_table, 
     uint8_t cmd_state) const 
 {
@@ -113,7 +117,9 @@ void RadioModule<C, SIZE>::CommandEnable(
 
     for (uint8_t i = CLEAR; i < num_cmds; i++)
     {
-        if (cmd.compare(cmd_table[i].cmd) == 0)
+        // if (cmd.compare(cmd_table[i].cmd) == 0)
+        // if (cmd.compare(*cmd_table[i].cmd) == 0)
+        if (strcmp(cmd, cmd_table[i].cmd) == 0)
         {
             cmd_table[i].cmd_enable = cmd_state; 
             break; 

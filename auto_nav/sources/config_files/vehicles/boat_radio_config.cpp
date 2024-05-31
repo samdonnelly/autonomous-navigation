@@ -23,17 +23,29 @@
 //=======================================================================================
 // Incoming commands 
 
-const std::string 
+// const std::string 
+// // Ground station commands 
+// boat_radio_cmd_ping = "ping",          // 0. Ping (heartbeat) 
+// boat_radio_cmd_idle = "idle",          // 1. Idle (standby) state 
+// boat_radio_cmd_auto = "auto",          // 2. Autonomous state 
+// boat_radio_cmd_manual = "manual",      // 3. Manual (remote) control state 
+// boat_radio_cmd_index = "index",        // 4. Waypoint index set 
+// boat_radio_cmd_RP = "RP",              // 5. Right thruster - forward thrust 
+// boat_radio_cmd_RN = "RN",              // 6. Right thruster - reverse thrust 
+// boat_radio_cmd_LP = "LP",              // 7. Left thruster - forward thrust 
+// boat_radio_cmd_LN = "LN";              // 8. Left thruster - reverse thrust 
+
+const char 
 // Ground station commands 
-boat_radio_cmd_ping = "ping",          // 0. Ping (heartbeat) 
-boat_radio_cmd_idle = "idle",          // 1. Idle (standby) state 
-boat_radio_cmd_auto = "auto",          // 2. Autonomous state 
-boat_radio_cmd_manual = "manual",      // 3. Manual (remote) control state 
-boat_radio_cmd_index = "index",        // 4. Waypoint index set 
-boat_radio_cmd_RP = "RP",              // 5. Right thruster - forward thrust 
-boat_radio_cmd_RN = "RN",              // 6. Right thruster - reverse thrust 
-boat_radio_cmd_LP = "LP",              // 7. Left thruster - forward thrust 
-boat_radio_cmd_LN = "LN";              // 8. Left thruster - reverse thrust 
+boat_radio_cmd_ping[] = "ping",          // 0. Ping (heartbeat) 
+boat_radio_cmd_idle[] = "idle",          // 1. Idle (standby) state 
+boat_radio_cmd_auto[] = "auto",          // 2. Autonomous state 
+boat_radio_cmd_manual[] = "manual",      // 3. Manual (remote) control state 
+boat_radio_cmd_index[] = "index",        // 4. Waypoint index set 
+boat_radio_cmd_RP[] = "RP",              // 5. Right thruster - forward thrust 
+boat_radio_cmd_RN[] = "RN",              // 6. Right thruster - reverse thrust 
+boat_radio_cmd_LP[] = "LP",              // 7. Left thruster - forward thrust 
+boat_radio_cmd_LN[] = "LN";              // 8. Left thruster - reverse thrust 
 
 //=======================================================================================
 
@@ -41,7 +53,10 @@ boat_radio_cmd_LN = "LN";              // 8. Left thruster - reverse thrust
 //=======================================================================================
 // Outgoing messages 
 
-extern const std::string 
-boat_radio_msg_confirm = "confirm";    // Command confirm 
+// const std::string 
+// boat_radio_msg_confirm = "confirm";    // Command confirm 
+
+const char 
+boat_radio_msg_confirm[] = "confirm";    // Command confirm 
 
 //=======================================================================================
