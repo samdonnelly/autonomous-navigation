@@ -31,6 +31,7 @@
 #include "timers.h" 
 
 // Modules 
+#include "boat_nav.h" 
 #include "boat_radio.h" 
 
 // Testing 
@@ -85,7 +86,8 @@ private:   // Private members
         NO_EVENT, 
         INIT, 
         RADIO_CHECK, 
-        NAV_CALCS, 
+        NAV_HEADING_CALC, 
+        NAV_LOCATION_CALC, 
         REMOTE_CONTROL 
     } main_event; 
 
@@ -122,7 +124,9 @@ private:   // Private members
         LED_STROBE_OFF, 
         LED_WRITE, 
         RADIO_READ, 
-        RADIO_SEND 
+        RADIO_SEND, 
+        NAV_HEADING_UPDATE, 
+        NAV_LOCATION_UPDATE 
     } comms_event; 
 
     //==================================================
@@ -131,6 +135,7 @@ private:   // Private members
     // Software timers thread 
 
     TimerHandle_t periodic_timer_100ms; 
+    TimerHandle_t periodic_timer_1s; 
 
     //==================================================
 
@@ -147,9 +152,10 @@ private:   // Private members
 
     uint16_t adc_buff[BOAT_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
 
-    // Devices 
+    // Modules 
     WS2812_Controller leds; 
     BoatRadio radio; 
+    BoatNav navigation; 
     
     //==================================================
 
@@ -223,6 +229,7 @@ private:   // Private member functions
 
     // Callback function(s) 
     static void TimerCallback100ms(TimerHandle_t xTimer); 
+    static void TimerCallback1s(TimerHandle_t xTimer); 
 
     //==================================================
 

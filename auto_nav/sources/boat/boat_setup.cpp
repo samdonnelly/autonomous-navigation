@@ -42,6 +42,7 @@
 
 // Software timers thread 
 #define PERIODIC_TIMER_100MS_PERIOD 20   // Ticks 
+#define PERIODIC_TIMER_1S_PERIOD 200     // Ticks 
 
 //=======================================================================================
 
@@ -456,6 +457,12 @@ void Boat::BoatSetup(void)
         pdTRUE,                         // Auto-relead --> pdTRUE == Repeat Timer 
         (void *)0,                      // Timer ID 
         TimerCallback100ms);            // Callback function 
+    periodic_timer_1s = xTimerCreate(
+        "1s",                           // Name of timer 
+        PERIODIC_TIMER_1S_PERIOD,       // Period of timer (ticks) 
+        pdTRUE,                         // Auto-relead --> pdTRUE == Repeat Timer 
+        (void *)1,                      // Timer ID 
+        TimerCallback1s);               // Callback function 
 
     // Create mutex 
     comms_mutex = xSemaphoreCreateMutex(); 

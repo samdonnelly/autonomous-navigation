@@ -53,6 +53,14 @@ void Boat::BoatCommsDispatch(Event event)
             boat.radio.CommandSend(); 
             break; 
 
+        case CommsEvents::NAV_HEADING_UPDATE: 
+            boat.navigation.HeadingUpdate(); 
+            break; 
+
+        case CommsEvents::NAV_LOCATION_UPDATE: 
+            boat.navigation.LocationUpdate(); 
+            break; 
+
         default: 
             break; 
     }

@@ -34,6 +34,25 @@ void Boat::TimerCallback100ms(TimerHandle_t xTimer)
 
     // Check for radio messages 
     boat.CommsEventQueue((Event)CommsEvents::RADIO_READ); 
+
+    // Update the navigation heading when in the auto state 
+    if (boat.main_state == MainStates::AUTO_STATE)
+    {
+        boat.CommsEventQueue((Event)CommsEvents::NAV_HEADING_UPDATE); 
+        boat.MainEventQueue((Event)MainEvents::NAV_HEADING_CALC); 
+    }
+}
+
+
+// 1s timer 
+void Boat::TimerCallback1s(TimerHandle_t xTimer)
+{
+    // Update the navigation location when in the auto state 
+    if (boat.main_state == MainStates::AUTO_STATE)
+    {
+        boat.CommsEventQueue((Event)CommsEvents::NAV_LOCATION_UPDATE); 
+        boat.MainEventQueue((Event)MainEvents::NAV_LOCATION_CALC); 
+    }
 }
 
 //=======================================================================================

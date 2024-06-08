@@ -176,43 +176,16 @@ void BoatRadio::IndexCmd(
     // Check if the requested index is within range of the current loaded waypoint 
     // mission. If so then update the index (target waypoint number). 
 
-    // if (index_cmd_arg < num_waypoints)
+    // if (*index_cmd_arg < num_waypoints)
     // {
-    //      waypoint_index = index_cmd_arg; 
-    //      boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+    //     waypoint_index = *index_cmd_arg; 
+    //     boat_test.target.lat = gps_waypoints[boat_test.waypoint_index].lat; 
+    //     boat_test.target.lon = gps_waypoints[boat_test.waypoint_index].lon; 
+    //     boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
     // }
 
     // Temp (for testing) 
     boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
-    
-    // static uint8_t index_check = CLEAR; 
-    // static uint8_t index_last = CLEAR; 
-
-    // // Compare the previous index command to the new index command. The radio messages 
-    // // between the ground station and boat are poor meaning a complete and correct 
-    // // message often does not get transmitted and received successfully. This can lead 
-    // // to the index not being updated to the desired value and therefore the boat moving 
-    // // to a target it's not supposed to. To combat this, the index has to been seen 
-    // // successively at least "AB_GPS_INDEX_CNT" times before the index will be updated. 
-    // if (index_cmd_value != index_last)
-    // {
-    //     index_last = index_cmd_value; 
-    //     index_check = SET_BIT; 
-    // }
-    // else 
-    // {
-    //     index_check++; 
-    // }
-
-    // // Check that the index is within bounds and seen the last AB_GPS_INDEX_CNT times before 
-    // // updating the index (filters noise). 
-    // if ((index_cmd_value < NUM_GPS_WAYPOINTS) && (index_check >= AB_GPS_INDEX_CNT))
-    // {
-    //     boat_test.waypoint_index = index_cmd_value; 
-    //     boat_test.target.lat = gps_waypoints[boat_test.waypoint_index].lat; 
-    //     boat_test.target.lon = gps_waypoints[boat_test.waypoint_index].lon; 
-    //     index_check = CLEAR; 
-    // }
 }
 
 

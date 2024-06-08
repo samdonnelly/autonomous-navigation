@@ -222,7 +222,10 @@ void Boat::MainAutoState(Boat& data, Event event)
         case MainEvents::RADIO_CHECK: 
             data.radio.CommandCheck(data); 
         
-        case MainEvents::NAV_CALCS: 
+        case MainEvents::NAV_HEADING_CALC: 
+            break; 
+
+        case MainEvents::NAV_LOCATION_CALC: 
             // Check for a GPS connection. 
             break; 
         
@@ -415,12 +418,18 @@ void Boat::MainAutoStateEntry(void)
     LEDStrobeUpdate(ws2812_led_auto_strobe); 
     LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
     radio.MainAutoStateCmdEnable(SET_BIT); 
+
+    // Start the 1s software timer - currently only used in the auto state 
+    xTimerStart(periodic_timer_1s, 0); 
 }
 
 
 // Auto state exit 
 void Boat::MainAutoStateExit(void)
 {
+    // Stop the 1s software timer - currently only used in the auto state 
+    xTimerStop(periodic_timer_1s, 0); 
+
     LEDStrobeOff(); 
     LEDUpdate(ws2812_led_off, ws2812_led_off); 
     radio.MainAutoStateCmdEnable(CLEAR_BIT); 
