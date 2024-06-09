@@ -26,8 +26,8 @@
 // Find the heading error 
 int16_t NavModule::HeadingError(int16_t m_heading)
 {
-    // Determine the true north heading and find the 
-    // error between the current (compass) and desired (GPS) headings. 
+    // Determine the true north heading and find the error between the current (compass) 
+    // and desired (GPS) headings. 
     compass_heading = true_north_heading(m_heading); 
     error_heading = heading_error(compass_heading, coordinate_heading); 
 
@@ -38,7 +38,7 @@ int16_t NavModule::HeadingError(int16_t m_heading)
 // Find the location error 
 void NavModule::LocationError(
     gps_waypoints_t& position, 
-    const gps_waypoints_t *targets)
+    const gps_waypoints_t *waypoints)
 {
     // Get the updated location by reading the GPS device coordinates then filtering 
     // the result. 
@@ -60,8 +60,8 @@ void NavModule::LocationError(
         }
 
         // Update the target waypoint 
-        target.lat = targets[waypoint_index].lat; 
-        target.lon = targets[waypoint_index].lon; 
+        target.lat = waypoints[waypoint_index].lat; 
+        target.lon = waypoints[waypoint_index].lon; 
     }
 }
 

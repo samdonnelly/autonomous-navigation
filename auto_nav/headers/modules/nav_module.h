@@ -74,7 +74,7 @@ public:   // Public member functions
     // Find the location error 
     void LocationError(
         gps_waypoints_t& position, 
-        const gps_waypoints_t *targets); 
+        const gps_waypoints_t *waypoints); 
 
     // Update coordinate radius 
     void SetCoordinateRadius(int32_t coord_radius); 

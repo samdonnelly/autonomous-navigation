@@ -36,8 +36,7 @@ void BoatNav::HeadingUpdate(void)
 void BoatNav::HeadingCalc(void)
 {
     // Find the heading error 
-    int16_t compass_heading = lsm303agr_m_get_heading(); 
-    HeadingError(compass_heading); 
+    HeadingError(lsm303agr_m_get_heading()); 
 
     // If navigation status is lost then set the thruster to zero output 
 
@@ -61,19 +60,17 @@ void BoatNav::LocationCalc(void)
 {
     // Update the boat's location 
 
-    uint8_t navstat = m8q_get_position_navstat_lock(); 
-
-    if (navstat)
+    if (m8q_get_position_navstat_lock())
     {
         // Get the M8Q coordinates and pass them to the nav module 
 
-        gps_waypoints_t device_coordinates = 
+        gps_waypoints_t m8q_coordinates = 
         {
             .lat = m8q_get_position_lat(), 
             .lon = m8q_get_position_lon() 
         }; 
 
-        LocationError(device_coordinates, gps_waypoints); 
+        LocationError(m8q_coordinates, gps_waypoints); 
     }
 }
 
