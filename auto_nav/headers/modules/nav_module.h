@@ -63,7 +63,17 @@ public:   // Public member functions
 
     // Constructor(s) 
     NavModule(int32_t coord_radius) 
-        : coordinate_radius(coord_radius) {} 
+        : waypoint_index(CLEAR), 
+          num_gps_waypoints(CLEAR), 
+          radius(CLEAR), 
+          coordinate_radius(coord_radius), 
+          coordinate_heading(CLEAR), 
+          compass_heading(CLEAR), 
+          error_heading(CLEAR) 
+    {
+        current.lat = CLEAR; 
+        current.lon = CLEAR; 
+    } 
 
     // Destructor 
     ~NavModule() {} 
