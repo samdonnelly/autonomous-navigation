@@ -27,8 +27,7 @@
 // Heading update 
 void BoatNav::HeadingUpdate(void)
 {
-    // Read from the magnetometer 
-    lsm303agr_m_update(); 
+    lsm303agr_status = lsm303agr_m_update(); 
 }
 
 
@@ -41,16 +40,37 @@ void BoatNav::HeadingCalc(void)
     // If navigation status is lost then set the thruster to zero output 
 
     // Update the thruster output based on the heading error 
+
+    // // Cap the error if needed so the throttle calculation works 
+    // if (error_heading > AB_AUTO_MAX_ERROR)
+    // {
+    //     error_heading = AB_AUTO_MAX_ERROR; 
+    // }
+    // else if (error_heading < -AB_AUTO_MAX_ERROR)
+    // {
+    //     error_heading = -AB_AUTO_MAX_ERROR; 
+    // }
+
+    // // Calculate the thruster command: throttle = (base throttle) + error*slope 
+    // right_thruster = AB_AUTO_BASE_SPEED - error_heading*ESC_MAX_THROTTLE / 
+    //                                                 (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
+    // left_thruster = AB_AUTO_BASE_SPEED +  error_heading*ESC_MAX_THROTTLE / 
+    //                                                 (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
+
+    // esc_readytosky_send(DEVICE_ONE, right_thruster); 
+    // esc_readytosky_send(DEVICE_TWO, left_thruster); 
 }
 
 
 // Location update 
 void BoatNav::LocationUpdate(void)
 {
-    // Read from the GPS module 
     if (m8q_get_tx_ready())
     {
-        m8q_read_data(); 
+        m8q_status = m8q_read_data(); 
+        navstat = m8q_get_position_navstat_lock(); 
+        boat_coordinates.lat = m8q_get_position_lat(); 
+        boat_coordinates.lon = m8q_get_position_lon(); 
     }
 }
 
@@ -58,20 +78,24 @@ void BoatNav::LocationUpdate(void)
 // Location calculation 
 void BoatNav::LocationCalc(void)
 {
-    // Update the boat's location 
-
-    if (m8q_get_position_navstat_lock())
+    if (navstat)
     {
-        // Get the M8Q coordinates and pass them to the nav module 
-
-        gps_waypoints_t m8q_coordinates = 
-        {
-            .lat = m8q_get_position_lat(), 
-            .lon = m8q_get_position_lon() 
-        }; 
-
-        LocationError(m8q_coordinates, gps_waypoints); 
+        LocationError(boat_coordinates, gps_waypoints); 
     }
+    else 
+    {
+        // Turn thrusters off 
+
+        // esc_readytosky_send(DEVICE_ONE, 0); 
+        // esc_readytosky_send(DEVICE_TWO, 0);  
+    }
+}
+
+
+// Target waypoint update 
+uint8_t BoatNav::TargetUpdate(uint8_t index)
+{
+    return SetTargetWaypoint(index, gps_waypoints); 
 }
 
 //=======================================================================================

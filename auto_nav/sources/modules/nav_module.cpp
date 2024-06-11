@@ -60,16 +60,8 @@ void NavModule::LocationError(
         }
 
         // Update the target waypoint 
-        target.lat = waypoints[waypoint_index].lat; 
-        target.lon = waypoints[waypoint_index].lon; 
+        SetTargetLocation(waypoints[waypoint_index]); 
     }
-}
-
-
-// Update coordinate radius 
-void NavModule::SetCoordinateRadius(int32_t coord_radius)
-{
-    coordinate_radius = coord_radius; 
 }
 
 
@@ -80,6 +72,47 @@ void NavModule::SetNumWaypoints(uint8_t num_waypoints)
 }
 
 
-// Manual waypoint target update? (for index radio command) 
+// Update the waypoint mission index 
+uint8_t NavModule::SetTargetWaypoint(
+    uint8_t index, 
+    const gps_waypoints_t *waypoints)
+{
+    if (index < num_gps_waypoints)
+    {
+        waypoint_index = index; 
+        SetTargetLocation(waypoints[waypoint_index]); 
+        return TRUE; 
+    }
+
+    return FALSE; 
+}
+
+
+// Current location manual update 
+void NavModule::SetCurrentLocation(const gps_waypoints_t& position)
+{
+    current.lat = position.lat; 
+    current.lon = position.lon; 
+}
+
+
+// Update coordinate radius 
+void NavModule::SetCoordinateRadius(int32_t coord_radius)
+{
+    coordinate_radius = coord_radius; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Module functions 
+
+// Target waypoint update 
+void NavModule::SetTargetLocation(const gps_waypoints_t& waypoint)
+{
+    target.lat = waypoint.lat; 
+    target.lon = waypoint.lon; 
+}
 
 //=======================================================================================

@@ -24,11 +24,6 @@
 
 
 //=======================================================================================
-// Macros 
-//=======================================================================================
-
-
-//=======================================================================================
 // Classes 
 
 // Forward declare the classes that will use the navigation module 
@@ -36,14 +31,10 @@
 // Radio base class 
 class NavModule : public nav_calculations 
 {
-protected:   // Protected members 
-
-    // 
-
-private:   // Private member functions 
+private:   // Private members 
 
     // GPS 
-    gps_waypoints_t current;           // Current location coordinates 
+    gps_waypoints_t current;           // Current location coordinates (filtered) 
     gps_waypoints_t target;            // Desired waypoint coordinates 
     uint8_t waypoint_index;            // Index of target waypoints 
     uint8_t num_gps_waypoints;         // Number of waypoints in the current mission 
@@ -55,17 +46,17 @@ private:   // Private member functions
     int16_t compass_heading;           // Current compass heading 
     int16_t error_heading;             // Error between compass and coordinate heading 
 
-protected:   // Protected member functions 
-
-    // 
-
 public:   // Public member functions 
 
     // Constructor(s) 
-    NavModule(int32_t coord_radius) 
-        : waypoint_index(CLEAR), 
+    NavModule(
+        int32_t coord_radius, 
+        double coordinate_filter_gain, 
+        int16_t tn_offset) 
+        : nav_calculations(coordinate_filter_gain, tn_offset), 
+          waypoint_index(CLEAR), 
           num_gps_waypoints(CLEAR), 
-          radius(CLEAR), 
+          radius(coord_radius), 
           coordinate_radius(coord_radius), 
           coordinate_heading(CLEAR), 
           compass_heading(CLEAR), 
@@ -73,10 +64,14 @@ public:   // Public member functions
     {
         current.lat = CLEAR; 
         current.lon = CLEAR; 
+        target.lat = CLEAR; 
+        target.lon = CLEAR; 
     } 
 
     // Destructor 
     ~NavModule() {} 
+
+protected:   // Protected member functions 
 
     // Find the heading error 
     int16_t HeadingError(int16_t m_heading); 
@@ -86,11 +81,24 @@ public:   // Public member functions
         gps_waypoints_t& position, 
         const gps_waypoints_t *waypoints); 
 
+    // Update number of waypoints 
+    void SetNumWaypoints(uint8_t num_waypoints); 
+
+    // Update the waypoint mission index 
+    uint8_t SetTargetWaypoint(
+        uint8_t index, 
+        const gps_waypoints_t *waypoints); 
+
+    // Current location manual update 
+    void SetCurrentLocation(const gps_waypoints_t& position); 
+
     // Update coordinate radius 
     void SetCoordinateRadius(int32_t coord_radius); 
 
-    // Update number of waypoints 
-    void SetNumWaypoints(uint8_t num_waypoints); 
+private:   // Private member functions 
+
+    // Target waypoint update 
+    void SetTargetLocation(const gps_waypoints_t& waypoint); 
 }; 
 
 //=======================================================================================

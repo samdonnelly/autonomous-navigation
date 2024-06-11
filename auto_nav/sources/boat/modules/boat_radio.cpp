@@ -73,6 +73,10 @@ void BoatRadio::CommandCheck(Boat& boat_radio)
     // pipe of the received payload doesn't match a pre-defined pipe then do nothing with 
     // the data. 
 
+    // 'data_pipe' is not protected here because this function is immediately called 
+    // following the 'CommandRead' function if there is new data which only gets called 
+    // every 100ms. 
+
     // Ground station data pipe 
     if (data_pipe == gs_pipe)
     {
@@ -145,10 +149,12 @@ void BoatRadio::AutoCmd(
     uint8_t *auto_cmd_arg)
 {
     // Check for GPS connection before triggering a state change 
-
-    boat_radio.main_flags.auto_state = SET_BIT; 
-    boat_radio.MainStateChange(); 
-    boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+    if (boat_radio.navigation.navstat)
+    {
+        boat_radio.main_flags.auto_state = SET_BIT; 
+        boat_radio.MainStateChange(); 
+        boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+    }
 }
 
 
@@ -173,19 +179,12 @@ void BoatRadio::IndexCmd(
         return; 
     }
 
-    // Check if the requested index is within range of the current loaded waypoint 
-    // mission. If so then update the index (target waypoint number). 
-
-    // if (*index_cmd_arg < num_waypoints)
-    // {
-    //     waypoint_index = *index_cmd_arg; 
-    //     boat_test.target.lat = gps_waypoints[boat_test.waypoint_index].lat; 
-    //     boat_test.target.lon = gps_waypoints[boat_test.waypoint_index].lon; 
-    //     boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
-    // }
-
-    // Temp (for testing) 
-    boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+    // Attempt to update the target waypoint with the index from the command. If 
+    // successful then send a confirmation back to the ground station. 
+    if (boat_radio.navigation.TargetUpdate(*index_cmd_arg))
+    {
+        boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+    }
 }
 
 

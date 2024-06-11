@@ -47,10 +47,12 @@ void Boat::TimerCallback100ms(TimerHandle_t xTimer)
 // 1s timer 
 void Boat::TimerCallback1s(TimerHandle_t xTimer)
 {
-    // Update the navigation location when in the auto state 
+    // Keep the current location up to date 
+    boat.CommsEventQueue((Event)CommsEvents::NAV_LOCATION_UPDATE); 
+
+    // Perform navigation location calculations when in the auto state 
     if (boat.main_state == MainStates::AUTO_STATE)
     {
-        boat.CommsEventQueue((Event)CommsEvents::NAV_LOCATION_UPDATE); 
         boat.MainEventQueue((Event)MainEvents::NAV_LOCATION_CALC); 
     }
 }

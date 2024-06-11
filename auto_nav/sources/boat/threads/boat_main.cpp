@@ -384,6 +384,9 @@ void Boat::MainInitStateEntry(void)
 {
     // Start the 100ms software timer 
     xTimerStart(periodic_timer_100ms, 0); 
+
+    // Start the 1s software timer 
+    xTimerStart(periodic_timer_1s, 0); 
 }
 
 
@@ -418,18 +421,12 @@ void Boat::MainAutoStateEntry(void)
     LEDStrobeUpdate(ws2812_led_auto_strobe); 
     LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
     radio.MainAutoStateCmdEnable(SET_BIT); 
-
-    // Start the 1s software timer - currently only used in the auto state 
-    xTimerStart(periodic_timer_1s, 0); 
 }
 
 
 // Auto state exit 
 void Boat::MainAutoStateExit(void)
 {
-    // Stop the 1s software timer - currently only used in the auto state 
-    xTimerStop(periodic_timer_1s, 0); 
-
     LEDStrobeOff(); 
     LEDUpdate(ws2812_led_off, ws2812_led_off); 
     radio.MainAutoStateCmdEnable(CLEAR_BIT); 
@@ -455,6 +452,12 @@ void Boat::MainManualStateExit(void)
 // Low power state entry 
 void Boat::MainLowPwrStateEntry(void)
 {
+    // Stop the 100ms software timer 
+    xTimerStop(periodic_timer_100ms, 0); 
+
+    // Stop the 1s software timer 
+    xTimerStop(periodic_timer_1s, 0); 
+    
     LEDStrobeUpdate(ws2812_led_low_pwr); 
     radio.MainLowPwrStateCmdEnable(SET_BIT); 
 }
@@ -471,7 +474,6 @@ void Boat::MainLowPwrStateExit(void)
 // Fault state entry 
 void Boat::MainFaultStateEntry(void)
 {
-    xTimerStop(periodic_timer_100ms, 0); 
     radio.MainFaultStateCmdEnable(SET_BIT); 
 }
 
@@ -488,6 +490,9 @@ void Boat::MainResetStateEntry(void)
 {
     // Stop the 100ms software timer 
     xTimerStop(periodic_timer_100ms, 0); 
+
+    // Stop the 1s software timer 
+    xTimerStop(periodic_timer_1s, 0); 
 }
 
 
