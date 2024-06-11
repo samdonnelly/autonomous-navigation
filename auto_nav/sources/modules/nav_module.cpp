@@ -21,7 +21,7 @@
 
 
 //=======================================================================================
-// User functions 
+// Vehicle functions 
 
 // Find the heading error 
 int16_t NavModule::HeadingError(int16_t m_heading)
@@ -65,13 +65,6 @@ void NavModule::LocationError(
 }
 
 
-// Update number of waypoints 
-void NavModule::SetNumWaypoints(uint8_t num_waypoints)
-{
-    num_gps_waypoints = num_waypoints; 
-}
-
-
 // Update the waypoint mission index 
 uint8_t NavModule::SetTargetWaypoint(
     uint8_t index, 
@@ -95,6 +88,18 @@ void NavModule::SetCurrentLocation(const gps_waypoints_t& position)
     current.lon = position.lon; 
 }
 
+
+// Update number of waypoints 
+void NavModule::SetNumWaypoints(uint8_t num_waypoints)
+{
+    num_gps_waypoints = num_waypoints; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// System functions 
 
 // Update coordinate radius 
 void NavModule::SetCoordinateRadius(int32_t coord_radius)

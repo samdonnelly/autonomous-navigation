@@ -44,7 +44,7 @@ void Boat::LEDStrobeOff(void)
 }
 
 
-// Update the colour of the startbird and port LEDs 
+// Update the colour of the starbird and port LEDs 
 void Boat::LEDUpdate(
     uint32_t starbird_led_colour, 
     uint32_t port_led_colour)

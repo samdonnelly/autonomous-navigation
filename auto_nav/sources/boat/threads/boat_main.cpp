@@ -189,6 +189,7 @@ void Boat::MainStandbyState(Boat& data, Event event)
     {
         case MainEvents::RADIO_CHECK: 
             data.radio.CommandCheck(data); 
+            break; 
         
         default: 
             break; 
@@ -221,12 +222,14 @@ void Boat::MainAutoState(Boat& data, Event event)
     {
         case MainEvents::RADIO_CHECK: 
             data.radio.CommandCheck(data); 
+            break; 
         
         case MainEvents::NAV_HEADING_CALC: 
+            data.navigation.HeadingCalc(data); 
             break; 
 
         case MainEvents::NAV_LOCATION_CALC: 
-            // Check for a GPS connection. 
+            data.navigation.LocationCalc(data); 
             break; 
         
         default: 
@@ -260,6 +263,7 @@ void Boat::MainManualState(Boat& data, Event event)
     {
         case MainEvents::RADIO_CHECK: 
             data.radio.CommandCheck(data); 
+            break; 
         
         case MainEvents::REMOTE_CONTROL: 
             // Pass radio connection status to the remote control module or check 
@@ -297,6 +301,7 @@ void Boat::MainLowPwrState(Boat& data, Event event)
     {
         case MainEvents::RADIO_CHECK: 
             data.radio.CommandCheck(data); 
+            break; 
         
         default: 
             break; 
@@ -329,6 +334,7 @@ void Boat::MainFaultState(Boat& data, Event event)
     {
         case MainEvents::RADIO_CHECK: 
             data.radio.CommandCheck(data); 
+            break; 
         
         default: 
             break; 
@@ -387,6 +393,9 @@ void Boat::MainInitStateEntry(void)
 
     // Start the 1s software timer 
     xTimerStart(periodic_timer_1s, 0); 
+
+    // Load a waypoint mission if it exists 
+    navigation.LoadMission(); 
 }
 
 
@@ -402,7 +411,6 @@ void Boat::MainStandbyStateEntry(void)
 {
     LEDStrobeUpdate(ws2812_led_standby_not_ready); 
     radio.MainStandbyStateCmdEnable(SET_BIT); 
-    // If there is a position lock then light up an LED 
 }
 
 
@@ -411,13 +419,13 @@ void Boat::MainStandbyStateExit(void)
 {
     LEDStrobeOff(); 
     radio.MainStandbyStateCmdEnable(CLEAR_BIT); 
-    // Turn off the position lock LED 
 }
 
 
 // Auto state entry 
 void Boat::MainAutoStateEntry(void)
 {
+    navigation.CurrentUpdate(boat); 
     LEDStrobeUpdate(ws2812_led_auto_strobe); 
     LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
     radio.MainAutoStateCmdEnable(SET_BIT); 

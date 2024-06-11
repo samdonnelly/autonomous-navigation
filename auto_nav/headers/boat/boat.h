@@ -57,6 +57,7 @@ public:   // Friends
 
     // Modules 
     friend class BoatRadio; 
+    friend class BoatNav; 
 
     // For unit testing only. Do not use anywhere else. 
     friend class BoatUTest; 

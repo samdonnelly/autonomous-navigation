@@ -71,6 +71,9 @@ public:   // Public member functions
     // Destructor 
     ~NavModule() {} 
 
+    // Update coordinate radius 
+    void SetCoordinateRadius(int32_t coord_radius); 
+
 protected:   // Protected member functions 
 
     // Find the heading error 
@@ -81,9 +84,6 @@ protected:   // Protected member functions
         gps_waypoints_t& position, 
         const gps_waypoints_t *waypoints); 
 
-    // Update number of waypoints 
-    void SetNumWaypoints(uint8_t num_waypoints); 
-
     // Update the waypoint mission index 
     uint8_t SetTargetWaypoint(
         uint8_t index, 
@@ -92,8 +92,8 @@ protected:   // Protected member functions
     // Current location manual update 
     void SetCurrentLocation(const gps_waypoints_t& position); 
 
-    // Update coordinate radius 
-    void SetCoordinateRadius(int32_t coord_radius); 
+    // Update number of waypoints 
+    void SetNumWaypoints(uint8_t num_waypoints); 
 
 private:   // Private member functions 
 

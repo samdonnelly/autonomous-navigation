@@ -34,6 +34,10 @@
 // Command read 
 void BoatRadio::CommandRead(Boat& boat_radio)
 {
+    // 'gs_connect_timeout', 'gs_connect_flag', 'data_pipe' and 'read_buff' are not 
+    // protected because 'CommandRead' and 'CommandCheck' are only called sequentially 
+    // every 100ms so there is no threat of one interrupting the other. 
+
     //==================================================
     // Increment timeouts 
 
@@ -73,9 +77,9 @@ void BoatRadio::CommandCheck(Boat& boat_radio)
     // pipe of the received payload doesn't match a pre-defined pipe then do nothing with 
     // the data. 
 
-    // 'data_pipe' is not protected here because this function is immediately called 
-    // following the 'CommandRead' function if there is new data which only gets called 
-    // every 100ms. 
+    // 'gs_connect_timeout', 'gs_connect_flag', 'data_pipe' and 'read_buff' are not 
+    // protected because 'CommandRead' and 'CommandCheck' are only called sequentially 
+    // every 100ms so there is no threat of one interrupting the other. 
 
     // Ground station data pipe 
     if (data_pipe == gs_pipe)
@@ -97,6 +101,9 @@ void BoatRadio::CommandSet(
     Boat& boat_radio, 
     const char *command)
 {
+    // 'write_ptr' is not protected because 'CommandSend' is only called after this 
+    // functions. 
+
     write_ptr = (uint8_t *)command; 
     boat_radio.CommsEventQueue((Event)Boat::CommsEvents::RADIO_SEND); 
 }
@@ -105,6 +112,9 @@ void BoatRadio::CommandSet(
 // Command send 
 void BoatRadio::CommandSend(void)
 {
+    // 'write_ptr' is not protected because this function is only called after 
+    // 'CommandSet' has been called. 
+
     nrf24l01_send_payload(write_ptr); 
 }
 

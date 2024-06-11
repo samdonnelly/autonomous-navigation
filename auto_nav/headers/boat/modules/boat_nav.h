@@ -26,6 +26,9 @@
 //=======================================================================================
 // Classes 
 
+// Forward declare the Boat class 
+class Boat; 
+
 class BoatNav : public NavModule 
 {
 public:   // Public members 
@@ -34,41 +37,44 @@ public:   // Public members
 
 private:   // Private members 
 
-    gps_waypoints_t boat_coordinates; 
-
     M8Q_STATUS m8q_status; 
     LSM303AGR_STATUS lsm303agr_status; 
 
 public:   // Public member functions 
 
     // Constructor 
-    BoatNav() 
-        : NavModule(100, 0.5, 130), 
-          navstat(CLEAR), 
-          m8q_status(M8Q_OK), 
-          lsm303agr_status(LSM303AGR_OK) 
-    {
-        boat_coordinates.lat = CLEAR; 
-        boat_coordinates.lon = CLEAR; 
-    }
+    BoatNav(); 
 
     // Destructor 
     ~BoatNav() {}
+
+    // Load waypoint mission 
+    void LoadMission(void); 
 
     // Heading update 
     void HeadingUpdate(void); 
 
     // Heading calculation 
-    void HeadingCalc(void); 
+    void HeadingCalc(Boat& boat_nav); 
 
     // Location update 
     void LocationUpdate(void); 
 
     // Location calculation 
-    void LocationCalc(void); 
+    void LocationCalc(Boat& boat_nav); 
 
     // Target waypoint update 
     uint8_t TargetUpdate(uint8_t index); 
+
+    // Current location update 
+    void CurrentUpdate(Boat& boat_nav); 
+
+private:   // Private member functions 
+
+    // Get the boat's coordinates 
+    void GetCoordinates(
+        gps_waypoints_t& coordinates, 
+        Boat& boat_nav); 
 }; 
 
 //=======================================================================================
