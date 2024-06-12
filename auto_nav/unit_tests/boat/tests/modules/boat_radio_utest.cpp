@@ -235,18 +235,33 @@ TEST(boat_radio_test, command_check_auto_callback)
     nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_auto, 
                                 get_str_size(boat_radio_cmd_auto)); 
 
-    // Verify that the auto command callback has not been called yet 
+    // Verify that the auto command callback has not been called yet. A GPS connection 
+    // is simulated to help show that the callback has not been called. 
+    boat_utest.NavNavstatSet(boat, SET_BIT); 
     LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
     LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateExitFlag(boat)); 
-    LONGS_EQUAL(255, QueueMockGetNextEvent()); 
+    LONGS_EQUAL(255, QueueMockGetNextEvent());   // 255 means no event queued 
 
-    // Read and process the radio message 
+    // Read and process the radio message. The GPS connection is simulated to have been 
+    // lost to show that we can't enter the auto state without having a connection. 
+    boat_utest.NavNavstatSet(boat, CLEAR_BIT); 
     boat_utest.RadioCommandRead(boat); 
     boat_utest.RadioCommandCheck(boat); 
     QueueMockGetNextEvent();   // Call this to bypass the radio check event 
 
-    // Check that auto command callback was called. See the callback function for 
-    // items checked here. 
+    // Check that the auto command callback did not trigger the auto state due to 
+    // there being no position lock (navstat not set). 
+    LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
+    LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateExitFlag(boat)); 
+    LONGS_EQUAL(255, QueueMockGetNextEvent()); 
+
+    // Repeat the process but this time simulate a GPS connection by setting 'navstat' 
+    // so that the auto state command callback can trigger the auto state. 
+    boat_utest.NavNavstatSet(boat, SET_BIT); 
+    boat_utest.RadioCommandRead(boat); 
+    boat_utest.RadioCommandCheck(boat); 
+    QueueMockGetNextEvent(); 
+    
     LONGS_EQUAL(SET_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
     LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateExitFlag(boat)); 
     LONGS_EQUAL(boat_utest.GetMainNoEventType(), QueueMockGetNextEvent()); 

@@ -171,10 +171,16 @@ uint8_t BoatUTest::GetMainRadioCheckEventType(void)
     return (uint8_t)Boat::MainEvents::RADIO_CHECK; 
 }
 
-// Get NAV_CALCS value 
-uint8_t BoatUTest::GetMainNavCalcsEventType(void)
+// Get NAV_HEADING_CALC value 
+uint8_t BoatUTest::GetMainNavHeadingCalcEventType(void)
 {
-    return (uint8_t)Boat::MainEvents::NAV_CALCS; 
+    return (uint8_t)Boat::MainEvents::NAV_HEADING_CALC; 
+}
+
+// Get NAV_LOCATION_CALC value 
+uint8_t BoatUTest::GetMainNavLocationCalcEventType(void)
+{
+    return (uint8_t)Boat::MainEvents::NAV_LOCATION_CALC; 
 }
 
 // Get REMOTE_CONTROL value 
@@ -412,6 +418,18 @@ uint8_t BoatUTest::GetCommsRadioSendEventType(void)
     return (uint8_t)Boat::CommsEvents::RADIO_SEND; 
 }
 
+// Get NAV_HEADING_UPDATE value 
+uint8_t BoatUTest::GetCommsNavHeadingUpdateEventType(void)
+{
+    return (uint8_t)Boat::CommsEvents::NAV_HEADING_UPDATE; 
+}
+
+// Get NAV_LOCATION_UPDATE value 
+uint8_t BoatUTest::GetCommsNavLocationUpdateEventType(void)
+{
+    return (uint8_t)Boat::CommsEvents::NAV_LOCATION_UPDATE; 
+}
+
 //==================================================
 
 //=======================================================================================
@@ -451,6 +469,20 @@ void BoatUTest::RadioCommandEnable(
 {
     boat_utest.radio.MainStandbyStateCmdEnable(cmd_state); 
     boat_utest.radio.MainManualStateCmdEnable(cmd_state); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Boat navigation moudle 
+
+// Update navigation status 
+void BoatUTest::NavNavstatSet(
+    Boat& boat_utest, 
+    uint8_t status)
+{
+    boat_utest.navigation.navstat = status; 
 }
 
 //=======================================================================================

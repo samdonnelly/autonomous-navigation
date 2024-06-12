@@ -388,10 +388,8 @@ void Boat::MainResetState(Boat& data, Event event)
 // Init state entry 
 void Boat::MainInitStateEntry(void)
 {
-    // Start the 100ms software timer 
+    // Start software timers 
     xTimerStart(periodic_timer_100ms, 0); 
-
-    // Start the 1s software timer 
     xTimerStart(periodic_timer_1s, 0); 
 
     // Load a waypoint mission if it exists 

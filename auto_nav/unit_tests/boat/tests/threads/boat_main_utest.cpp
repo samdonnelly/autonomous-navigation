@@ -73,10 +73,10 @@ TEST_GROUP(boat_main_test)
 // State machine test 
 
 // These tests test the state machine transitions to other states. They do not test how 
-// and why a state transition occurs. They all run state with "NO_EVENT" set so nothing 
-// else is run. State transitions are checked from lowest priority to highest priority 
-// to check that a higher priority transition will happen even with multiple state flags 
-// set. 
+// and why a state transition occurs. They all run states with "NO_EVENT" set as the 
+// event so no state events are run State transitions are checked from lowest priority 
+// to highest priority to check that a higher priority transition will happen even with 
+// multiple state flags set. 
 
 // State machine: Init state 
 TEST(boat_main_test, boat_main_state_machine_init_state)

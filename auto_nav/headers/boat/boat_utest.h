@@ -67,7 +67,8 @@ public:
     uint8_t GetMainNoEventType(void); 
     uint8_t GetMainInitEventType(void); 
     uint8_t GetMainRadioCheckEventType(void); 
-    uint8_t GetMainNavCalcsEventType(void); 
+    uint8_t GetMainNavHeadingCalcEventType(void); 
+    uint8_t GetMainNavLocationCalcEventType(void); 
     uint8_t GetMainRemoteControlEventType(void); 
 
     // Main thread flag getters 
@@ -117,6 +118,8 @@ public:
     uint8_t GetCommsLEDWriteEventType(void); 
     uint8_t GetCommsRadioReadEventType(void); 
     uint8_t GetCommsRadioSendEventType(void); 
+    uint8_t GetCommsNavHeadingUpdateEventType(void); 
+    uint8_t GetCommsNavLocationUpdateEventType(void); 
 
     //==================================================
 
@@ -130,6 +133,14 @@ public:
     void RadioCommandSend(Boat& boat_utest); 
     void RadioCommandEnable(Boat& boat_utest, uint8_t cmd_state); 
 
+    //==================================================
+    
+    //==================================================
+    // Boat navigation module 
+
+    // Update navigation status 
+    void NavNavstatSet(Boat& boat_utest, uint8_t status); 
+    
     //==================================================
 
     // Constructor 

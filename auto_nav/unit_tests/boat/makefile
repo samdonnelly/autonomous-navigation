@@ -31,6 +31,7 @@ SRC_DIRS +=
 
 # Boat code 
 SRC_FILES += ./../../sources/boat/modules/boat_led.cpp 
+SRC_FILES += ./../../sources/boat/modules/boat_nav.cpp 
 SRC_FILES += ./../../sources/boat/modules/boat_radio.cpp 
 SRC_FILES += ./../../sources/boat/threads/boat_main.cpp 
 SRC_FILES += ./../../sources/boat/threads/boat_comms.cpp 
