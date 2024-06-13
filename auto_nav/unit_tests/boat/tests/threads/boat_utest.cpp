@@ -49,45 +49,45 @@ void BoatUTest::MainThreadDispatch(Boat& boat_utest)
 }
 
 // Init state 
-void BoatUTest::MainInitStateWrapper(Boat& boat_utest)
+void BoatUTest::MainInitStateWrapper(Boat& boat_utest, Event event)
 {
-    boat_utest.MainInitState(boat_utest, main_event); 
+    boat_utest.MainInitState(boat_utest, event); 
 }
 
 // Standby state 
-void BoatUTest::MainStandbyStateWrapper(Boat& boat_utest)
+void BoatUTest::MainStandbyStateWrapper(Boat& boat_utest, Event event)
 {
-    boat_utest.MainStandbyState(boat_utest, main_event); 
+    boat_utest.MainStandbyState(boat_utest, event); 
 }
 
 // Auto state 
-void BoatUTest::MainAutoStateWrapper(Boat& boat_utest)
+void BoatUTest::MainAutoStateWrapper(Boat& boat_utest, Event event)
 {
-    boat_utest.MainAutoState(boat_utest, main_event); 
+    boat_utest.MainAutoState(boat_utest, event); 
 }
 
 // Manual state 
-void BoatUTest::MainManualStateWrapper(Boat& boat_utest)
+void BoatUTest::MainManualStateWrapper(Boat& boat_utest, Event event)
 {
-    boat_utest.MainManualState(boat_utest, main_event); 
+    boat_utest.MainManualState(boat_utest, event); 
 }
 
 // Low Power state 
-void BoatUTest::MainLowPwrStateWrapper(Boat& boat_utest)
+void BoatUTest::MainLowPwrStateWrapper(Boat& boat_utest, Event event)
 {
-    boat_utest.MainLowPwrState(boat_utest, main_event); 
+    boat_utest.MainLowPwrState(boat_utest, event); 
 }
 
 // Fault state 
-void BoatUTest::MainFaultStateWrapper(Boat& boat_utest)
+void BoatUTest::MainFaultStateWrapper(Boat& boat_utest, Event event)
 {
-    boat_utest.MainFaultState(boat_utest, main_event); 
+    boat_utest.MainFaultState(boat_utest, event); 
 }
 
 // Reset state 
-void BoatUTest::MainResetStateWrapper(Boat& boat_utest)
+void BoatUTest::MainResetStateWrapper(Boat& boat_utest, Event event)
 {
-    boat_utest.MainResetState(boat_utest, main_event); 
+    boat_utest.MainResetState(boat_utest, event); 
 }
 
 //==================================================
@@ -363,12 +363,19 @@ void BoatUTest::ClearMainFlags(Boat& boat_utest)
 //==================================================
 
 //==================================================
-// Event setters 
+// Event setters and getters 
 
 // Set event to NO_EVENT 
 void BoatUTest::SetMainNoEvent(void)
 {
     main_event = (Event)Boat::MainEvents::NO_EVENT; 
+}
+
+
+// Get main event flag 
+uint8_t BoatUTest::GetMainEvent(Boat& boat_utest)
+{
+    return (uint8_t)boat_utest.main_event; 
 }
 
 //==================================================

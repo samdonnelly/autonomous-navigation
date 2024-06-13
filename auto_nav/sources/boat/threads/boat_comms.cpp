@@ -62,6 +62,7 @@ void Boat::BoatCommsDispatch(Event event)
             break; 
 
         default: 
+            boat.comms_event = CommsEvents::NO_EVENT; 
             break; 
     }
 

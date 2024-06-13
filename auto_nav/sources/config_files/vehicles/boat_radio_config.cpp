@@ -42,6 +42,7 @@ boat_radio_cmd_LN[] = "LN";              // 8. Left thruster - reverse thrust
 // Outgoing messages 
 
 const char 
+boat_radio_ping_confirm[] = "pong",      // Ping (heartbeat) confirm 
 boat_radio_msg_confirm[] = "confirm";    // Command confirm 
 
 //=======================================================================================

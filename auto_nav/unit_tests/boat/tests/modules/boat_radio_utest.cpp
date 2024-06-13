@@ -122,8 +122,6 @@ TEST(boat_radio_test, command_read_check_timeout_heartbeat)
     boat_utest.RadioCommandEnable(boat, SET_BIT); 
 
     // Set a valid message to read, then read it to get a true radio connection status. 
-    // nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_ping, 
-    //                             (uint8_t)sizeof(boat_radio_cmd_ping)); 
     nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_ping, 
                                 get_str_size(boat_radio_cmd_ping)); 
     boat_utest.RadioCommandRead(boat); 

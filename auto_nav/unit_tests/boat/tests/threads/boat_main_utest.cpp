@@ -296,13 +296,13 @@ TEST(boat_main_test, boat_main_state_enter_exit_init_state)
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
     boat_utest.SetMainInitStateFlag(boat); 
-    boat_utest.MainInitStateWrapper(boat); 
+    boat_utest.MainInitStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainInitStateFlag(boat)); 
 
     // State exit check 
     boat_utest.SetMainStateExitFlag(boat); 
-    boat_utest.MainInitStateWrapper(boat); 
+    boat_utest.MainInitStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainInitStateFlag(boat)); 
 }
@@ -314,13 +314,13 @@ TEST(boat_main_test, boat_main_state_enter_exit_standby_state)
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
     boat_utest.SetMainStandbyStateFlag(boat); 
-    boat_utest.MainStandbyStateWrapper(boat); 
+    boat_utest.MainStandbyStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
 
     // State exit check 
     boat_utest.SetMainStateExitFlag(boat); 
-    boat_utest.MainStandbyStateWrapper(boat); 
+    boat_utest.MainStandbyStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStandbyStateFlag(boat)); 
 
@@ -335,13 +335,13 @@ TEST(boat_main_test, boat_main_state_enter_exit_auto_state)
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
     boat_utest.SetMainAutoStateFlag(boat); 
-    boat_utest.MainAutoStateWrapper(boat); 
+    boat_utest.MainAutoStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
 
     // State exit check 
     boat_utest.SetMainStateExitFlag(boat); 
-    boat_utest.MainAutoStateWrapper(boat); 
+    boat_utest.MainAutoStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainAutoStateFlag(boat)); 
 
@@ -358,13 +358,13 @@ TEST(boat_main_test, boat_main_state_enter_exit_manual_state)
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
     boat_utest.SetMainManualStateFlag(boat); 
-    boat_utest.MainManualStateWrapper(boat); 
+    boat_utest.MainManualStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainManualStateFlag(boat)); 
 
     // State exit check 
     boat_utest.SetMainStateExitFlag(boat); 
-    boat_utest.MainManualStateWrapper(boat); 
+    boat_utest.MainManualStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainManualStateFlag(boat)); 
 
@@ -379,13 +379,13 @@ TEST(boat_main_test, boat_main_state_enter_exit_low_pwr_state)
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
     boat_utest.SetMainLowPwrStateFlag(boat); 
-    boat_utest.MainLowPwrStateWrapper(boat); 
+    boat_utest.MainLowPwrStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainLowPwrStateFlag(boat)); 
 
     // State exit check 
     boat_utest.SetMainStateExitFlag(boat); 
-    boat_utest.MainLowPwrStateWrapper(boat); 
+    boat_utest.MainLowPwrStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainLowPwrStateFlag(boat)); 
 
@@ -400,13 +400,13 @@ TEST(boat_main_test, boat_main_state_enter_exit_fault_state)
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
     boat_utest.SetMainFaultStateFlag(boat); 
-    boat_utest.MainFaultStateWrapper(boat); 
+    boat_utest.MainFaultStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainFaultStateFlag(boat)); 
 
     // State exit check 
     boat_utest.SetMainStateExitFlag(boat); 
-    boat_utest.MainFaultStateWrapper(boat); 
+    boat_utest.MainFaultStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainFaultStateFlag(boat)); 
 }
@@ -418,13 +418,13 @@ TEST(boat_main_test, boat_main_state_enter_exit_reset_state)
     // State entry check 
     boat_utest.SetMainStateEntryFlag(boat); 
     boat_utest.SetMainResetStateFlag(boat); 
-    boat_utest.MainResetStateWrapper(boat); 
+    boat_utest.MainResetStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainResetStateFlag(boat)); 
 
     // State exit check 
     boat_utest.SetMainStateExitFlag(boat); 
-    boat_utest.MainResetStateWrapper(boat); 
+    boat_utest.MainResetStateWrapper(boat, boat_utest.GetMainEvent(boat)); 
     UNSIGNED_LONGS_EQUAL(SET_BIT, boat_utest.GetMainStateEntryFlag(boat)); 
     UNSIGNED_LONGS_EQUAL(CLEAR_BIT, boat_utest.GetMainResetStateFlag(boat)); 
 }
@@ -436,54 +436,89 @@ TEST(boat_main_test, boat_main_state_enter_exit_reset_state)
 // State event test 
 
 // These tests test the events available in each state of the main thread. They do not 
-// test how and why state event is requested. 
+// test how and why state event are requested. Each test has one check to verify that an 
+// event does not exist within a state. 
 
 // State: Init 
 TEST(boat_main_test, boat_main_state_events_init_state)
 {
-    // 
+    boat_utest.MainInitStateWrapper(boat, boat_utest.GetMainInitEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainInitEventType(), boat_utest.GetMainEvent(boat)); 
+    
+    boat_utest.MainInitStateWrapper(boat, boat_utest.GetMainRemoteControlEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainNoEventType(), boat_utest.GetMainEvent(boat)); 
 }
 
 
 // State: Standby 
 TEST(boat_main_test, boat_main_state_events_standby_state)
 {
-    // 
+    boat_utest.MainStandbyStateWrapper(boat, boat_utest.GetMainRadioCheckEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainRadioCheckEventType(), boat_utest.GetMainEvent(boat)); 
+    
+    boat_utest.MainStandbyStateWrapper(boat, boat_utest.GetMainRemoteControlEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainNoEventType(), boat_utest.GetMainEvent(boat)); 
 }
 
 
 // State: Auto 
 TEST(boat_main_test, boat_main_state_events_auto_state)
 {
-    // 
+    boat_utest.MainAutoStateWrapper(boat, boat_utest.GetMainRadioCheckEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainRadioCheckEventType(), boat_utest.GetMainEvent(boat)); 
+    
+    boat_utest.MainAutoStateWrapper(boat, boat_utest.GetMainNavHeadingCalcEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainNavHeadingCalcEventType(), boat_utest.GetMainEvent(boat)); 
+    
+    boat_utest.MainAutoStateWrapper(boat, boat_utest.GetMainNavLocationCalcEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainNavLocationCalcEventType(), boat_utest.GetMainEvent(boat)); 
+    
+    boat_utest.MainAutoStateWrapper(boat, boat_utest.GetMainRemoteControlEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainNoEventType(), boat_utest.GetMainEvent(boat)); 
 }
 
 
 // State: Manual 
 TEST(boat_main_test, boat_main_state_events_manual_state)
 {
-    // 
+    boat_utest.MainManualStateWrapper(boat, boat_utest.GetMainRadioCheckEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainRadioCheckEventType(), boat_utest.GetMainEvent(boat)); 
+
+    boat_utest.MainManualStateWrapper(boat, boat_utest.GetMainRemoteControlEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainRemoteControlEventType(), boat_utest.GetMainEvent(boat)); 
+    
+    boat_utest.MainManualStateWrapper(boat, boat_utest.GetMainNavLocationCalcEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainNoEventType(), boat_utest.GetMainEvent(boat)); 
 }
 
 
 // State: Low Power 
 TEST(boat_main_test, boat_main_state_events_low_pwr_state)
 {
-    // 
+    boat_utest.MainLowPwrStateWrapper(boat, boat_utest.GetMainRadioCheckEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainRadioCheckEventType(), boat_utest.GetMainEvent(boat)); 
+    
+    boat_utest.MainLowPwrStateWrapper(boat, boat_utest.GetMainRemoteControlEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainNoEventType(), boat_utest.GetMainEvent(boat)); 
 }
 
 
 // State: Fault 
 TEST(boat_main_test, boat_main_state_events_fault_state)
 {
-    // 
+    boat_utest.MainFaultStateWrapper(boat, boat_utest.GetMainRadioCheckEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainRadioCheckEventType(), boat_utest.GetMainEvent(boat)); 
+    
+    boat_utest.MainFaultStateWrapper(boat, boat_utest.GetMainRemoteControlEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainNoEventType(), boat_utest.GetMainEvent(boat)); 
 }
 
 
 // State: Reset 
 TEST(boat_main_test, boat_main_state_events_reset_state)
 {
-    // 
+    boat_utest.MainResetStateWrapper(boat, boat_utest.GetMainRemoteControlEventType()); 
+    UNSIGNED_LONGS_EQUAL(boat_utest.GetMainNoEventType(), boat_utest.GetMainEvent(boat)); 
 }
 
 //=======================================================================================

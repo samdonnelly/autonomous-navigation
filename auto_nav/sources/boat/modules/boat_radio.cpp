@@ -139,6 +139,8 @@ void BoatRadio::HBCmd(
     // This function is here to provide a match for a valid command check. It's meant to 
     // verify that there is a radio connection but the connection flag gets set when any 
     // command matches. 
+
+    boat_radio.radio.CommandSet(boat_radio, boat_radio_ping_confirm); 
 }
 
 

@@ -43,13 +43,20 @@ public:
 
     // Wrappers 
     void MainThreadDispatch(Boat& boat_utest); 
-    void MainInitStateWrapper(Boat& boat_utest); 
-    void MainStandbyStateWrapper(Boat& boat_utest); 
-    void MainAutoStateWrapper(Boat& boat_utest); 
-    void MainManualStateWrapper(Boat& boat_utest); 
-    void MainLowPwrStateWrapper(Boat& boat_utest); 
-    void MainFaultStateWrapper(Boat& boat_utest); 
-    void MainResetStateWrapper(Boat& boat_utest); 
+    // void MainInitStateWrapper(Boat& boat_utest); 
+    // void MainStandbyStateWrapper(Boat& boat_utest); 
+    // void MainAutoStateWrapper(Boat& boat_utest); 
+    // void MainManualStateWrapper(Boat& boat_utest); 
+    // void MainLowPwrStateWrapper(Boat& boat_utest); 
+    // void MainFaultStateWrapper(Boat& boat_utest); 
+    // void MainResetStateWrapper(Boat& boat_utest); 
+    void MainInitStateWrapper(Boat& boat_utest, Event event); 
+    void MainStandbyStateWrapper(Boat& boat_utest, Event event); 
+    void MainAutoStateWrapper(Boat& boat_utest, Event event); 
+    void MainManualStateWrapper(Boat& boat_utest, Event event); 
+    void MainLowPwrStateWrapper(Boat& boat_utest, Event event); 
+    void MainFaultStateWrapper(Boat& boat_utest, Event event); 
+    void MainResetStateWrapper(Boat& boat_utest, Event event); 
 
     // Current state getter 
     uint8_t GetMainCurrentState(Boat& boat_utest); 
@@ -103,8 +110,9 @@ public:
     void SetMainResetStateFlag(Boat& boat_utest); 
     void ClearMainFlags(Boat& boat_utest); 
 
-    // Event setters 
+    // Event setters and getters 
     void SetMainNoEvent(void); 
+    uint8_t GetMainEvent(Boat& boat_utest); 
         
     //==================================================
 

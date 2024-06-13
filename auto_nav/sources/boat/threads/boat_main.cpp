@@ -159,6 +159,7 @@ void Boat::MainInitState(Boat& data, Event event)
             break; 
 
         default: 
+            data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
 
@@ -192,6 +193,7 @@ void Boat::MainStandbyState(Boat& data, Event event)
             break; 
         
         default: 
+            data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
 
@@ -233,6 +235,7 @@ void Boat::MainAutoState(Boat& data, Event event)
             break; 
         
         default: 
+            data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
 
@@ -271,6 +274,7 @@ void Boat::MainManualState(Boat& data, Event event)
             break; 
         
         default: 
+            data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
 
@@ -304,6 +308,7 @@ void Boat::MainLowPwrState(Boat& data, Event event)
             break; 
         
         default: 
+            data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
 
@@ -337,6 +342,7 @@ void Boat::MainFaultState(Boat& data, Event event)
             break; 
         
         default: 
+            data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
 
@@ -366,6 +372,7 @@ void Boat::MainResetState(Boat& data, Event event)
     switch (data.main_event)
     {
         default: 
+            data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
 
@@ -458,10 +465,8 @@ void Boat::MainManualStateExit(void)
 // Low power state entry 
 void Boat::MainLowPwrStateEntry(void)
 {
-    // Stop the 100ms software timer 
+    // Stop the software timers 
     xTimerStop(periodic_timer_100ms, 0); 
-
-    // Stop the 1s software timer 
     xTimerStop(periodic_timer_1s, 0); 
     
     LEDStrobeUpdate(ws2812_led_low_pwr); 
@@ -494,10 +499,8 @@ void Boat::MainFaultStateExit(void)
 // Reset state entry 
 void Boat::MainResetStateEntry(void)
 {
-    // Stop the 100ms software timer 
+    // Stop the software timers 
     xTimerStop(periodic_timer_100ms, 0); 
-
-    // Stop the 1s software timer 
     xTimerStop(periodic_timer_1s, 0); 
 }
 
