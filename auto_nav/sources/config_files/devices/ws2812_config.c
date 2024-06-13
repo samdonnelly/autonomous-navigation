@@ -29,16 +29,16 @@
 const uint32_t ws2812_led_off = 0x00000000; 
 
 // Standby state 
-const uint32_t ws2812_led_standby_not_ready = 0x00FF9700;   // Ready indicator (orange) 
-const uint32_t ws2812_led_standby_ready = 0x00FF9700;       // Not ready indicator (orange) 
+const uint32_t ws2812_led_standby_not_ready = 0x0044EE00;   // Ready indicator (orange) 
+const uint32_t ws2812_led_standby_ready = 0x0044EE00;       // Not ready indicator (orange) 
 
 // Autonomous state 
 const uint32_t ws2812_led_auto_star = 0x001E0000;           // Starbird side indicator (green) 
 const uint32_t ws2812_led_auto_port = 0x00001E00;           // Port side indicator (red) 
-const uint32_t ws2812_led_auto_strobe = 0x001E1E1E;         // Strobe light (white) 
+const uint32_t ws2812_led_auto_strobe = 0x005E5E5E;         // Strobe light (white) 
 
 // Manual state 
-const uint32_t ws2812_led_manual_strobe = 0x000038FF;       // Strobe light (blue) 
+const uint32_t ws2812_led_manual_strobe = 0x000038FF;       // Strobe light (purple) 
 
 // Low power state 
 const uint32_t ws2812_led_low_pwr = 0x00FFC823;             // Low power (yellow) 
