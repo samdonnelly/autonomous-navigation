@@ -118,6 +118,9 @@ TEST(boat_radio_test, command_read_check_timeout_heartbeat)
     // Invalid command to set (won't match with a pre-defined command) 
     char invalid_cmd[] = "pinger"; 
 
+    // Buffer to get the heartbeat callback response 
+    uint8_t send_buffer[NRF24L01_MAX_PAYLOAD_LEN]; 
+
     // Enable all commands 
     boat_utest.RadioCommandEnable(boat, SET_BIT); 
 
@@ -142,12 +145,16 @@ TEST(boat_radio_test, command_read_check_timeout_heartbeat)
     LONGS_EQUAL(CLEAR_BIT, boat_utest.RadioConnectionStatus(boat)); 
 
     // Now that the connection is lost, reestablish the connection using the heartbeat 
-    // command to verify the callback. 
+    // command to verify the callback. Also check for a heartbeat (ping) response. 
     nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_ping, 
                                 get_str_size(boat_radio_cmd_ping)); 
     boat_utest.RadioCommandRead(boat); 
     boat_utest.RadioCommandCheck(boat); 
     LONGS_EQUAL(SET_BIT, boat_utest.RadioConnectionStatus(boat)); 
+    
+    boat_utest.RadioCommandSend(boat); 
+    nrf24l01_mock_get_send_data(send_buffer); 
+    STRCMP_EQUAL(boat_radio_ping_confirm, (char *)send_buffer); 
 }
 
 
