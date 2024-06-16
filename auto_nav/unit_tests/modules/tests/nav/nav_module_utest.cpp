@@ -44,16 +44,49 @@ extern "C"
 //=======================================================================================
 // Classes 
 
-class VehicleNav // : public NavModule 
+class VehicleNav : public NavModule 
 {
 public: 
     // Constructor 
-    // VehicleNav() 
-    //     : NavModule(0, 0.0, 0) {}
-    VehicleNav() {}
+    VehicleNav() 
+        : NavModule(0, 0.0, 0) {}
 
     // Destructor 
     ~VehicleNav() {} 
+
+    // Heading Error wrapper 
+    int16_t NavTestHeadingError(int16_t heading)
+    {
+        return HeadingError(heading); 
+    }
+
+    // Location Error wrapper 
+    void NavTestLocationError(
+        gps_waypoints_t& position, 
+        const gps_waypoints_t *waypoints)
+    {
+        LocationError(position, waypoints); 
+    }
+
+    // Set Target Waypoint wrapper 
+    uint8_t NavTestSetTargetWaypoint(
+        uint8_t index, 
+        const gps_waypoints_t *waypoints)
+    {
+        return SetTargetWaypoint(index, waypoints); 
+    }
+
+    // Set Current Location wrapper 
+    void NavTestSetCurrentLocation(const gps_waypoints_t& position)
+    {
+        SetCurrentLocation(position); 
+    }
+
+    // Set Num Waypoints wrapper 
+    void NavTestSetNumWaypoints(uint8_t num_waypoints)
+    {
+        SetNumWaypoints(num_waypoints); 
+    }
 }; 
 
 //=======================================================================================
@@ -92,7 +125,13 @@ TEST_GROUP(nav_module_test)
 // Tests 
 
 // Check heading error 
-// 
+// Change coordinate radius and check waypoint update 
+// Check waypoint update when radius gets small enough 
+// Check that the target waypoint updates when a valid index is requested 
+// Use the heading error & location error calcs to verify a current location update 
+// Use the location error calc to verify a change in number of waypoints 
+
+// Add a getter for the current target waypoint 
 
 // Test 0 
 TEST(nav_module_test, test0)
