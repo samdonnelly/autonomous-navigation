@@ -23,6 +23,7 @@
 #include "CppUTest/TestHarness.h" 
 
 // Production code 
+#include "nav_module.h" 
 
 // Standard library 
 #include <iostream> 
@@ -42,6 +43,19 @@ extern "C"
 
 //=======================================================================================
 // Classes 
+
+class VehicleNav // : public NavModule 
+{
+public: 
+    // Constructor 
+    // VehicleNav() 
+    //     : NavModule(0, 0.0, 0) {}
+    VehicleNav() {}
+
+    // Destructor 
+    ~VehicleNav() {} 
+}; 
+
 //=======================================================================================
 
 
@@ -56,6 +70,7 @@ extern "C"
 TEST_GROUP(nav_module_test)
 {
     // Global test group variables 
+    VehicleNav navigation; 
 
     // Constructor 
     void setup()
@@ -75,6 +90,9 @@ TEST_GROUP(nav_module_test)
 
 //=======================================================================================
 // Tests 
+
+// Check heading error 
+// 
 
 // Test 0 
 TEST(nav_module_test, test0)

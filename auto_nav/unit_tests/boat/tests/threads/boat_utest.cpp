@@ -492,4 +492,10 @@ void BoatUTest::NavNavstatSet(
     boat_utest.navigation.navstat = status; 
 }
 
+// Load Mission 
+void BoatUTest::NavLoadMission(Boat& boat_utest)
+{
+    boat_utest.navigation.LoadMission(); 
+}
+
 //=======================================================================================

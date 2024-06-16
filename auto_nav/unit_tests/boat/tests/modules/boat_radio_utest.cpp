@@ -319,13 +319,25 @@ TEST(boat_radio_test, command_check_index_callback)
     // This test simulates a recieved radio message that matches a predefined command and 
     // the changes made from the callback function is checked. 
 
+    // Create the sample index commands 
+    char index_cmd_0[10], index_cmd_1[10]; 
+    strcpy(index_cmd_0, boat_radio_cmd_index); 
+    strcat(index_cmd_0, " 10");   // Within the waypoint mission index range 
+    strcpy(index_cmd_1, boat_radio_cmd_index); 
+    strcat(index_cmd_1, " 5");   // Outside the waypoint mission index range 
+
+    // Buffer to get the radio send message 
     uint8_t send_buffer[NRF24L01_MAX_PAYLOAD_LEN]; 
 
-    // Enable all commands, clear main thread flags and set the message to be read 
+    // Set the number of waypoints in the mission 
+    boat_utest.NavLoadMission(boat); 
+
+    // Enable all commands, clear main thread flags and set the initial message to be 
+    // read. The initial message is an index command with an index outside the range 
+    // of the total number of waypoints in the mission. 
     boat_utest.RadioCommandEnable(boat, SET_BIT); 
     boat_utest.ClearMainFlags(boat); 
-    nrf24l01_mock_set_read_data((uint8_t *)boat_radio_cmd_index, 
-                                get_str_size(boat_radio_cmd_index)); 
+    nrf24l01_mock_set_read_data((uint8_t *)index_cmd_0, get_str_size(index_cmd_0)); 
 
     // Verify that the index command callback has not been called yet 
     LONGS_EQUAL(255, QueueMockGetNextEvent()); 
@@ -335,14 +347,22 @@ TEST(boat_radio_test, command_check_index_callback)
     boat_utest.RadioCommandCheck(boat); 
     QueueMockGetNextEvent();   // Call this to bypass the radio check event 
 
-    // Check that index command callback was executed. See the callback function for 
-    // items checked here. 
+    // The command read was valid but the index was out of range so the waypoint 
+    // mission index was not updated and therefore no confirmation message was 
+    // sent back (meaning no radio send event was queued). 
+    LONGS_EQUAL(255, QueueMockGetNextEvent()); 
+
+    // Update the command to an index command that contains an index within range of 
+    // the mission waypoints. After this, read the command again and verify the 
+    // callback was executed. 
+    nrf24l01_mock_set_read_data((uint8_t *)index_cmd_1, get_str_size(index_cmd_1)); 
+    boat_utest.RadioCommandRead(boat); 
+    boat_utest.RadioCommandCheck(boat); 
+    QueueMockGetNextEvent();   // Call this to bypass the radio check event 
     LONGS_EQUAL(boat_utest.GetCommsRadioSendEventType(), QueueMockGetNextEvent()); 
     boat_utest.RadioCommandSend(boat); 
     nrf24l01_mock_get_send_data(send_buffer); 
     STRCMP_EQUAL(boat_radio_msg_confirm, (char *)send_buffer); 
-
-    // Check index value 
 }
 
 
