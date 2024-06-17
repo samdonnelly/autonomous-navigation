@@ -18,7 +18,8 @@
 //=======================================================================================
 // Includes 
 
-#include "includes_cpp_drivers.h" 
+#include "tools.h" 
+#include "nav_calcs.h" 
 
 //=======================================================================================
 
@@ -44,7 +45,6 @@ private:   // Private members
     // Heading 
     int16_t coordinate_heading;        // Heading between current and desired location 
     int16_t compass_heading;           // Current compass heading 
-    int16_t error_heading;             // Error between compass and coordinate heading 
 
 public:   // Public member functions 
 
@@ -59,8 +59,7 @@ public:   // Public member functions
           radius(coord_radius), 
           coordinate_radius(coord_radius), 
           coordinate_heading(CLEAR), 
-          compass_heading(CLEAR), 
-          error_heading(CLEAR) 
+          compass_heading(CLEAR) 
     {
         current.lat = CLEAR; 
         current.lon = CLEAR; 

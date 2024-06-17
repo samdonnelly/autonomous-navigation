@@ -33,11 +33,16 @@ SRC_DIRS +=
 SRC_FILES += ./../../sources/modules/radio_module.cpp 
 SRC_DIRS += tests/radio 
 
+# Navigation module 
+SRC_FILES += ./../../sources/modules/nav_module.cpp 
+SRC_DIRS += tests/nav 
+
 # Config files 
 SRC_FILES += ./../../sources/config_files/vehicles/boat_radio_config.cpp 
 
 # Library 
 SRC_FILES += ./../../../../STM32F4-driver-library/sources/tools/tools.c 
+SRC_FILES += ./../../../../STM32F4-driver-library/sources/tools/nav_calcs.cpp 
 
 # --------------------------------------------------------------------
 
@@ -57,6 +62,7 @@ TEST_SRC_FILES +=
 
 # Modules 
 TEST_SRC_DIRS += tests/radio 
+TEST_SRC_DIRS += tests/nav 
 TEST_SRC_FILES += 
 
 # --------------------------------------------------------------------
@@ -108,6 +114,7 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/tools
 # Test files 
 INCLUDE_DIRS += mocks 
 INCLUDE_DIRS += tests/radio 
+INCLUDE_DIRS += tests/nav 
 
 # --------------------------------------------------------------------
 
@@ -183,6 +190,8 @@ CPPUTEST_CXXFLAGS += -Wno-c++98-compat
 
 # Additional exceptions added by me 
 CPPUTEST_WARNINGFLAGS += -Wno-int-to-pointer-cast
+CPPUTEST_WARNINGFLAGS += -Wno-error=narrowing
+CPPUTEST_WARNINGFLAGS += -Wno-narrowing
 
 # Coloroze output
 CPPUTEST_EXE_FLAGS += -c

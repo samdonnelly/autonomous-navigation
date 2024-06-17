@@ -414,6 +414,7 @@ void Boat::MainInitStateExit(void)
 // Standby state entry 
 void Boat::MainStandbyStateEntry(void)
 {
+    navigation.ThrustersOff(); 
     LEDStrobeUpdate(ws2812_led_standby_not_ready); 
     radio.MainStandbyStateCmdEnable(SET_BIT); 
 }
@@ -440,6 +441,7 @@ void Boat::MainAutoStateEntry(void)
 // Auto state exit 
 void Boat::MainAutoStateExit(void)
 {
+    navigation.ThrustersOff(); 
     LEDStrobeOff(); 
     LEDUpdate(ws2812_led_off, ws2812_led_off); 
     radio.MainAutoStateCmdEnable(CLEAR_BIT); 
@@ -457,6 +459,7 @@ void Boat::MainManualStateEntry(void)
 // Manual state exit 
 void Boat::MainManualStateExit(void)
 {
+    navigation.ThrustersOff(); 
     LEDStrobeOff(); 
     radio.MainManualStateCmdEnable(CLEAR_BIT); 
 }
@@ -468,6 +471,9 @@ void Boat::MainLowPwrStateEntry(void)
     // Stop the software timers 
     xTimerStop(periodic_timer_100ms, 0); 
     xTimerStop(periodic_timer_1s, 0); 
+
+    // If all the software timers are stopped then there will be no radio checks or 
+    // LED updates. 
     
     LEDStrobeUpdate(ws2812_led_low_pwr); 
     radio.MainLowPwrStateCmdEnable(SET_BIT); 

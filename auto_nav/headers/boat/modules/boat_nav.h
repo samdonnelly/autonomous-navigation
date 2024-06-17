@@ -37,6 +37,12 @@ public:   // Public members
 
 private:   // Private members 
 
+    int16_t heading_error;               // Error between compass and coordinate heading 
+
+    // Thrusters 
+    int16_t right_thruster;              // Right thruster throttle 
+    int16_t left_thruster;               // Left thruster throttle 
+
     M8Q_STATUS m8q_status; 
     LSM303AGR_STATUS lsm303agr_status; 
 
@@ -68,6 +74,9 @@ public:   // Public member functions
 
     // Current location update 
     void CurrentUpdate(Boat& boat_nav); 
+
+    // Turn thrusters off 
+    void ThrustersOff(void); 
 
 private:   // Private member functions 
 

@@ -29,9 +29,7 @@ int16_t NavModule::HeadingError(int16_t m_heading)
     // Determine the true north heading and find the error between the current (compass) 
     // and desired (GPS) headings. 
     compass_heading = true_north_heading(m_heading); 
-    error_heading = heading_error(compass_heading, coordinate_heading); 
-
-    return error_heading; 
+    return heading_error(compass_heading, coordinate_heading); 
 }
 
 

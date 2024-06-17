@@ -28,6 +28,11 @@
 #define GPS_LPF_GAIN 0.5   // Coordinate update low pass filter gain 
 #define TN_OFFSET 130      // Offset between true and magnetic north (degrees*10) 
 
+// Thrusters 
+#define THRUSTER_BASE_SPEED 50       // Base throttle of each thruster (%) 
+#define MAX_HEADING_ERROR 600        // Max heading error (degrees*10) - must be within +/-1800 
+#define NO_THRUST 0                  // Force thruster output to zero 
+
 //=======================================================================================
 
 
@@ -81,7 +86,7 @@ void BoatNav::HeadingCalc(Boat& boat_nav)
     xSemaphoreGive(boat_nav.comms_mutex); 
 
     // Find the error between the boat's heading and the coordinate heading 
-    HeadingError(boat_heading); 
+    heading_error = HeadingError(boat_heading); 
 
     // 'navstat' is updated immediately after reading from the magnetometer in 
     // 'LocationUpdate' so there's no need to protect it here. 
@@ -92,31 +97,29 @@ void BoatNav::HeadingCalc(Boat& boat_nav)
     {
         // Update the thruster output based on the heading error 
 
-        // // Cap the error if needed so the throttle calculation works 
-        // if (error_heading > AB_AUTO_MAX_ERROR)
-        // {
-        //     error_heading = AB_AUTO_MAX_ERROR; 
-        // }
-        // else if (error_heading < -AB_AUTO_MAX_ERROR)
-        // {
-        //     error_heading = -AB_AUTO_MAX_ERROR; 
-        // }
+        // Cap the error if needed so the throttle calculation works 
+        if (heading_error > MAX_HEADING_ERROR)
+        {
+            heading_error = MAX_HEADING_ERROR; 
+        }
+        else if (heading_error < -MAX_HEADING_ERROR)
+        {
+            heading_error = -MAX_HEADING_ERROR; 
+        }
 
-        // // Calculate the thruster command: throttle = (base throttle) + error*slope 
-        // right_thruster = AB_AUTO_BASE_SPEED - error_heading*ESC_MAX_THROTTLE / 
-        //                                                 (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
-        // left_thruster = AB_AUTO_BASE_SPEED +  error_heading*ESC_MAX_THROTTLE / 
-        //                                                 (AB_AUTO_MAX_ERROR + AB_AUTO_MAX_ERROR); 
+        // Calculate the thruster command: throttle = (base throttle) + error*slope 
+        right_thruster = THRUSTER_BASE_SPEED - heading_error*ESC_MAX_THROTTLE / 
+                                               (MAX_HEADING_ERROR + MAX_HEADING_ERROR); 
+        left_thruster  = THRUSTER_BASE_SPEED + heading_error*ESC_MAX_THROTTLE / 
+                                               (MAX_HEADING_ERROR + MAX_HEADING_ERROR); 
 
-        // esc_readytosky_send(DEVICE_ONE, right_thruster); 
-        // esc_readytosky_send(DEVICE_TWO, left_thruster); 
+        esc_readytosky_send(DEVICE_ONE, right_thruster); 
+        esc_readytosky_send(DEVICE_TWO, left_thruster); 
     }
     else 
     {
         // If navigation status is lost then set the thruster to zero output 
-
-        // esc_readytosky_send(DEVICE_ONE, 0); 
-        // esc_readytosky_send(DEVICE_TWO, 0);  
+        ThrustersOff(); 
     }
 }
 
@@ -163,6 +166,14 @@ void BoatNav::CurrentUpdate(Boat& boat_nav)
     gps_waypoints_t boat_coordinates; 
     GetCoordinates(boat_coordinates, boat_nav); 
     SetCurrentLocation(boat_coordinates); 
+}
+
+
+// Turn thrusters off 
+void BoatNav::ThrustersOff(void)
+{
+    esc_readytosky_send(DEVICE_ONE, NO_THRUST); 
+    esc_readytosky_send(DEVICE_TWO, NO_THRUST);  
 }
 
 //=======================================================================================
