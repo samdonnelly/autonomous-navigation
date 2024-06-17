@@ -86,6 +86,7 @@ void NavModule::SetCurrentLocation(const gps_waypoints_t& position)
 {
     current.lat = position.lat; 
     current.lon = position.lon; 
+    coordinate_heading = gps_heading(current, target); 
 }
 
 
@@ -100,6 +101,15 @@ void NavModule::SetNumWaypoints(uint8_t num_waypoints)
 
 //=======================================================================================
 // System functions 
+
+// Get the target waypoint 
+uint8_t NavModule::GetTargetWaypoint(gps_waypoints_t& target_waypoint)
+{
+    target_waypoint.lat = target.lat; 
+    target_waypoint.lon = target.lon; 
+    return waypoint_index; 
+}
+
 
 // Update coordinate radius 
 void NavModule::SetCoordinateRadius(int32_t coord_radius)

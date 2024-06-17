@@ -71,6 +71,9 @@ public:   // Public member functions
     // Destructor 
     ~NavModule() {} 
 
+    // Get the target waypoint 
+    uint8_t GetTargetWaypoint(gps_waypoints_t& target_waypoint); 
+
     // Update coordinate radius 
     void SetCoordinateRadius(int32_t coord_radius); 
 
