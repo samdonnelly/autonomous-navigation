@@ -186,7 +186,7 @@ uint8_t BoatUTest::GetMainNavLocationCalcEventType(void)
 // Get REMOTE_CONTROL value 
 uint8_t BoatUTest::GetMainRemoteControlEventType(void)
 {
-    return (uint8_t)Boat::MainEvents::REMOTE_CONTROL; 
+    return (uint8_t)Boat::MainEvents::RADIO_CONNECTION; 
 }
 
 //==================================================

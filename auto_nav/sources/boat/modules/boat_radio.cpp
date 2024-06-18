@@ -205,8 +205,13 @@ void BoatRadio::ThrottleCmd(
     Boat& boat_radio, 
     uint8_t *throttle_cmd_arg)
 {
-    // Call the manual control function 
-    boat_radio.rc.RemoteControl(); 
+    // Call the manual control function. We pass the radio command parameters to be used 
+    // as thruster control because they've already been verified by the radio command 
+    // check. 
+    boat_radio.rc.RemoteControl(
+        (int16_t)boat_radio.radio.cmd_value,    // Throttle requested 
+        boat_radio.radio.cmd_id[0],             // Motor ID 
+        boat_radio.radio.cmd_id[1]);            // Direction ID 
 }
 
 //=======================================================================================

@@ -130,7 +130,8 @@
 			"queue_mock.h": "c",
 			"nrf24l01_driver_mock.h": "c",
 			"nrf24l01_config.h": "c",
-			"nrf24l01_driver.h": "c"
+			"nrf24l01_driver.h": "c",
+			"esc_config.h": "c"
 		}
 	},
 	"launch": {

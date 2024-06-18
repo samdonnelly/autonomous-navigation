@@ -21,6 +21,18 @@
 
 
 //=======================================================================================
+// Macros 
+
+// Thruster command IDs 
+#define BOAT_RADIO_ESC_LEFT_MOTOR 0x4C          // "L" character that indicates left motor 
+#define BOAT_RADIO_ESC_RIGHT_MOTOR 0x52         // "R" character that indicates right motor 
+#define BOAT_RADIO_ESC_FWD_THRUST 0x50          // "P" (plus) - indicates forward thrust 
+#define BOAT_RADIO_ESC_REV_THRUST 0x4D          // "M" (minus) - indicates reverse thrust 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Incoming commands 
 
 #define BOAT_RADIO_NUM_CMDS 9 

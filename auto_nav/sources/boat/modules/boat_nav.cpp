@@ -17,6 +17,7 @@
 
 #include "boat.h" 
 #include "gps_coordinates.h" 
+#include "esc_config.h" 
 
 //=======================================================================================
 
@@ -31,7 +32,6 @@
 // Thrusters 
 #define THRUSTER_BASE_SPEED 50       // Base throttle of each thruster (%) 
 #define MAX_HEADING_ERROR 600        // Max heading error (degrees*10) - must be within +/-1800 
-#define NO_THRUST 0                  // Force thruster output to zero 
 
 //=======================================================================================
 
@@ -172,8 +172,8 @@ void BoatNav::CurrentUpdate(Boat& boat_nav)
 // Turn thrusters off 
 void BoatNav::ThrustersOff(void)
 {
-    esc_readytosky_send(DEVICE_ONE, NO_THRUST); 
-    esc_readytosky_send(DEVICE_TWO, NO_THRUST);  
+    esc_readytosky_send(DEVICE_ONE, ESC_NO_THRUST); 
+    esc_readytosky_send(DEVICE_TWO, ESC_NO_THRUST); 
 }
 
 //=======================================================================================

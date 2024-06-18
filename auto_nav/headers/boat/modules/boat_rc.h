@@ -28,14 +28,6 @@ class Boat;
 
 class BoatRC 
 {
-public:   // Public members 
-
-    // 
-
-private:   // Private members 
-
-    // 
-
 public:   // Public member functions 
 
     // Constructor 
@@ -45,14 +37,16 @@ public:   // Public member functions
     ~BoatRC() {} 
 
     // Radio connection check 
-    void RadioConnectionCheck(Boat& boat_rc); 
+    void RadioConnectionCheck(uint8_t radio_connection_status); 
 
     // Remote control thruster output 
-    void RemoteControl(void); 
+    void RemoteControl(
+        int16_t throttle_value, 
+        uint8_t motor_id, 
+        uint8_t direction_id); 
 
-private:   // Private member functions 
-
-    // 
+    // Turn thrusters off 
+    void ThrustersOff(void); 
 }; 
 
 //=======================================================================================

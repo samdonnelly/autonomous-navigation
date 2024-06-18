@@ -269,9 +269,7 @@ void Boat::MainManualState(Boat& data, Event event)
             break; 
         
         case MainEvents::RADIO_CONNECTION: 
-            // Pass radio connection status to the remote control module or check 
-            // for a connection. 
-            data.rc.RadioConnectionCheck(data); 
+            data.rc.RadioConnectionCheck(data.radio.ConnectionStatus()); 
             break; 
         
         default: 
@@ -460,7 +458,7 @@ void Boat::MainManualStateEntry(void)
 // Manual state exit 
 void Boat::MainManualStateExit(void)
 {
-    navigation.ThrustersOff(); 
+    rc.ThrustersOff(); 
     LEDStrobeOff(); 
     radio.MainManualStateCmdEnable(CLEAR_BIT); 
 }

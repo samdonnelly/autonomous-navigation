@@ -16,6 +16,7 @@
 // Includes 
 
 #include "boat.h" 
+#include "esc_config.h" 
 
 //=======================================================================================
 
@@ -24,48 +25,53 @@
 // User functions 
 
 // Radio connection check 
-void BoatRC::RadioConnectionCheck(Boat& boat_rc)
+void BoatRC::RadioConnectionCheck(uint8_t radio_connection_status)
 {
-    // Shut the thrusters off if there is no radio connection 
-    if (!boat_rc.radio.ConnectionStatus())
+    // Shut the thrusters off if there is no radio connection. This function is queued 
+    // periodically when in manual mode. 
+    if (!radio_connection_status)
     {
-        boat_rc.navigation.ThrustersOff(); 
+        ThrustersOff(); 
     }
 }
 
 
 // Remote control thruster output 
-void BoatRC::RemoteControl(void)
+void BoatRC::RemoteControl(
+    int16_t throttle_value, 
+    uint8_t motor_id, 
+    uint8_t direction_id)
 {
-    // 
+    // The manual control thruster commands are checked by the radio before this function 
+    // is called so we don't have to verify if the parameters are valid. We check if 
+    // reverse direction is requested so we can change the sign on the throttle value 
+    // as negative values are not sent over the radio. The boat radio module keeps 
+    // track of the radio connection and if the connection is lost then the thrusters 
+    // will be forced to zero output. 
 
-    // // Check that the command matches a valid throttle command. If it does then update 
-    // // the thruster command. Throttle command filtering is done by system 1. 
+    // Determine the throttle command 
+    if (direction_id == BOAT_RADIO_ESC_REV_THRUST)
+    {
+        throttle_value = ~throttle_value + 1; 
+    }
 
-    // int16_t cmd_value = (int16_t)rc_cmd_data.cmd_value; 
-    // int16_t throttle = RC_MOTOR_NO_THRUST; 
-    // uint8_t motor = rc_cmd_data.cmd_id[0]; 
-    // uint8_t direction = rc_cmd_data.cmd_id[1]; 
+    // Determine the motor 
+    if (motor_id == BOAT_RADIO_ESC_RIGHT_MOTOR)
+    {
+        esc_readytosky_send(DEVICE_ONE, throttle_value); 
+    }
+    else if (motor_id == BOAT_RADIO_ESC_LEFT_MOTOR)
+    {
+        esc_readytosky_send(DEVICE_TWO, throttle_value); 
+    }
+}
 
-    // // Determine the throttle command 
-    // if (direction == RC_MOTOR_FWD_THRUST)
-    // {
-    //     throttle = cmd_value; 
-    // }
-    // else if (direction == RC_MOTOR_REV_THRUST)
-    // {
-    //     throttle = ~cmd_value + 1; 
-    // }
 
-    // // Determine the motor 
-    // if (motor == RC_MOTOR_RIGHT_MOTOR)
-    // {
-    //     rc_test_thruster_output(&timeout, DEVICE_ONE, throttle); 
-    // }
-    // else if (motor == RC_MOTOR_LEFT_MOTOR)
-    // {
-    //     rc_test_thruster_output(&timeout, DEVICE_TWO, throttle); 
-    // }
+// Turn thrusters off 
+void BoatRC::ThrustersOff(void)
+{
+    esc_readytosky_send(DEVICE_ONE, ESC_NO_THRUST); 
+    esc_readytosky_send(DEVICE_TWO, ESC_NO_THRUST); 
 }
 
 //=======================================================================================

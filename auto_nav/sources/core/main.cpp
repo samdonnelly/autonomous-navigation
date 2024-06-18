@@ -23,7 +23,7 @@
 #include "fatfs.h"
 
 // Application 
-#include "gs_interface.h" 
+#include "ground_station.h" 
 #include "boat.h" 
 
 // FreeRTOS 
@@ -96,7 +96,7 @@ int main(void)
 
     // Run application setup code 
 #if GROUND_STATION 
-    gs_init(); 
+    ground_station.GroundStationSetup(); 
 #elif BOAT 
     boat.BoatSetup(); 
 #endif 
@@ -109,7 +109,7 @@ int main(void)
     while (1)
     {
 #if GROUND_STATION 
-        gs_app(); 
+        ground_station.GroundStationApp(); 
 #elif BOAT 
         // Start scheduler 
         osKernelStart(); 

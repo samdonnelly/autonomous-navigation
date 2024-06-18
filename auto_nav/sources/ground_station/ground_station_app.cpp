@@ -1,9 +1,9 @@
 /**
- * @file project_init.cpp
+ * @file ground_station_app.cpp
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Ground station initialization code 
+ * @brief Ground station application 
  * 
  * @version 0.1
  * @date 2023-07-20
@@ -15,7 +15,7 @@
 //=======================================================================================
 // Includes 
 
-#include "gs_interface.h" 
+#include "ground_station.h" 
 #include "stm32f4xx_it.h" 
 
 //=======================================================================================
@@ -49,6 +49,16 @@
 #define GS_NO_THRUST 0               // Force thruster output to zero 
 #define GS_ADC_REV_LIM 100           // ADC value reverse command limit 
 #define GS_ADC_FWD_LIM 155           // ADC value forward command limit 
+
+
+//==================================================
+// Dev 
+
+#define GS_ACTION_PERIOD 100000     // Time between throttle command sends (us) 
+#define GS_HB_SEND_COUNTER 20       // This * RC_GS_ACTION_PERIOD gives HB send period 
+#define GS_HB_TIMEOUT_COUNTER 100   // This * RC_GS_ACTION_PERIOD gives HB timeout 
+
+//==================================================
 
 //=======================================================================================
 
@@ -274,7 +284,7 @@ static gs_cmds_t cmd_table[GS_NUM_CMDS] =
 
 
 //=======================================================================================
-// Main functions 
+// Ground Station Application 
 
 // Ground station application initializzation 
 void gs_app_init(
@@ -439,6 +449,126 @@ void gs_app(void)
     gs_data.state = next_state; 
     
     //==================================================
+}
+
+
+void GroundStation::GroundStationApp(void)
+{
+    //==================================================
+    // Thuster commands 
+
+    // static gpio_pin_state_t led_state = GPIO_LOW; 
+    // static uint8_t thruster = CLEAR; 
+    // char side = CLEAR; 
+    // char sign = RC_MOTOR_FWD_THRUST; 
+    // int16_t throttle = CLEAR; 
+
+    //==================================================
+
+    // Check for user serial terminal input 
+    if (handler_flags.usart2_flag)
+    {
+        handler_flags.usart2_flag = CLEAR; 
+
+        // Copy the new contents in the circular buffer to the user input buffer 
+        cb_parse(cb, cmd_buff, &cb_index, GS_MAX_CMD_LEN); 
+
+        // Verify the input 
+        // If valid then send to the vehicle 
+        // Update the user prompt 
+    }
+
+    // Periodically check for action items 
+    if (tim_compare(timer_nonblocking, 
+                    delay_timer.clk_freq, 
+                    GS_ACTION_PERIOD, 
+                    &delay_timer.time_cnt_total, 
+                    &delay_timer.time_cnt, 
+                    &delay_timer.time_start))
+    {
+        // time_start flag does not need to be set again because this timer runs 
+        // continuously. 
+
+        //==================================================
+        // Radio connection 
+
+        // // Look for an incoming message from the remote system 
+        // if (nrf24l01_data_ready_status() == nrf24l01_pipe)
+        // {
+        //     nrf24l01_receive_payload(read_buff); 
+
+        //     // Clear the timeout for any message received 
+        //     hb_timeout_counter = CLEAR; 
+
+        //     if (strcmp((char *)read_buff, ping_response) != 0)
+        //     {
+        //         // Display the message for the ground station to see 
+        //         uart_sendstring(USART2, "\033[1A\033[1A\r"); 
+        //         uart_sendstring(USART2, (char *)read_buff); 
+        //         rc_ground_station_user_prompt(); 
+        //     }
+        // }
+
+        // // Check if the radio connection had been lost for too long 
+        // if (hb_timeout_counter++ >= GS_HB_TIMEOUT_COUNTER)
+        // {
+        //     hb_timeout_counter = CLEAR; 
+            
+        //     // Display a lost connection message 
+        //     uart_sendstring(USART2, "\033[1A\r"); 
+        //     uart_sendstring(USART2, lost_connection); 
+        //     rc_ground_station_user_prompt(); 
+        // }
+
+        // // Send a heartbeat message to the remote system periodically 
+        // if (hb_send_counter++ >= GS_HB_SEND_COUNTER)
+        // {
+        //     hb_send_counter = CLEAR; 
+        //     nrf24l01_send_payload((uint8_t *)ping_msg); 
+        // }
+
+        //==================================================
+
+        //==================================================
+        // Thruster commands 
+
+        // // Choose between right and left thruster 
+        // side = (thruster) ? RC_MOTOR_LEFT_MOTOR : RC_MOTOR_RIGHT_MOTOR; 
+
+        // // Read the ADC input and format the value for writing to the payload 
+        // throttle = esc_test_adc_mapping(adc_data[thruster]); 
+
+        // if (throttle == RC_MOTOR_NO_THRUST)
+        // {
+        //     sign = RC_MOTOR_NEUTRAL; 
+        // }
+        // else if (throttle < RC_MOTOR_NO_THRUST)
+        // {
+        //     // If the throttle is negative then change the value to positive and set the sign 
+        //     // in the payload as negative. This helps on the receiving end. 
+        //     throttle = ~throttle + 1; 
+        //     sign = RC_MOTOR_REV_THRUST; 
+        // }
+
+        // // Format the payload with the thruster specifier and the throttle then send the 
+        // // payload. 
+        // snprintf(
+        //     (char *)rc_test.write_buff, 
+        //     NRF24L01_MAX_PAYLOAD_LEN, 
+        //     "%c%c %d", 
+        //     side, sign, throttle); 
+
+        // if (nrf24l01_send_payload(rc_test.write_buff) == NRF24L01_OK)
+        // {
+        //     led_state = (gpio_pin_state_t)(GPIO_HIGH - led_state); 
+        //     gpio_write(GPIOA, GPIOX_PIN_5, led_state); 
+        // } 
+
+        // // Toggle the thruster flag 
+        // thruster = SET_BIT - thruster; 
+
+        //==================================================
+    }
 }
 
 //=======================================================================================
