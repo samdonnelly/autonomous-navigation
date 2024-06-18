@@ -205,7 +205,8 @@ void BoatRadio::ThrottleCmd(
     Boat& boat_radio, 
     uint8_t *throttle_cmd_arg)
 {
-    // 
+    // Call the manual control function 
+    boat_radio.rc.RemoteControl(); 
 }
 
 //=======================================================================================

@@ -268,9 +268,10 @@ void Boat::MainManualState(Boat& data, Event event)
             data.radio.CommandCheck(data); 
             break; 
         
-        case MainEvents::REMOTE_CONTROL: 
+        case MainEvents::RADIO_CONNECTION: 
             // Pass radio connection status to the remote control module or check 
             // for a connection. 
+            data.rc.RadioConnectionCheck(data); 
             break; 
         
         default: 

@@ -33,6 +33,7 @@
 // Modules 
 #include "boat_nav.h" 
 #include "boat_radio.h" 
+#include "boat_rc.h" 
 
 // Testing 
 #include "boat_utest.h" 
@@ -56,8 +57,9 @@ class Boat
 public:   // Friends 
 
     // Modules 
-    friend class BoatRadio; 
     friend class BoatNav; 
+    friend class BoatRadio; 
+    friend class BoatRC; 
 
     // For unit testing only. Do not use anywhere else. 
     friend class BoatUTest; 
@@ -89,7 +91,7 @@ private:   // Private members
         RADIO_CHECK, 
         NAV_HEADING_CALC, 
         NAV_LOCATION_CALC, 
-        REMOTE_CONTROL 
+        RADIO_CONNECTION 
     } main_event; 
 
     // Flags 
@@ -155,8 +157,9 @@ private:   // Private members
 
     // Modules 
     WS2812_Controller leds; 
-    BoatRadio radio; 
     BoatNav navigation; 
+    BoatRadio radio; 
+    BoatRC rc; 
     
     //==================================================
 
