@@ -454,17 +454,6 @@ void gs_app(void)
 
 void GroundStation::GroundStationApp(void)
 {
-    //==================================================
-    // Thuster commands 
-
-    // static gpio_pin_state_t led_state = GPIO_LOW; 
-    // static uint8_t thruster = CLEAR; 
-    // char side = CLEAR; 
-    // char sign = RC_MOTOR_FWD_THRUST; 
-    // int16_t throttle = CLEAR; 
-
-    //==================================================
-
     // Check for user serial terminal input 
     if (handler_flags.usart2_flag)
     {
@@ -473,12 +462,33 @@ void GroundStation::GroundStationApp(void)
         // Copy the new contents in the circular buffer to the user input buffer 
         cb_parse(cb, cmd_buff, &cb_index, GS_MAX_CMD_LEN); 
 
-        // Verify the input 
-        // If valid then populate the write buffer and set a send flag 
-        // Update the user prompt 
+        // Check the input against available commands for the ground station. If 
+        // valid then execute a ground station function. If not recognized then 
+        // send the input out via radio (vehicle specific commands are not defined 
+        // for the ground station). All recognized commands are executed through 
+        // callbacks. 
+        // Ground station commands: 
+        // - Updated to ground station settings such as radio data pipe, power 
+        //   output, channel frquency, etc. 
+        if (1)
+        {
+            // 
+        }
+        else 
+        {
+            // Input not recognized. Trigger a send via the RF module. 
+            memcpy((void *)write_buff, (void *)cmd_buff, GS_MAX_CMD_LEN); 
+            user_cmd_flag = SET_BIT; 
+        }
+
+        // Clear the user prompt. Go up a line, clear the prompt line, reprint the 
+        // prompt and display the last user input. 
+        uart_send_cursor_up(USART2, 1); 
+        uart_sendstring(USART2, "\033[2K>>> "); 
+        // Display the last user input 
     }
 
-    // Periodically check for action items 
+    // Check for periodic action items 
     if (tim_compare(timer_nonblocking, 
                     delay_timer.clk_freq, 
                     GS_ACTION_PERIOD, 
@@ -492,99 +502,256 @@ void GroundStation::GroundStationApp(void)
         // This timer should be the lowest common denominator of time for each 
         // operation. 
 
+        //==================================================
         // Send commands to the vehicle 
-        // - If in manual mode then send the ADC data. Control the interval with a 
-        //   counter if needed. 
-        // - Else if the send flag is set then send what's in the write buffer 
-        // - Else send a heartbeat command. Control the heartbeat interval with 
-        //   a counter. 
 
-        // Look for responses from the vehicle 
-        // - Look for incoming messages. Control the period with a counter if 
-        //   necessary. 
-        // - Check if the radio connection has been lost. Control the timeout 
-        //   with a counter. 
-
-        //==================================================
-        // Radio connection 
-
-        // // Look for an incoming message from the remote system 
-        // if (nrf24l01_data_ready_status() == nrf24l01_pipe)
-        // {
-        //     nrf24l01_receive_payload(read_buff); 
-
-        //     // Clear the timeout for any message received 
-        //     hb_timeout_counter = CLEAR; 
-
-        //     if (strcmp((char *)read_buff, ping_response) != 0)
-        //     {
-        //         // Display the message for the ground station to see 
-        //         uart_sendstring(USART2, "\033[1A\033[1A\r"); 
-        //         uart_sendstring(USART2, (char *)read_buff); 
-        //         rc_ground_station_user_prompt(); 
-        //     }
-        // }
-
-        // // Check if the radio connection had been lost for too long 
-        // if (hb_timeout_counter++ >= GS_HB_TIMEOUT_COUNTER)
-        // {
-        //     hb_timeout_counter = CLEAR; 
-            
-        //     // Display a lost connection message 
-        //     uart_sendstring(USART2, "\033[1A\r"); 
-        //     uart_sendstring(USART2, lost_connection); 
-        //     rc_ground_station_user_prompt(); 
-        // }
-
-        // // Send a heartbeat message to the remote system periodically 
-        // if (hb_send_counter++ >= GS_HB_SEND_COUNTER)
-        // {
-        //     hb_send_counter = CLEAR; 
-        //     nrf24l01_send_payload((uint8_t *)ping_msg); 
-        // }
-
+        // Check for which message/command to send to a vehicle 
+        if (manual_control_flag)
+        {
+            // Send ADC throttle commands 
+            ManualControlMode(); 
+        }
+        else if (user_cmd_flag)
+        {
+            // Send the user input 
+            SendUserCmd(); 
+        }
+        else 
+        {
+            // Send a heartbeat command 
+            SendHeartbeat(); 
+        }
+        
         //==================================================
 
+
         //==================================================
-        // Thruster commands 
+        // Look for responses from the vehicles 
 
-        // // Choose between right and left thruster 
-        // side = (thruster) ? RC_MOTOR_LEFT_MOTOR : RC_MOTOR_RIGHT_MOTOR; 
+        // Look for incoming messages 
+        MsgCheck(); 
 
-        // // Read the ADC input and format the value for writing to the payload 
-        // throttle = esc_test_adc_mapping(adc_data[thruster]); 
-
-        // if (throttle == RC_MOTOR_NO_THRUST)
-        // {
-        //     sign = RC_MOTOR_NEUTRAL; 
-        // }
-        // else if (throttle < RC_MOTOR_NO_THRUST)
-        // {
-        //     // If the throttle is negative then change the value to positive and set the sign 
-        //     // in the payload as negative. This helps on the receiving end. 
-        //     throttle = ~throttle + 1; 
-        //     sign = RC_MOTOR_REV_THRUST; 
-        // }
-
-        // // Format the payload with the thruster specifier and the throttle then send the 
-        // // payload. 
-        // snprintf(
-        //     (char *)rc_test.write_buff, 
-        //     NRF24L01_MAX_PAYLOAD_LEN, 
-        //     "%c%c %d", 
-        //     side, sign, throttle); 
-
-        // if (nrf24l01_send_payload(rc_test.write_buff) == NRF24L01_OK)
-        // {
-        //     led_state = (gpio_pin_state_t)(GPIO_HIGH - led_state); 
-        //     gpio_write(GPIOA, GPIOX_PIN_5, led_state); 
-        // } 
-
-        // // Toggle the thruster flag 
-        // thruster = SET_BIT - thruster; 
+        // Update the radio connection status 
+        RadioConnectionStatus(); 
 
         //==================================================
     }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Helper functions 
+
+// Manual control mode 
+void GroundStation::ManualControlMode(void)
+{
+    // static gpio_pin_state_t led_state = GPIO_LOW; 
+    // static uint8_t thruster = CLEAR; 
+    // char side = CLEAR; 
+    // char sign = RC_MOTOR_FWD_THRUST; 
+    // int16_t throttle = CLEAR; 
+
+    ADCThrottleMapping(0); 
+
+    // // Choose between right and left thruster 
+    // side = (thruster) ? RC_MOTOR_LEFT_MOTOR : RC_MOTOR_RIGHT_MOTOR; 
+
+    // // Read the ADC input and format the value for writing to the payload 
+    // throttle = esc_test_adc_mapping(adc_data[thruster]); 
+
+    // if (throttle == RC_MOTOR_NO_THRUST)
+    // {
+    //     sign = RC_MOTOR_NEUTRAL; 
+    // }
+    // else if (throttle < RC_MOTOR_NO_THRUST)
+    // {
+    //     // If the throttle is negative then change the value to positive and set the sign 
+    //     // in the payload as negative. This helps on the receiving end. 
+    //     throttle = ~throttle + 1; 
+    //     sign = RC_MOTOR_REV_THRUST; 
+    // }
+
+    // // Format the payload with the thruster specifier and the throttle then send the 
+    // // payload. 
+    // snprintf(
+    //     (char *)rc_test.write_buff, 
+    //     NRF24L01_MAX_PAYLOAD_LEN, 
+    //     "%c%c %d", 
+    //     side, sign, throttle); 
+
+    // if (nrf24l01_send_payload(rc_test.write_buff) == NRF24L01_OK)
+    // {
+    //     led_state = (gpio_pin_state_t)(GPIO_HIGH - led_state); 
+    //     gpio_write(GPIOA, GPIOX_PIN_5, led_state); 
+    // } 
+
+    // // Toggle the thruster flag 
+    // thruster = SET_BIT - thruster; 
+}
+
+
+// ADC throttle mapping 
+int16_t GroundStation::ADCThrottleMapping(uint16_t adc_value)
+{
+    int16_t throttle_cmd = CLEAR;   // Assume 0% throttle and change if different 
+
+    // Check if there is a forward or reverse throttle command 
+    if (adc_value > GS_ADC_FWD_LIM)
+    {
+        // Forward 
+        throttle_cmd = (int16_t)adc_value - GS_ADC_FWD_LIM; 
+    }
+    else if (adc_value < GS_ADC_REV_LIM)
+    {
+        // Reverse 
+        throttle_cmd = (int16_t)adc_value - GS_ADC_REV_LIM; 
+    }
+
+    return throttle_cmd; 
+}
+
+
+// Send user input 
+void GroundStation::SendUserCmd(void)
+{
+    // 
+}
+
+
+// Send heartbeat 
+void GroundStation::SendHeartbeat(void)
+{
+    // // Send a heartbeat message to the remote system periodically 
+    // if (hb_send_counter++ >= GS_HB_SEND_COUNTER)
+    // {
+    //     hb_send_counter = CLEAR; 
+    //     nrf24l01_send_payload((uint8_t *)ping_msg); 
+    // }
+}
+
+
+// Check for an incoming message 
+void GroundStation::MsgCheck(void)
+{
+    // // Look for an incoming message from the remote system 
+    // if (nrf24l01_data_ready_status() == nrf24l01_pipe)
+    // {
+    //     nrf24l01_receive_payload(read_buff); 
+
+    //     // Clear the timeout for any message received 
+    //     hb_timeout_counter = CLEAR; 
+
+    //     if (strcmp((char *)read_buff, ping_response) != 0)
+    //     {
+    //         // Display the message for the ground station to see 
+    //         uart_sendstring(USART2, "\033[1A\033[1A\r"); 
+    //         uart_sendstring(USART2, (char *)read_buff); 
+    //         rc_ground_station_user_prompt(); 
+    //     }
+    // }
+}
+
+
+// Check the radio connection 
+void GroundStation::RadioConnectionStatus(void)
+{
+    // // Check if the radio connection had been lost for too long 
+    // if (hb_timeout_counter++ >= GS_HB_TIMEOUT_COUNTER)
+    // {
+    //     hb_timeout_counter = CLEAR; 
+        
+    //     // Display a lost connection message 
+    //     uart_sendstring(USART2, "\033[1A\r"); 
+    //     uart_sendstring(USART2, lost_connection); 
+    //     rc_ground_station_user_prompt(); 
+    // }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Command callbacks 
+
+// Manual control - on/off toggle option 
+void GroundStation::ManualControlCmd(
+    GroundStation& gs_radio, 
+    uint8_t *manual_cmd_arg)
+{
+    // 
+}
+
+
+// RF frequency channel set 
+void GroundStation::RFChannelSetCmd(
+    GroundStation& gs_radio, 
+    uint8_t *rf_channel_cmd_arg)
+{
+    // if (rf_ch <= NRF24L01_RF_CH_MAX)
+    // {
+    //     nrf24l01_set_rf_ch(rf_ch); 
+    //     nrf24l01_rf_ch_write(); 
+        
+    //     nrf24l01_rf_ch_read(); 
+    //     nrf24l01_test_update_feedback(nrf24l01_get_rf_ch() == rf_ch); 
+    // }
+    // else 
+    // {
+    //     nrf24l01_test_user_feedback(invalid_value); 
+    // }
+}
+
+
+// RF power output set 
+void GroundStation::RFPwrOutputSetCmd(
+    GroundStation& gs_radio, 
+    uint8_t *rf_power_cmd_arg)
+{
+    // if (rf_pwr <= (uint8_t)NRF24L01_RF_PWR_0DBM)
+    // {
+    //     nrf24l01_set_rf_setup_pwr((nrf24l01_rf_pwr_t)rf_pwr); 
+    //     nrf24l01_rf_setup_write(); 
+
+    //     nrf24l01_rf_setup_read(); 
+    //     nrf24l01_test_update_feedback(
+    //         nrf24l01_get_rf_setup_pwr() == (nrf24l01_rf_pwr_t)rf_pwr); 
+    // }
+    // else 
+    // {
+    //     nrf24l01_test_user_feedback(invalid_value); 
+    // }
+}
+
+
+// RF data rate set 
+void GroundStation::RFDataRateSetCmd(
+    GroundStation& gs_radio, 
+    uint8_t *rf_dr_cmd_arg)
+{
+    // if (rf_dr <= (uint8_t)NRF24L01_DR_250KBPS)
+    // {
+    //     nrf24l01_set_rf_setup_dr((nrf24l01_data_rate_t)rf_dr); 
+    //     nrf24l01_rf_setup_write(); 
+
+    //     nrf24l01_rf_setup_read(); 
+    //     nrf24l01_test_update_feedback(
+    //         nrf24l01_get_rf_setup_dr() == (nrf24l01_data_rate_t)rf_dr); 
+    // }
+    // else 
+    // {
+    //     nrf24l01_test_user_feedback(invalid_value); 
+    // }
+}
+
+
+// RF data pipe set 
+void GroundStation::RFDatePipeSetCmd(
+    GroundStation& gs_radio, 
+    uint8_t *rf_dp_cmd_arg)
+{
+    // 
 }
 
 //=======================================================================================

@@ -17,6 +17,7 @@
 
 #include "boat.h" 
 #include "esc_config.h" 
+#include "ground_station_radio_config.h" 
 
 //=======================================================================================
 
@@ -50,17 +51,17 @@ void BoatRC::RemoteControl(
     // will be forced to zero output. 
 
     // Determine the throttle command 
-    if (direction_id == BOAT_RADIO_ESC_REV_THRUST)
+    if (direction_id == GS_RADIO_REV_DIRECTION)
     {
         throttle_value = ~throttle_value + 1; 
     }
 
     // Determine the motor 
-    if (motor_id == BOAT_RADIO_ESC_RIGHT_MOTOR)
+    if (motor_id == GS_RADIO_RIGHT_JOYSTICK)
     {
         esc_readytosky_send(DEVICE_ONE, throttle_value); 
     }
-    else if (motor_id == BOAT_RADIO_ESC_LEFT_MOTOR)
+    else if (motor_id == GS_RADIO_LEFT_JOYSTICK)
     {
         esc_readytosky_send(DEVICE_TWO, throttle_value); 
     }

@@ -38,6 +38,7 @@
 // Classes 
 
 // Forward declare the classes that will use the radio module 
+class GroundStation; 
 class Boat; 
 
 // Radio base class 

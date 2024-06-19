@@ -19,7 +19,9 @@
 // Includes 
 
 #include "includes_drivers.h" 
+#include "radio_module.h" 
 #include "nrf24l01_config.h" 
+#include "ground_station_radio_config.h" 
 
 //=======================================================================================
 
@@ -36,7 +38,7 @@
 //=======================================================================================
 // Classes 
 
-class GroundStation
+class GroundStation : public RadioModule<GroundStation, GS_RADIO_NUM_CMDS> 
 {
 private:   // Private members 
 
@@ -57,13 +59,20 @@ private:   // Private members
 
     // Payload data 
     uint8_t read_buff[GS_MAX_CMD_LEN];     // Data read by PRX from PTX device 
+    uint8_t write_buff[GS_MAX_CMD_LEN];    // Data sent by PTX to a PRX device 
+
+    // Flags 
+    uint8_t user_cmd_flag; 
+    uint8_t manual_control_flag; 
 
 public:   // Public member functions 
 
     // Constructor 
     GroundStation() 
         : cb_index(CLEAR), 
-          cmd_value(CLEAR) 
+          cmd_value(CLEAR), 
+          user_cmd_flag(CLEAR_BIT), 
+          manual_control_flag(CLEAR_BIT) 
     {
         memset((void *)cb, CLEAR, sizeof(cb)); 
         memset((void *)cmd_buff, CLEAR, sizeof(cmd_buff)); 
@@ -71,6 +80,9 @@ public:   // Public member functions
         memset((void *)cmd_str, CLEAR, sizeof(cmd_str)); 
         memset((void *)adc_buff, CLEAR, sizeof(adc_buff)); 
         memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
+        memset((void *)write_buff, CLEAR, sizeof(write_buff)); 
+
+        // Timing info is configured in the setup function 
     } 
 
     // Destructor 
@@ -81,6 +93,54 @@ public:   // Public member functions
 
     // Application 
     void GroundStationApp(void); 
+
+private:   // Private member functions 
+
+    //==================================================
+    // Helper functions 
+
+    // Manual control mode 
+    void ManualControlMode(void); 
+
+    // ADC throttle mapping 
+    int16_t ADCThrottleMapping(uint16_t adc_value); 
+
+    // Send user input 
+    void SendUserCmd(void); 
+
+    // Send heartbeat 
+    void SendHeartbeat(void); 
+
+    // Check for an incoming message 
+    void MsgCheck(void); 
+
+    // Check the radio connection 
+    void RadioConnectionStatus(void); 
+    
+    //==================================================
+
+    //==================================================
+    // Commands 
+
+    // Command callbacks 
+    static void ManualControlCmd(GroundStation& gs_radio, uint8_t *manual_cmd_arg); 
+    static void RFChannelSetCmd(GroundStation& gs_radio, uint8_t *rf_channel_cmd_arg); 
+    static void RFPwrOutputSetCmd(GroundStation& gs_radio, uint8_t *rf_power_cmd_arg); 
+    static void RFDataRateSetCmd(GroundStation& gs_radio, uint8_t *rf_dr_cmd_arg); 
+    static void RFDatePipeSetCmd(GroundStation& gs_radio, uint8_t *rf_dp_cmd_arg); 
+
+    // Command table 
+    std::array<RadioCmdData, GS_RADIO_NUM_CMDS> command_table = 
+    {{
+        // User commands 
+        {gs_radio_cmd_manual,     CMD_ARG_NONE,  &ManualControlCmd,  CLEAR_BIT}, 
+        {gs_radio_cmd_rf_channel, CMD_ARG_NONE,  &RFChannelSetCmd,   CLEAR_BIT}, 
+        {gs_radio_cmd_rf_power,   CMD_ARG_NONE,  &RFPwrOutputSetCmd, CLEAR_BIT}, 
+        {gs_radio_cmd_rf_dr,      CMD_ARG_NONE,  &RFDataRateSetCmd,  CLEAR_BIT}, 
+        {gs_radio_cmd_rf_dp,      CMD_ARG_VALUE, &RFDatePipeSetCmd,  CLEAR_BIT} 
+    }}; 
+    
+    //==================================================
 }; 
 
 extern GroundStation ground_station; 
