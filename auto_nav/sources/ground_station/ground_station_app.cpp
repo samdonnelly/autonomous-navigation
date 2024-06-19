@@ -474,7 +474,7 @@ void GroundStation::GroundStationApp(void)
         cb_parse(cb, cmd_buff, &cb_index, GS_MAX_CMD_LEN); 
 
         // Verify the input 
-        // If valid then send to the vehicle 
+        // If valid then populate the write buffer and set a send flag 
         // Update the user prompt 
     }
 
@@ -488,6 +488,22 @@ void GroundStation::GroundStationApp(void)
     {
         // time_start flag does not need to be set again because this timer runs 
         // continuously. 
+
+        // This timer should be the lowest common denominator of time for each 
+        // operation. 
+
+        // Send commands to the vehicle 
+        // - If in manual mode then send the ADC data. Control the interval with a 
+        //   counter if needed. 
+        // - Else if the send flag is set then send what's in the write buffer 
+        // - Else send a heartbeat command. Control the heartbeat interval with 
+        //   a counter. 
+
+        // Look for responses from the vehicle 
+        // - Look for incoming messages. Control the period with a counter if 
+        //   necessary. 
+        // - Check if the radio connection has been lost. Control the timeout 
+        //   with a counter. 
 
         //==================================================
         // Radio connection 

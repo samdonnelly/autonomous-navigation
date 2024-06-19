@@ -212,6 +212,8 @@ void BoatRadio::ThrottleCmd(
         (int16_t)boat_radio.radio.cmd_value,    // Throttle requested 
         boat_radio.radio.cmd_id[0],             // Motor ID 
         boat_radio.radio.cmd_id[1]);            // Direction ID 
+
+    // Send/queue a response to the ground station 
 }
 
 //=======================================================================================
