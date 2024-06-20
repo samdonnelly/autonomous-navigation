@@ -463,18 +463,9 @@ void GroundStation::GroundStationApp(void)
         cb_parse(cb, cmd_buff, &cb_index, GS_MAX_CMD_LEN); 
 
         // Check the input against available commands for the ground station. If 
-        // valid then execute a ground station function. If not recognized then 
-        // send the input out via radio (vehicle specific commands are not defined 
-        // for the ground station). All recognized commands are executed through 
-        // callbacks. 
-        // Ground station commands: 
-        // - Updated to ground station settings such as radio data pipe, power 
-        //   output, channel frquency, etc. 
-        if (1)
-        {
-            // 
-        }
-        else 
+        // valid then execute a ground station callback function. If not recognized 
+        // then send the input out via radio (i.e. to a vehicle). 
+        if (!CommandLookUp(cmd_buff, command_table, ground_station))
         {
             // Input not recognized. Trigger a send via the RF module. 
             memcpy((void *)write_buff, (void *)cmd_buff, GS_MAX_CMD_LEN); 
@@ -750,6 +741,15 @@ void GroundStation::RFDataRateSetCmd(
 void GroundStation::RFDatePipeSetCmd(
     GroundStation& gs_radio, 
     uint8_t *rf_dp_cmd_arg)
+{
+    // 
+}
+
+
+// Update serial terminal output data 
+void GroundStation::UpdateOutputData(
+    GroundStation& gs_radio, 
+    uint8_t *update_cmd_arg)
 {
     // 
 }

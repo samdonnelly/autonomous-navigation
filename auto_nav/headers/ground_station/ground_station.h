@@ -128,16 +128,18 @@ private:   // Private member functions
     static void RFPwrOutputSetCmd(GroundStation& gs_radio, uint8_t *rf_power_cmd_arg); 
     static void RFDataRateSetCmd(GroundStation& gs_radio, uint8_t *rf_dr_cmd_arg); 
     static void RFDatePipeSetCmd(GroundStation& gs_radio, uint8_t *rf_dp_cmd_arg); 
+    static void UpdateOutputData(GroundStation& gs_radio, uint8_t *update_cmd_arg); 
 
     // Command table 
     std::array<RadioCmdData, GS_RADIO_NUM_CMDS> command_table = 
     {{
         // User commands 
-        {gs_radio_cmd_manual,     CMD_ARG_NONE,  &ManualControlCmd,  CLEAR_BIT}, 
-        {gs_radio_cmd_rf_channel, CMD_ARG_NONE,  &RFChannelSetCmd,   CLEAR_BIT}, 
-        {gs_radio_cmd_rf_power,   CMD_ARG_NONE,  &RFPwrOutputSetCmd, CLEAR_BIT}, 
-        {gs_radio_cmd_rf_dr,      CMD_ARG_NONE,  &RFDataRateSetCmd,  CLEAR_BIT}, 
-        {gs_radio_cmd_rf_dp,      CMD_ARG_VALUE, &RFDatePipeSetCmd,  CLEAR_BIT} 
+        {gs_radio_cmd_manual,     CMD_ARG_STR,   &ManualControlCmd,  CLEAR_BIT}, 
+        {gs_radio_cmd_rf_channel, CMD_ARG_VALUE, &RFChannelSetCmd,   CLEAR_BIT}, 
+        {gs_radio_cmd_rf_power,   CMD_ARG_VALUE, &RFPwrOutputSetCmd, CLEAR_BIT}, 
+        {gs_radio_cmd_rf_dr,      CMD_ARG_VALUE, &RFDataRateSetCmd,  CLEAR_BIT}, 
+        {gs_radio_cmd_rf_dp,      CMD_ARG_VALUE, &RFDatePipeSetCmd,  CLEAR_BIT}, 
+        {gs_radio_cmd_update,     CMD_ARG_NONE,  &UpdateOutputData,  CLEAR_BIT} 
     }}; 
     
     //==================================================

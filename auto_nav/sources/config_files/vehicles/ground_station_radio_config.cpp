@@ -29,7 +29,8 @@ gs_radio_cmd_manual[] = "mc",          // 0. Manual control mode
 gs_radio_cmd_rf_channel[] = "rf_ch",   // 1. RF channel set 
 gs_radio_cmd_rf_power[] = "rf_pwr",    // 2. RF power set 
 gs_radio_cmd_rf_dr[] = "rf_dr",        // 3. RF data rate set 
-gs_radio_cmd_rf_dp[] = "rf_dp";        // 4. RF data pipe set 
+gs_radio_cmd_rf_dp[] = "rf_dp",        // 4. RF data pipe set 
+gs_radio_cmd_update[] = "update";      // 5. Update serial terminal output 
 
 //=======================================================================================
 
