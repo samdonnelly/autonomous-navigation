@@ -140,7 +140,7 @@ void BoatRadio::HBCmd(
     // verify that there is a radio connection but the connection flag gets set when any 
     // command matches. 
 
-    boat_radio.radio.CommandSet(boat_radio, boat_radio_ping_confirm); 
+    boat_radio.radio.CommandSet(boat_radio, vehicle_radio_ping_confirm); 
 }
 
 
@@ -151,7 +151,7 @@ void BoatRadio::IdleCmd(
 {
     boat_radio.main_flags.standby_state = SET_BIT; 
     boat_radio.MainStateChange(); 
-    boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+    boat_radio.radio.CommandSet(boat_radio, vehicle_radio_msg_confirm); 
 }
 
 
@@ -165,7 +165,7 @@ void BoatRadio::AutoCmd(
     {
         boat_radio.main_flags.auto_state = SET_BIT; 
         boat_radio.MainStateChange(); 
-        boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+        boat_radio.radio.CommandSet(boat_radio, vehicle_radio_msg_confirm); 
     }
 }
 
@@ -177,7 +177,7 @@ void BoatRadio::ManualCmd(
 {
     boat_radio.main_flags.manual_state = SET_BIT; 
     boat_radio.MainStateChange(); 
-    boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+    boat_radio.radio.CommandSet(boat_radio, vehicle_radio_msg_confirm); 
 }
 
 
@@ -195,7 +195,7 @@ void BoatRadio::IndexCmd(
     // successful then send a confirmation back to the ground station. 
     if (boat_radio.navigation.TargetUpdate(*index_cmd_arg))
     {
-        boat_radio.radio.CommandSet(boat_radio, boat_radio_msg_confirm); 
+        boat_radio.radio.CommandSet(boat_radio, vehicle_radio_msg_confirm); 
     }
 }
 
@@ -225,45 +225,45 @@ void BoatRadio::ThrottleCmd(
 // Main thread: Standby state 
 void BoatRadio::MainStandbyStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_cmd_ping, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_auto, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_manual, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_index, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_ping, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_auto, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_manual, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_index, command_table, cmd_state); 
 }
 
 
 // Main thread: Auto state 
 void BoatRadio::MainAutoStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_cmd_ping, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_idle, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_index, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_ping, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_idle, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_index, command_table, cmd_state); 
 }
 
 
 // Main thread: Manual state 
 void BoatRadio::MainManualStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_cmd_ping, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_idle, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_RP, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_RN, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_LP, command_table, cmd_state); 
-    CommandEnable(boat_radio_cmd_LN, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_ping, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_idle, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_RP, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_RN, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_LP, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_LN, command_table, cmd_state); 
 }
 
 
 // Main thread: Low Power state 
 void BoatRadio::MainLowPwrStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_cmd_ping, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_ping, command_table, cmd_state); 
 }
 
 
 // Main thread: Fault state 
 void BoatRadio::MainFaultStateCmdEnable(uint8_t cmd_state)
 {
-    CommandEnable(boat_radio_cmd_ping, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_ping, command_table, cmd_state); 
 }
 
 //=======================================================================================

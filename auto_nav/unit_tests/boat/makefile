@@ -33,13 +33,14 @@ SRC_DIRS +=
 SRC_FILES += ./../../sources/boat/modules/boat_led.cpp 
 SRC_FILES += ./../../sources/boat/modules/boat_nav.cpp 
 SRC_FILES += ./../../sources/boat/modules/boat_radio.cpp 
+SRC_FILES += ./../../sources/boat/modules/boat_rc.cpp 
 SRC_FILES += ./../../sources/boat/threads/boat_main.cpp 
 SRC_FILES += ./../../sources/boat/threads/boat_comms.cpp 
 SRC_FILES += ./../../sources/boat/threads/boat_timers.cpp 
 
 # General vehicle code 
 SRC_DIRS += ./../../sources/config_files/devices 
-SRC_DIRS += ./../../sources/config_files/vehicles 
+SRC_DIRS += ./../../sources/config_files/system 
 SRC_DIRS += ./../../sources/modules 
 SRC_DIRS += ./../../sources/system_data 
 
@@ -110,7 +111,7 @@ INCLUDE_DIRS += ./../../headers/boat
 INCLUDE_DIRS += ./../../headers/boat/modules 
 INCLUDE_DIRS += ./../../headers/config_files 
 INCLUDE_DIRS += ./../../headers/config_files/devices 
-INCLUDE_DIRS += ./../../headers/config_files/vehicles 
+INCLUDE_DIRS += ./../../headers/config_files/system 
 INCLUDE_DIRS += ./../../headers/core 
 INCLUDE_DIRS += ./../../headers/includes 
 INCLUDE_DIRS += ./../../headers/modules 

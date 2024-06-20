@@ -24,7 +24,7 @@
 
 // Production code 
 #include "radio_module.h" 
-#include "boat_radio_config.h" 
+#include "commands_config.h" 
 
 // Standard library 
 #include <iostream> 
@@ -53,7 +53,7 @@ class Boat;
 
 
 // Mock vehicle radio module - 'Boat' is used here but it could be any vehicle 
-class VehicleRadio : public RadioModule<Boat, BOAT_RADIO_NUM_CMDS> 
+class VehicleRadio : public RadioModule<Boat, VEHICLE_RADIO_NUM_CMDS> 
 {
 public: 
 
@@ -79,17 +79,17 @@ public:
     // Command table 
     // This command table must match one of the instantiations in the radio module in size. 
     // The details within can be different. 
-    std::array<RadioCmdData, BOAT_RADIO_NUM_CMDS> mock_command_table = 
+    std::array<RadioCmdData, VEHICLE_RADIO_NUM_CMDS> mock_command_table = 
     {{
-        {boat_radio_cmd_ping,   CMD_ARG_NONE,  &Cmd0Callback, CLEAR_BIT}, 
-        {boat_radio_cmd_idle,   CMD_ARG_VALUE, &Cmd1Callback, CLEAR_BIT}, 
-        {boat_radio_cmd_auto,   CMD_ARG_VALUE, &Cmd2Callback, CLEAR_BIT}, 
-        {boat_radio_cmd_manual, CMD_ARG_STR,   &Cmd3Callback, CLEAR_BIT}, 
-        {boat_radio_cmd_index,  CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT}, 
-        {boat_radio_cmd_RP,     CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT}, 
-        {boat_radio_cmd_RN,     CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT}, 
-        {boat_radio_cmd_LP,     CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT}, 
-        {boat_radio_cmd_LN,     CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT} 
+        {vehicle_radio_cmd_ping,   CMD_ARG_NONE,  &Cmd0Callback, CLEAR_BIT}, 
+        {vehicle_radio_cmd_idle,   CMD_ARG_VALUE, &Cmd1Callback, CLEAR_BIT}, 
+        {vehicle_radio_cmd_auto,   CMD_ARG_VALUE, &Cmd2Callback, CLEAR_BIT}, 
+        {vehicle_radio_cmd_manual, CMD_ARG_STR,   &Cmd3Callback, CLEAR_BIT}, 
+        {vehicle_radio_cmd_index,  CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT}, 
+        {vehicle_radio_cmd_RP,     CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT}, 
+        {vehicle_radio_cmd_RN,     CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT}, 
+        {vehicle_radio_cmd_LP,     CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT}, 
+        {vehicle_radio_cmd_LN,     CMD_ARG_VALUE, &Cmd3Callback, CLEAR_BIT} 
     }}; 
     
     //==================================================
@@ -234,19 +234,19 @@ TEST_GROUP(radio_module_test)
 TEST(radio_module_test, cmd_enable_disable)
 {
     // Check that commands are initially disabled 
-    for (uint8_t i = CLEAR; i < BOAT_RADIO_NUM_CMDS; i++)
+    for (uint8_t i = CLEAR; i < VEHICLE_RADIO_NUM_CMDS; i++)
     {
         LONGS_EQUAL(CLEAR_BIT, vehicle.radio.mock_command_table[i].cmd_enable); 
     }
 
     // Enable all commands (in random order) 
-    vehicle.radio.EnableCmds(boat_radio_cmd_auto, SET_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_idle, SET_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_manual, SET_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_ping, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_auto, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_idle, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_manual, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_ping, SET_BIT); 
 
     // Check that the commands are enabled (4 of them) 
-    for (uint8_t i = CLEAR; i < BOAT_RADIO_NUM_CMDS; i++)
+    for (uint8_t i = CLEAR; i < VEHICLE_RADIO_NUM_CMDS; i++)
     {
         if (i < 4)
         {
@@ -259,8 +259,8 @@ TEST(radio_module_test, cmd_enable_disable)
     }
 
     // Disable two commands 
-    vehicle.radio.EnableCmds(boat_radio_cmd_idle, CLEAR_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_manual, CLEAR_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_idle, CLEAR_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_manual, CLEAR_BIT); 
 
     // Check that only the two commands were disabled 
     LONGS_EQUAL(SET_BIT, vehicle.radio.mock_command_table[0].cmd_enable); 
@@ -275,10 +275,10 @@ TEST(radio_module_test, cmd_enable_invalid)
 {
     // Try enabling command that does not exist (use an existing command but starting 
     // from index 1) 
-    vehicle.radio.EnableCmds(&boat_radio_cmd_auto[1], SET_BIT); 
+    vehicle.radio.EnableCmds(&vehicle_radio_cmd_auto[1], SET_BIT); 
 
     // Check that all commands are still disabled 
-    for (uint8_t i = CLEAR; i < BOAT_RADIO_NUM_CMDS; i++)
+    for (uint8_t i = CLEAR; i < VEHICLE_RADIO_NUM_CMDS; i++)
     {
         LONGS_EQUAL(CLEAR_BIT, vehicle.radio.mock_command_table[i].cmd_enable); 
     }
@@ -298,12 +298,12 @@ TEST(radio_module_test, cmd_parse)
 
     // Test command inputs 
     std::string 
-    test_str0 = boat_radio_cmd_ping,     // Valid ID with no value (set to zero) 
-    test_str1 = boat_radio_cmd_ping, 
-    test_str2 = boat_radio_cmd_idle, 
-    test_str3 = boat_radio_cmd_auto, 
-    test_str4 = boat_radio_cmd_auto, 
-    test_str5 = boat_radio_cmd_manual, 
+    test_str0 = vehicle_radio_cmd_ping,     // Valid ID with no value (set to zero) 
+    test_str1 = vehicle_radio_cmd_ping, 
+    test_str2 = vehicle_radio_cmd_idle, 
+    test_str3 = vehicle_radio_cmd_auto, 
+    test_str4 = vehicle_radio_cmd_auto, 
+    test_str5 = vehicle_radio_cmd_manual, 
     test_str6 = "yoyo~",                 // Invalid character in command ID 
     test_str7 = " 100",                  // First character space will return empty command 
     test_str8 = "eh 138  ";              // Valid with spaces after that get ignored 
@@ -321,10 +321,10 @@ TEST(radio_module_test, cmd_parse)
     std::string last_string; 
 
     // Enable all predefined commands 
-    vehicle.radio.EnableCmds(boat_radio_cmd_ping, SET_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_idle, SET_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_auto, SET_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_manual, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_ping, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_idle, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_auto, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_manual, SET_BIT); 
 
     // In each test case, the command is first processed then each component of the 
     // command (ID and value or string) is retreived and checked. The way the argument 
@@ -335,7 +335,7 @@ TEST(radio_module_test, cmd_parse)
     vehicle.radio.GetCmdID(&last_command); 
     last_value = vehicle.radio.GetCmdValue(); 
     vehicle.radio.GetCmdString(last_string); 
-    STRCMP_EQUAL(boat_radio_cmd_ping, last_command); 
+    STRCMP_EQUAL(vehicle_radio_cmd_ping, last_command); 
     LONGS_EQUAL(0, last_value); 
     STRCMP_EQUAL("", last_string.c_str()); 
 
@@ -344,7 +344,7 @@ TEST(radio_module_test, cmd_parse)
     vehicle.radio.GetCmdID(&last_command); 
     last_value = vehicle.radio.GetCmdValue(); 
     vehicle.radio.GetCmdString(last_string); 
-    STRCMP_EQUAL(boat_radio_cmd_ping, last_command); 
+    STRCMP_EQUAL(vehicle_radio_cmd_ping, last_command); 
     LONGS_EQUAL(0, last_value); 
     STRCMP_EQUAL("", last_string.c_str()); 
 
@@ -353,7 +353,7 @@ TEST(radio_module_test, cmd_parse)
     vehicle.radio.GetCmdID(&last_command); 
     last_value = vehicle.radio.GetCmdValue(); 
     vehicle.radio.GetCmdString(last_string); 
-    STRCMP_EQUAL(boat_radio_cmd_idle, last_command); 
+    STRCMP_EQUAL(vehicle_radio_cmd_idle, last_command); 
     LONGS_EQUAL(88, last_value); 
     STRCMP_EQUAL("", last_string.c_str()); 
 
@@ -362,7 +362,7 @@ TEST(radio_module_test, cmd_parse)
     vehicle.radio.GetCmdID(&last_command); 
     last_value = vehicle.radio.GetCmdValue(); 
     vehicle.radio.GetCmdString(last_string); 
-    STRCMP_EQUAL(boat_radio_cmd_auto, last_command); 
+    STRCMP_EQUAL(vehicle_radio_cmd_auto, last_command); 
     LONGS_EQUAL(0, last_value); 
     STRCMP_EQUAL("", last_string.c_str()); 
 
@@ -371,7 +371,7 @@ TEST(radio_module_test, cmd_parse)
     vehicle.radio.GetCmdID(&last_command); 
     last_value = vehicle.radio.GetCmdValue(); 
     vehicle.radio.GetCmdString(last_string); 
-    STRCMP_EQUAL(boat_radio_cmd_auto, last_command); 
+    STRCMP_EQUAL(vehicle_radio_cmd_auto, last_command); 
     LONGS_EQUAL(0, last_value); 
     STRCMP_EQUAL("", last_string.c_str()); 
 
@@ -380,7 +380,7 @@ TEST(radio_module_test, cmd_parse)
     vehicle.radio.GetCmdID(&last_command); 
     last_value = vehicle.radio.GetCmdValue(); 
     vehicle.radio.GetCmdString(last_string); 
-    STRCMP_EQUAL(boat_radio_cmd_manual, last_command); 
+    STRCMP_EQUAL(vehicle_radio_cmd_manual, last_command); 
     LONGS_EQUAL(0, last_value); 
     STRCMP_EQUAL("8^8", last_string.c_str()); 
 
@@ -415,10 +415,10 @@ TEST(radio_module_test, cmd_callback)
 {
     // Define sample commands (all valid) 
     std::string 
-    test_str0 = boat_radio_cmd_ping, 
-    test_str1 = boat_radio_cmd_idle, 
-    test_str2 = boat_radio_cmd_auto, 
-    test_str3 = boat_radio_cmd_manual; 
+    test_str0 = vehicle_radio_cmd_ping, 
+    test_str1 = vehicle_radio_cmd_idle, 
+    test_str2 = vehicle_radio_cmd_auto, 
+    test_str3 = vehicle_radio_cmd_manual; 
     test_str0.append(" 11"); 
     test_str1.append(" 22"); 
     test_str2.append(" 33"); 
@@ -441,10 +441,10 @@ TEST(radio_module_test, cmd_callback)
     STRCMP_EQUAL("", (char *)vehicle.radio.cmd3_arg); 
 
     // Enable all predefined commands 
-    vehicle.radio.EnableCmds(boat_radio_cmd_ping, SET_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_idle, SET_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_auto, SET_BIT); 
-    vehicle.radio.EnableCmds(boat_radio_cmd_manual, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_ping, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_idle, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_auto, SET_BIT); 
+    vehicle.radio.EnableCmds(vehicle_radio_cmd_manual, SET_BIT); 
 
     // Check that a valid command with an enabled callback will work 
     vehicle.radio.LookUpCmds(test_str0.c_str(), vehicle); 

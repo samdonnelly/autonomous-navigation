@@ -38,7 +38,7 @@ SRC_FILES += ./../../sources/modules/nav_module.cpp
 SRC_DIRS += tests/nav 
 
 # Config files 
-SRC_FILES += ./../../sources/config_files/vehicles/boat_radio_config.cpp 
+SRC_FILES += ./../../sources/config_files/system/commands_config.cpp 
 
 # Library 
 SRC_FILES += ./../../../../STM32F4-driver-library/sources/tools/tools.c 
@@ -104,7 +104,7 @@ INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Drivers/CMSIS/Core/
 # INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Production code 
-INCLUDE_DIRS += ./../../headers/config_files/vehicles 
+INCLUDE_DIRS += ./../../headers/config_files/system 
 INCLUDE_DIRS += ./../../headers/includes 
 INCLUDE_DIRS += ./../../headers/modules 
 

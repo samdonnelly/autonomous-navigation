@@ -1,12 +1,12 @@
 /**
- * @file ground_station_radio_config.cpp
+ * @file esc_readytosky_send_mock.c
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Ground station radio configuration 
+ * @brief ESC driver mock 
  * 
  * @version 0.1
- * @date 2024-06-19
+ * @date 2024-06-20
  * 
  * @copyright Copyright (c) 2024
  * 
@@ -15,31 +15,41 @@
 //=======================================================================================
 // Includes 
 
-#include "ground_station_radio_config.h" 
+#include "esc_readytosky_driver.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Incoming commands 
+// Driver functions 
 
-const char 
-// User commands 
-gs_radio_cmd_manual[] = "mc",          // 0. Manual control mode 
-gs_radio_cmd_rf_channel[] = "rf_ch",   // 1. RF channel set 
-gs_radio_cmd_rf_power[] = "rf_pwr",    // 2. RF power set 
-gs_radio_cmd_rf_dr[] = "rf_dr",        // 3. RF data rate set 
-gs_radio_cmd_rf_dp[] = "rf_dp",        // 4. RF data pipe set 
-gs_radio_cmd_update[] = "update";      // 5. Update serial terminal output 
+// ESC initialization 
+void esc_readytosky_init(
+    device_number_t device_num, 
+    TIM_TypeDef *timer, 
+    tim_channel_t tim_channel, 
+    GPIO_TypeDef *gpio, 
+    pin_selector_t pin, 
+    timer_us_prescalars_t prescalar, 
+    uint16_t arr, 
+    uint16_t fwd_speed_lim, 
+    uint16_t rev_speed_lim)
+{
+    // 
+}
+
+
+// ESC PWM command send 
+void esc_readytosky_send(
+    device_number_t device_num, 
+    int16_t throttle_cmd)
+{
+    // 
+}
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Outgoing messages 
-
-const char 
-gs_radio_confirm[] = "";      // 
-
+// Mock functions 
 //=======================================================================================
-

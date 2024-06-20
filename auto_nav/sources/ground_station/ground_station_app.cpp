@@ -34,7 +34,7 @@
 
 // User commands 
 #define GS_MAX_USER_INPUT 30         // Max data size for user input (bytes) 
-#define GS_NUM_CMDS 7                // Total number of external commands available 
+#define GS_NUM_CMDS_old 7            // Total number of external commands available 
 
 // Data sizes 
 #define GS_ADC_BUFF_SIZE 2           // Number of ADCs used 
@@ -269,7 +269,7 @@ static gs_state_func_ptr state_table[GS_NUM_STATES] =
 
 
 // User commands 
-static gs_cmds_t cmd_table[GS_NUM_CMDS] = 
+static gs_cmds_t cmd_table[GS_NUM_CMDS_old] = 
 {
     {"hb",     &gs_hb_cmd,      (SET_BIT << GS_MC_STATE)}, 
     {"mc",     &gs_mc_mode_cmd, (SET_BIT << GS_HB_STATE)}, 
@@ -385,7 +385,7 @@ void gs_app(void)
         if (gs_parse_cmd(gs_data.cmd_buff))
         {
             // Valid input - compare the ID to each of the available pre-defined commands 
-            for (uint8_t i = CLEAR; i < GS_NUM_CMDS; i++) 
+            for (uint8_t i = CLEAR; i < GS_NUM_CMDS_old; i++) 
             {
                 // Check that the command is available for the "state" before comparing it 
                 // against the ID. 
@@ -467,9 +467,13 @@ void GroundStation::GroundStationApp(void)
         // then send the input out via radio (i.e. to a vehicle). 
         if (!CommandLookUp(cmd_buff, command_table, ground_station))
         {
-            // Input not recognized. Trigger a send via the RF module. 
-            memcpy((void *)write_buff, (void *)cmd_buff, GS_MAX_CMD_LEN); 
-            user_cmd_flag = SET_BIT; 
+            // Input not recognized. Trigger a send via the RF module if the ground 
+            // station isn't in manual control mode. 
+            if (!gs_flags.manual_control_flag)
+            {
+                memcpy((void *)write_buff, (void *)cmd_buff, GS_MAX_CMD_LEN); 
+                gs_flags.user_cmd_flag = SET_BIT; 
+            }
         }
 
         // Clear the user prompt. Go up a line, clear the prompt line, reprint the 
@@ -497,14 +501,15 @@ void GroundStation::GroundStationApp(void)
         // Send commands to the vehicle 
 
         // Check for which message/command to send to a vehicle 
-        if (manual_control_flag)
+        if (gs_flags.manual_control_flag)
         {
             // Send ADC throttle commands 
             ManualControlMode(); 
         }
-        else if (user_cmd_flag)
+        else if (gs_flags.user_cmd_flag)
         {
             // Send the user input 
+            gs_flags.user_cmd_flag = CLEAR_BIT; 
             SendUserCmd(); 
         }
         else 
@@ -591,12 +596,10 @@ int16_t GroundStation::ADCThrottleMapping(uint16_t adc_value)
     // Check if there is a forward or reverse throttle command 
     if (adc_value > GS_ADC_FWD_LIM)
     {
-        // Forward 
         throttle_cmd = (int16_t)adc_value - GS_ADC_FWD_LIM; 
     }
     else if (adc_value < GS_ADC_REV_LIM)
     {
-        // Reverse 
         throttle_cmd = (int16_t)adc_value - GS_ADC_REV_LIM; 
     }
 
@@ -607,57 +610,69 @@ int16_t GroundStation::ADCThrottleMapping(uint16_t adc_value)
 // Send user input 
 void GroundStation::SendUserCmd(void)
 {
-    // 
+    nrf24l01_send_payload(write_buff); 
 }
 
 
 // Send heartbeat 
 void GroundStation::SendHeartbeat(void)
 {
-    // // Send a heartbeat message to the remote system periodically 
-    // if (hb_send_counter++ >= GS_HB_SEND_COUNTER)
-    // {
-    //     hb_send_counter = CLEAR; 
-    //     nrf24l01_send_payload((uint8_t *)ping_msg); 
-    // }
+    static uint8_t hb_send_counter = CLEAR; 
+
+    // Send a heartbeat message to the remote system periodically 
+    if (hb_send_counter++ >= GS_HB_SEND_COUNTER)
+    {
+        hb_send_counter = CLEAR; 
+        nrf24l01_send_payload((uint8_t *)vehicle_radio_cmd_ping); 
+    }
 }
 
 
 // Check for an incoming message 
 void GroundStation::MsgCheck(void)
 {
-    // // Look for an incoming message from the remote system 
-    // if (nrf24l01_data_ready_status() == nrf24l01_pipe)
-    // {
-    //     nrf24l01_receive_payload(read_buff); 
+    // Look for an incoming message from the remote system 
+    if (nrf24l01_data_ready_status() == nrf24l01_pipe)
+    {
+        nrf24l01_receive_payload(read_buff); 
 
-    //     // Clear the timeout for any message received 
-    //     hb_timeout_counter = CLEAR; 
+        // Clear the timeout for any message received 
+        hb_timeout_counter = CLEAR; 
+        gs_flags.radio_connection_flag = SET_BIT; 
 
-    //     if (strcmp((char *)read_buff, ping_response) != 0)
-    //     {
-    //         // Display the message for the ground station to see 
-    //         uart_sendstring(USART2, "\033[1A\033[1A\r"); 
-    //         uart_sendstring(USART2, (char *)read_buff); 
-    //         rc_ground_station_user_prompt(); 
-    //     }
-    // }
+        // If the message received is not a ping/heartbeat response then display the 
+        // response for the user to see. Heartbeat responses are only used to reset the 
+        // heartbeat timeout. 
+        if (strcmp((char *)read_buff, vehicle_radio_ping_confirm) != 0)
+        {
+            // // Display the message for the ground station to see 
+            // uart_sendstring(USART2, "\033[1A\033[1A\r"); 
+            // uart_sendstring(USART2, (char *)read_buff); 
+            // rc_ground_station_user_prompt(); 
+
+            // Go to the correct serial terminal line 
+            // Re-display the line item label and clear the rest of the line to the right 
+            // Display the contents of the read buffer 
+            // Return to the user command prompt 
+        }
+    }
 }
 
 
 // Check the radio connection 
 void GroundStation::RadioConnectionStatus(void)
 {
-    // // Check if the radio connection had been lost for too long 
-    // if (hb_timeout_counter++ >= GS_HB_TIMEOUT_COUNTER)
-    // {
-    //     hb_timeout_counter = CLEAR; 
+    // Check if the radio connection had been lost for too long 
+    if (hb_timeout_counter++ >= GS_HB_TIMEOUT_COUNTER)
+    {
+        hb_timeout_counter = CLEAR; 
+        gs_flags.radio_connection_flag = CLEAR_BIT; 
         
-    //     // Display a lost connection message 
-    //     uart_sendstring(USART2, "\033[1A\r"); 
-    //     uart_sendstring(USART2, lost_connection); 
-    //     rc_ground_station_user_prompt(); 
-    // }
+        // // Display a lost connection message 
+        // uart_sendstring(USART2, "\033[1A\r"); 
+        // uart_sendstring(USART2, lost_connection); 
+        // rc_ground_station_user_prompt(); 
+    }
 }
 
 //=======================================================================================
@@ -671,7 +686,20 @@ void GroundStation::ManualControlCmd(
     GroundStation& gs_radio, 
     uint8_t *manual_cmd_arg)
 {
-    // 
+    if (manual_cmd_arg == nullptr)
+    {
+        return; 
+    }
+
+    // Check for an "on" or "off" request 
+    if (strcmp((char *)manual_cmd_arg, gs_sub_cmd_on) == 0)
+    {
+        gs_radio.gs_flags.manual_control_flag = SET_BIT; 
+    }
+    else if (strcmp((char *)manual_cmd_arg, gs_sub_cmd_off) == 0)
+    {
+        gs_radio.gs_flags.manual_control_flag = CLEAR_BIT; 
+    }
 }
 
 

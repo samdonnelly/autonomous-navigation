@@ -16,7 +16,7 @@
 // Includes 
 
 #include "radio_module.h" 
-#include "boat_radio_config.h" 
+#include "commands_config.h" 
 
 //=======================================================================================
 
@@ -25,7 +25,7 @@
 // Instantiate the template for its use cases 
 
 // Boat 
-template class RadioModule<Boat, BOAT_RADIO_NUM_CMDS>; 
+template class RadioModule<Boat, VEHICLE_RADIO_NUM_CMDS>; 
 
 //=======================================================================================
 

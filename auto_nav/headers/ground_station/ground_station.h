@@ -21,7 +21,7 @@
 #include "includes_drivers.h" 
 #include "radio_module.h" 
 #include "nrf24l01_config.h" 
-#include "ground_station_radio_config.h" 
+#include "commands_config.h" 
 
 //=======================================================================================
 
@@ -38,7 +38,7 @@
 //=======================================================================================
 // Classes 
 
-class GroundStation : public RadioModule<GroundStation, GS_RADIO_NUM_CMDS> 
+class GroundStation : public RadioModule<GroundStation, GS_NUM_CMDS> 
 {
 private:   // Private members 
 
@@ -53,17 +53,25 @@ private:   // Private members
     // Timing 
     TIM_TypeDef *timer_nonblocking;        // Timer used for non-blocking delays 
     tim_compare_t delay_timer;             // Delay timing info 
+    uint8_t hb_timeout_counter;            // Heartbeat response timeout counter 
 
     // System data 
     uint16_t adc_buff[GS_ADC_BUFF_SIZE];   // ADC buffer - thruster potentiometers 
 
     // Payload data 
     uint8_t read_buff[GS_MAX_CMD_LEN];     // Data read by PRX from PTX device 
+    // uint8_t msg_buff[GS_MAX_CMD_LEN];      // Vehicle messages that aren't heartbeat responses 
     uint8_t write_buff[GS_MAX_CMD_LEN];    // Data sent by PTX to a PRX device 
 
     // Flags 
-    uint8_t user_cmd_flag; 
-    uint8_t manual_control_flag; 
+    struct GSFlags 
+    {
+        // Status flags 
+        uint8_t user_cmd_flag         : 1; 
+        uint8_t manual_control_flag   : 1; 
+        uint8_t radio_connection_flag : 1; 
+    }
+    gs_flags; 
 
 public:   // Public member functions 
 
@@ -71,8 +79,7 @@ public:   // Public member functions
     GroundStation() 
         : cb_index(CLEAR), 
           cmd_value(CLEAR), 
-          user_cmd_flag(CLEAR_BIT), 
-          manual_control_flag(CLEAR_BIT) 
+          hb_timeout_counter(CLEAR) 
     {
         memset((void *)cb, CLEAR, sizeof(cb)); 
         memset((void *)cmd_buff, CLEAR, sizeof(cmd_buff)); 
@@ -81,6 +88,10 @@ public:   // Public member functions
         memset((void *)adc_buff, CLEAR, sizeof(adc_buff)); 
         memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
         memset((void *)write_buff, CLEAR, sizeof(write_buff)); 
+
+        gs_flags.user_cmd_flag = CLEAR_BIT; 
+        gs_flags.manual_control_flag = CLEAR_BIT; 
+        gs_flags.radio_connection_flag = CLEAR_BIT; 
 
         // Timing info is configured in the setup function 
     } 
@@ -131,15 +142,15 @@ private:   // Private member functions
     static void UpdateOutputData(GroundStation& gs_radio, uint8_t *update_cmd_arg); 
 
     // Command table 
-    std::array<RadioCmdData, GS_RADIO_NUM_CMDS> command_table = 
+    std::array<RadioCmdData, GS_NUM_CMDS> command_table = 
     {{
         // User commands 
-        {gs_radio_cmd_manual,     CMD_ARG_STR,   &ManualControlCmd,  CLEAR_BIT}, 
-        {gs_radio_cmd_rf_channel, CMD_ARG_VALUE, &RFChannelSetCmd,   CLEAR_BIT}, 
-        {gs_radio_cmd_rf_power,   CMD_ARG_VALUE, &RFPwrOutputSetCmd, CLEAR_BIT}, 
-        {gs_radio_cmd_rf_dr,      CMD_ARG_VALUE, &RFDataRateSetCmd,  CLEAR_BIT}, 
-        {gs_radio_cmd_rf_dp,      CMD_ARG_VALUE, &RFDatePipeSetCmd,  CLEAR_BIT}, 
-        {gs_radio_cmd_update,     CMD_ARG_NONE,  &UpdateOutputData,  CLEAR_BIT} 
+        {gs_cmd_manual,     CMD_ARG_STR,   &ManualControlCmd,  CLEAR_BIT}, 
+        {gs_cmd_rf_channel, CMD_ARG_VALUE, &RFChannelSetCmd,   CLEAR_BIT}, 
+        {gs_cmd_rf_power,   CMD_ARG_VALUE, &RFPwrOutputSetCmd, CLEAR_BIT}, 
+        {gs_cmd_rf_dr,      CMD_ARG_VALUE, &RFDataRateSetCmd,  CLEAR_BIT}, 
+        {gs_cmd_rf_dp,      CMD_ARG_VALUE, &RFDatePipeSetCmd,  CLEAR_BIT}, 
+        {gs_cmd_update,     CMD_ARG_NONE,  &UpdateOutputData,  CLEAR_BIT} 
     }}; 
     
     //==================================================
