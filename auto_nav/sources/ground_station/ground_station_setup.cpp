@@ -60,8 +60,9 @@ void GroundStation::GroundStationSetup(void)
     // UART 
 
     // Initialize UART
+    uart = USART2; 
     uart_init(
-        USART2, 
+        uart, 
         GPIOA, 
         PIN_3, 
         PIN_2, 

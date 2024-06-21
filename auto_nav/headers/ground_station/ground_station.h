@@ -43,6 +43,7 @@ class GroundStation : public RadioModule<GroundStation, GS_NUM_CMDS>
 private:   // Private members 
 
     // User command data 
+    USART_TypeDef *uart;                   // UART
     uint8_t cb[GS_MAX_CMD_LEN];            // Circular buffer (CB) for user inputs 
     uint8_t cb_index;                      // CB index used for parsing commands 
     uint8_t cmd_buff[GS_MAX_CMD_LEN];      // User command parsed from the CB 
@@ -60,7 +61,6 @@ private:   // Private members
 
     // Payload data 
     uint8_t read_buff[GS_MAX_CMD_LEN];     // Data read by PRX from PTX device 
-    // uint8_t msg_buff[GS_MAX_CMD_LEN];      // Vehicle messages that aren't heartbeat responses 
     uint8_t write_buff[GS_MAX_CMD_LEN];    // Data sent by PTX to a PRX device 
 
     // Flags 
@@ -153,6 +153,26 @@ private:   // Private member functions
         {gs_cmd_update,     CMD_ARG_NONE,  &UpdateOutputData,  CLEAR_BIT} 
     }}; 
     
+    //==================================================
+
+    //==================================================
+    // User interface 
+
+    // Command prompt 
+    void CmdPromptUI(void); 
+
+    // Radio connection status 
+    void RadioConnectionUI(void); 
+
+    // Vehicle message 
+    void VehicleMessageUI(void); 
+
+    // RF module settings 
+    void RFDataPipeUI(void); 
+    void RFChannelUI(void); 
+    void RFDataRateUI(void); 
+    void RFPwrOutputUI(void); 
+
     //==================================================
 }; 
 

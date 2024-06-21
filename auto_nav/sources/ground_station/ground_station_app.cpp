@@ -610,6 +610,8 @@ int16_t GroundStation::ADCThrottleMapping(uint16_t adc_value)
 // Send user input 
 void GroundStation::SendUserCmd(void)
 {
+    // Clear the most recent message received interface 
+
     nrf24l01_send_payload(write_buff); 
 }
 
@@ -645,11 +647,6 @@ void GroundStation::MsgCheck(void)
         // heartbeat timeout. 
         if (strcmp((char *)read_buff, vehicle_radio_ping_confirm) != 0)
         {
-            // // Display the message for the ground station to see 
-            // uart_sendstring(USART2, "\033[1A\033[1A\r"); 
-            // uart_sendstring(USART2, (char *)read_buff); 
-            // rc_ground_station_user_prompt(); 
-
             // Go to the correct serial terminal line 
             // Re-display the line item label and clear the rest of the line to the right 
             // Display the contents of the read buffer 
@@ -667,11 +664,6 @@ void GroundStation::RadioConnectionStatus(void)
     {
         hb_timeout_counter = CLEAR; 
         gs_flags.radio_connection_flag = CLEAR_BIT; 
-        
-        // // Display a lost connection message 
-        // uart_sendstring(USART2, "\033[1A\r"); 
-        // uart_sendstring(USART2, lost_connection); 
-        // rc_ground_station_user_prompt(); 
     }
 }
 
@@ -783,6 +775,85 @@ void GroundStation::UpdateOutputData(
 }
 
 //=======================================================================================
+
+
+//=======================================================================================
+// User interface 
+
+// Command prompt 
+void GroundStation::CmdPromptUI(void)
+{
+    uart_sendstring(uart, ">>> "); 
+}
+
+
+// Radio connection status 
+void GroundStation::RadioConnectionUI(void)
+{
+    uart_sendstring(uart, "Radio Connection: "); 
+}
+
+
+// Vehicle message 
+void GroundStation::VehicleMessageUI(void)
+{
+    uart_sendstring(uart, "Vehicle Message: "); 
+}
+
+
+// RF module data pipe UI 
+void GroundStation::RFDataPipeUI(void)
+{
+    char rf_dp_str[20]; 
+    snprintf(rf_dp_str, 20, "Data Pipe: %u\r\n", 0); 
+    uart_sendstring(uart, rf_dp_str); 
+}
+
+
+// RF module frequency channel UI 
+void GroundStation::RFChannelUI(void)
+{
+    char rf_channel_str[20]; 
+    snprintf(rf_channel_str, 20, "Channel: %u\r\n", 0); 
+    uart_sendstring(uart, rf_channel_str); 
+}
+
+
+// RF module data rate UI 
+void GroundStation::RFDataRateUI(void)
+{
+    char rf_dr_str[20]; 
+    snprintf(rf_dr_str, 20, "Date Rate: %u\r\n", 0); 
+    uart_sendstring(uart, rf_dr_str); 
+}
+
+
+// RF module power output UI 
+void GroundStation::RFPwrOutputUI(void)
+{
+    char rf_pwr_str[20]; 
+    snprintf(rf_pwr_str, 20, "Power Output: %u\r\n", 0); 
+    uart_sendstring(uart, rf_pwr_str); 
+}
+
+//=======================================================================================
+
+
+
+
+
+
+
+
+
+// Old Code 
+
+
+
+
+
+
+
 
 
 //=======================================================================================
