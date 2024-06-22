@@ -21,7 +21,7 @@
 #include "includes_drivers.h" 
 #include "radio_module.h" 
 #include "nrf24l01_config.h" 
-#include "commands_config.h" 
+#include "gs_interface_config.h" 
 
 //=======================================================================================
 
@@ -31,6 +31,7 @@
 
 #define GS_MAX_CMD_LEN 32    // Max user input command length (bytes) 
 #define GS_ADC_BUFF_SIZE 2   // Number of ADCs used 
+#define GS_UI_BUFF_SIZE 30   // Max user interface string output size 
 
 //=======================================================================================
 
@@ -42,8 +43,11 @@ class GroundStation : public RadioModule<GroundStation, GS_NUM_CMDS>
 {
 private:   // Private members 
 
+    // User interface 
+    USART_TypeDef *uart;                   // UART for serial terminal 
+    char ui_buff[GS_UI_BUFF_SIZE];         // Buffer to store RF settings string 
+
     // User command data 
-    USART_TypeDef *uart;                   // UART
     uint8_t cb[GS_MAX_CMD_LEN];            // Circular buffer (CB) for user inputs 
     uint8_t cb_index;                      // CB index used for parsing commands 
     uint8_t cmd_buff[GS_MAX_CMD_LEN];      // User command parsed from the CB 
@@ -76,25 +80,7 @@ private:   // Private members
 public:   // Public member functions 
 
     // Constructor 
-    GroundStation() 
-        : cb_index(CLEAR), 
-          cmd_value(CLEAR), 
-          hb_timeout_counter(CLEAR) 
-    {
-        memset((void *)cb, CLEAR, sizeof(cb)); 
-        memset((void *)cmd_buff, CLEAR, sizeof(cmd_buff)); 
-        memset((void *)cmd_id, CLEAR, sizeof(cmd_id)); 
-        memset((void *)cmd_str, CLEAR, sizeof(cmd_str)); 
-        memset((void *)adc_buff, CLEAR, sizeof(adc_buff)); 
-        memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
-        memset((void *)write_buff, CLEAR, sizeof(write_buff)); 
-
-        gs_flags.user_cmd_flag = CLEAR_BIT; 
-        gs_flags.manual_control_flag = CLEAR_BIT; 
-        gs_flags.radio_connection_flag = CLEAR_BIT; 
-
-        // Timing info is configured in the setup function 
-    } 
+    GroundStation(); 
 
     // Destructor 
     ~GroundStation() {}
@@ -135,22 +121,22 @@ private:   // Private member functions
 
     // Command callbacks 
     static void ManualControlCmd(GroundStation& gs_radio, uint8_t *manual_cmd_arg); 
+    static void UpdateRadioStatus(GroundStation& gs_radio, uint8_t *update_cmd_arg); 
     static void RFChannelSetCmd(GroundStation& gs_radio, uint8_t *rf_channel_cmd_arg); 
     static void RFPwrOutputSetCmd(GroundStation& gs_radio, uint8_t *rf_power_cmd_arg); 
     static void RFDataRateSetCmd(GroundStation& gs_radio, uint8_t *rf_dr_cmd_arg); 
     static void RFDatePipeSetCmd(GroundStation& gs_radio, uint8_t *rf_dp_cmd_arg); 
-    static void UpdateOutputData(GroundStation& gs_radio, uint8_t *update_cmd_arg); 
 
     // Command table 
     std::array<RadioCmdData, GS_NUM_CMDS> command_table = 
     {{
         // User commands 
         {gs_cmd_manual,     CMD_ARG_STR,   &ManualControlCmd,  CLEAR_BIT}, 
+        {gs_cmd_update,     CMD_ARG_NONE,  &UpdateRadioStatus, CLEAR_BIT}, 
         {gs_cmd_rf_channel, CMD_ARG_VALUE, &RFChannelSetCmd,   CLEAR_BIT}, 
         {gs_cmd_rf_power,   CMD_ARG_VALUE, &RFPwrOutputSetCmd, CLEAR_BIT}, 
         {gs_cmd_rf_dr,      CMD_ARG_VALUE, &RFDataRateSetCmd,  CLEAR_BIT}, 
-        {gs_cmd_rf_dp,      CMD_ARG_VALUE, &RFDatePipeSetCmd,  CLEAR_BIT}, 
-        {gs_cmd_update,     CMD_ARG_NONE,  &UpdateOutputData,  CLEAR_BIT} 
+        {gs_cmd_rf_dp,      CMD_ARG_VALUE, &RFDatePipeSetCmd,  CLEAR_BIT} 
     }}; 
     
     //==================================================
@@ -161,17 +147,26 @@ private:   // Private member functions
     // Command prompt 
     void CmdPromptUI(void); 
 
+    // Last user input 
+    void LastUserInput(void); 
+
     // Radio connection status 
-    void RadioConnectionUI(void); 
+    void RadioConnectionUI(uint8_t radio_status); 
 
     // Vehicle message 
     void VehicleMessageUI(void); 
 
+    // Command Feedback 
+    void CmdStatusUI(const char *status_msg); 
+
     // RF module settings 
-    void RFDataPipeUI(void); 
     void RFChannelUI(void); 
     void RFDataRateUI(void); 
     void RFPwrOutputUI(void); 
+    void RFDataPipeUI(void); 
+
+    // Write a line of data 
+    void WriteLineUI(uint8_t line_offset); 
 
     //==================================================
 }; 

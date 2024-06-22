@@ -33,6 +33,29 @@ GroundStation ground_station;
 //=======================================================================================
 // Ground Station Initialization 
 
+// Constructor 
+GroundStation::GroundStation() 
+    : cb_index(CLEAR), 
+      cmd_value(CLEAR), 
+      hb_timeout_counter(CLEAR) 
+{
+    memset((void *)ui_buff, CLEAR, sizeof(ui_buff)); 
+    memset((void *)cb, CLEAR, sizeof(cb)); 
+    memset((void *)cmd_buff, CLEAR, sizeof(cmd_buff)); 
+    memset((void *)cmd_id, CLEAR, sizeof(cmd_id)); 
+    memset((void *)cmd_str, CLEAR, sizeof(cmd_str)); 
+    memset((void *)adc_buff, CLEAR, sizeof(adc_buff)); 
+    memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
+    memset((void *)write_buff, CLEAR, sizeof(write_buff)); 
+
+    gs_flags.user_cmd_flag = CLEAR_BIT; 
+    gs_flags.manual_control_flag = CLEAR_BIT; 
+    gs_flags.radio_connection_flag = CLEAR_BIT; 
+
+    // Data not configured here is handled in the setup function 
+} 
+
+
 void GroundStation::GroundStationSetup(void)
 {
     //==================================================

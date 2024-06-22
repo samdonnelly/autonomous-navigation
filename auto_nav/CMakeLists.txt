@@ -164,6 +164,7 @@ target_compile_options(${EXECUTABLE} PRIVATE
         -Wundef
         -fno-common
         -Wno-unused-parameter
+        -Wno-format-nonliteral
         $<$<COMPILE_LANGUAGE:CXX>:
             # -Wconversion # STM libraries!
             -Wno-volatile
