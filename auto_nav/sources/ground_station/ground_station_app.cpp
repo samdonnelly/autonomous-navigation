@@ -48,12 +48,14 @@
 // #define GS_MC_REV_THRUST 0x4D        // "M" (minus) - indicates reverse thrust 
 // #define GS_MC_NEUTRAL 0x4E           // "N" (neutral) - indicates neutral gear or zero thrust 
 // #define GS_NO_THRUST 0               // Force thruster output to zero 
-// #define GS_ADC_REV_LIM 100           // ADC value reverse command limit 
-// #define GS_ADC_FWD_LIM 155           // ADC value forward command limit 
 
 
 //==================================================
 // Dev 
+
+// Thrusters 
+#define GS_ADC_REV_LIM 100           // ADC value reverse command limit 
+#define GS_ADC_FWD_LIM 155           // ADC value forward command limit 
 
 #define GS_ACTION_PERIOD 100000     // Time between throttle command sends (us) 
 #define GS_HB_SEND_COUNTER 20       // This * RC_GS_ACTION_PERIOD gives HB send period 
@@ -616,8 +618,9 @@ void GroundStation::SendUserCmd(void)
 
     // Send the user input 
     status_msg = (nrf24l01_send_payload(write_buff) == NRF24L01_OK) ? 
-                 gs_ui_status_success : gs_ui_status_fail; 
+                 gs_ui_status_cmd_sent : gs_ui_status_fail; 
     CmdStatusUI(status_msg); 
+    CmdPromptUI(); 
 }
 
 
@@ -838,6 +841,22 @@ void GroundStation::RFDatePipeSetCmd(
 //=======================================================================================
 // User interface 
 
+// UI init 
+void GroundStation::InitializeUI(void)
+{
+    uart_cursor_move(uart, UART_CURSOR_DOWN, 9); 
+    LastUserInput(); 
+    RadioConnectionUI(gs_flags.radio_connection_flag); 
+    VehicleMessageUI(); 
+    CmdStatusUI(" "); 
+    RFChannelUI(); 
+    RFDataRateUI(); 
+    RFPwrOutputUI(); 
+    RFDataPipeUI(); 
+    CmdPromptUI(); 
+}
+
+
 // Command prompt 
 void GroundStation::CmdPromptUI(void)
 {
@@ -916,6 +935,7 @@ void GroundStation::RFDataPipeUI(void)
 void GroundStation::WriteLineUI(uint8_t line_offset)
 {
     uart_cursor_move(uart, UART_CURSOR_UP, line_offset); 
+    uart_sendstring(uart, "\r"); 
     uart_sendstring(uart, ui_buff); 
     uart_sendstring(uart, "\033[K");   // Clear the line to the right 
     uart_cursor_move(uart, UART_CURSOR_DOWN, line_offset); 

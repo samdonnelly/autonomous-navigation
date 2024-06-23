@@ -16,6 +16,7 @@
 // Includes 
 
 #include "radio_module.h" 
+#include "gs_interface_config.h" 
 #include "vehicle_radio_config.h" 
 
 //=======================================================================================
@@ -24,7 +25,7 @@
 //=======================================================================================
 // Instantiate the template for its use cases 
 
-// Boat 
+template class RadioModule<GroundStation, GS_NUM_CMDS>; 
 template class RadioModule<Boat, VEHICLE_RADIO_NUM_CMDS>; 
 
 //=======================================================================================

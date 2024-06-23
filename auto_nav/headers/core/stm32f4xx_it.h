@@ -537,6 +537,7 @@ void TIM1_BRK_TIM9_IRQHandler(void);
 void TIM1_UP_TIM10_IRQHandler(void); 
 
 
+#if !FREERTOS_ENABLE 
 /**
  * @brief Timer 1 trigger and communication + timer 11 global interrupt handler 
  * 
@@ -554,6 +555,7 @@ void TIM1_UP_TIM10_IRQHandler(void);
  * @see tim_uif_clear
  */
 void TIM1_TRG_COM_TIM11_IRQHandler(void); 
+#endif   // FREERTOS_ENABLE 
 
 
 /**

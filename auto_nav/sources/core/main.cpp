@@ -24,6 +24,10 @@
 
 // Application 
 #include "ground_station.h" 
+
+#if FREERTOS_ENABLE 
+
+// Application 
 #include "boat.h" 
 
 // FreeRTOS 
@@ -33,6 +37,8 @@
 #include "queue.h" 
 #include "semphr.h" 
 #include "timers.h" 
+
+#endif   // FREERTOS_ENABLE 
 
 //=======================================================================================
 

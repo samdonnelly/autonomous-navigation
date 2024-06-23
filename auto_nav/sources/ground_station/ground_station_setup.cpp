@@ -252,7 +252,7 @@ void GroundStation::GroundStationSetup(void)
     delay_timer.time_start = SET_BIT; 
 
     // User interface 
-    uart_cursor_move(uart, UART_CURSOR_DOWN, 9); 
+    InitializeUI(); 
 
     // Enable all commands 
     for (uint8_t i = CLEAR; i < GS_NUM_CMDS; i++)

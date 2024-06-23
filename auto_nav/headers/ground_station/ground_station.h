@@ -144,6 +144,9 @@ private:   // Private member functions
     //==================================================
     // User interface 
 
+    // UI init 
+    void InitializeUI(void); 
+
     // Command prompt 
     void CmdPromptUI(void); 
 
