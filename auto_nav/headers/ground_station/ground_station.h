@@ -147,14 +147,11 @@ private:   // Private member functions
     // UI init 
     void InitializeUI(void); 
 
-    // Command prompt 
-    void CmdPromptUI(void); 
-
     // Last user input 
     void LastUserInput(void); 
 
     // Radio connection status 
-    void RadioConnectionUI(uint8_t radio_status); 
+    void RadioConnectionUI(void); 
 
     // Vehicle message 
     void VehicleMessageUI(void); 
@@ -167,6 +164,9 @@ private:   // Private member functions
     void RFDataRateUI(void); 
     void RFPwrOutputUI(void); 
     void RFDataPipeUI(void); 
+
+    // Command prompt 
+    void CmdPromptUI(void); 
 
     // Write a line of data 
     void WriteLineUI(uint8_t line_offset); 

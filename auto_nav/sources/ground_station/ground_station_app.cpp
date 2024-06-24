@@ -25,34 +25,6 @@
 //=======================================================================================
 // Macros 
 
-// // System info 
-// #define GS_NUM_STATES 3              // Total number of system states 
-
-// // Timing 
-// #define GS_HB_PERIOD 500000          // Time between heartbeat checks (us) 
-// #define GS_MC_PERIOD 50000           // Time between throttle command sends (us) 
-// #define GS_CMD_PERIOD 250000         // Time between command sends checks (us) 
-
-// // User commands 
-// #define GS_MAX_USER_INPUT 30         // Max data size for user input (bytes) 
-// #define GS_NUM_CMDS_old 7            // Total number of external commands available 
-
-// // Data sizes 
-// #define GS_ADC_BUFF_SIZE 2           // Number of ADCs used 
-// #define GS_CMD_SEND_COUNT 10         // Number of times a command gets sent 
-
-// // Thrusters 
-// #define GS_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
-// #define GS_MC_RIGHT_MOTOR 0x52       // "R" character that indicates right motor 
-// #define GS_MC_FWD_THRUST 0x50        // "P" (plus) - indicates forward thrust 
-// #define GS_MC_REV_THRUST 0x4D        // "M" (minus) - indicates reverse thrust 
-// #define GS_MC_NEUTRAL 0x4E           // "N" (neutral) - indicates neutral gear or zero thrust 
-// #define GS_NO_THRUST 0               // Force thruster output to zero 
-
-
-//==================================================
-// Dev 
-
 // Thrusters 
 #define GS_ADC_REV_LIM 100           // ADC value reverse command limit 
 #define GS_ADC_FWD_LIM 155           // ADC value forward command limit 
@@ -61,399 +33,11 @@
 #define GS_HB_SEND_COUNTER 20       // This * RC_GS_ACTION_PERIOD gives HB send period 
 #define GS_HB_TIMEOUT_COUNTER 100   // This * RC_GS_ACTION_PERIOD gives HB timeout 
 
-//==================================================
-
 //=======================================================================================
-
-
-// //=======================================================================================
-// // Enums 
-
-// // Ground station states 
-// typedef enum {
-//     GS_HB_STATE,             // State 0: heartbeat 
-//     GS_MC_STATE,             // State 1: manual control 
-//     GS_CMD_STATE,            // State 2: command send 
-// } gs_states_t; 
-
-// //=======================================================================================
-
-
-// //=======================================================================================
-// // Structures 
-
-// // User commands 
-// typedef struct gs_cmds_s 
-// {
-//     char gs_cmd[GS_MAX_USER_INPUT]; 
-//     void (*gs_cmd_func_ptr)(uint8_t); 
-//     uint8_t gs_cmd_mask; 
-// }
-// gs_cmds_t; 
-
-
-// // Data record for the system 
-// typedef struct gs_data_s 
-// {
-//     // System information 
-//     gs_states_t state;                            // State machine state 
-//     USART_TypeDef *uart;                          // UART port used for user interface 
-
-//     // Timing information 
-//     TIM_TypeDef *timer_nonblocking;                // Timer used for non-blocking delays 
-//     tim_compare_t delay_timer;                     // Delay timing info 
-
-//     // User commands and payload data 
-//     uint8_t user_buff[GS_MAX_USER_INPUT];          // Circular buffer (CB) that stores user inputs 
-//     uint8_t buff_index;                            // CB index used for parsing commands 
-//     uint8_t cmd_buff[GS_MAX_USER_INPUT];           // Stores a user command parsed from the CB 
-//     uint8_t cmd_id[GS_MAX_USER_INPUT];             // Stores the ID of the user command 
-//     uint8_t cmd_value;                             // Stores the value of the user command 
-//     uint8_t hb_msg[NRF24L01_MAX_PAYLOAD_LEN];      // Heartbeat message 
-//     uint8_t write_buff[NRF24L01_MAX_PAYLOAD_LEN];  // Data sent to PRX from PTX device 
-
-//     // System data 
-//     uint16_t adc_buff[GS_ADC_BUFF_SIZE];           // ADC buffer - thruster potentiometers 
-//     uint8_t cmd_send_index;                        // Command send counter 
-
-//     // Control flags 
-//     uint8_t led_state   : 1;                       // LED state (on/off) 
-//     uint8_t state_entry : 1;                       // State entry flag 
-//     uint8_t hb          : 1;                       // Heartbeat state flag 
-//     uint8_t mc          : 1;                       // Manual control mode state flag 
-//     uint8_t cmd         : 1;                       // Command send state flag 
-// }
-// gs_data_t; 
-
-// //=======================================================================================
-
-
-// //=======================================================================================
-// // Function pointers 
-
-// /**
-//  * @brief State machine function pointer 
-//  */
-// typedef void (*gs_state_func_ptr)(void); 
-
-// //=======================================================================================
-
-
-// //=======================================================================================
-// // Function prototypes 
-
-// /**
-//  * @brief Heartbeat state 
-//  * 
-//  * @details Periodically sends a ping to the PRX device on the vehicle so the vehicle 
-//  *          can see if it still has radio connection to the ground station. 
-//  *          
-//  *          Default system state. Enters/exits from/to the manual control and command 
-//  *          send states. 
-//  */
-// void gs_hb_state(void); 
-
-
-// /**
-//  * @brief Manual control state 
-//  * 
-//  * @details Sends formatted ADC potentiometer readings periodically for throttle control 
-//  *          when the vehicle is in manual control mode. 
-//  *          
-//  *          Enters/exits from/to the heartbeat state. 
-//  */
-// void gs_mc_state(void); 
-
-
-// /**
-//  * @brief Command send state 
-//  * 
-//  * @details Periodically sends the chosen command to the PRX device. This is done a set 
-//  *          number of times then defaults back to the heartbeat state. This is done to 
-//  *          make sure the message is received by the vehicle. 
-//  *          
-//  *          Enters/exits from/to the heartbeat state. 
-//  */
-// void gs_cmd_send_state(void); 
-
-
-// /**
-//  * @brief Heartbeat command 
-//  * 
-//  * @details Called when the user enters a heatbeat command. Puts the ground station into 
-//  *          the heatbeat state. 
-//  * 
-//  * @param hb_cmd_value : not used 
-//  */
-// void gs_hb_cmd(uint8_t hb_cmd_value); 
-
-
-// /**
-//  * @brief Manual control mode command 
-//  * 
-//  * @details Called when the user enters a manual control command. Puts the ground station 
-//  *          into the manual control state. 
-//  * 
-//  * @param mc_cmd_value : not used 
-//  */
-// void gs_mc_mode_cmd(uint8_t mc_cmd_value); 
-
-
-// /**
-//  * @brief Command send 
-//  * 
-//  * @details Called when the user enters a command to be sent to the boat (see 
-//  *          'cmd_table'). puts the ground station into the send command state. 
-//  * 
-//  * @param cmd_value : not used 
-//  */
-// void gs_cmd_send(uint8_t cmd_value); 
-
-
-// /**
-//  * @brief RF power output command 
-//  * 
-//  * @details Called when the user enters a power output command. Sets the power output 
-//  *          in the ground station RF module. The status of the operation gets displayed 
-//  *          in the serial terminal. 
-//  * 
-//  * @param rf_pwr : power output setting to set 
-//  */
-// void gs_pwr_cmd(uint8_t rf_pwr); 
-
-
-// /**
-//  * @brief Provides a prompt for the user at the serial terminal 
-//  */
-// void gs_user_prompt(void); 
-
-
-// /**
-//  * @brief Parse the user command into an ID and value 
-//  * 
-//  * @details Parses the user input at the serial terminal into an ID and command which 
-//  *          is then used to match against the list of available commands (see 
-//  *          'cmd_table'). 
-//  * 
-//  * @param command_buffer : buffer that contains the user input 
-//  * @return uint8_t : status of the parsing - true if a valid command is entered 
-//  */
-// uint8_t gs_parse_cmd(uint8_t *command_buffer); 
-
-
-// /**
-//  * @brief ADC to ESC command mapping 
-//  * 
-//  * @details Maps the ADC input to a throttle command which then gets sent to the vehicle. 
-//  *          This is used during manual control mode only. 
-//  * 
-//  * @param adc_val : ADC value read 
-//  * @return int16_t : throttle command calculated 
-//  */
-// int16_t gs_adc_mapping(uint16_t adc_val); 
-
-// //=======================================================================================
-
-
-// //=======================================================================================
-// // Global variables 
-
-// // Data record instance 
-// static gs_data_t gs_data; 
-
-
-// // Function pointer state table 
-// static gs_state_func_ptr state_table[GS_NUM_STATES] = 
-// {
-//     &gs_hb_state, 
-//     &gs_mc_state, 
-//     &gs_cmd_send_state 
-// }; 
-
-
-// // User commands 
-// static gs_cmds_t cmd_table[GS_NUM_CMDS_old] = 
-// {
-//     {"hb",     &gs_hb_cmd,      (SET_BIT << GS_MC_STATE)}, 
-//     {"mc",     &gs_mc_mode_cmd, (SET_BIT << GS_HB_STATE)}, 
-//     {"idle",   &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
-//     {"manual", &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
-//     {"auto",   &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
-//     {"index",  &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
-//     {"rfpwr",  &gs_pwr_cmd,     (SET_BIT << GS_HB_STATE) | (SET_BIT << GS_MC_STATE)} 
-// }; 
-
-// //=======================================================================================
 
 
 //=======================================================================================
 // Ground Station Application 
-
-// // Ground station application initializzation 
-// void gs_app_init(
-//     TIM_TypeDef *timer_nonblocking, 
-//     DMA_Stream_TypeDef *adc_dma_stream, 
-//     ADC_TypeDef *adc, 
-//     DMA_Stream_TypeDef *uart_dma_stream, 
-//     USART_TypeDef *uart)
-// {
-//     // Ground station application code initialization 
-
-//     //==================================================
-//     // System configuration 
-
-//     // Configure the DMA stream for the ADC 
-//     dma_stream_config(
-//         adc_dma_stream, 
-//         (uint32_t)(&adc->DR), 
-//         (uint32_t)gs_data.adc_buff, 
-//         (uint16_t)GS_ADC_BUFF_SIZE); 
-
-//     // Configure the DMA stream for the UART 
-//     dma_stream_config(
-//         uart_dma_stream, 
-//         (uint32_t)(&uart->DR), 
-//         (uint32_t)gs_data.user_buff, 
-//         (uint16_t)GS_MAX_USER_INPUT); 
-    
-//     //==================================================
-
-//     //==================================================
-//     // Data record initialization 
-
-//     // System information 
-//     gs_data.state = GS_HB_STATE; 
-//     gs_data.uart = uart; 
-
-//     // Timing information 
-//     gs_data.timer_nonblocking = timer_nonblocking; 
-//     gs_data.delay_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
-//     gs_data.delay_timer.time_cnt_total = CLEAR; 
-//     gs_data.delay_timer.time_cnt = CLEAR; 
-//     gs_data.delay_timer.time_start = SET_BIT; 
-
-//     // User commands and payload data 
-//     memset((void *)gs_data.user_buff, CLEAR, sizeof(gs_data.user_buff)); 
-//     gs_data.buff_index = CLEAR; 
-//     memset((void *)gs_data.cmd_buff, CLEAR, sizeof(gs_data.cmd_buff)); 
-//     memset((void *)gs_data.cmd_id, CLEAR, sizeof(gs_data.cmd_id)); 
-//     gs_data.cmd_value = CLEAR; 
-//     memset((void *)gs_data.hb_msg, CLEAR, sizeof(gs_data.hb_msg)); 
-//     strcpy((char *)gs_data.hb_msg, "ping"); 
-//     memset((void *)gs_data.write_buff, CLEAR, sizeof(gs_data.write_buff)); 
-
-//     // System data 
-//     memset((void *)gs_data.adc_buff, CLEAR, sizeof(gs_data.adc_buff)); 
-//     gs_data.cmd_send_index = GS_CMD_SEND_COUNT; 
-
-//     // Control flags 
-//     gs_data.led_state = CLEAR_BIT; 
-//     gs_data.state_entry = CLEAR_BIT; 
-//     gs_data.hb = SET_BIT; 
-//     gs_data.mc = CLEAR_BIT; 
-//     gs_data.cmd = CLEAR_BIT; 
-
-//     //==================================================
-
-//     // Provide an initial user prompt 
-//     gs_user_prompt(); 
-// }
-
-
-// // Ground station application  
-// void gs_app(void)
-// {
-//     // Ground station application code 
-
-//     // Local variables 
-//     gs_states_t next_state = gs_data.state; 
-
-//     //==================================================
-//     // User input command check 
-
-//     // Check for user serial terminal input 
-//     if (handler_flags.usart2_flag)
-//     {
-//         // Reset the USART2 interrupt flag 
-//         handler_flags.usart2_flag = CLEAR; 
-
-//         // Copy the new contents in the circular buffer to the user input buffer 
-//         cb_parse(
-//             gs_data.user_buff, 
-//             gs_data.cmd_buff, 
-//             &gs_data.buff_index, 
-//             GS_MAX_USER_INPUT); 
-
-//         // Validate the input - parse into an ID and value if valid 
-//         if (gs_parse_cmd(gs_data.cmd_buff))
-//         {
-//             // Valid input - compare the ID to each of the available pre-defined commands 
-//             for (uint8_t i = CLEAR; i < GS_NUM_CMDS_old; i++) 
-//             {
-//                 // Check that the command is available for the "state" before comparing it 
-//                 // against the ID. 
-//                 if (cmd_table[i].gs_cmd_mask & (SET_BIT << gs_data.state))
-//                 {
-//                     // Command available. Compare with the ID. 
-//                     if (str_compare(cmd_table[i].gs_cmd, (char *)gs_data.cmd_id, BYTE_0)) 
-//                     {
-//                         // ID matched to a command. Execute the command. 
-//                         (cmd_table[i].gs_cmd_func_ptr)(gs_data.cmd_value); 
-//                         break; 
-//                     }
-//                 }
-//             }
-//         }
-
-//         gs_user_prompt(); 
-//     }
-
-//     //==================================================
-
-//     //==================================================
-//     // System state machine 
-
-//     switch (next_state)
-//     {
-//         case GS_HB_STATE: 
-//             if (gs_data.cmd)
-//             {
-//                 next_state = GS_CMD_STATE; 
-//             }
-//             else if (gs_data.mc)
-//             {
-//                 next_state = GS_MC_STATE; 
-//             }
-//             break; 
-        
-//         case GS_MC_STATE: 
-//             if (gs_data.hb)
-//             {
-//                 next_state = GS_HB_STATE; 
-//             }
-//             break; 
-
-//         case GS_CMD_STATE: 
-//             if (gs_data.hb)
-//             {
-//                 next_state = GS_HB_STATE; 
-//             }
-//             break; 
-        
-//         default: 
-//             next_state = GS_HB_STATE; 
-//             break; 
-//     }
-
-//     // Execute the state 
-//     state_table[next_state](); 
-
-//     // Update the state 
-//     gs_data.state = next_state; 
-    
-//     //==================================================
-// }
-
 
 void GroundStation::GroundStationApp(void)
 {
@@ -733,7 +317,7 @@ void GroundStation::UpdateRadioStatus(
     uint8_t *update_cmd_arg)
 {
     gs_radio.CmdStatusUI(gs_ui_status_success); 
-    gs_radio.RadioConnectionUI(gs_radio.gs_flags.radio_connection_flag); 
+    gs_radio.RadioConnectionUI(); 
 }
 
 
@@ -845,8 +429,9 @@ void GroundStation::RFDatePipeSetCmd(
 void GroundStation::InitializeUI(void)
 {
     uart_cursor_move(uart, UART_CURSOR_DOWN, 9); 
+
     LastUserInput(); 
-    RadioConnectionUI(gs_flags.radio_connection_flag); 
+    RadioConnectionUI(); 
     VehicleMessageUI(); 
     CmdStatusUI(" "); 
     RFChannelUI(); 
@@ -854,13 +439,6 @@ void GroundStation::InitializeUI(void)
     RFPwrOutputUI(); 
     RFDataPipeUI(); 
     CmdPromptUI(); 
-}
-
-
-// Command prompt 
-void GroundStation::CmdPromptUI(void)
-{
-    uart_sendstring(uart, gs_ui_cmd_prompt); 
 }
 
 
@@ -873,9 +451,9 @@ void GroundStation::LastUserInput(void)
 
 
 // Radio connection status 
-void GroundStation::RadioConnectionUI(uint8_t radio_status)
+void GroundStation::RadioConnectionUI(void)
 {
-    snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_radio_connect, radio_status); 
+    snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_radio_connect, gs_flags.radio_connection_flag); 
     WriteLineUI(8); 
 }
 
@@ -931,6 +509,13 @@ void GroundStation::RFDataPipeUI(void)
 }
 
 
+// Command prompt 
+void GroundStation::CmdPromptUI(void)
+{
+    uart_sendstring(uart, gs_ui_cmd_prompt); 
+}
+
+
 // Write a line of data 
 void GroundStation::WriteLineUI(uint8_t line_offset)
 {
@@ -959,6 +544,427 @@ void GroundStation::WriteLineUI(uint8_t line_offset)
 
 
 
+
+
+// //=======================================================================================
+// // Macros 
+
+// // System info 
+// #define GS_NUM_STATES 3              // Total number of system states 
+
+// // Timing 
+// #define GS_HB_PERIOD 500000          // Time between heartbeat checks (us) 
+// #define GS_MC_PERIOD 50000           // Time between throttle command sends (us) 
+// #define GS_CMD_PERIOD 250000         // Time between command sends checks (us) 
+
+// // User commands 
+// #define GS_MAX_USER_INPUT 30         // Max data size for user input (bytes) 
+// #define GS_NUM_CMDS_old 7            // Total number of external commands available 
+
+// // Data sizes 
+// #define GS_ADC_BUFF_SIZE 2           // Number of ADCs used 
+// #define GS_CMD_SEND_COUNT 10         // Number of times a command gets sent 
+
+// // Thrusters 
+// #define GS_MC_LEFT_MOTOR 0x4C        // "L" character that indicates left motor 
+// #define GS_MC_RIGHT_MOTOR 0x52       // "R" character that indicates right motor 
+// #define GS_MC_FWD_THRUST 0x50        // "P" (plus) - indicates forward thrust 
+// #define GS_MC_REV_THRUST 0x4D        // "M" (minus) - indicates reverse thrust 
+// #define GS_MC_NEUTRAL 0x4E           // "N" (neutral) - indicates neutral gear or zero thrust 
+// #define GS_NO_THRUST 0               // Force thruster output to zero 
+
+// //=======================================================================================
+
+
+// //=======================================================================================
+// // Enums 
+
+// // Ground station states 
+// typedef enum {
+//     GS_HB_STATE,             // State 0: heartbeat 
+//     GS_MC_STATE,             // State 1: manual control 
+//     GS_CMD_STATE,            // State 2: command send 
+// } gs_states_t; 
+
+// //=======================================================================================
+
+
+// //=======================================================================================
+// // Structures 
+
+// // User commands 
+// typedef struct gs_cmds_s 
+// {
+//     char gs_cmd[GS_MAX_USER_INPUT]; 
+//     void (*gs_cmd_func_ptr)(uint8_t); 
+//     uint8_t gs_cmd_mask; 
+// }
+// gs_cmds_t; 
+
+
+// // Data record for the system 
+// typedef struct gs_data_s 
+// {
+//     // System information 
+//     gs_states_t state;                            // State machine state 
+//     USART_TypeDef *uart;                          // UART port used for user interface 
+
+//     // Timing information 
+//     TIM_TypeDef *timer_nonblocking;                // Timer used for non-blocking delays 
+//     tim_compare_t delay_timer;                     // Delay timing info 
+
+//     // User commands and payload data 
+//     uint8_t user_buff[GS_MAX_USER_INPUT];          // Circular buffer (CB) that stores user inputs 
+//     uint8_t buff_index;                            // CB index used for parsing commands 
+//     uint8_t cmd_buff[GS_MAX_USER_INPUT];           // Stores a user command parsed from the CB 
+//     uint8_t cmd_id[GS_MAX_USER_INPUT];             // Stores the ID of the user command 
+//     uint8_t cmd_value;                             // Stores the value of the user command 
+//     uint8_t hb_msg[NRF24L01_MAX_PAYLOAD_LEN];      // Heartbeat message 
+//     uint8_t write_buff[NRF24L01_MAX_PAYLOAD_LEN];  // Data sent to PRX from PTX device 
+
+//     // System data 
+//     uint16_t adc_buff[GS_ADC_BUFF_SIZE];           // ADC buffer - thruster potentiometers 
+//     uint8_t cmd_send_index;                        // Command send counter 
+
+//     // Control flags 
+//     uint8_t led_state   : 1;                       // LED state (on/off) 
+//     uint8_t state_entry : 1;                       // State entry flag 
+//     uint8_t hb          : 1;                       // Heartbeat state flag 
+//     uint8_t mc          : 1;                       // Manual control mode state flag 
+//     uint8_t cmd         : 1;                       // Command send state flag 
+// }
+// gs_data_t; 
+
+// //=======================================================================================
+
+
+// //=======================================================================================
+// // Function pointers 
+
+// /**
+//  * @brief State machine function pointer 
+//  */
+// typedef void (*gs_state_func_ptr)(void); 
+
+// //=======================================================================================
+
+
+// //=======================================================================================
+// // Function prototypes 
+
+// /**
+//  * @brief Heartbeat state 
+//  * 
+//  * @details Periodically sends a ping to the PRX device on the vehicle so the vehicle 
+//  *          can see if it still has radio connection to the ground station. 
+//  *          
+//  *          Default system state. Enters/exits from/to the manual control and command 
+//  *          send states. 
+//  */
+// void gs_hb_state(void); 
+
+
+// /**
+//  * @brief Manual control state 
+//  * 
+//  * @details Sends formatted ADC potentiometer readings periodically for throttle control 
+//  *          when the vehicle is in manual control mode. 
+//  *          
+//  *          Enters/exits from/to the heartbeat state. 
+//  */
+// void gs_mc_state(void); 
+
+
+// /**
+//  * @brief Command send state 
+//  * 
+//  * @details Periodically sends the chosen command to the PRX device. This is done a set 
+//  *          number of times then defaults back to the heartbeat state. This is done to 
+//  *          make sure the message is received by the vehicle. 
+//  *          
+//  *          Enters/exits from/to the heartbeat state. 
+//  */
+// void gs_cmd_send_state(void); 
+
+
+// /**
+//  * @brief Heartbeat command 
+//  * 
+//  * @details Called when the user enters a heatbeat command. Puts the ground station into 
+//  *          the heatbeat state. 
+//  * 
+//  * @param hb_cmd_value : not used 
+//  */
+// void gs_hb_cmd(uint8_t hb_cmd_value); 
+
+
+// /**
+//  * @brief Manual control mode command 
+//  * 
+//  * @details Called when the user enters a manual control command. Puts the ground station 
+//  *          into the manual control state. 
+//  * 
+//  * @param mc_cmd_value : not used 
+//  */
+// void gs_mc_mode_cmd(uint8_t mc_cmd_value); 
+
+
+// /**
+//  * @brief Command send 
+//  * 
+//  * @details Called when the user enters a command to be sent to the boat (see 
+//  *          'cmd_table'). puts the ground station into the send command state. 
+//  * 
+//  * @param cmd_value : not used 
+//  */
+// void gs_cmd_send(uint8_t cmd_value); 
+
+
+// /**
+//  * @brief RF power output command 
+//  * 
+//  * @details Called when the user enters a power output command. Sets the power output 
+//  *          in the ground station RF module. The status of the operation gets displayed 
+//  *          in the serial terminal. 
+//  * 
+//  * @param rf_pwr : power output setting to set 
+//  */
+// void gs_pwr_cmd(uint8_t rf_pwr); 
+
+
+// /**
+//  * @brief Provides a prompt for the user at the serial terminal 
+//  */
+// void gs_user_prompt(void); 
+
+
+// /**
+//  * @brief Parse the user command into an ID and value 
+//  * 
+//  * @details Parses the user input at the serial terminal into an ID and command which 
+//  *          is then used to match against the list of available commands (see 
+//  *          'cmd_table'). 
+//  * 
+//  * @param command_buffer : buffer that contains the user input 
+//  * @return uint8_t : status of the parsing - true if a valid command is entered 
+//  */
+// uint8_t gs_parse_cmd(uint8_t *command_buffer); 
+
+
+// /**
+//  * @brief ADC to ESC command mapping 
+//  * 
+//  * @details Maps the ADC input to a throttle command which then gets sent to the vehicle. 
+//  *          This is used during manual control mode only. 
+//  * 
+//  * @param adc_val : ADC value read 
+//  * @return int16_t : throttle command calculated 
+//  */
+// int16_t gs_adc_mapping(uint16_t adc_val); 
+
+// //=======================================================================================
+
+
+// //=======================================================================================
+// // Global variables 
+
+// // Data record instance 
+// static gs_data_t gs_data; 
+
+
+// // Function pointer state table 
+// static gs_state_func_ptr state_table[GS_NUM_STATES] = 
+// {
+//     &gs_hb_state, 
+//     &gs_mc_state, 
+//     &gs_cmd_send_state 
+// }; 
+
+
+// // User commands 
+// static gs_cmds_t cmd_table[GS_NUM_CMDS_old] = 
+// {
+//     {"hb",     &gs_hb_cmd,      (SET_BIT << GS_MC_STATE)}, 
+//     {"mc",     &gs_mc_mode_cmd, (SET_BIT << GS_HB_STATE)}, 
+//     {"idle",   &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
+//     {"manual", &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
+//     {"auto",   &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
+//     {"index",  &gs_cmd_send,    (SET_BIT << GS_HB_STATE)}, 
+//     {"rfpwr",  &gs_pwr_cmd,     (SET_BIT << GS_HB_STATE) | (SET_BIT << GS_MC_STATE)} 
+// }; 
+
+// //=======================================================================================
+
+
+// //=======================================================================================
+// // Ground Station Application 
+
+// // Ground station application initializzation 
+// void gs_app_init(
+//     TIM_TypeDef *timer_nonblocking, 
+//     DMA_Stream_TypeDef *adc_dma_stream, 
+//     ADC_TypeDef *adc, 
+//     DMA_Stream_TypeDef *uart_dma_stream, 
+//     USART_TypeDef *uart)
+// {
+//     // Ground station application code initialization 
+
+//     //==================================================
+//     // System configuration 
+
+//     // Configure the DMA stream for the ADC 
+//     dma_stream_config(
+//         adc_dma_stream, 
+//         (uint32_t)(&adc->DR), 
+//         (uint32_t)gs_data.adc_buff, 
+//         (uint16_t)GS_ADC_BUFF_SIZE); 
+
+//     // Configure the DMA stream for the UART 
+//     dma_stream_config(
+//         uart_dma_stream, 
+//         (uint32_t)(&uart->DR), 
+//         (uint32_t)gs_data.user_buff, 
+//         (uint16_t)GS_MAX_USER_INPUT); 
+    
+//     //==================================================
+
+//     //==================================================
+//     // Data record initialization 
+
+//     // System information 
+//     gs_data.state = GS_HB_STATE; 
+//     gs_data.uart = uart; 
+
+//     // Timing information 
+//     gs_data.timer_nonblocking = timer_nonblocking; 
+//     gs_data.delay_timer.clk_freq = tim_get_pclk_freq(timer_nonblocking); 
+//     gs_data.delay_timer.time_cnt_total = CLEAR; 
+//     gs_data.delay_timer.time_cnt = CLEAR; 
+//     gs_data.delay_timer.time_start = SET_BIT; 
+
+//     // User commands and payload data 
+//     memset((void *)gs_data.user_buff, CLEAR, sizeof(gs_data.user_buff)); 
+//     gs_data.buff_index = CLEAR; 
+//     memset((void *)gs_data.cmd_buff, CLEAR, sizeof(gs_data.cmd_buff)); 
+//     memset((void *)gs_data.cmd_id, CLEAR, sizeof(gs_data.cmd_id)); 
+//     gs_data.cmd_value = CLEAR; 
+//     memset((void *)gs_data.hb_msg, CLEAR, sizeof(gs_data.hb_msg)); 
+//     strcpy((char *)gs_data.hb_msg, "ping"); 
+//     memset((void *)gs_data.write_buff, CLEAR, sizeof(gs_data.write_buff)); 
+
+//     // System data 
+//     memset((void *)gs_data.adc_buff, CLEAR, sizeof(gs_data.adc_buff)); 
+//     gs_data.cmd_send_index = GS_CMD_SEND_COUNT; 
+
+//     // Control flags 
+//     gs_data.led_state = CLEAR_BIT; 
+//     gs_data.state_entry = CLEAR_BIT; 
+//     gs_data.hb = SET_BIT; 
+//     gs_data.mc = CLEAR_BIT; 
+//     gs_data.cmd = CLEAR_BIT; 
+
+//     //==================================================
+
+//     // Provide an initial user prompt 
+//     gs_user_prompt(); 
+// }
+
+
+// // Ground station application  
+// void gs_app(void)
+// {
+//     // Ground station application code 
+
+//     // Local variables 
+//     gs_states_t next_state = gs_data.state; 
+
+//     //==================================================
+//     // User input command check 
+
+//     // Check for user serial terminal input 
+//     if (handler_flags.usart2_flag)
+//     {
+//         // Reset the USART2 interrupt flag 
+//         handler_flags.usart2_flag = CLEAR; 
+
+//         // Copy the new contents in the circular buffer to the user input buffer 
+//         cb_parse(
+//             gs_data.user_buff, 
+//             gs_data.cmd_buff, 
+//             &gs_data.buff_index, 
+//             GS_MAX_USER_INPUT); 
+
+//         // Validate the input - parse into an ID and value if valid 
+//         if (gs_parse_cmd(gs_data.cmd_buff))
+//         {
+//             // Valid input - compare the ID to each of the available pre-defined commands 
+//             for (uint8_t i = CLEAR; i < GS_NUM_CMDS_old; i++) 
+//             {
+//                 // Check that the command is available for the "state" before comparing it 
+//                 // against the ID. 
+//                 if (cmd_table[i].gs_cmd_mask & (SET_BIT << gs_data.state))
+//                 {
+//                     // Command available. Compare with the ID. 
+//                     if (str_compare(cmd_table[i].gs_cmd, (char *)gs_data.cmd_id, BYTE_0)) 
+//                     {
+//                         // ID matched to a command. Execute the command. 
+//                         (cmd_table[i].gs_cmd_func_ptr)(gs_data.cmd_value); 
+//                         break; 
+//                     }
+//                 }
+//             }
+//         }
+
+//         gs_user_prompt(); 
+//     }
+
+//     //==================================================
+
+//     //==================================================
+//     // System state machine 
+
+//     switch (next_state)
+//     {
+//         case GS_HB_STATE: 
+//             if (gs_data.cmd)
+//             {
+//                 next_state = GS_CMD_STATE; 
+//             }
+//             else if (gs_data.mc)
+//             {
+//                 next_state = GS_MC_STATE; 
+//             }
+//             break; 
+        
+//         case GS_MC_STATE: 
+//             if (gs_data.hb)
+//             {
+//                 next_state = GS_HB_STATE; 
+//             }
+//             break; 
+
+//         case GS_CMD_STATE: 
+//             if (gs_data.hb)
+//             {
+//                 next_state = GS_HB_STATE; 
+//             }
+//             break; 
+        
+//         default: 
+//             next_state = GS_HB_STATE; 
+//             break; 
+//     }
+
+//     // Execute the state 
+//     state_table[next_state](); 
+
+//     // Update the state 
+//     gs_data.state = next_state; 
+    
+//     //==================================================
+// }
+
+// //=======================================================================================
 
 
 // //=======================================================================================
