@@ -28,6 +28,7 @@
 #define GS_RADIO_RIGHT_JOYSTICK 0x52   // "R" character that indicates right joystick 
 #define GS_RADIO_FWD_DIRECTION 0x50    // "P" (plus) - indicates forward direction 
 #define GS_RADIO_REV_DIRECTION 0x4D    // "M" (minus) - indicates reverse direction 
+#define GS_RADIO_NEUTRAL 0x4E          // "N" (neutral) - indicates no direction 
 
 //=======================================================================================
 

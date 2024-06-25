@@ -149,7 +149,7 @@ private:   // Private member functions
     void InitializeUI(void); 
 
     // UI outputs 
-    void LastUserInputUI(void);       // Last user input 
+    void LastUserInputUI(void);     // Last user input 
     void RadioConnectionUI(void);   // Radio connection status 
     void VehicleMessageUI(void);    // Vehicle message 
     void CmdStatusUI(void);         // Command Feedback 

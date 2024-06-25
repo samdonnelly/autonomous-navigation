@@ -18,6 +18,7 @@
 #include "ground_station.h" 
 #include "stm32f4xx_it.h" 
 #include "vehicle_radio_config.h" 
+#include "esc_config.h" 
 
 //=======================================================================================
 
@@ -41,7 +42,9 @@
 
 void GroundStation::GroundStationApp(void)
 {
+    //==================================================
     // Check for user serial terminal input 
+
     if (handler_flags.usart2_flag)
     {
         handler_flags.usart2_flag = CLEAR; 
@@ -70,8 +73,12 @@ void GroundStation::GroundStationApp(void)
         // Clear the user command prompt 
         CmdPromptUI(); 
     }
+    
+    //==================================================
 
+    //==================================================
     // Check for periodic action items 
+
     if (tim_compare(timer_nonblocking, 
                     delay_timer.clk_freq, 
                     GS_ACTION_PERIOD, 
@@ -115,6 +122,8 @@ void GroundStation::GroundStationApp(void)
 
         //==================================================
     }
+    
+    //==================================================
 }
 
 //=======================================================================================
@@ -126,48 +135,47 @@ void GroundStation::GroundStationApp(void)
 // Manual control mode 
 void GroundStation::ManualControlMode(void)
 {
-    // static gpio_pin_state_t led_state = GPIO_LOW; 
-    // static uint8_t thruster = CLEAR; 
-    // char side = CLEAR; 
-    // char sign = RC_MOTOR_FWD_THRUST; 
-    // int16_t throttle = CLEAR; 
+    static gpio_pin_state_t led_state = GPIO_LOW; 
+    static uint8_t thruster = CLEAR; 
+    char side = CLEAR; 
+    char sign = GS_RADIO_FWD_DIRECTION; 
+    int16_t throttle = CLEAR; 
 
-    ADCThrottleMapping(0); 
+    // Choose between right and left thruster 
+    side = (thruster) ? GS_RADIO_LEFT_JOYSTICK : GS_RADIO_RIGHT_JOYSTICK; 
 
-    // // Choose between right and left thruster 
-    // side = (thruster) ? RC_MOTOR_LEFT_MOTOR : RC_MOTOR_RIGHT_MOTOR; 
-
-    // // Read the ADC input and format the value for writing to the payload 
+    // Read the ADC input and format the value for writing to the payload 
     // throttle = esc_test_adc_mapping(adc_data[thruster]); 
+    throttle = ADCThrottleMapping(adc_buff[thruster]); 
 
-    // if (throttle == RC_MOTOR_NO_THRUST)
-    // {
-    //     sign = RC_MOTOR_NEUTRAL; 
-    // }
-    // else if (throttle < RC_MOTOR_NO_THRUST)
-    // {
-    //     // If the throttle is negative then change the value to positive and set the sign 
-    //     // in the payload as negative. This helps on the receiving end. 
-    //     throttle = ~throttle + 1; 
-    //     sign = RC_MOTOR_REV_THRUST; 
-    // }
+    if (throttle == ESC_NO_THRUST)
+    {
+        sign = GS_RADIO_NEUTRAL; 
+    }
+    else if (throttle < ESC_NO_THRUST)
+    {
+        // If the throttle is negative then change the value to positive and set the sign 
+        // in the payload as negative. This helps on the receiving end. 
+        throttle = ~throttle + 1; 
+        sign = GS_RADIO_REV_DIRECTION; 
+    }
 
-    // // Format the payload with the thruster specifier and the throttle then send the 
-    // // payload. 
-    // snprintf(
-    //     (char *)rc_test.write_buff, 
-    //     NRF24L01_MAX_PAYLOAD_LEN, 
-    //     "%c%c %d", 
-    //     side, sign, throttle); 
+    // Format the payload with the thruster specifier and the throttle then send the 
+    // payload. 
+    snprintf(
+        (char *)write_buff, 
+        NRF24L01_MAX_PAYLOAD_LEN, 
+        "%c%c %d", 
+        side, sign, throttle); 
 
-    // if (nrf24l01_send_payload(rc_test.write_buff) == NRF24L01_OK)
-    // {
-    //     led_state = (gpio_pin_state_t)(GPIO_HIGH - led_state); 
-    //     gpio_write(GPIOA, GPIOX_PIN_5, led_state); 
-    // } 
+    if (nrf24l01_send_payload(write_buff) == NRF24L01_OK)
+    {
+        led_state = (gpio_pin_state_t)(GPIO_HIGH - led_state); 
+        gpio_write(GPIOA, GPIOX_PIN_5, led_state); 
+    } 
 
-    // // Toggle the thruster flag 
-    // thruster = SET_BIT - thruster; 
+    // Toggle the thruster flag 
+    thruster = SET_BIT - thruster; 
 }
 
 
