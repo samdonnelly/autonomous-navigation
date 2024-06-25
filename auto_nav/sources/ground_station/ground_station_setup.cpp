@@ -35,7 +35,8 @@ GroundStation ground_station;
 
 // Constructor 
 GroundStation::GroundStation() 
-    : cb_index(CLEAR), 
+    : status_message(nullptr), 
+      cb_index(CLEAR), 
       cmd_value(CLEAR), 
       hb_timeout_counter(CLEAR) 
 {

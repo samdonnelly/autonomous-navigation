@@ -51,7 +51,7 @@ void GroundStation::GroundStationApp(void)
 
         // Display the input before performing any other actions 
         uart_cursor_move(uart, UART_CURSOR_UP, 1); 
-        LastUserInput(); 
+        LastUserInputUI(); 
 
         // Check the input against available commands for the ground station. If 
         // valid then execute a ground station callback function. If not recognized 
@@ -194,16 +194,15 @@ int16_t GroundStation::ADCThrottleMapping(uint16_t adc_value)
 void GroundStation::SendUserCmd(void)
 {
     gs_flags.user_cmd_flag = CLEAR_BIT; 
-    const char *status_msg = nullptr; 
 
     // Clear the most recent message received interface 
     memset((void *)read_buff, CLEAR, sizeof(read_buff)); 
     VehicleMessageUI(); 
 
     // Send the user input 
-    status_msg = (nrf24l01_send_payload(write_buff) == NRF24L01_OK) ? 
-                 gs_ui_status_cmd_sent : gs_ui_status_fail; 
-    CmdStatusUI(status_msg); 
+    status_message = (nrf24l01_send_payload(write_buff) == NRF24L01_OK) ? 
+                     gs_ui_status_cmd_sent : gs_ui_status_fail; 
+    CmdStatusUI(); 
     CmdPromptUI(); 
 }
 
@@ -273,13 +272,11 @@ void GroundStation::ManualControlCmd(
         return; 
     }
 
-    const char *status_msg = nullptr; 
-
     // Check for an "on" or "off" request 
     if (strcmp((char *)manual_cmd_arg, gs_sub_cmd_on) == 0)
     {
         gs_radio.gs_flags.manual_control_flag = SET_BIT; 
-        status_msg = gs_ui_status_success; 
+        gs_radio.status_message = gs_ui_status_success; 
         gpio_write(GPIOA, GPIOX_PIN_5, GPIO_HIGH);   // Turn on board LED 
 
         // Disable other commands 
@@ -292,7 +289,7 @@ void GroundStation::ManualControlCmd(
     else if (strcmp((char *)manual_cmd_arg, gs_sub_cmd_off) == 0)
     {
         gs_radio.gs_flags.manual_control_flag = CLEAR_BIT; 
-        status_msg = gs_ui_status_success; 
+        gs_radio.status_message = gs_ui_status_success; 
         gpio_write(GPIOA, GPIOX_PIN_5, GPIO_LOW);   // Turn board LED off 
 
         // Enable other commands 
@@ -304,10 +301,10 @@ void GroundStation::ManualControlCmd(
     }
     else 
     {
-        status_msg = gs_ui_status_invalid; 
+        gs_radio.status_message = gs_ui_status_invalid; 
     }
 
-    gs_radio.CmdStatusUI(status_msg); 
+    gs_radio.CmdStatusUI(); 
 }
 
 
@@ -316,7 +313,8 @@ void GroundStation::UpdateRadioStatus(
     GroundStation& gs_radio, 
     uint8_t *update_cmd_arg)
 {
-    gs_radio.CmdStatusUI(gs_ui_status_success); 
+    gs_radio.status_message = gs_ui_status_success; 
+    gs_radio.CmdStatusUI(); 
     gs_radio.RadioConnectionUI(); 
 }
 
@@ -326,8 +324,6 @@ void GroundStation::RFChannelSetCmd(
     GroundStation& gs_radio, 
     uint8_t *rf_channel_cmd_arg)
 {
-    const char *status_msg = nullptr; 
-
     if (*rf_channel_cmd_arg <= NRF24L01_RF_CH_MAX)
     {
         nrf24l01_set_rf_ch(*rf_channel_cmd_arg); 
@@ -335,19 +331,19 @@ void GroundStation::RFChannelSetCmd(
         if (nrf24l01_rf_ch_write() == NRF24L01_OK)
         {
             gs_radio.RFChannelUI(); 
-            status_msg = gs_ui_status_success; 
+            gs_radio.status_message = gs_ui_status_success; 
         }
         else 
         {
-            status_msg = gs_ui_status_fail; 
+            gs_radio.status_message = gs_ui_status_fail; 
         }
     }
     else 
     {
-        status_msg = gs_ui_status_invalid; 
+        gs_radio.status_message = gs_ui_status_invalid; 
     }
 
-    gs_radio.CmdStatusUI(status_msg); 
+    gs_radio.CmdStatusUI(); 
 }
 
 
@@ -356,8 +352,6 @@ void GroundStation::RFPwrOutputSetCmd(
     GroundStation& gs_radio, 
     uint8_t *rf_power_cmd_arg)
 {
-    const char *status_msg = nullptr; 
-
     if (*rf_power_cmd_arg <= (uint8_t)NRF24L01_RF_PWR_0DBM)
     {
         nrf24l01_set_rf_setup_pwr((nrf24l01_rf_pwr_t)(*rf_power_cmd_arg)); 
@@ -365,19 +359,19 @@ void GroundStation::RFPwrOutputSetCmd(
         if (nrf24l01_rf_setup_write() == NRF24L01_OK)
         {
             gs_radio.RFPwrOutputUI(); 
-            status_msg = gs_ui_status_success; 
+            gs_radio.status_message = gs_ui_status_success; 
         }
         else 
         {
-            status_msg = gs_ui_status_fail; 
+            gs_radio.status_message = gs_ui_status_fail; 
         }
     }
     else 
     {
-        status_msg = gs_ui_status_invalid; 
+        gs_radio.status_message = gs_ui_status_invalid; 
     }
 
-    gs_radio.CmdStatusUI(status_msg); 
+    gs_radio.CmdStatusUI(); 
 }
 
 
@@ -386,8 +380,6 @@ void GroundStation::RFDataRateSetCmd(
     GroundStation& gs_radio, 
     uint8_t *rf_dr_cmd_arg)
 {
-    const char *status_msg = nullptr; 
-
     if (*rf_dr_cmd_arg <= (uint8_t)NRF24L01_DR_250KBPS)
     {
         nrf24l01_set_rf_setup_dr((nrf24l01_data_rate_t)(*rf_dr_cmd_arg)); 
@@ -395,19 +387,19 @@ void GroundStation::RFDataRateSetCmd(
         if (nrf24l01_rf_setup_write() == NRF24L01_OK)
         {
             gs_radio.RFDataRateUI(); 
-            status_msg = gs_ui_status_success; 
+            gs_radio.status_message = gs_ui_status_success; 
         }
         else 
         {
-            status_msg = gs_ui_status_fail; 
+            gs_radio.status_message = gs_ui_status_fail; 
         }
     }
     else 
     {
-        status_msg = gs_ui_status_invalid; 
+        gs_radio.status_message = gs_ui_status_invalid; 
     }
 
-    gs_radio.CmdStatusUI(status_msg); 
+    gs_radio.CmdStatusUI(); 
 }
 
 
@@ -429,11 +421,12 @@ void GroundStation::RFDatePipeSetCmd(
 void GroundStation::InitializeUI(void)
 {
     uart_cursor_move(uart, UART_CURSOR_DOWN, 9); 
+    status_message = " "; 
 
-    LastUserInput(); 
+    LastUserInputUI(); 
     RadioConnectionUI(); 
     VehicleMessageUI(); 
-    CmdStatusUI(" "); 
+    CmdStatusUI(); 
     RFChannelUI(); 
     RFDataRateUI(); 
     RFPwrOutputUI(); 
@@ -443,7 +436,7 @@ void GroundStation::InitializeUI(void)
 
 
 // Last user input 
-void GroundStation::LastUserInput(void)
+void GroundStation::LastUserInputUI(void)
 {
     snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_last_input, (char *)cmd_buff); 
     WriteLineUI(9); 
@@ -461,17 +454,17 @@ void GroundStation::RadioConnectionUI(void)
 // Vehicle message 
 void GroundStation::VehicleMessageUI(void)
 {
-    snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_vehicle_msg, read_buff); 
+    snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_vehicle_msg, (char *)read_buff); 
     WriteLineUI(7); 
 }
 
 
 // Command Feedback 
-void GroundStation::CmdStatusUI(const char *status_msg)
+void GroundStation::CmdStatusUI(void)
 {
-    if (status_msg != nullptr)
+    if (status_message != nullptr)
     {
-        snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_cmd_status, status_msg); 
+        snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_cmd_status, status_message); 
         WriteLineUI(6); 
     }
 }
@@ -513,6 +506,7 @@ void GroundStation::RFDataPipeUI(void)
 void GroundStation::CmdPromptUI(void)
 {
     uart_sendstring(uart, gs_ui_cmd_prompt); 
+    WriteLineUI(0); 
 }
 
 

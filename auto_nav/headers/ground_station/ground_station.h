@@ -46,6 +46,7 @@ private:   // Private members
     // User interface 
     USART_TypeDef *uart;                   // UART for serial terminal 
     char ui_buff[GS_UI_BUFF_SIZE];         // Buffer to store RF settings string 
+    const char *status_message;            // Pointer to status message for the user 
 
     // User command data 
     uint8_t cb[GS_MAX_CMD_LEN];            // Circular buffer (CB) for user inputs 
@@ -144,29 +145,19 @@ private:   // Private member functions
     //==================================================
     // User interface 
 
-    // UI init 
+    // UI initialization 
     void InitializeUI(void); 
 
-    // Last user input 
-    void LastUserInput(void); 
-
-    // Radio connection status 
-    void RadioConnectionUI(void); 
-
-    // Vehicle message 
-    void VehicleMessageUI(void); 
-
-    // Command Feedback 
-    void CmdStatusUI(const char *status_msg); 
-
-    // RF module settings 
-    void RFChannelUI(void); 
-    void RFDataRateUI(void); 
-    void RFPwrOutputUI(void); 
-    void RFDataPipeUI(void); 
-
-    // Command prompt 
-    void CmdPromptUI(void); 
+    // UI outputs 
+    void LastUserInputUI(void);       // Last user input 
+    void RadioConnectionUI(void);   // Radio connection status 
+    void VehicleMessageUI(void);    // Vehicle message 
+    void CmdStatusUI(void);         // Command Feedback 
+    void RFChannelUI(void);         // RF frequency channel 
+    void RFDataRateUI(void);        // RF data rate setting 
+    void RFPwrOutputUI(void);       // RF power output setting 
+    void RFDataPipeUI(void);        // RF data pipe 
+    void CmdPromptUI(void);         // Command prompt 
 
     // Write a line of data 
     void WriteLineUI(uint8_t line_offset); 
