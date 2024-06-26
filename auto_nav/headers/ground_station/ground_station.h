@@ -100,8 +100,8 @@ private:   // Private member functions
     // Manual control mode 
     void ManualControlMode(void); 
 
-    // ADC throttle mapping 
-    int16_t ADCThrottleMapping(uint16_t adc_value); 
+    // ADC joystick position mapping 
+    int16_t ADCJoystickPositionMapping(uint16_t adc_value); 
 
     // Send user input 
     void SendUserCmd(void); 

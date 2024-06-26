@@ -136,27 +136,43 @@ void GroundStation::GroundStationApp(void)
 void GroundStation::ManualControlMode(void)
 {
     static gpio_pin_state_t led_state = GPIO_LOW; 
-    static uint8_t thruster = CLEAR; 
+    static uint8_t joystick = CLEAR; 
+    int16_t joystick_position = CLEAR; 
     char side = CLEAR; 
     char sign = GS_RADIO_FWD_DIRECTION; 
-    int16_t throttle = CLEAR; 
 
-    // Choose between right and left thruster 
-    side = (thruster) ? GS_RADIO_LEFT_JOYSTICK : GS_RADIO_RIGHT_JOYSTICK; 
+    // Choose between right and left joystick (alternates) 
+    side = (joystick) ? GS_RADIO_LEFT_JOYSTICK : GS_RADIO_RIGHT_JOYSTICK; 
 
-    // Read the ADC input and format the value for writing to the payload 
-    // throttle = esc_test_adc_mapping(adc_data[thruster]); 
-    throttle = ADCThrottleMapping(adc_buff[thruster]); 
+    //==================================================
+    // 
 
-    if (throttle == ESC_NO_THRUST)
+    // // Read the ADC input and format the value for writing to the payload 
+    // joystick_position = ADCJoystickPositionMapping(adc_buff[joystick]); 
+
+    uint16_t adc_value = adc_buff[joystick]; 
+
+    // Check the position of the joystick 
+    if (adc_value > GS_ADC_FWD_LIM)
+    {
+        joystick_position = (int16_t)adc_value - GS_ADC_FWD_LIM; 
+    }
+    else if (adc_value < GS_ADC_REV_LIM)
+    {
+        joystick_position = (int16_t)adc_value - GS_ADC_REV_LIM; 
+    }
+    
+    //==================================================
+
+    if (joystick_position == ESC_NO_THRUST)
     {
         sign = GS_RADIO_NEUTRAL; 
     }
-    else if (throttle < ESC_NO_THRUST)
+    else if (joystick_position < ESC_NO_THRUST)
     {
         // If the throttle is negative then change the value to positive and set the sign 
         // in the payload as negative. This helps on the receiving end. 
-        throttle = ~throttle + 1; 
+        joystick_position = ~joystick_position + 1; 
         sign = GS_RADIO_REV_DIRECTION; 
     }
 
@@ -166,7 +182,7 @@ void GroundStation::ManualControlMode(void)
         (char *)write_buff, 
         NRF24L01_MAX_PAYLOAD_LEN, 
         "%c%c %d", 
-        side, sign, throttle); 
+        side, sign, joystick_position); 
 
     if (nrf24l01_send_payload(write_buff) == NRF24L01_OK)
     {
@@ -175,12 +191,12 @@ void GroundStation::ManualControlMode(void)
     } 
 
     // Toggle the thruster flag 
-    thruster = SET_BIT - thruster; 
+    joystick = SET_BIT - joystick; 
 }
 
 
 // ADC throttle mapping 
-int16_t GroundStation::ADCThrottleMapping(uint16_t adc_value)
+int16_t GroundStation::ADCJoystickPositionMapping(uint16_t adc_value)
 {
     int16_t throttle_cmd = CLEAR;   // Assume 0% throttle and change if different 
 
