@@ -18,7 +18,6 @@
 #include "ground_station.h" 
 #include "stm32f4xx_it.h" 
 #include "vehicle_radio_config.h" 
-#include "esc_config.h" 
 
 //=======================================================================================
 
@@ -26,13 +25,15 @@
 //=======================================================================================
 // Macros 
 
-// Thrusters 
+// Joysticks 
 #define GS_ADC_REV_LIM 100           // ADC value reverse command limit 
 #define GS_ADC_FWD_LIM 155           // ADC value forward command limit 
+#define GS_JOYSTICK_NEUTRAL 0        // Joystick neutral (zero) position 
 
-#define GS_ACTION_PERIOD 100000     // Time between throttle command sends (us) 
-#define GS_HB_SEND_COUNTER 20       // This * RC_GS_ACTION_PERIOD gives HB send period 
-#define GS_HB_TIMEOUT_COUNTER 100   // This * RC_GS_ACTION_PERIOD gives HB timeout 
+// Timing 
+#define GS_ACTION_PERIOD 100000      // Time between throttle command sends (us) 
+#define GS_HB_SEND_COUNTER 20        // This * RC_GS_ACTION_PERIOD gives HB send period 
+#define GS_HB_TIMEOUT_COUNTER 100    // This * RC_GS_ACTION_PERIOD gives HB timeout 
 
 //=======================================================================================
 
@@ -137,20 +138,21 @@ void GroundStation::ManualControlMode(void)
 {
     static gpio_pin_state_t led_state = GPIO_LOW; 
     static uint8_t joystick = CLEAR; 
-    int16_t joystick_position = CLEAR; 
-    char side = CLEAR; 
+
+    int16_t joystick_position = GS_JOYSTICK_NEUTRAL; 
+    uint16_t adc_value = adc_buff[joystick]; 
+    // char side = CLEAR; 
+    char side = (joystick) ? GS_RADIO_LEFT_JOYSTICK : GS_RADIO_RIGHT_JOYSTICK; 
     char sign = GS_RADIO_FWD_DIRECTION; 
 
-    // Choose between right and left joystick (alternates) 
-    side = (joystick) ? GS_RADIO_LEFT_JOYSTICK : GS_RADIO_RIGHT_JOYSTICK; 
+    // // Choose between right and left joystick (alternates) 
+    // side = (joystick) ? GS_RADIO_LEFT_JOYSTICK : GS_RADIO_RIGHT_JOYSTICK; 
 
     //==================================================
-    // 
+    // Map the ADC value to a joystick input 
 
     // // Read the ADC input and format the value for writing to the payload 
     // joystick_position = ADCJoystickPositionMapping(adc_buff[joystick]); 
-
-    uint16_t adc_value = adc_buff[joystick]; 
 
     // Check the position of the joystick 
     if (adc_value > GS_ADC_FWD_LIM)
@@ -164,23 +166,30 @@ void GroundStation::ManualControlMode(void)
     
     //==================================================
 
-    if (joystick_position == ESC_NO_THRUST)
+    //==================================================
+    // Adjust the sign of the joystick position if needed 
+
+    if (joystick_position == GS_JOYSTICK_NEUTRAL)
     {
         sign = GS_RADIO_NEUTRAL; 
     }
-    else if (joystick_position < ESC_NO_THRUST)
+    else if (joystick_position < GS_JOYSTICK_NEUTRAL)
     {
-        // If the throttle is negative then change the value to positive and set the sign 
-        // in the payload as negative. This helps on the receiving end. 
+        // If the joystick is in the negative position then change the value to positive 
+        // and set the sign in the payload as negative. 
         joystick_position = ~joystick_position + 1; 
         sign = GS_RADIO_REV_DIRECTION; 
     }
 
-    // Format the payload with the thruster specifier and the throttle then send the 
-    // payload. 
+    //==================================================
+
+    //==================================================
+    // Format and send the joystick command to the vehicle 
+
+    // Format the payload with the joystick ID, sign and value then send the payload. 
     snprintf(
         (char *)write_buff, 
-        NRF24L01_MAX_PAYLOAD_LEN, 
+        GS_MAX_CMD_LEN, 
         "%c%c %d", 
         side, sign, joystick_position); 
 
@@ -190,28 +199,30 @@ void GroundStation::ManualControlMode(void)
         gpio_write(GPIOA, GPIOX_PIN_5, led_state); 
     } 
 
-    // Toggle the thruster flag 
+    //==================================================
+
+    // Toggle the joystick flag (alternate between joysticks) 
     joystick = SET_BIT - joystick; 
 }
 
 
-// ADC throttle mapping 
-int16_t GroundStation::ADCJoystickPositionMapping(uint16_t adc_value)
-{
-    int16_t throttle_cmd = CLEAR;   // Assume 0% throttle and change if different 
+// // ADC throttle mapping 
+// int16_t GroundStation::ADCJoystickPositionMapping(uint16_t adc_value)
+// {
+//     int16_t throttle_cmd = CLEAR;   // Assume 0% throttle and change if different 
 
-    // Check if there is a forward or reverse throttle command 
-    if (adc_value > GS_ADC_FWD_LIM)
-    {
-        throttle_cmd = (int16_t)adc_value - GS_ADC_FWD_LIM; 
-    }
-    else if (adc_value < GS_ADC_REV_LIM)
-    {
-        throttle_cmd = (int16_t)adc_value - GS_ADC_REV_LIM; 
-    }
+//     // Check if there is a forward or reverse throttle command 
+//     if (adc_value > GS_ADC_FWD_LIM)
+//     {
+//         throttle_cmd = (int16_t)adc_value - GS_ADC_FWD_LIM; 
+//     }
+//     else if (adc_value < GS_ADC_REV_LIM)
+//     {
+//         throttle_cmd = (int16_t)adc_value - GS_ADC_REV_LIM; 
+//     }
 
-    return throttle_cmd; 
-}
+//     return throttle_cmd; 
+// }
 
 
 // Send user input 
