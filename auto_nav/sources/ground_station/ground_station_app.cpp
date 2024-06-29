@@ -39,6 +39,27 @@
 
 
 //=======================================================================================
+// Enums 
+
+// UI line index 
+enum gs_ui_line_index 
+{
+    GS_UI_LINE_0, 
+    GS_UI_LINE_1, 
+    GS_UI_LINE_2, 
+    GS_UI_LINE_3, 
+    GS_UI_LINE_4, 
+    GS_UI_LINE_5, 
+    GS_UI_LINE_6, 
+    GS_UI_LINE_7, 
+    GS_UI_LINE_8, 
+    GS_UI_LINE_9 
+}; 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Ground Station Application 
 
 void GroundStation::GroundStationApp(void)
@@ -455,7 +476,7 @@ void GroundStation::RFDatePipeSetCmd(
 // UI init 
 void GroundStation::InitializeUI(void)
 {
-    uart_cursor_move(uart, UART_CURSOR_DOWN, 9); 
+    uart_cursor_move(uart, UART_CURSOR_DOWN, GS_UI_LINE_9); 
     status_message = " "; 
 
     LastUserInputUI(); 
@@ -474,7 +495,7 @@ void GroundStation::InitializeUI(void)
 void GroundStation::LastUserInputUI(void)
 {
     snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_last_input, (char *)cmd_buff); 
-    WriteLineUI(9); 
+    WriteLineUI(GS_UI_LINE_9); 
 }
 
 
@@ -482,7 +503,7 @@ void GroundStation::LastUserInputUI(void)
 void GroundStation::RadioConnectionUI(void)
 {
     snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_radio_connect, gs_flags.radio_connection_flag); 
-    WriteLineUI(8); 
+    WriteLineUI(GS_UI_LINE_8); 
 }
 
 
@@ -490,7 +511,7 @@ void GroundStation::RadioConnectionUI(void)
 void GroundStation::VehicleMessageUI(void)
 {
     snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_vehicle_msg, (char *)read_buff); 
-    WriteLineUI(7); 
+    WriteLineUI(GS_UI_LINE_7); 
 }
 
 
@@ -500,7 +521,7 @@ void GroundStation::CmdStatusUI(void)
     if (status_message != nullptr)
     {
         snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_cmd_status, status_message); 
-        WriteLineUI(6); 
+        WriteLineUI(GS_UI_LINE_6); 
     }
 }
 
@@ -509,7 +530,7 @@ void GroundStation::CmdStatusUI(void)
 void GroundStation::RFChannelUI(void)
 {
     snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_channel_set, nrf24l01_get_rf_ch()); 
-    WriteLineUI(5); 
+    WriteLineUI(GS_UI_LINE_5); 
 }
 
 
@@ -517,7 +538,7 @@ void GroundStation::RFChannelUI(void)
 void GroundStation::RFDataRateUI(void)
 {
     snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_dr_set, (uint8_t)nrf24l01_get_rf_setup_dr()); 
-    WriteLineUI(4); 
+    WriteLineUI(GS_UI_LINE_4); 
 }
 
 
@@ -525,7 +546,7 @@ void GroundStation::RFDataRateUI(void)
 void GroundStation::RFPwrOutputUI(void)
 {
     snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_pwr_set, (uint8_t)nrf24l01_get_rf_setup_pwr()); 
-    WriteLineUI(3); 
+    WriteLineUI(GS_UI_LINE_3); 
 }
 
 
@@ -533,7 +554,7 @@ void GroundStation::RFPwrOutputUI(void)
 void GroundStation::RFDataPipeUI(void)
 {
     snprintf(ui_buff, GS_UI_BUFF_SIZE, gs_ui_dp_set, (uint8_t)NRF24L01_DP_1); 
-    WriteLineUI(2); 
+    WriteLineUI(GS_UI_LINE_2); 
 }
 
 
@@ -541,7 +562,7 @@ void GroundStation::RFDataPipeUI(void)
 void GroundStation::CmdPromptUI(void)
 {
     uart_sendstring(uart, gs_ui_cmd_prompt); 
-    WriteLineUI(0); 
+    WriteLineUI(GS_UI_LINE_0); 
 }
 
 
