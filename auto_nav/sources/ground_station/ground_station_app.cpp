@@ -42,7 +42,7 @@
 // Enums 
 
 // UI line index 
-enum gs_ui_line_index 
+enum gs_ui_line_index : uint8_t 
 {
     GS_UI_LINE_0, 
     GS_UI_LINE_1, 
