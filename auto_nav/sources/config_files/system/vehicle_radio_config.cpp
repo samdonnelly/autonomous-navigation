@@ -31,9 +31,11 @@ vehicle_radio_cmd_auto[] = "auto",          // 2. Autonomous state
 vehicle_radio_cmd_manual[] = "manual",      // 3. Manual (remote) control state 
 vehicle_radio_cmd_index[] = "index",        // 4. Waypoint index set 
 vehicle_radio_cmd_RP[] = "RP",              // 5. Right joystick - forward direction 
-vehicle_radio_cmd_RN[] = "RN",              // 6. Right joystick - reverse direction 
-vehicle_radio_cmd_LP[] = "LP",              // 7. Left joystick - forward direction 
-vehicle_radio_cmd_LN[] = "LN";              // 8. Left joystick - reverse direction 
+vehicle_radio_cmd_RN[] = "RN",              // 6. Right joystick - no direction (neutral) 
+vehicle_radio_cmd_RM[] = "RM",              // 7. Right joystick - reverse direction 
+vehicle_radio_cmd_LP[] = "LP",              // 8. Left joystick - forward direction 
+vehicle_radio_cmd_LN[] = "LN",              // 9. Left joystick - no direction (neutral) 
+vehicle_radio_cmd_LM[] = "LM";              // 10. Left joystick - reverse direction 
 
 //=======================================================================================
 

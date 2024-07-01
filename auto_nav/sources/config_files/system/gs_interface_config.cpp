@@ -43,7 +43,7 @@ gs_sub_cmd_off[] = "off";        // Disable
 // Ground station user interface 
 
 const char 
-gs_ui_cmd_prompt[] = ">>> ",                      // User command input prompt 
+gs_ui_cmd_prompt[] = "\r>>> \033[K",              // User command input prompt 
 gs_ui_last_input[] = "Last input: %s",            // Last input by the user 
 gs_ui_radio_connect[] = "Radio Connection: %u",   // Radio connection status 
 gs_ui_vehicle_msg[] = "Vehicle Message: %s",      // Last message received from a vehicle 

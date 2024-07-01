@@ -36,7 +36,7 @@
 //=======================================================================================
 // Ground Station -> Vehicle commands 
 
-#define VEHICLE_RADIO_NUM_CMDS 9 
+#define VEHICLE_RADIO_NUM_CMDS 11 
 
 extern const char 
 vehicle_radio_cmd_ping[],       // 0. Ping (heartbeat) 
@@ -45,9 +45,11 @@ vehicle_radio_cmd_auto[],       // 2. Autonomous state
 vehicle_radio_cmd_manual[],     // 3. Manual (remote) control state 
 vehicle_radio_cmd_index[],      // 4. Waypoint index set 
 vehicle_radio_cmd_RP[],         // 5. Right joystick - forward direction 
-vehicle_radio_cmd_RN[],         // 6. Right joystick - reverse direction 
-vehicle_radio_cmd_LP[],         // 7. Left joystick - forward direction 
-vehicle_radio_cmd_LN[];         // 8. Left joystick - reverse direction 
+vehicle_radio_cmd_RN[],         // 6. Right joystick - no direction (neutral)
+vehicle_radio_cmd_RM[],         // 7. Right joystick - reverse direction 
+vehicle_radio_cmd_LP[],         // 8. Left joystick - forward direction 
+vehicle_radio_cmd_LN[],         // 9. Left joystick - no direction (neutral) 
+vehicle_radio_cmd_LM[];         // 10. Left joystick - reverse direction 
 
 //=======================================================================================
 

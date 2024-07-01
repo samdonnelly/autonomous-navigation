@@ -248,8 +248,10 @@ void BoatRadio::MainManualStateCmdEnable(uint8_t cmd_state)
     CommandEnable(vehicle_radio_cmd_idle, command_table, cmd_state); 
     CommandEnable(vehicle_radio_cmd_RP, command_table, cmd_state); 
     CommandEnable(vehicle_radio_cmd_RN, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_RM, command_table, cmd_state); 
     CommandEnable(vehicle_radio_cmd_LP, command_table, cmd_state); 
     CommandEnable(vehicle_radio_cmd_LN, command_table, cmd_state); 
+    CommandEnable(vehicle_radio_cmd_LM, command_table, cmd_state); 
 }
 
 

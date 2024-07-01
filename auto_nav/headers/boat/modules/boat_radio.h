@@ -66,8 +66,10 @@ private:   // Private member functions
         {vehicle_radio_cmd_index,  CMD_ARG_VALUE, &IndexCmd,    CLEAR_BIT}, 
         {vehicle_radio_cmd_RP,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
         {vehicle_radio_cmd_RN,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
+        {vehicle_radio_cmd_RM,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
         {vehicle_radio_cmd_LP,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
-        {vehicle_radio_cmd_LN,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT} 
+        {vehicle_radio_cmd_LN,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT}, 
+        {vehicle_radio_cmd_LM,     CMD_ARG_VALUE, &ThrottleCmd, CLEAR_BIT} 
     }}; 
     
     //==================================================

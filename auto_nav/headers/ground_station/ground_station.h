@@ -100,9 +100,6 @@ private:   // Private member functions
     // Manual control mode 
     void ManualControlMode(void); 
 
-    // // ADC joystick position mapping 
-    // int16_t ADCJoystickPositionMapping(uint16_t adc_value); 
-
     // Send user input 
     void SendUserCmd(void); 
 
@@ -166,41 +163,6 @@ private:   // Private member functions
 }; 
 
 extern GroundStation ground_station; 
-
-//=======================================================================================
-
-
-// Old code 
-
-
-//=======================================================================================
-// Functions 
-
-// /**
-//  * @brief Ground station application initializzation 
-//  * 
-//  * @details Called once on startup to initialize the data record and DMA. 
-//  * 
-//  * @param timer_nonblocking : timer port used for non-blocing delays 
-//  * @param adc_dma_stream : DMA stream used for ADC reads 
-//  * @param adc : ADC port to read from 
-//  * @param uart_dma_stream : DMA stream used for UART reads 
-//  * @param uart : UART port to read from 
-//  */
-// void gs_app_init(
-//     TIM_TypeDef *timer_nonblocking, 
-//     DMA_Stream_TypeDef *adc_dma_stream, 
-//     ADC_TypeDef *adc, 
-//     DMA_Stream_TypeDef *uart_dma_stream, 
-//     USART_TypeDef *uart); 
-
-
-// /**
-//  * @brief Ground station application 
-//  * 
-//  * @details Called repeatedly to execute the main functions of the ground station. 
-//  */
-// void gs_app(void); 
 
 //=======================================================================================
 
