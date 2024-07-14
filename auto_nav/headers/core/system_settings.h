@@ -28,11 +28,11 @@ extern "C" {
 // This needs to be set if using FreeRTOS as it includes additional files and alters 
 // some core code that's used with FreeRTOS. Note that the 'RTOS_ENABLE' variable in 
 // CMakeLists must be updated to match this macro. 
-#define FREERTOS_ENABLE 0 
+#define FREERTOS_ENABLE 1 
 
 // Use these to select which code to use and place them around interrupts 
-#define GROUND_STATION 1 
-#define BOAT 0 
+#define GROUND_STATION 0 
+#define BOAT 1 
 
 //==================================================
 
