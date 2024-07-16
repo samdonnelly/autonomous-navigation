@@ -87,7 +87,15 @@ void GroundStation::GroundStationApp(void)
             // station isn't in manual control mode. 
             if (!gs_flags.manual_control_flag)
             {
-                memcpy((void *)write_buff, (void *)cmd_buff, GS_MAX_CMD_LEN); 
+                // Only update the write buffer if there is a non-empty input. This 
+                // allows the user to send the same command again by simply hitting 
+                // "enter" at the serial terminal. 
+                if (*cmd_buff != NULL_CHAR)
+                {
+                    memcpy((void *)write_buff, (void *)cmd_buff, GS_MAX_CMD_LEN); 
+                }
+                
+                // memcpy((void *)write_buff, (void *)cmd_buff, GS_MAX_CMD_LEN); 
                 gs_flags.user_cmd_flag = SET_BIT; 
             }
         }

@@ -44,29 +44,29 @@ class GroundStation : public RadioModule<GroundStation, GS_NUM_CMDS>
 private:   // Private members 
 
     // User interface 
-    USART_TypeDef *uart;                   // UART for serial terminal 
-    char ui_buff[GS_UI_BUFF_SIZE];         // Buffer to store RF settings string 
-    const char *status_message;            // Pointer to status message for the user 
+    USART_TypeDef *uart;                     // UART for serial terminal 
+    char ui_buff[GS_UI_BUFF_SIZE];           // Buffer to store RF settings string 
+    const char *status_message;              // Pointer to status message for the user 
 
     // User command data 
-    uint8_t cb[GS_MAX_CMD_LEN];            // Circular buffer (CB) for user inputs 
-    uint8_t cb_index;                      // CB index used for parsing commands 
-    uint8_t cmd_buff[GS_MAX_CMD_LEN];      // User command parsed from the CB 
-    uint8_t cmd_id[GS_MAX_CMD_LEN];        // ID from the user command 
-    uint8_t cmd_value;                     // Value from the user command 
-    uint8_t cmd_str[GS_MAX_CMD_LEN];       // String from the user command 
+    uint8_t cb[GS_MAX_CMD_LEN];              // Circular buffer (CB) for user inputs 
+    uint8_t cb_index;                        // CB index used for parsing commands 
+    uint8_t cmd_buff[GS_MAX_CMD_LEN];        // User command parsed from the CB 
+    uint8_t cmd_id[GS_MAX_CMD_LEN];          // ID from the user command 
+    uint8_t cmd_value;                       // Value from the user command 
+    uint8_t cmd_str[GS_MAX_CMD_LEN];         // String from the user command 
 
     // Timing 
-    TIM_TypeDef *timer_nonblocking;        // Timer used for non-blocking delays 
-    tim_compare_t delay_timer;             // Delay timing info 
-    uint8_t hb_timeout_counter;            // Heartbeat response timeout counter 
+    TIM_TypeDef *timer_nonblocking;          // Timer used for non-blocking delays 
+    tim_compare_t delay_timer;               // Delay timing info 
+    uint8_t hb_timeout_counter;              // Heartbeat response timeout counter 
 
     // System data 
-    uint16_t adc_buff[GS_ADC_BUFF_SIZE];   // ADC buffer - thruster potentiometers 
+    uint16_t adc_buff[GS_ADC_BUFF_SIZE];     // ADC buffer - thruster potentiometers 
 
     // Payload data 
-    uint8_t read_buff[GS_MAX_CMD_LEN];     // Data read by PRX from PTX device 
-    uint8_t write_buff[GS_MAX_CMD_LEN];    // Data sent by PTX to a PRX device 
+    uint8_t read_buff[GS_MAX_CMD_LEN];       // Data read by PRX from PTX device 
+    uint8_t write_buff[GS_MAX_CMD_LEN];      // Data sent by PTX to a PRX device 
 
     // Flags 
     struct GSFlags 
