@@ -95,7 +95,6 @@ void GroundStation::GroundStationApp(void)
                     memcpy((void *)write_buff, (void *)cmd_buff, GS_MAX_CMD_LEN); 
                 }
                 
-                // memcpy((void *)write_buff, (void *)cmd_buff, GS_MAX_CMD_LEN); 
                 gs_flags.user_cmd_flag = SET_BIT; 
             }
         }
