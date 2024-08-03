@@ -25,7 +25,7 @@
 //=======================================================================================
 // Macros 
 
-#define GPS_RADIUS 100     // Threshold distance from location to target (m*10) 
+#define GPS_RADIUS 50      // Threshold distance from location to target (m*10) 
 #define GPS_LPF_GAIN 0.5   // Coordinate update low pass filter gain 
 #define TN_OFFSET 130      // Offset between true and magnetic north (degrees*10) 
 
