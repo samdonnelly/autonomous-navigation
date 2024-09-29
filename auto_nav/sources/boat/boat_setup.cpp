@@ -204,6 +204,7 @@ void Boat::BoatSetup(void)
         DMA_DIR_PM, 
         DMA_CM_ENABLE,
         DMA_PRIOR_VHI, 
+        DMA_DBM_DISABLE, 
         DMA_ADDR_INCREMENT, 
         DMA_ADDR_FIXED, 
         DMA_DATA_SIZE_HALF, 
@@ -214,6 +215,7 @@ void Boat::BoatSetup(void)
         DMA2_Stream0, 
         (uint32_t)(&ADC1->DR), 
         (uint32_t)adc_buff, 
+        (uint32_t)NULL, 
         (uint16_t)BOAT_ADC_BUFF_SIZE); 
 
     // Enable the DMA stream for the ADC 
