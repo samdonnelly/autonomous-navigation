@@ -20,11 +20,13 @@
 
 #================================================================================
 # Notes 
-# - Could make a math file for easier insertion of constants and such 
-# - The ranges on the sphere linspaces can be used to plot only a portion of the sphere 
-# - 'outer' creates two dimensions from 1D data (u & v). The calculations done to get 
-#   the xyz coordinates are the xyz coordinate equations of a sphere. 
-# - Make a script that interfaces with Google maps to record (and plot?) coordinates  
+# - Could make a math file for easier insertion of constants and such. 
+# - The ranges on the sphere linspaces can be used to plot only a portion of the 
+# - sphere. 
+# - 'outer' creates two dimensions from 1D data (u & v). The calculations done to 
+#   get the xyz coordinates are the xyz coordinate equations of a sphere. 
+# - Make a script that interfaces with Google maps to record (and plot?) 
+# - coordinates. 
 #================================================================================
 
 
