@@ -28,24 +28,24 @@ import numpy as np
 #================================================================================
 # Reference points 
 
-# Coordinate 1 
+# Coordinate 1 - Life Pod 
 x1 = 0 
 y1 = 0 
 
-# Coordinate 2 
-x2 = 1000 
-y2 = 0 
+# Coordinate 2 - Gun Island Beach 
+x2 = 292.1843 
+y2 = 1165.9470 
 
-# Coordinate 3 
-x3 = 0 
-y3 = 1000 
+# Coordinate 3 - Auora Entrance 
+x3 = 1077.8830 
+y3 = 214.4043 
 
 # Coordinate distances (updated later) 
 d12 = 0 
 d13 = 0 
 d23 = 0 
 
-d_tolerance = 2 
+d_tolerance = 5 
 
 # Initial guess and list of known coordinates 
 Pg = ((x1 + x2 + x3) / 2, (y1 + y2 + y3) / 2) 
@@ -55,10 +55,10 @@ Pi = ((x1, y1), (x2, y2), (x3, y3))
 di = \
 (
     # Wrecks 
-    (707, 707, 707, "W0"), 
-    (707, 1581, 1581, "W1"), 
-    (707, 1581, 707, "W2"), 
-    (707, 707, 1581, "W3"), 
+    (449, 1489, 1535, "W0"), 
+    (1275, 2346, 2258, "W1"), 
+    (745, 1918, 1616, "W2"), 
+    # (707, 707, 1581, "W3"), 
     # # Caves 
     # (1, 1, 1, "C0"), 
     # (1, 1, 1, "C1"), 
@@ -169,13 +169,13 @@ for d in di:
 
 
 # Plot the reference points 
-plt.scatter(Pi[0][0], Pi[0][1]) 
-plt.scatter(Pi[1][0], Pi[1][1]) 
-plt.scatter(Pi[2][0], Pi[2][1]) 
+plt.scatter(Pi[0][0], Pi[0][1], s=10, c='#ff7f0e') 
+plt.scatter(Pi[1][0], Pi[1][1], s=10, c='#ff7f0e') 
+plt.scatter(Pi[2][0], Pi[2][1], s=10, c='#ff7f0e') 
 
 # Plot the approximate points 
 for P in Pn: 
-    plt.scatter(P[0][0], P[0][1]) 
+    plt.scatter(P[0][0], P[0][1], s=20, c='#17becf') 
 plt.show() 
 
 #================================================================================
