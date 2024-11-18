@@ -40,16 +40,19 @@ y2 = 1165.9470
 x3 = 1077.8830 
 y3 = 214.4043 
 
-# Coordinate distances (updated later) 
-d12 = 0 
-d13 = 0 
-d23 = 0 
-
 d_tolerance = 5 
 
 # Initial guess and list of known coordinates 
 Pg = ((x1 + x2 + x3) / 2, (y1 + y2 + y3) / 2) 
-Pi = ((x1, y1), (x2, y2), (x3, y3)) 
+# Pi = ((x1, y1), (x2, y2), (x3, y3)) 
+
+Pi = \
+(
+    # (xn, yn) 
+    (0.0, 0.0, "Life Pod"),                   # Coordinate 1 - Life Pod 
+    (292.1843, 1165.9470, "Gun Island"),      # Coordinate 2 - Gun Island Beach 
+    (1077.8830, 214.4043, "Auora Entrance")   # Coordinate 3 - Auora Entrance 
+)
 
 # Location (distances) of points of interest 
 di = \
@@ -129,6 +132,10 @@ def coordinate_check():
 def distance_check(d1n, d2n, d3n): 
     error = 0 
 
+    d12 = planer_distance(x1, y1, x2, y2) 
+    d13 = planer_distance(x1, y1, x3, y3) 
+    d23 = planer_distance(x2, y2, x3, y3) 
+
     if ((d12 > (d1n + d2n + d_tolerance)) or 
         (d13 > (d1n + d3n + d_tolerance)) or 
         (d23 > (d2n + d3n + d_tolerance))): 
@@ -143,10 +150,6 @@ def distance_check(d1n, d2n, d3n):
 #================================================================================
 # Application 
 
-d12 = planer_distance(x1, y1, x2, y2) 
-d13 = planer_distance(x1, y1, x3, y3) 
-d23 = planer_distance(x2, y2, x3, y3) 
-
 # Make sure the reference points are valid 
 if (coordinate_check()): 
     sys.exit() 
@@ -159,23 +162,30 @@ for d in di:
 
     # Update the calculation location 
     result = minimize(
-        mse,                                         # The error function
-        Pg,                                          # The initial guess
-        args=(Pi, d),                                # Additional parameters for mse
-        method='L-BFGS-B',                           # The optimisation algorithm
+        mse,                                         # The error function 
+        Pg,                                          # The initial guess 
+        args=(Pi, d),                                # Additional parameters for mse 
+        method='L-BFGS-B',                           # The optimisation algorithm 
         options={ 'ftol': 1e-5, 'maxiter': 1e+7 })   # Tolerance & max iterations 
 
     Pn.append([result.x, d[3]]) 
 
 
-# Plot the reference points 
-plt.scatter(Pi[0][0], Pi[0][1], s=10, c='#ff7f0e') 
-plt.scatter(Pi[1][0], Pi[1][1], s=10, c='#ff7f0e') 
-plt.scatter(Pi[2][0], Pi[2][1], s=10, c='#ff7f0e') 
+# Set up plot 
+fig, ax = plt.subplots() 
+
+# Plot the reference points (landmarks) 
+for P in Pi: 
+    ax.scatter(P[0], P[1], s=10, c='#ff7f0e') 
+    ax.annotate(P[2], (P[0], P[1])) 
 
 # Plot the approximate points 
 for P in Pn: 
-    plt.scatter(P[0][0], P[0][1], s=20, c='#17becf') 
+    ax.scatter(P[0][0], P[0][1], s=20, c='#17becf') 
+    ax.annotate(P[1], (P[0][0], P[0][1])) 
+
+ax.set_xlim(-1500, 1500) 
+ax.set_ylim(-1500, 1500) 
 plt.show() 
 
 #================================================================================
