@@ -44,7 +44,6 @@ d_tolerance = 5
 
 # Initial guess and list of known coordinates 
 Pg = ((x1 + x2 + x3) / 2, (y1 + y2 + y3) / 2) 
-# Pi = ((x1, y1), (x2, y2), (x3, y3)) 
 
 Pi = \
 (
@@ -61,23 +60,14 @@ di = \
     (449, 1489, 1535, "W0"), 
     (1275, 2346, 2258, "W1"), 
     (745, 1918, 1616, "W2"), 
-    # (707, 707, 1581, "W3"), 
-    # # Caves 
-    # (1, 1, 1, "C0"), 
-    # (1, 1, 1, "C1"), 
-    # (1, 1, 1, "C2"), 
-    # # Materials 
-    # (1, 1, 1, "M0"), 
-    # (1, 1, 1, "M1"), 
-    # (1, 1, 1, "M2"), 
-    # # Islands 
-    # (1, 1, 1, "I0"), 
-    # (1, 1, 1, "I1"), 
-    # (1, 1, 1, "I2"), 
-    # # Habitats 
-    # (1, 1, 1, "H0"), 
-    # (1, 1, 1, "H1"), 
-    # (1, 1, 1, "H2"), 
+    # Caves 
+    # Materials 
+    # Islands 
+    # (1203, 0, 1234, "I0"),    # Gun Island - already set as a landmark 
+    (1177, 2334, 2122, "I1"),   # Habitat Island 
+    # Habitats 
+    # Discoveries 
+    (1388, 2274, 2384, "D0"),   # Alien Research Lab (Orange tablet) & Fossil 
 )
 
 Pn = [] 
