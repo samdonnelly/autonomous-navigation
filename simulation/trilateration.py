@@ -29,8 +29,8 @@ import numpy as np
 # Reference points 
 
 # Coordinate 1 - Life Pod 
-x1 = 0 
-y1 = 0 
+x1 = 0.0 
+y1 = 0.0 
 
 # Coordinate 2 - Gun Island Beach 
 x2 = 292.1843 
@@ -40,17 +40,15 @@ y2 = 1165.9470
 x3 = 1077.8830 
 y3 = 214.4043 
 
-d_tolerance = 5 
-
-# Initial guess and list of known coordinates 
+# Initial guess for finding the location of a point of interest 
 Pg = ((x1 + x2 + x3) / 2, (y1 + y2 + y3) / 2) 
 
+# Known coordinates 
 Pi = \
 (
-    # (xn, yn) 
-    (0.0, 0.0, "Life Pod"),                   # Coordinate 1 - Life Pod 
-    (292.1843, 1165.9470, "Gun Island"),      # Coordinate 2 - Gun Island Beach 
-    (1077.8830, 214.4043, "Auora Entrance")   # Coordinate 3 - Auora Entrance 
+    (x1, y1, "Life Pod"),        # Coordinate 1 - Life Pod 
+    (x2, y2, "Gun Island"),      # Coordinate 2 - Gun Island Beach 
+    (x3, y3, "Auora Entrance")   # Coordinate 3 - Auora Entrance 
 )
 
 # Location (distances) of points of interest 
@@ -70,6 +68,7 @@ di = \
     (1388, 2274, 2384, "D0"),   # Alien Research Lab (Orange tablet) & Fossil 
 )
 
+# List of locations for points of interest (populated later) 
 Pn = [] 
 
 #================================================================================
@@ -121,6 +120,7 @@ def coordinate_check():
 # Distance check 
 def distance_check(d1n, d2n, d3n): 
     error = 0 
+    d_tolerance = 5   # To account for (minor) human error 
 
     d12 = planer_distance(x1, y1, x2, y2) 
     d13 = planer_distance(x1, y1, x3, y3) 
