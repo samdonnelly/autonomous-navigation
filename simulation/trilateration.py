@@ -40,8 +40,9 @@ y2 = 1165.9470
 x3 = 1077.8830 
 y3 = 214.4043 
 
-# Initial guess for finding the location of a point of interest 
-Pg = ((x1 + x2 + x3) / 2, (y1 + y2 + y3) / 2) 
+# Initial guesses for finding the location of a point of interest 
+Pg1 = ((x1 + x2 + x3) / 2, (y1 + y2 + y3) / 2) 
+Pg2 = (-Pg1[0], -Pg1[1]) 
 
 # Known coordinates 
 Pi = \
@@ -55,17 +56,17 @@ Pi = \
 di = \
 (
     # Wrecks 
-    (449, 1489, 1535, "W0"), 
-    (1275, 2346, 2258, "W1"), 
-    (745, 1918, 1616, "W2"), 
+    (449, 1489, 1535, Pg1, "W0"), 
+    (1275, 2346, 2258, Pg1, "W1"), 
+    (745, 1918, 1616, Pg1, "W2"), 
     # Caves 
     # Materials 
     # Islands 
-    # (1203, 0, 1234, "I0"),    # Gun Island - already set as a landmark 
-    (1177, 2334, 2122, "I1"),   # Habitat Island 
+    # (1203, 0, 1234, "I0"),         # Gun Island - already set as a landmark 
+    (1177, 2334, 2122, Pg1, "I1"),   # Habitat Island 
     # Habitats 
     # Discoveries 
-    (1388, 2274, 2384, "D0"),   # Alien Research Lab (Orange tablet) & Fossil 
+    (1388, 2274, 2384, Pg2, "D0"),   # Alien Research Lab (Orange tablet) & Fossil 
 )
 
 # List of locations for points of interest (populated later) 
@@ -153,12 +154,12 @@ for d in di:
     # Update the calculation location 
     result = minimize(
         mse,                                         # The error function 
-        Pg,                                          # The initial guess 
+        d[3],                                        # The initial guess 
         args=(Pi, d),                                # Additional parameters for mse 
         method='L-BFGS-B',                           # The optimisation algorithm 
         options={ 'ftol': 1e-5, 'maxiter': 1e+7 })   # Tolerance & max iterations 
 
-    Pn.append([result.x, d[3]]) 
+    Pn.append([result.x, d[4]]) 
 
 
 # Set up plot 
@@ -174,8 +175,8 @@ for P in Pn:
     ax.scatter(P[0][0], P[0][1], s=20, c='#17becf') 
     ax.annotate(P[1], (P[0][0], P[0][1])) 
 
-ax.set_xlim(-1500, 1500) 
-ax.set_ylim(-1500, 1500) 
+ax.set_xlim(-2000, 2000) 
+ax.set_ylim(-2000, 2000) 
 plt.show() 
 
 #================================================================================
