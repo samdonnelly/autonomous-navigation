@@ -67,6 +67,7 @@ di = \
     # Habitats 
     # Discoveries 
     (1388, 2274, 2384, Pg2, "D0"),   # Alien Research Lab (Orange tablet) & Fossil 
+    (1629, 986, 831, Pg1, "D1"),     # Entrance to underground network (depth ~400m) 
 )
 
 # List of locations for points of interest (populated later) 
