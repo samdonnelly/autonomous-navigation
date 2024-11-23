@@ -178,6 +178,8 @@ for P in Pn:
 ax.set_xlim(-2000, 2000) 
 ax.set_ylim(-2000, 2000) 
 ax.title.set_text("Subnautica") 
+ax.set_xlabel("Latitude (m)") 
+ax.set_ylabel("Longitude (m)") 
 plt.show() 
 
 #================================================================================
