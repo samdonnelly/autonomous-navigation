@@ -176,11 +176,12 @@ for P in Pn:
     ax.scatter(P[0][0], P[0][1], s=20, c='#17becf') 
     ax.annotate(P[1], (P[0][0], P[0][1])) 
 
-ax.set_xlim(-2000, 2000) 
-ax.set_ylim(-2000, 2000) 
-ax.title.set_text("Subnautica") 
+# Format the show the plot 
+ax.set_title("Subnautica") 
 ax.set_xlabel("Latitude (m)") 
 ax.set_ylabel("Longitude (m)") 
+ax.set_xlim(-2000, 2000) 
+ax.set_ylim(-2000, 2000) 
 plt.show() 
 
 #================================================================================
