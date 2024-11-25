@@ -59,6 +59,8 @@ di = \
     (449, 1489, 1535, Pg1, "W0"), 
     (1275, 2346, 2258, Pg1, "W1"), 
     (745, 1918, 1616, Pg1, "W2"), 
+    (1539, 545, 1205, "Pg1", "W3"), 
+    (1198, 777, 568, "Pg1", "W4"), 
     # Caves 
     # Materials 
     # Islands 
@@ -67,7 +69,7 @@ di = \
     # Habitats 
     # Discoveries 
     (1388, 2274, 2384, Pg2, "D0"),   # Alien Research Lab (Orange tablet) & Fossil 
-    (1629, 986, 831, Pg1, "D1"),     # Entrance to underground network (depth ~400m) 
+    (1672, 1048, 922, Pg1, "D1"),     # Entrance to underground network (depth ~400m) 
 )
 
 # List of locations for points of interest (populated later) 
