@@ -40,10 +40,6 @@ y2 = 1165.9470
 x3 = 1077.8830 
 y3 = 214.4043 
 
-# Initial guesses for finding the location of a point of interest 
-Pg1 = ((x1 + x2 + x3) / 2, (y1 + y2 + y3) / 2) 
-Pg2 = (-Pg1[0], -Pg1[1]) 
-
 # Known coordinates 
 Pi = \
 (
@@ -51,6 +47,10 @@ Pi = \
     (x2, y2, "Gun Island"),      # Coordinate 2 - Gun Island Beach 
     (x3, y3, "Auora Entrance")   # Coordinate 3 - Auora Entrance 
 )
+
+# Initial guesses for finding the location of a point of interest 
+Pg1 = ((x1 + x2 + x3) / 2, (y1 + y2 + y3) / 2) 
+Pg2 = (-Pg1[0], -Pg1[1]) 
 
 # Location (distances) of points of interest 
 di = \
@@ -107,14 +107,14 @@ def coordinate_check():
     error = 0 
     
     # Coordinates form a straight line 
-    if ((x1 == x2 == x3) or (y1 == y2 == y3)): 
+    if ((Pi[0][0] == Pi[1][0] == Pi[2][0]) or (Pi[0][1] == Pi[1][1] == Pi[2][1])): 
         print("Coordinates cannot form a straight line.") 
         error = 1 
 
     # Two or more coordinates are the exact same 
-    if (((x1 == x2) and (y1 == y2)) or 
-        ((x1 == x3) and (y1 == y3)) or 
-        ((x2 == x3) and (y2 == y3))): 
+    if (((Pi[0][0] == Pi[1][0]) and (Pi[0][1] == Pi[1][1])) or 
+        ((Pi[0][0] == Pi[2][0]) and (Pi[0][1] == Pi[2][1])) or 
+        ((Pi[1][0] == Pi[2][0]) and (Pi[1][1] == Pi[2][1]))): 
         print("Coordinates cannot be the same.")
         error = 1 
     
@@ -126,9 +126,9 @@ def distance_check(d1n, d2n, d3n):
     error = 0 
     d_tolerance = 5   # To account for (minor) human error 
 
-    d12 = planer_distance(x1, y1, x2, y2) 
-    d13 = planer_distance(x1, y1, x3, y3) 
-    d23 = planer_distance(x2, y2, x3, y3) 
+    d12 = planer_distance(Pi[0][0], Pi[0][1], Pi[1][0], Pi[1][1]) 
+    d13 = planer_distance(Pi[0][0], Pi[0][1], Pi[2][0], Pi[2][1]) 
+    d23 = planer_distance(Pi[1][0], Pi[1][1], Pi[2][0], Pi[2][1]) 
 
     if ((d12 > (d1n + d2n + d_tolerance)) or 
         (d13 > (d1n + d3n + d_tolerance)) or 
