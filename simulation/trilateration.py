@@ -179,12 +179,12 @@ fig, ax = plt.subplots()
 
 # Plot the reference points (landmarks) 
 for P in Pi: 
-    ax.scatter(P[0], P[1], s=10, c='#ff7f0e') 
+    ax.scatter(P[0], P[1], s=10, c=c1) 
     ax.annotate(P[2], (P[0], P[1])) 
 
 # Plot the approximate points 
 for P in Pn: 
-    ax.scatter(P[0][0], P[0][1], s=20, c='#17becf') 
+    ax.scatter(P[0][0], P[0][1], s=20, c=c2) 
     ax.annotate(P[1], (P[0][0], P[0][1])) 
 
 # Format the show the plot 
