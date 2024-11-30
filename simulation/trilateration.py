@@ -112,8 +112,10 @@ def mse(x, locations, distances):
 # Checks 
 
 # Coordinate check 
-def coordinate_check(): 
+def coordinate_check(P): 
     error = 0 
+    i = 1 
+    length = len(Pi) 
     
     # Coordinates form a straight line 
     if ((Pi[0][0] == Pi[1][0] == Pi[2][0]) or (Pi[0][1] == Pi[1][1] == Pi[2][1])): 
@@ -121,11 +123,17 @@ def coordinate_check():
         error = 1 
 
     # Two or more coordinates are the exact same 
-    if (((Pi[0][0] == Pi[1][0]) and (Pi[0][1] == Pi[1][1])) or 
-        ((Pi[0][0] == Pi[2][0]) and (Pi[0][1] == Pi[2][1])) or 
-        ((Pi[1][0] == Pi[2][0]) and (Pi[1][1] == Pi[2][1]))): 
-        print("Coordinates cannot be the same.")
-        error = 1 
+    while (i < length): 
+        if ((P[i-1][0] == P[i][0]) and (P[i-1][1] == P[i][1])): 
+            error = 1 
+            print("Coordinates cannot be the same.")
+            break 
+        i += 1 
+    # if (((Pi[0][0] == Pi[1][0]) and (Pi[0][1] == Pi[1][1])) or 
+    #     ((Pi[0][0] == Pi[2][0]) and (Pi[0][1] == Pi[2][1])) or 
+    #     ((Pi[1][0] == Pi[2][0]) and (Pi[1][1] == Pi[2][1]))): 
+    #     print("Coordinates cannot be the same.")
+    #     error = 1 
     
     return error 
 
@@ -135,6 +143,20 @@ def distance_check(d1n, d2n, d3n):
     error = 0 
     d_tolerance = 5   # To account for (minor) human error 
 
+    dxx = [] 
+    i = 1 
+    length = len(Pi) 
+
+    if (length < 3): 
+        print("Not enough reference points.") 
+        error = 1 
+        return error 
+
+    while (i < length): 
+        dxx.append(planer_distance(Pi[i-1][0], Pi[i-1][1], Pi[i][0], Pi[i][1])) 
+        i += 1 
+
+    # These get recalculated for each map point 
     d12 = planer_distance(Pi[0][0], Pi[0][1], Pi[1][0], Pi[1][1]) 
     d13 = planer_distance(Pi[0][0], Pi[0][1], Pi[2][0], Pi[2][1]) 
     d23 = planer_distance(Pi[1][0], Pi[1][1], Pi[2][0], Pi[2][1]) 
@@ -154,7 +176,7 @@ def distance_check(d1n, d2n, d3n):
 # Application 
 
 # Make sure the reference points are valid 
-if (coordinate_check()): 
+if (coordinate_check(Pi)): 
     sys.exit() 
 
 # Find the approximate location of each point of interest 
