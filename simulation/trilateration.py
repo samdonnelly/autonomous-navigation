@@ -116,11 +116,32 @@ def coordinate_check(P):
     error = 0 
     i = 1 
     length = len(Pi) 
-    
-    # Coordinates form a straight line 
-    if ((Pi[0][0] == Pi[1][0] == Pi[2][0]) or (Pi[0][1] == Pi[1][1] == Pi[2][1])): 
+    x_equal = 0 
+    y_equal = 0 
+
+    x = [] 
+    y = [] 
+
+    for p in P: 
+        x.append(p[0]) 
+        x.append(p[1]) 
+
+    x = sorted(x) 
+    y = sorted(y) 
+
+    while (i < length): 
+        if (P[i-1][0] == P[i][0]): 
+            x_equal += 1 
+        if (P[i-1][1] == P[i][1]): 
+            y_equal += 1 
+        i += 1 
+
+    if ((x_equal >= 2) or (y_equal >= 2)): 
         print("Coordinates cannot form a straight line.") 
         error = 1 
+
+    # Reset i for the next iteration 
+    i = 1 
 
     # Two or more coordinates are the exact same 
     while (i < length): 
@@ -129,11 +150,6 @@ def coordinate_check(P):
             print("Coordinates cannot be the same.")
             break 
         i += 1 
-    # if (((Pi[0][0] == Pi[1][0]) and (Pi[0][1] == Pi[1][1])) or 
-    #     ((Pi[0][0] == Pi[2][0]) and (Pi[0][1] == Pi[2][1])) or 
-    #     ((Pi[1][0] == Pi[2][0]) and (Pi[1][1] == Pi[2][1]))): 
-    #     print("Coordinates cannot be the same.")
-    #     error = 1 
     
     return error 
 
