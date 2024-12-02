@@ -114,25 +114,36 @@ def mse(x, locations, distances):
 # Coordinate check 
 def coordinate_check(P): 
     error = 0 
-    i = 1 
     length = len(Pi) 
-    x_equal = 0 
-    y_equal = 0 
+    i = 1 
+    j = 1 
+
+    # Check that there are a minimum number of reference points. 
+    if (length < 3): 
+        print("Not enough reference points.") 
+        error = 1 
+
+    # Isolate the x and y coordinate values into lists, sort the lists by their 
+    # value, then check if 3 or more of the reference ccordinates are the same. 
+    # If so then we know that the reference coordinates form a straight line 
+    # which cannot produce a valid solution. 
 
     x = [] 
     y = [] 
+    x_equal = 0 
+    y_equal = 0 
 
     for p in P: 
         x.append(p[0]) 
-        x.append(p[1]) 
+        y.append(p[1]) 
 
     x = sorted(x) 
     y = sorted(y) 
 
     while (i < length): 
-        if (P[i-1][0] == P[i][0]): 
+        if (x[i-1] == x[i]): 
             x_equal += 1 
-        if (P[i-1][1] == P[i][1]): 
+        if (y[i-1] == y[i]): 
             y_equal += 1 
         i += 1 
 
@@ -140,16 +151,15 @@ def coordinate_check(P):
         print("Coordinates cannot form a straight line.") 
         error = 1 
 
-    # Reset i for the next iteration 
-    i = 1 
+    # Check that no two reference coordinates are the same. If they are then 
+    # they are effectively one point. 
 
-    # Two or more coordinates are the exact same 
-    while (i < length): 
-        if ((P[i-1][0] == P[i][0]) and (P[i-1][1] == P[i][1])): 
+    while (j < length): 
+        if ((P[j-1][0] == P[j][0]) and (P[j-1][1] == P[j][1])): 
             error = 1 
             print("Coordinates cannot be the same.")
             break 
-        i += 1 
+        j += 1 
     
     return error 
 
