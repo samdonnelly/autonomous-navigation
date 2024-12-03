@@ -173,11 +173,6 @@ def distance_check(d1n, d2n, d3n):
     i = 1 
     length = len(Pi) 
 
-    if (length < 3): 
-        print("Not enough reference points.") 
-        error = 1 
-        return error 
-
     while (i < length): 
         dxx.append(planer_distance(Pi[i-1][0], Pi[i-1][1], Pi[i][0], Pi[i][1])) 
         i += 1 
