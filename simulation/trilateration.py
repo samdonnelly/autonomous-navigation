@@ -165,7 +165,7 @@ def coordinate_check(P):
 
 
 # Distance check 
-def distance_check(d1n, d2n, d3n): 
+def distance_check(d1n, d2n, d3n, d, P): 
     error = 0 
     d_tolerance = 5   # To account for (minor) human error 
 
@@ -173,9 +173,17 @@ def distance_check(d1n, d2n, d3n):
     i = 1 
     length = len(Pi) 
 
+    #==================================================
+    # Test 
+
+    # Find the distance between each reference point 
     while (i < length): 
-        dxx.append(planer_distance(Pi[i-1][0], Pi[i-1][1], Pi[i][0], Pi[i][1])) 
+        dxx.append(planer_distance(P[i-1][0], P[i-1][1], P[i][0], P[i][1])) 
         i += 1 
+
+    # Check that the point in question has valid distances provided 
+    
+    #==================================================
 
     # These get recalculated for each map point 
     d12 = planer_distance(Pi[0][0], Pi[0][1], Pi[1][0], Pi[1][1]) 
