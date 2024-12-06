@@ -134,7 +134,6 @@ void SystemClock_Config(void)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct; 
     RCC_ClkInitTypeDef RCC_ClkInitStruct; 
-
     memset((void *)&RCC_OscInitStruct, CLEAR, sizeof(RCC_OscInitTypeDef)); 
     memset((void *)&RCC_ClkInitStruct, CLEAR, sizeof(RCC_ClkInitTypeDef)); 
 
@@ -176,9 +175,7 @@ void SystemClock_Config(void)
 // GPIO Initialization Function 
 static void MX_GPIO_Init(void)
 {
-    // GPIO_InitTypeDef GPIO_InitStruct = {0}; 
     GPIO_InitTypeDef GPIO_InitStruct; 
-    
     memset((void *)&GPIO_InitStruct, CLEAR, sizeof(GPIO_InitTypeDef)); 
 
     // GPIO Ports Clock Enable 
