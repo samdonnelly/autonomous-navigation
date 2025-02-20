@@ -72,7 +72,8 @@ void GroundStation::GroundStationApp(void)
         handler_flags.usart2_flag = CLEAR; 
 
         // Copy the new contents in the circular buffer to the user input buffer 
-        cb_parse(cb, cmd_buff, &cb_index, GS_MAX_CMD_LEN); 
+        dma_cb_index(dma_stream, &dma_index, &cb_index); 
+        cb_parse(cb, &cb_index, cmd_buff); 
 
         // Display the input before performing any other actions 
         uart_cursor_move(uart, UART_CURSOR_UP, GS_UI_LINE_1); 
@@ -528,7 +529,7 @@ void GroundStation::RFDataPipeUI(void)
 // Command prompt 
 void GroundStation::CmdPromptUI(void)
 {
-    uart_sendstring(uart, gs_ui_cmd_prompt); 
+    uart_send_str(uart, gs_ui_cmd_prompt); 
 }
 
 
@@ -536,9 +537,9 @@ void GroundStation::CmdPromptUI(void)
 void GroundStation::WriteLineUI(uint8_t line_offset)
 {
     uart_cursor_move(uart, UART_CURSOR_UP, line_offset); 
-    uart_sendstring(uart, "\r"); 
-    uart_sendstring(uart, ui_buff); 
-    uart_sendstring(uart, "\033[K");   // Clear the line to the right 
+    uart_send_str(uart, "\r"); 
+    uart_send_str(uart, ui_buff); 
+    uart_send_str(uart, "\033[K");   // Clear the line to the right 
     uart_cursor_move(uart, UART_CURSOR_DOWN, line_offset); 
 }
 

@@ -323,12 +323,12 @@ void Boat::BoatSetup(void)
     // Check init status 
     if (nrf24l01_init_status)
     {
-        uart_sendstring(USART2, "nRF24L01 init failed."); 
+        uart_send_str(USART2, "nRF24L01 init failed."); 
         while(1); 
     }
     else 
     {
-        uart_sendstring(USART2, "nRF24L01 init success."); 
+        uart_send_str(USART2, "nRF24L01 init success."); 
     }
 
     //==================================================

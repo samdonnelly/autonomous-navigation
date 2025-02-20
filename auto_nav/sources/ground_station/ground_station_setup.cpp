@@ -36,7 +36,6 @@ GroundStation ground_station;
 // Constructor 
 GroundStation::GroundStation() 
     : status_message(nullptr), 
-      cb_index(CLEAR), 
       cmd_value(CLEAR), 
       hb_timeout_counter(CLEAR) 
 {
@@ -59,6 +58,19 @@ GroundStation::GroundStation()
 
 void GroundStation::GroundStationSetup(void)
 {
+    // System data 
+    uart = USART2; 
+    dma_stream = DMA1_Stream5; 
+    timer_nonblocking = TIM9; 
+
+    cb_index.cb_size = GS_MAX_CMD_LEN; 
+    cb_index.head = CLEAR; 
+    cb_index.tail = CLEAR; 
+
+    dma_index.data_size = CLEAR; 
+    dma_index.ndt_old = GS_MAX_CMD_LEN; 
+    dma_index.ndt_new = CLEAR; 
+
     //==================================================
     // General setup 
 
@@ -66,7 +78,6 @@ void GroundStation::GroundStationSetup(void)
     gpio_port_init(); 
 
     // General purpose timer 
-    timer_nonblocking = TIM9; 
     tim_9_to_11_counter_init(
         timer_nonblocking, 
         TIM_84MHZ_1US_PSC, 
@@ -83,8 +94,7 @@ void GroundStation::GroundStationSetup(void)
     //==================================================
     // UART 
 
-    // Initialize UART
-    uart = USART2; 
+    // Initialize UART 
     uart_init(
         uart, 
         GPIOA, 
@@ -154,7 +164,7 @@ void GroundStation::GroundStationSetup(void)
     // UART 
     // Enable the IDLE line interrupt 
     uart_interrupt_init(
-        USART2, 
+        uart, 
         UART_INT_DISABLE, 
         UART_INT_DISABLE, 
         UART_INT_DISABLE, 
@@ -165,7 +175,7 @@ void GroundStation::GroundStationSetup(void)
     // Initialize the DMA stream 
     dma_stream_init(
         DMA1, 
-        DMA1_Stream5, 
+        dma_stream, 
         DMA_CHNL_4, 
         DMA_DIR_PM, 
         DMA_CM_ENABLE,
@@ -177,14 +187,14 @@ void GroundStation::GroundStationSetup(void)
         DMA_DATA_SIZE_BYTE); 
     // Configure the DMA stream for the UART 
     dma_stream_config(
-        DMA1_Stream5, 
-        (uint32_t)(&USART2->DR), 
+        dma_stream, 
+        (uint32_t)(&uart->DR), 
         (uint32_t)cb, 
         (uint32_t)NULL, 
         (uint16_t)GS_MAX_CMD_LEN); 
 
     // Enable the DMA stream for the UART 
-    dma_stream_enable(DMA1_Stream5); 
+    dma_stream_enable(dma_stream); 
 
     // Initialize interrupt handler flags (called once) 
     int_handler_init(); 

@@ -68,6 +68,7 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/includes
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/modules
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/system_data
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/core
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/devices
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/peripherals
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/tools)
@@ -98,11 +99,17 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/includes
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/modules
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/system_data
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/core
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/devices
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/peripherals
     ${CMAKE_CURRENT_SOURCE_DIR}/../../STM32F4-driver-library/headers/tools)
 
 endif()
+
+# External library code 
+set(LIBRARY_INCLUDE_DIRECTORIES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../mavlink/c_library_v2
+    ${CMAKE_CURRENT_SOURCE_DIR}/../mavlink/c_library_v2/common)
 
 ###############################################################################
 

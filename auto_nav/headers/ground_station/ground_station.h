@@ -49,8 +49,10 @@ private:   // Private members
     const char *status_message;              // Pointer to status message for the user 
 
     // User command data 
+    DMA_Stream_TypeDef *dma_stream; 
     uint8_t cb[GS_MAX_CMD_LEN];              // Circular buffer (CB) for user inputs 
-    uint8_t cb_index;                        // CB index used for parsing commands 
+    cb_index_t cb_index;                     // Circular buffer indexing info 
+    dma_index_t dma_index;                   // DMA transfer indexing info 
     uint8_t cmd_buff[GS_MAX_CMD_LEN];        // User command parsed from the CB 
     uint8_t cmd_id[GS_MAX_CMD_LEN];          // ID from the user command 
     uint8_t cmd_value;                       // Value from the user command 
