@@ -19,6 +19,13 @@
 
 //=======================================================================================
 // Includes 
+
+extern "C"
+{
+    // For C headers without C++ guards 
+    #include "common/mavlink.h" 
+}
+
 //=======================================================================================
 
 
@@ -27,7 +34,12 @@
 
 class VehicleMAVLink 
 {
-    // 
+public:   // Messages 
+
+    // Incoming 
+
+    // Outgoing 
+    mavlink_heartbeat_t heartbeat_msg;                           // HEARTBEAT 
 }; 
 
 //=======================================================================================
