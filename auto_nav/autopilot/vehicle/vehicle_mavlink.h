@@ -37,6 +37,7 @@ class VehicleMAVLink
 public:   // Messages 
 
     // Incoming 
+    mavlink_heartbeat_t heartbeat_msg_gcs; 
 
     // Outgoing 
     mavlink_heartbeat_t heartbeat_msg;                           // HEARTBEAT 
