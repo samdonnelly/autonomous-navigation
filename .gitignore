@@ -7,6 +7,7 @@
 auto_nav/.vscode/
 build/
 auto_nav/build/
+auto_nav/stm32f4-boat/build/
 *.code-workspace
 
 # Hidden files 
