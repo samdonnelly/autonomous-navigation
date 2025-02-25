@@ -27,6 +27,14 @@
 #define _VEHICLE_CONFIG_TEMPLATE_H_ 
 
 //=======================================================================================
+// Vehicle Type 
+
+#define VT_BOAT 0 
+#define VT_PLANE 0 
+
+//=======================================================================================
+
+//=======================================================================================
 // Vehicle Hardware (VH) 
 
 #define VH_RECEIVER 0 
@@ -36,10 +44,7 @@
 #define VH_IMU 0 
 #define VH_SD_CARD 0 
 #define VH_ESC 0 
-#define VH_SERVO 0 
 #define VH_ADC 0 
-#define VH_SONAR 0 
-#define VH_LIDAR 0 
 #define VH_LED 0 
 
 //=======================================================================================
