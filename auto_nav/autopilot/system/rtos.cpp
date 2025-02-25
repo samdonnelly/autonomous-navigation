@@ -1,38 +1,43 @@
 /**
- * @file vehicle.h
+ * @file rtos.cpp
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Vehicle interface 
- * 
- * @details Properties common to all vehicles. 
+ * @brief RTOS features 
  * 
  * @version 0.1
- * @date 2025-02-21
+ * @date 2025-02-25
  * 
  * @copyright Copyright (c) 2025
  * 
  */
 
-#ifndef _VEHICLE_H_ 
-#define _VEHICLE_H_ 
-
 //=======================================================================================
 // Includes 
 
 #include "rtos.h" 
+#include "portmacro.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Classes 
+// Functions 
 
-class Vehicle 
+// Common event loop shared by all threads 
+void eventLoop(void *thread_info)
 {
-    // 
-}; 
+    ThreadEventData *thread = (ThreadEventData *)thread_info; 
+
+    // Event loop 
+    while (1)
+    {
+        thread->event = CLEAR_EVENT; 
+        xQueueReceive(thread->ThreadEventQueue, (void *)&thread->event, portMAX_DELAY); 
+        thread->dispatch(thread->event); 
+    }
+
+    osThreadExit(); 
+}
 
 //=======================================================================================
-
-#endif   // _VEHICLE_H_ 

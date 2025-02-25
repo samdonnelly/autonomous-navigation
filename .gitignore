@@ -31,7 +31,7 @@ auto_nav/stm32f4-boat/headers/core/system_config.h
 # Auto Nav 
 
 # Application files 
-auto_nav/sources/system_data/gps_coordinates.cpp 
+auto_nav/stm32f4-boat/sources/system_data/gps_coordinates.cpp 
 
 #==================================================
 

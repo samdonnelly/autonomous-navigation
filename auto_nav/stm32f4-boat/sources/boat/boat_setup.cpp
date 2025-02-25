@@ -456,13 +456,13 @@ void Boat::BoatSetup(void)
     periodic_timer_100ms = xTimerCreate(
         "100ms",                        // Name of timer 
         PERIODIC_TIMER_100MS_PERIOD,    // Period of timer (ticks) 
-        pdTRUE,                         // Auto-relead --> pdTRUE == Repeat Timer 
+        pdTRUE,                         // Auto-reload --> pdTRUE == Repeat Timer 
         (void *)0,                      // Timer ID 
         TimerCallback100ms);            // Callback function 
     periodic_timer_1s = xTimerCreate(
         "1s",                           // Name of timer 
         PERIODIC_TIMER_1S_PERIOD,       // Period of timer (ticks) 
-        pdTRUE,                         // Auto-relead --> pdTRUE == Repeat Timer 
+        pdTRUE,                         // Auto-reload --> pdTRUE == Repeat Timer 
         (void *)1,                      // Timer ID 
         TimerCallback1s);               // Callback function 
 
