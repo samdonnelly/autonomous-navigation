@@ -1,43 +1,38 @@
 /**
- * @file vehicle.h
+ * @file boat.cpp
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Vehicle interface 
- * 
- * @details Properties common to all vehicles. 
+ * @brief 
  * 
  * @version 0.1
- * @date 2025-02-21
+ * @date 2025-02-25
  * 
  * @copyright Copyright (c) 2025
  * 
  */
 
-#ifndef _VEHICLE_H_ 
-#define _VEHICLE_H_ 
-
 //=======================================================================================
 // Includes 
 
-#include "rtos.h" 
+#include "boat.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Classes 
+// Global data 
 
-class Vehicle 
-{
-    // 
-
-protected:   // Private members 
-    // Threads info 
-    ThreadEventData main_event_info; 
-    ThreadEventData comms_event_info; 
-}; 
+// Boat definition 
+Boat boat; 
 
 //=======================================================================================
 
-#endif   // _VEHICLE_H_ 
+
+//=======================================================================================
+// Setup 
+
+// Constructor 
+Boat::Boat(void) {} 
+
+//=======================================================================================

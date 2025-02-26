@@ -98,6 +98,21 @@ void Boat::BoatMainDispatch(Event event)
             }
             break; 
 
+        case MainStates::HOME_STATE: 
+            break; 
+
+        case MainStates::LOITER_STATE: 
+            break; 
+
+        case MainStates::FOLLOW_STATE: 
+            break; 
+
+        case MainStates::LAUNCH_STATE: 
+            break; 
+
+        case MainStates::DOCK_STATE: 
+            break; 
+
         case MainStates::LOW_PWR_STATE: 
             if (boat.main_flags.standby_state)
             {
@@ -135,9 +150,8 @@ void Boat::BoatMainDispatch(Event event)
 
 
 //=======================================================================================
-// States 
-
 // Initialization state 
+
 void Boat::MainInitState(Boat& data, Event event)
 {
     // State entry 
@@ -145,9 +159,13 @@ void Boat::MainInitState(Boat& data, Event event)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
         data.main_flags.standby_state = FLAG_SET; 
-        data.MainInitStateEntry(); 
-    }
+        // data.MainInitStateEntry(); 
 
+        // Start software timers 
+        xTimerStart(data.periodic_timer_100ms, 0); 
+        xTimerStart(data.periodic_timer_1s, 0); 
+    }
+    
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
@@ -155,31 +173,35 @@ void Boat::MainInitState(Boat& data, Event event)
         case MainEvents::INIT: 
             data.MainStateChange(); 
             break; 
-
+        
         default: 
             data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
-
+    
     // State exit 
     if (data.main_flags.state_exit)
     {
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.init_state = FLAG_CLEAR; 
-        data.MainInitStateExit(); 
+        // data.MainInitStateExit(); 
     }
 }
 
+//=======================================================================================
 
+
+//=======================================================================================
 // Standby state 
+
 void Boat::MainStandbyState(Boat& data, Event event)
 {
     // State entry 
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        data.MainStandbyStateEntry(); 
+        // data.MainStandbyStateEntry(); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -194,28 +216,32 @@ void Boat::MainStandbyState(Boat& data, Event event)
             data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
-
+    
     // State exit 
     if (data.main_flags.state_exit)
     {
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.standby_state = FLAG_CLEAR; 
-        data.MainStandbyStateExit(); 
+        // data.MainStandbyStateExit(); 
     }
 }
 
+//=======================================================================================
 
+
+//=======================================================================================
 // Auto state 
+
 void Boat::MainAutoState(Boat& data, Event event)
 {
     // State entry 
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        data.MainAutoStateEntry(); 
+        // data.MainAutoStateEntry(); 
     }
-
+    
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
@@ -227,7 +253,7 @@ void Boat::MainAutoState(Boat& data, Event event)
         case MainEvents::NAV_HEADING_CALC: 
             // data.navigation.HeadingCalc(data); 
             break; 
-
+        
         case MainEvents::NAV_LOCATION_CALC: 
             // data.navigation.LocationCalc(data); 
             break; 
@@ -236,28 +262,32 @@ void Boat::MainAutoState(Boat& data, Event event)
             data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
-
+    
     // State exit 
     if (data.main_flags.state_exit)
     {
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.auto_state = FLAG_CLEAR; 
-        data.MainAutoStateExit(); 
+        // data.MainAutoStateExit(); 
     }
 }
 
+//=======================================================================================
 
+
+//=======================================================================================
 // Manual state 
+
 void Boat::MainManualState(Boat& data, Event event)
 {
     // State entry 
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        data.MainManualStateEntry(); 
+        // data.MainManualStateEntry(); 
     }
-
+    
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
@@ -274,30 +304,198 @@ void Boat::MainManualState(Boat& data, Event event)
             data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
-
+    
     // State exit 
     if (data.main_flags.state_exit)
     {
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.manual_state = FLAG_CLEAR; 
-        data.MainManualStateExit(); 
+        // data.MainManualStateExit(); 
     }
 }
 
+//=======================================================================================
 
+
+//=======================================================================================
+// Home state 
+
+void Boat::MainHomeState(Boat& data, Event event)
+{
+    // State entry 
+    if (data.main_flags.state_entry)
+    {
+        data.main_flags.state_entry = FLAG_CLEAR; 
+    }
+    
+    data.main_event = (MainEvents)event; 
+
+    switch (data.main_event)
+    {
+        default: 
+            data.main_event = MainEvents::NO_EVENT; 
+            break; 
+    }
+    
+    // State exit 
+    if (data.main_flags.state_exit)
+    {
+        data.main_flags.state_exit = FLAG_CLEAR; 
+        data.main_flags.state_entry = FLAG_SET; 
+        data.main_flags.home_state = FLAG_CLEAR; 
+    }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Loiter state 
+
+void Boat::MainLoiterState(Boat& data, Event event)
+{
+    // State entry 
+    if (data.main_flags.state_entry)
+    {
+        data.main_flags.state_entry = FLAG_CLEAR; 
+    }
+    
+    data.main_event = (MainEvents)event; 
+
+    switch (data.main_event)
+    {
+        default: 
+            data.main_event = MainEvents::NO_EVENT; 
+            break; 
+    }
+    
+    // State exit 
+    if (data.main_flags.state_exit)
+    {
+        data.main_flags.state_exit = FLAG_CLEAR; 
+        data.main_flags.state_entry = FLAG_SET; 
+        data.main_flags.loiter_state = FLAG_CLEAR; 
+    }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Follow state 
+
+void Boat::MainFollowState(Boat& data, Event event)
+{
+    // State entry 
+    if (data.main_flags.state_entry)
+    {
+        data.main_flags.state_entry = FLAG_CLEAR; 
+    }
+    
+    data.main_event = (MainEvents)event; 
+
+    switch (data.main_event)
+    {
+        default: 
+            data.main_event = MainEvents::NO_EVENT; 
+            break; 
+    }
+    
+    // State exit 
+    if (data.main_flags.state_exit)
+    {
+        data.main_flags.state_exit = FLAG_CLEAR; 
+        data.main_flags.state_entry = FLAG_SET; 
+        data.main_flags.follow_state = FLAG_CLEAR; 
+    }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Launch state 
+
+void Boat::MainLaunchState(Boat& data, Event event)
+{
+    // State entry 
+    if (data.main_flags.state_entry)
+    {
+        data.main_flags.state_entry = FLAG_CLEAR; 
+    }
+    
+    data.main_event = (MainEvents)event; 
+
+    switch (data.main_event)
+    {
+        default: 
+            data.main_event = MainEvents::NO_EVENT; 
+            break; 
+    }
+    
+    // State exit 
+    if (data.main_flags.state_exit)
+    {
+        data.main_flags.state_exit = FLAG_CLEAR; 
+        data.main_flags.state_entry = FLAG_SET; 
+        data.main_flags.launch_state = FLAG_CLEAR; 
+    }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Dock state 
+
+void Boat::MainDockState(Boat& data, Event event)
+{
+    // State entry 
+    if (data.main_flags.state_entry)
+    {
+        data.main_flags.state_entry = FLAG_CLEAR; 
+    }
+    
+    data.main_event = (MainEvents)event; 
+
+    switch (data.main_event)
+    {
+        default: 
+            data.main_event = MainEvents::NO_EVENT; 
+            break; 
+    }
+    
+    // State exit 
+    if (data.main_flags.state_exit)
+    {
+        data.main_flags.state_exit = FLAG_CLEAR; 
+        data.main_flags.state_entry = FLAG_SET; 
+        data.main_flags.dock_state = FLAG_CLEAR; 
+    }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Low Power state 
+
 void Boat::MainLowPwrState(Boat& data, Event event)
 {
     // State entry 
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        data.MainLowPwrStateEntry(); 
+        // data.MainLowPwrStateEntry(); 
+
+        // Stop the software timers 
+        xTimerStop(data.periodic_timer_100ms, 0); 
+        xTimerStop(data.periodic_timer_1s, 0); 
     }
-
+    
     data.main_event = (MainEvents)event; 
-
+    
     switch (data.main_event)
     {
         case MainEvents::RADIO_CHECK: 
@@ -308,26 +506,30 @@ void Boat::MainLowPwrState(Boat& data, Event event)
             data.main_event = MainEvents::NO_EVENT; 
             break; 
     }
-
+    
     // State exit 
     if (data.main_flags.state_exit)
     {
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.low_pwr_state = FLAG_CLEAR; 
-        data.MainLowPwrStateExit(); 
+        // data.MainLowPwrStateExit(); 
     }
 }
+    
+//=======================================================================================
 
 
+//=======================================================================================
 // Fault state 
+
 void Boat::MainFaultState(Boat& data, Event event)
 {
     // State entry 
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        data.MainFaultStateEntry(); 
+        // data.MainFaultStateEntry(); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -349,19 +551,27 @@ void Boat::MainFaultState(Boat& data, Event event)
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.fault_state = FLAG_CLEAR; 
-        data.MainFaultStateExit(); 
+        // data.MainFaultStateExit(); 
     }
 }
 
+//=======================================================================================
 
+
+//=======================================================================================
 // Reset state 
+
 void Boat::MainResetState(Boat& data, Event event)
 {
     // State entry 
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        data.MainResetStateEntry(); 
+        // data.MainResetStateEntry(); 
+
+        // Stop the software timers 
+        xTimerStop(data.periodic_timer_100ms, 0); 
+        xTimerStop(data.periodic_timer_1s, 0); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -379,7 +589,7 @@ void Boat::MainResetState(Boat& data, Event event)
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.reset_state = FLAG_CLEAR; 
-        data.MainResetStateExit(); 
+        // data.MainResetStateExit(); 
     }
 }
 
@@ -389,130 +599,130 @@ void Boat::MainResetState(Boat& data, Event event)
 //=======================================================================================
 // State entry/exit 
 
-// Init state entry 
-void Boat::MainInitStateEntry(void)
-{
-    // Start software timers 
-    xTimerStart(periodic_timer_100ms, 0); 
-    xTimerStart(periodic_timer_1s, 0); 
+// // Init state entry 
+// void Boat::MainInitStateEntry(void)
+// {
+//     // Start software timers 
+//     xTimerStart(periodic_timer_100ms, 0); 
+//     xTimerStart(periodic_timer_1s, 0); 
 
-    // Load a waypoint mission if it exists 
-    // navigation.LoadMission(); 
-}
-
-
-// Init state exit 
-void Boat::MainInitStateExit(void)
-{
-    // 
-}
+//     // Load a waypoint mission if it exists 
+//     // navigation.LoadMission(); 
+// }
 
 
-// Standby state entry 
-void Boat::MainStandbyStateEntry(void)
-{
-    // navigation.ThrustersOff(); 
-    // LEDStrobeUpdate(ws2812_led_standby_not_ready); 
-    // radio.MainStandbyStateCmdEnable(FLAG_SET); 
-}
+// // Init state exit 
+// void Boat::MainInitStateExit(void)
+// {
+//     // 
+// }
 
 
-// Standby state exit 
-void Boat::MainStandbyStateExit(void)
-{
-    LEDStrobeOff(); 
-    // radio.MainStandbyStateCmdEnable(FLAG_CLEAR); 
-}
+// // Standby state entry 
+// void Boat::MainStandbyStateEntry(void)
+// {
+//     // navigation.ThrustersOff(); 
+//     // LEDStrobeUpdate(ws2812_led_standby_not_ready); 
+//     // radio.MainStandbyStateCmdEnable(FLAG_SET); 
+// }
 
 
-// Auto state entry 
-void Boat::MainAutoStateEntry(void)
-{
-    // navigation.CurrentUpdate(boat); 
-    // LEDStrobeUpdate(ws2812_led_auto_strobe); 
-    // LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
-    // radio.MainAutoStateCmdEnable(FLAG_SET); 
-}
+// // Standby state exit 
+// void Boat::MainStandbyStateExit(void)
+// {
+//     // LEDStrobeOff(); 
+//     // radio.MainStandbyStateCmdEnable(FLAG_CLEAR); 
+// }
 
 
-// Auto state exit 
-void Boat::MainAutoStateExit(void)
-{
-    // navigation.ThrustersOff(); 
-    LEDStrobeOff(); 
-    // LEDUpdate(ws2812_led_off, ws2812_led_off); 
-    // radio.MainAutoStateCmdEnable(FLAG_CLEAR); 
-}
+// // Auto state entry 
+// void Boat::MainAutoStateEntry(void)
+// {
+//     // navigation.CurrentUpdate(boat); 
+//     // LEDStrobeUpdate(ws2812_led_auto_strobe); 
+//     // LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
+//     // radio.MainAutoStateCmdEnable(FLAG_SET); 
+// }
 
 
-// Manual state entry 
-void Boat::MainManualStateEntry(void)
-{
-    // LEDStrobeUpdate(ws2812_led_manual_strobe); 
-    // radio.MainManualStateCmdEnable(FLAG_SET); 
-}
+// // Auto state exit 
+// void Boat::MainAutoStateExit(void)
+// {
+//     // navigation.ThrustersOff(); 
+//     // LEDStrobeOff(); 
+//     // LEDUpdate(ws2812_led_off, ws2812_led_off); 
+//     // radio.MainAutoStateCmdEnable(FLAG_CLEAR); 
+// }
 
 
-// Manual state exit 
-void Boat::MainManualStateExit(void)
-{
-    // rc.ThrustersOff(); 
-    LEDStrobeOff(); 
-    // radio.MainManualStateCmdEnable(FLAG_CLEAR); 
-}
+// // Manual state entry 
+// void Boat::MainManualStateEntry(void)
+// {
+//     // LEDStrobeUpdate(ws2812_led_manual_strobe); 
+//     // radio.MainManualStateCmdEnable(FLAG_SET); 
+// }
 
 
-// Low power state entry 
-void Boat::MainLowPwrStateEntry(void)
-{
-    // Stop the software timers 
-    xTimerStop(periodic_timer_100ms, 0); 
-    xTimerStop(periodic_timer_1s, 0); 
+// // Manual state exit 
+// void Boat::MainManualStateExit(void)
+// {
+//     // rc.ThrustersOff(); 
+//     // LEDStrobeOff(); 
+//     // radio.MainManualStateCmdEnable(FLAG_CLEAR); 
+// }
 
-    // If all the software timers are stopped then there will be no radio checks or 
-    // LED updates. 
+
+// // Low power state entry 
+// void Boat::MainLowPwrStateEntry(void)
+// {
+//     // Stop the software timers 
+//     xTimerStop(periodic_timer_100ms, 0); 
+//     xTimerStop(periodic_timer_1s, 0); 
+
+//     // If all the software timers are stopped then there will be no radio checks or 
+//     // LED updates. 
     
-    // LEDStrobeUpdate(ws2812_led_low_pwr); 
-    // radio.MainLowPwrStateCmdEnable(FLAG_SET); 
-}
+//     // LEDStrobeUpdate(ws2812_led_low_pwr); 
+//     // radio.MainLowPwrStateCmdEnable(FLAG_SET); 
+// }
 
 
-// Low power state exit 
-void Boat::MainLowPwrStateExit(void)
-{
-    LEDStrobeOff(); 
-    // radio.MainLowPwrStateCmdEnable(FLAG_CLEAR); 
-}
+// // Low power state exit 
+// void Boat::MainLowPwrStateExit(void)
+// {
+//     // LEDStrobeOff(); 
+//     // radio.MainLowPwrStateCmdEnable(FLAG_CLEAR); 
+// }
 
 
-// Fault state entry 
-void Boat::MainFaultStateEntry(void)
-{
-    // radio.MainFaultStateCmdEnable(FLAG_SET); 
-}
+// // Fault state entry 
+// void Boat::MainFaultStateEntry(void)
+// {
+//     // radio.MainFaultStateCmdEnable(FLAG_SET); 
+// }
 
 
-// Fault state exit 
-void Boat::MainFaultStateExit(void)
-{
-    // radio.MainFaultStateCmdEnable(FLAG_CLEAR); 
-}
+// // Fault state exit 
+// void Boat::MainFaultStateExit(void)
+// {
+//     // radio.MainFaultStateCmdEnable(FLAG_CLEAR); 
+// }
 
 
-// Reset state entry 
-void Boat::MainResetStateEntry(void)
-{
-    // Stop the software timers 
-    xTimerStop(periodic_timer_100ms, 0); 
-    xTimerStop(periodic_timer_1s, 0); 
-}
+// // Reset state entry 
+// void Boat::MainResetStateEntry(void)
+// {
+//     // Stop the software timers 
+//     xTimerStop(periodic_timer_100ms, 0); 
+//     xTimerStop(periodic_timer_1s, 0); 
+// }
 
 
-// Reset state exit 
-void Boat::MainResetStateExit(void)
-{
-    // 
-}
+// // Reset state exit 
+// void Boat::MainResetStateExit(void)
+// {
+//     // 
+// }
 
 //=======================================================================================
 

@@ -44,7 +44,7 @@ private:   // Private members
     // Main thread 
     
     // Threads info 
-    ThreadEventData main_event_info; 
+    // ThreadEventData main_event_info; 
 
     // States 
     enum class MainStates {
@@ -102,7 +102,7 @@ private:   // Private members
     // Communication thread 
 
     // Threads info 
-    ThreadEventData comms_event_info; 
+    // ThreadEventData comms_event_info; 
 
     // Events 
     enum class CommsEvents : uint8_t {
@@ -163,6 +163,11 @@ private:   // Private member functions
     static void MainStandbyState(Boat& data, Event event); 
     static void MainAutoState(Boat& data, Event event); 
     static void MainManualState(Boat& data, Event event); 
+    static void MainHomeState(Boat& data, Event event); 
+    static void MainLoiterState(Boat& data, Event event); 
+    static void MainFollowState(Boat& data, Event event); 
+    static void MainLaunchState(Boat& data, Event event); 
+    static void MainDockState(Boat& data, Event event); 
     static void MainLowPwrState(Boat& data, Event event); 
     static void MainFaultState(Boat& data, Event event); 
     static void MainResetState(Boat& data, Event event); 
@@ -174,26 +179,31 @@ private:   // Private member functions
         &MainStandbyState, 
         &MainAutoState, 
         &MainManualState, 
+        &MainHomeState, 
+        &MainLoiterState, 
+        &MainFollowState, 
+        &MainLaunchState, 
+        &MainDockState, 
         &MainLowPwrState, 
         &MainFaultState, 
         &MainResetState 
     }; 
 
-    // State entry/exit functions 
-    void MainInitStateEntry(void); 
-    void MainInitStateExit(void); 
-    void MainStandbyStateEntry(void); 
-    void MainStandbyStateExit(void); 
-    void MainAutoStateEntry(void); 
-    void MainAutoStateExit(void); 
-    void MainManualStateEntry(void); 
-    void MainManualStateExit(void); 
-    void MainLowPwrStateEntry(void); 
-    void MainLowPwrStateExit(void); 
-    void MainFaultStateEntry(void); 
-    void MainFaultStateExit(void); 
-    void MainResetStateEntry(void); 
-    void MainResetStateExit(void); 
+    // // State entry/exit functions 
+    // void MainInitStateEntry(void); 
+    // void MainInitStateExit(void); 
+    // void MainStandbyStateEntry(void); 
+    // void MainStandbyStateExit(void); 
+    // void MainAutoStateEntry(void); 
+    // void MainAutoStateExit(void); 
+    // void MainManualStateEntry(void); 
+    // void MainManualStateExit(void); 
+    // void MainLowPwrStateEntry(void); 
+    // void MainLowPwrStateExit(void); 
+    // void MainFaultStateEntry(void); 
+    // void MainFaultStateExit(void); 
+    // void MainResetStateEntry(void); 
+    // void MainResetStateExit(void); 
 
     // Helper functions 
     void MainEventQueue(Event event); 
@@ -224,11 +234,11 @@ private:   // Private member functions
     //==================================================
     // LED module 
 
-    void LEDStrobeUpdate(uint32_t led_colour); 
-    void LEDStrobeOff(void); 
-    void LEDUpdate(
-        uint32_t starbird_led_colour, 
-        uint32_t port_led_colour); 
+    // void LEDStrobeUpdate(uint32_t led_colour); 
+    // void LEDStrobeOff(void); 
+    // void LEDUpdate(
+    //     uint32_t starbird_led_colour, 
+    //     uint32_t port_led_colour); 
 
     //==================================================
 
@@ -240,8 +250,8 @@ public:   // Public member functions
     // Destructor 
     ~Boat() {} 
 
-    // Setup 
-    void BoatSetup(void); 
+    // // Setup 
+    // void BoatSetup(void); 
 }; 
 
 extern Boat boat; 
