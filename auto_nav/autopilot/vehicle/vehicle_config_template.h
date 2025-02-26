@@ -33,6 +33,7 @@
 
 //=======================================================================================
 
+
 //=======================================================================================
 // Vehicle Hardware (VH) 
 
@@ -48,8 +49,12 @@
 
 //=======================================================================================
 
+
 //=======================================================================================
 // Vehicle Settings (VS) 
+
+// The vehicle specific settings below only have an affect when the corresponding vehicle 
+// type (VT) is selected. 
 
 // Boat 
 #define VS_BOAT_K1 0   // Kinematics 1 - Differential thruster - 2 propellers 

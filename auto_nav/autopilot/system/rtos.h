@@ -19,11 +19,33 @@
 // Includes 
 
 #include "system_tools.h" 
+#include "FreeRTOSConfig.h" 
 #include "FreeRTOS.h" 
 #include "cmsis_os2.h" 
 #include "queue.h" 
 #include "semphr.h" 
 #include "timers.h" 
+#include "portmacro.h" 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Thread configuration 
+
+// Main thread memory 
+#define MAIN_STACK_MULTIPLIER 8 
+#define MAIN_STACK_SIZE configMINIMAL_STACK_SIZE * MAIN_STACK_MULTIPLIER 
+#define MAIN_QUEUE_LEN 10 
+
+// Communication thread memory 
+#define COMMS_STACK_MULTIPLIER 8 
+#define COMMS_STACK_SIZE configMINIMAL_STACK_SIZE * COMMS_STACK_MULTIPLIER 
+#define COMMS_QUEUE_LEN 10 
+
+// Software timers thread 
+#define PERIODIC_TIMER_100MS_PERIOD 20   // Ticks 
+#define PERIODIC_TIMER_1S_PERIOD 200     // Ticks 
 
 //=======================================================================================
 
@@ -39,15 +61,26 @@ typedef uint8_t Event;
 //=======================================================================================
 // Data 
 
-// Thread Event Info 
-typedef struct 
+// Thread event info 
+struct ThreadEventData 
 {
     osThreadAttr_t attr;              // Thread attributes 
     uint8_t event;                    // Event index 
     QueueHandle_t ThreadEventQueue;   // Queue 
     void (*dispatch)(Event event);    // Dispatch function 
-} 
-ThreadEventData; 
+}; 
+
+
+// Timer thread info 
+struct TimerThreadData 
+{
+    TimerHandle_t handler;              // Pointer to timer handler 
+    char *name;                         // Name of timer 
+    TickType_t ticks;                   // Period of timer (ticks) 
+    BaseType_t reload;                  // Auto-reload --> pdTRUE == Repeat Timer 
+    uint8_t id;                         // Timer ID 
+    TimerCallbackFunction_t callback;   // Callback function 
+};
 
 //=======================================================================================
 

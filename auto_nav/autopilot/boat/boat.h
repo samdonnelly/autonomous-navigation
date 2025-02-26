@@ -40,13 +40,7 @@ public:   // Friends
 
 private:   // Private members 
 
-    //==================================================
-    // Main thread 
-    
-    // Threads info 
-    // ThreadEventData main_event_info; 
-
-    // States 
+    // Main thread states 
     enum class MainStates {
         INIT_STATE,      // Initialization state 
         STANDBY_STATE,   // Standby/Ready state 
@@ -63,17 +57,7 @@ private:   // Private members
         NUM_STATES       // Not a state, just the total number of states 
     } main_state; 
 
-    // Events 
-    enum class MainEvents : uint8_t {
-        NO_EVENT, 
-        INIT, 
-        RADIO_CHECK, 
-        NAV_HEADING_CALC, 
-        NAV_LOCATION_CALC, 
-        RADIO_CONNECTION 
-    } main_event; 
-
-    // Flags 
+    // Main thread flags 
     struct MainFlags 
     {
         // System flags 
@@ -95,44 +79,6 @@ private:   // Private members
         uint8_t reset_state   : 1;   // Reset state 
     }
     main_flags; 
-    
-    //==================================================
-
-    //==================================================
-    // Communication thread 
-
-    // Threads info 
-    // ThreadEventData comms_event_info; 
-
-    // Events 
-    enum class CommsEvents : uint8_t {
-        NO_EVENT, 
-        LED_STROBE, 
-        LED_STROBE_OFF, 
-        LED_WRITE, 
-        RADIO_READ, 
-        RADIO_SEND, 
-        NAV_HEADING_UPDATE, 
-        NAV_LOCATION_UPDATE 
-    } comms_event; 
-
-    //==================================================
-
-    //==================================================
-    // Software timers thread 
-
-    TimerHandle_t periodic_timer_100ms; 
-    TimerHandle_t periodic_timer_1s; 
-
-    //==================================================
-
-    //==================================================
-    // Thread synchronization 
-
-    // General communication thread mutex 
-    SemaphoreHandle_t comms_mutex; 
-
-    //==================================================
 
     //==================================================
     // System data 
@@ -147,18 +93,22 @@ private:   // Private members
     
     //==================================================
 
-private:   // Private member functions 
+private:   // Private methods 
+
+    // Boat setup code. Naming and override allow for the Vehicle class to call this 
+    // during generic vehicle setup. 
+    void VehicleSetup(void) override; 
 
     // State function pointer 
     typedef void (*state_func_ptr)(Boat& data, Event event); 
 
-    //==================================================
-    // Main thread 
+    // Dispatch and callback functions 
+    static void MainDispatch(Event event); 
+    static void CommsDispatch(Event event); 
+    static void TimerCallback100ms(TimerHandle_t xTimer); 
+    static void TimerCallback1s(TimerHandle_t xTimer); 
 
-    // Dispatch function 
-    static void BoatMainDispatch(Event event); 
-
-    // State functions 
+    // Main thread state functions 
     static void MainInitState(Boat& data, Event event); 
     static void MainStandbyState(Boat& data, Event event); 
     static void MainAutoState(Boat& data, Event event); 
@@ -172,7 +122,7 @@ private:   // Private member functions
     static void MainFaultState(Boat& data, Event event); 
     static void MainResetState(Boat& data, Event event); 
 
-    // State table 
+    // Main thread state table 
     const state_func_ptr main_state_table[(uint8_t)MainStates::NUM_STATES] = 
     {
         &MainInitState, 
@@ -189,47 +139,8 @@ private:   // Private member functions
         &MainResetState 
     }; 
 
-    // // State entry/exit functions 
-    // void MainInitStateEntry(void); 
-    // void MainInitStateExit(void); 
-    // void MainStandbyStateEntry(void); 
-    // void MainStandbyStateExit(void); 
-    // void MainAutoStateEntry(void); 
-    // void MainAutoStateExit(void); 
-    // void MainManualStateEntry(void); 
-    // void MainManualStateExit(void); 
-    // void MainLowPwrStateEntry(void); 
-    // void MainLowPwrStateExit(void); 
-    // void MainFaultStateEntry(void); 
-    // void MainFaultStateExit(void); 
-    // void MainResetStateEntry(void); 
-    // void MainResetStateExit(void); 
-
     // Helper functions 
-    void MainEventQueue(Event event); 
     void MainStateChange(void); 
-
-    //==================================================
-
-    //==================================================
-    // Comms thread 
-
-    // Dispatch function 
-    static void BoatCommsDispatch(Event event); 
-
-    // Helper functions 
-    void CommsEventQueue(Event event); 
-
-    //==================================================
-
-    //==================================================
-    // Software timer thread 
-
-    // Callback function(s) 
-    static void TimerCallback100ms(TimerHandle_t xTimer); 
-    static void TimerCallback1s(TimerHandle_t xTimer); 
-
-    //==================================================
 
     //==================================================
     // LED module 
@@ -242,16 +153,13 @@ private:   // Private member functions
 
     //==================================================
 
-public:   // Public member functions 
+public:   // Public methods 
 
     // Constructor(s) 
     Boat(); 
 
     // Destructor 
     ~Boat() {} 
-
-    // // Setup 
-    // void BoatSetup(void); 
 }; 
 
 extern Boat boat; 

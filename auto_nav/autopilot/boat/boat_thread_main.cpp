@@ -24,7 +24,7 @@
 // Dispatch 
 
 // Event loop dispatch function for the main thread 
-void Boat::BoatMainDispatch(Event event)
+void Boat::MainDispatch(Event event)
 {
     MainStates state = boat.main_state; 
 
@@ -159,11 +159,13 @@ void Boat::MainInitState(Boat& data, Event event)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
         data.main_flags.standby_state = FLAG_SET; 
-        // data.MainInitStateEntry(); 
 
         // Start software timers 
-        xTimerStart(data.periodic_timer_100ms, 0); 
-        xTimerStart(data.periodic_timer_1s, 0); 
+        xTimerStart(data.periodic_timer_100ms.handler, 0); 
+        xTimerStart(data.periodic_timer_1s.handler, 0); 
+
+        // // Load a waypoint mission if it exists 
+        // navigation.LoadMission(); 
     }
     
     data.main_event = (MainEvents)event; 
@@ -185,7 +187,6 @@ void Boat::MainInitState(Boat& data, Event event)
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.init_state = FLAG_CLEAR; 
-        // data.MainInitStateExit(); 
     }
 }
 
@@ -201,7 +202,10 @@ void Boat::MainStandbyState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        // data.MainStandbyStateEntry(); 
+
+        // navigation.ThrustersOff(); 
+        // LEDStrobeUpdate(ws2812_led_standby_not_ready); 
+        // radio.MainStandbyStateCmdEnable(FLAG_SET); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -223,7 +227,9 @@ void Boat::MainStandbyState(Boat& data, Event event)
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.standby_state = FLAG_CLEAR; 
-        // data.MainStandbyStateExit(); 
+
+        // LEDStrobeOff(); 
+        // radio.MainStandbyStateCmdEnable(FLAG_CLEAR); 
     }
 }
 
@@ -239,7 +245,11 @@ void Boat::MainAutoState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        // data.MainAutoStateEntry(); 
+
+        // navigation.CurrentUpdate(boat); 
+        // LEDStrobeUpdate(ws2812_led_auto_strobe); 
+        // LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
+        // radio.MainAutoStateCmdEnable(FLAG_SET); 
     }
     
     data.main_event = (MainEvents)event; 
@@ -269,7 +279,11 @@ void Boat::MainAutoState(Boat& data, Event event)
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.auto_state = FLAG_CLEAR; 
-        // data.MainAutoStateExit(); 
+
+        // navigation.ThrustersOff(); 
+        // LEDStrobeOff(); 
+        // LEDUpdate(ws2812_led_off, ws2812_led_off); 
+        // radio.MainAutoStateCmdEnable(FLAG_CLEAR); 
     }
 }
 
@@ -285,7 +299,9 @@ void Boat::MainManualState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        // data.MainManualStateEntry(); 
+
+        // LEDStrobeUpdate(ws2812_led_manual_strobe); 
+        // radio.MainManualStateCmdEnable(FLAG_SET); 
     }
     
     data.main_event = (MainEvents)event; 
@@ -311,7 +327,10 @@ void Boat::MainManualState(Boat& data, Event event)
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.manual_state = FLAG_CLEAR; 
-        // data.MainManualStateExit(); 
+
+        // rc.ThrustersOff(); 
+        // LEDStrobeOff(); 
+        // radio.MainManualStateCmdEnable(FLAG_CLEAR); 
     }
 }
 
@@ -487,11 +506,16 @@ void Boat::MainLowPwrState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        // data.MainLowPwrStateEntry(); 
 
         // Stop the software timers 
-        xTimerStop(data.periodic_timer_100ms, 0); 
-        xTimerStop(data.periodic_timer_1s, 0); 
+        xTimerStop(data.periodic_timer_100ms.handler, 0); 
+        xTimerStop(data.periodic_timer_1s.handler, 0); 
+
+        // If all the software timers are stopped then there will be no radio checks or 
+        // LED updates. 
+    
+        // LEDStrobeUpdate(ws2812_led_low_pwr); 
+        // radio.MainLowPwrStateCmdEnable(FLAG_SET); 
     }
     
     data.main_event = (MainEvents)event; 
@@ -513,7 +537,9 @@ void Boat::MainLowPwrState(Boat& data, Event event)
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.low_pwr_state = FLAG_CLEAR; 
-        // data.MainLowPwrStateExit(); 
+
+        // LEDStrobeOff(); 
+        // radio.MainLowPwrStateCmdEnable(FLAG_CLEAR); 
     }
 }
     
@@ -529,7 +555,8 @@ void Boat::MainFaultState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        // data.MainFaultStateEntry(); 
+
+        // radio.MainFaultStateCmdEnable(FLAG_SET); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -551,7 +578,8 @@ void Boat::MainFaultState(Boat& data, Event event)
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.fault_state = FLAG_CLEAR; 
-        // data.MainFaultStateExit(); 
+
+        // radio.MainFaultStateCmdEnable(FLAG_CLEAR); 
     }
 }
 
@@ -567,11 +595,10 @@ void Boat::MainResetState(Boat& data, Event event)
     if (data.main_flags.state_entry)
     {
         data.main_flags.state_entry = FLAG_CLEAR; 
-        // data.MainResetStateEntry(); 
 
         // Stop the software timers 
-        xTimerStop(data.periodic_timer_100ms, 0); 
-        xTimerStop(data.periodic_timer_1s, 0); 
+        xTimerStop(data.periodic_timer_100ms.handler, 0); 
+        xTimerStop(data.periodic_timer_1s.handler, 0); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -589,7 +616,6 @@ void Boat::MainResetState(Boat& data, Event event)
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
         data.main_flags.reset_state = FLAG_CLEAR; 
-        // data.MainResetStateExit(); 
     }
 }
 
@@ -597,146 +623,7 @@ void Boat::MainResetState(Boat& data, Event event)
 
 
 //=======================================================================================
-// State entry/exit 
-
-// // Init state entry 
-// void Boat::MainInitStateEntry(void)
-// {
-//     // Start software timers 
-//     xTimerStart(periodic_timer_100ms, 0); 
-//     xTimerStart(periodic_timer_1s, 0); 
-
-//     // Load a waypoint mission if it exists 
-//     // navigation.LoadMission(); 
-// }
-
-
-// // Init state exit 
-// void Boat::MainInitStateExit(void)
-// {
-//     // 
-// }
-
-
-// // Standby state entry 
-// void Boat::MainStandbyStateEntry(void)
-// {
-//     // navigation.ThrustersOff(); 
-//     // LEDStrobeUpdate(ws2812_led_standby_not_ready); 
-//     // radio.MainStandbyStateCmdEnable(FLAG_SET); 
-// }
-
-
-// // Standby state exit 
-// void Boat::MainStandbyStateExit(void)
-// {
-//     // LEDStrobeOff(); 
-//     // radio.MainStandbyStateCmdEnable(FLAG_CLEAR); 
-// }
-
-
-// // Auto state entry 
-// void Boat::MainAutoStateEntry(void)
-// {
-//     // navigation.CurrentUpdate(boat); 
-//     // LEDStrobeUpdate(ws2812_led_auto_strobe); 
-//     // LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
-//     // radio.MainAutoStateCmdEnable(FLAG_SET); 
-// }
-
-
-// // Auto state exit 
-// void Boat::MainAutoStateExit(void)
-// {
-//     // navigation.ThrustersOff(); 
-//     // LEDStrobeOff(); 
-//     // LEDUpdate(ws2812_led_off, ws2812_led_off); 
-//     // radio.MainAutoStateCmdEnable(FLAG_CLEAR); 
-// }
-
-
-// // Manual state entry 
-// void Boat::MainManualStateEntry(void)
-// {
-//     // LEDStrobeUpdate(ws2812_led_manual_strobe); 
-//     // radio.MainManualStateCmdEnable(FLAG_SET); 
-// }
-
-
-// // Manual state exit 
-// void Boat::MainManualStateExit(void)
-// {
-//     // rc.ThrustersOff(); 
-//     // LEDStrobeOff(); 
-//     // radio.MainManualStateCmdEnable(FLAG_CLEAR); 
-// }
-
-
-// // Low power state entry 
-// void Boat::MainLowPwrStateEntry(void)
-// {
-//     // Stop the software timers 
-//     xTimerStop(periodic_timer_100ms, 0); 
-//     xTimerStop(periodic_timer_1s, 0); 
-
-//     // If all the software timers are stopped then there will be no radio checks or 
-//     // LED updates. 
-    
-//     // LEDStrobeUpdate(ws2812_led_low_pwr); 
-//     // radio.MainLowPwrStateCmdEnable(FLAG_SET); 
-// }
-
-
-// // Low power state exit 
-// void Boat::MainLowPwrStateExit(void)
-// {
-//     // LEDStrobeOff(); 
-//     // radio.MainLowPwrStateCmdEnable(FLAG_CLEAR); 
-// }
-
-
-// // Fault state entry 
-// void Boat::MainFaultStateEntry(void)
-// {
-//     // radio.MainFaultStateCmdEnable(FLAG_SET); 
-// }
-
-
-// // Fault state exit 
-// void Boat::MainFaultStateExit(void)
-// {
-//     // radio.MainFaultStateCmdEnable(FLAG_CLEAR); 
-// }
-
-
-// // Reset state entry 
-// void Boat::MainResetStateEntry(void)
-// {
-//     // Stop the software timers 
-//     xTimerStop(periodic_timer_100ms, 0); 
-//     xTimerStop(periodic_timer_1s, 0); 
-// }
-
-
-// // Reset state exit 
-// void Boat::MainResetStateExit(void)
-// {
-//     // 
-// }
-
-//=======================================================================================
-
-
-//=======================================================================================
 // Helper functions 
-
-// Queue an event for the main thread 
-void Boat::MainEventQueue(Event event)
-{
-    main_event_info.event = event; 
-    xQueueSend(main_event_info.ThreadEventQueue, (void *)&main_event_info.event, 0); 
-}
-
 
 // Main thread state change 
 void Boat::MainStateChange(void)

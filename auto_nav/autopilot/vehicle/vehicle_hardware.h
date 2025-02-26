@@ -5,6 +5,10 @@
  * 
  * @brief Vehicle hardware interface 
  * 
+ * @details Vehicle hardware functions are not defined by the autopilot. They should be 
+ *          defined within the project using this autopilot library so the project can 
+ *          add a hardware specific interface. 
+ * 
  * @version 0.1
  * @date 2025-02-24
  * 
