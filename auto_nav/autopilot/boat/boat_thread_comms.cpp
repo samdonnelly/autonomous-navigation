@@ -62,6 +62,7 @@ void Boat::CommsDispatch(Event event)
             break; 
 
         case CommsEvents::GPS_READ: 
+            boat.hardware.GPS_Read(); 
             break; 
 
         case CommsEvents::COMPASS_READ: 
@@ -70,19 +71,22 @@ void Boat::CommsDispatch(Event event)
         case CommsEvents::IMU_READ: 
             break; 
 
-        case CommsEvents::TELEMETRY_RADIO_READ: 
+        case CommsEvents::TELEMETRY_READ: 
             break; 
 
-        case CommsEvents::TELEMETRY_RADIO_WRITE: 
+        case CommsEvents::TELEMETRY_WRITE: 
             break; 
 
-        case CommsEvents::RC_RADIO_READ: 
+        case CommsEvents::RC_READ: 
             break; 
 
-        case CommsEvents::SD_CARD_READ: 
+        case CommsEvents::MEMORY_READ: 
             break; 
 
-        case CommsEvents::SD_CARD_WRITE: 
+        case CommsEvents::MEMORY_WRITE: 
+            break; 
+
+        case CommsEvents::RANGEFINDER_READ: 
             break; 
 
         default: 

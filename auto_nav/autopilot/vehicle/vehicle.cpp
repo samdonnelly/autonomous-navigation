@@ -26,6 +26,9 @@
 // Vehicle setup 
 void Vehicle::Setup(void)
 {
+    // Set up the vehicle hardware (ex. UART, radio, etc); 
+    hardware.HardwareSetup(); 
+
     // Thread definitions. Vehicle specific dispatch and callback function pointers get 
     // set in vehicle specific setup code. 
     main_event_info = 

@@ -21,6 +21,7 @@
 // Includes 
 
 #include "rtos.h" 
+#include "vehicle_mavlink.h" 
 
 //=======================================================================================
 
@@ -64,12 +65,17 @@ protected:   // Protected members
         GPS_READ, 
         COMPASS_READ, 
         IMU_READ, 
-        TELEMETRY_RADIO_READ, 
-        TELEMETRY_RADIO_WRITE, 
-        RC_RADIO_READ, 
-        SD_CARD_READ, 
-        SD_CARD_WRITE 
+        TELEMETRY_READ, 
+        TELEMETRY_WRITE, 
+        RC_READ, 
+        MEMORY_READ, 
+        MEMORY_WRITE, 
+        RANGEFINDER_READ 
     } comms_event; 
+
+    // Features a vehicle has 
+    VehicleHardware hardware; 
+    VehicleMAVLink mavlink; 
 
 protected:   // Protected methods 
 
@@ -85,6 +91,43 @@ public:   // Public methods
     // Project interface 
     void Setup(void); 
     void Loop(void); 
+}; 
+
+
+class VehicleHardware 
+{
+    // Vehicle hardware functions are not defined by the autopilot. They should be 
+    // defined within the project using this autopilot library so the project can 
+    // add a hardware specific interface. 
+
+public:   // Public member functions 
+    
+    // Hardware setup 
+    void HardwareSetup(void *vehicle_data); 
+
+    // GPS 
+    void GPS_Read(void *vehicle_data); 
+    void GPS_Get(void *vehicle_data); 
+
+    // Compass 
+    void CompassRead(void *vehicle_data); 
+
+    // IMU 
+    void IMU_Read(void *vehicle_data); 
+
+    // Telemetry 
+    void TelemetryRead(void *vehicle_data); 
+    void TelemetryWrite(void *vehicle_data); 
+
+    // RC 
+    void RC_Read(void *vehicle_data); 
+
+    // Memory 
+    void MemoryRead(void *vehicle_data); 
+    void MemoryWrite(void *vehicle_data); 
+
+    // Rangefinder 
+    void RangefinderRead(void *vehicle_data); 
 }; 
 
 //=======================================================================================
