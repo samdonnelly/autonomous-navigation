@@ -17,7 +17,7 @@
 //=======================================================================================
 // Include 
 
-#include "boat.h" 
+#include "vehicle.h" 
 
 //=======================================================================================
 
@@ -25,9 +25,9 @@
 //=======================================================================================
 // Initialization 
 
-void VehicleHardware::HardwareSetup(void *vehicle_data)
+void VehicleHardware::HardwareSetup(void)
 {
-    Boat *boat_instance = (Boat *)vehicle_data; 
+    // 
 }
 
 //=======================================================================================
@@ -36,13 +36,13 @@ void VehicleHardware::HardwareSetup(void *vehicle_data)
 //=======================================================================================
 // GPS 
 
-void VehicleHardware::GPS_Read(void *vehicle_data)
+void VehicleHardware::GPS_Read(void)
 {
     // 
 }
 
 
-void VehicleHardware::GPS_Get(void *vehicle_data)
+void VehicleHardware::GPS_Get(void)
 {
     // 
 }
@@ -53,7 +53,7 @@ void VehicleHardware::GPS_Get(void *vehicle_data)
 //=======================================================================================
 // Compass 
 
-void VehicleHardware::CompassRead(void *vehicle_data)
+void VehicleHardware::CompassRead(void)
 {
     // 
 }
@@ -64,7 +64,7 @@ void VehicleHardware::CompassRead(void *vehicle_data)
 //=======================================================================================
 // IMU 
 
-void VehicleHardware::IMU_Read(void *vehicle_data)
+void VehicleHardware::IMU_Read(void)
 {
     // 
 }
@@ -75,13 +75,13 @@ void VehicleHardware::IMU_Read(void *vehicle_data)
 //=======================================================================================
 // Telemetry 
 
-void VehicleHardware::TelemetryRead(void *vehicle_data)
+void VehicleHardware::TelemetryRead(void)
 {
     // 
 }
 
 
-void VehicleHardware::TelemetryWrite(void *vehicle_data)
+void VehicleHardware::TelemetryWrite(void)
 {
     // 
 }
@@ -92,7 +92,7 @@ void VehicleHardware::TelemetryWrite(void *vehicle_data)
 //=======================================================================================
 // RC 
 
-void VehicleHardware::RC_Read(void *vehicle_data)
+void VehicleHardware::RC_Read(void)
 {
     // 
 }
@@ -103,13 +103,13 @@ void VehicleHardware::RC_Read(void *vehicle_data)
 //=======================================================================================
 // Memory 
 
-void VehicleHardware::MemoryRead(void *vehicle_data)
+void VehicleHardware::MemoryRead(void)
 {
     // 
 }
 
 
-void VehicleHardware::MemoryWrite(void *vehicle_data)
+void VehicleHardware::MemoryWrite(void)
 {
     // 
 }
@@ -120,7 +120,7 @@ void VehicleHardware::MemoryWrite(void *vehicle_data)
 //=======================================================================================
 // Rangefinder 
 
-void VehicleHardware::RangefinderRead(void *vehicle_data)
+void VehicleHardware::RangefinderRead(void)
 {
     // 
 }

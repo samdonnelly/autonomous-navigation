@@ -66,27 +66,35 @@ void Boat::CommsDispatch(Event event)
             break; 
 
         case CommsEvents::COMPASS_READ: 
+            boat.hardware.CompassRead(); 
             break; 
 
         case CommsEvents::IMU_READ: 
+            boat.hardware.IMU_Read(); 
             break; 
 
         case CommsEvents::TELEMETRY_READ: 
+            boat.hardware.TelemetryRead(); 
             break; 
 
         case CommsEvents::TELEMETRY_WRITE: 
+            boat.hardware.TelemetryWrite(); 
             break; 
 
         case CommsEvents::RC_READ: 
+            boat.hardware.RC_Read(); 
             break; 
 
         case CommsEvents::MEMORY_READ: 
+            boat.hardware.MemoryRead(); 
             break; 
 
         case CommsEvents::MEMORY_WRITE: 
+            boat.hardware.MemoryWrite(); 
             break; 
 
         case CommsEvents::RANGEFINDER_READ: 
+            boat.hardware.RangefinderRead(); 
             break; 
 
         default: 

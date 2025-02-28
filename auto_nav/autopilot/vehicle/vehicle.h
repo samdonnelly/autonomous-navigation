@@ -100,34 +100,38 @@ class VehicleHardware
     // defined within the project using this autopilot library so the project can 
     // add a hardware specific interface. 
 
-public:   // Public member functions 
+private:   // Private members 
+
+    // 
+
+public:   // Public methods 
     
     // Hardware setup 
-    void HardwareSetup(void *vehicle_data); 
+    void HardwareSetup(void); 
 
     // GPS 
-    void GPS_Read(void *vehicle_data); 
-    void GPS_Get(void *vehicle_data); 
+    void GPS_Read(void); 
+    void GPS_Get(void); 
 
     // Compass 
-    void CompassRead(void *vehicle_data); 
+    void CompassRead(void); 
 
     // IMU 
-    void IMU_Read(void *vehicle_data); 
+    void IMU_Read(void); 
 
     // Telemetry 
-    void TelemetryRead(void *vehicle_data); 
-    void TelemetryWrite(void *vehicle_data); 
+    void TelemetryRead(void); 
+    void TelemetryWrite(void); 
 
     // RC 
-    void RC_Read(void *vehicle_data); 
+    void RC_Read(void); 
 
     // Memory 
-    void MemoryRead(void *vehicle_data); 
-    void MemoryWrite(void *vehicle_data); 
+    void MemoryRead(void); 
+    void MemoryWrite(void); 
 
     // Rangefinder 
-    void RangefinderRead(void *vehicle_data); 
+    void RangefinderRead(void); 
 }; 
 
 //=======================================================================================
