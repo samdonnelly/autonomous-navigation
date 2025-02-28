@@ -21,7 +21,8 @@
 // Includes 
 
 #include "rtos.h" 
-#include "vehicle_mavlink.h" 
+#include "hardware.h" 
+#include "telemetry.h" 
 
 //=======================================================================================
 
@@ -47,6 +48,7 @@ protected:   // Protected members
         NO_EVENT, 
         INIT, 
         RADIO_CHECK, 
+        TELEMETRY_CHECK, 
         NAV_HEADING_CALC, 
         NAV_LOCATION_CALC, 
         RADIO_CONNECTION 
@@ -75,7 +77,7 @@ protected:   // Protected members
 
     // Features a vehicle has 
     VehicleHardware hardware; 
-    VehicleMAVLink mavlink; 
+    VehicleTelemetry telemetry; 
 
 protected:   // Protected methods 
 
@@ -91,48 +93,7 @@ public:   // Public methods
     // Project interface 
     void Setup(void); 
     void Loop(void); 
-}; 
-
-
-class VehicleHardware 
-{
-    // Vehicle hardware functions are not defined by the autopilot. They should be 
-    // defined within the project using this autopilot library so the project can 
-    // add a hardware specific interface. 
-
-private:   // Private members 
-
-    // 
-
-public:   // Public methods 
-    
-    // Hardware setup 
-    void HardwareSetup(void); 
-
-    // GPS 
-    void GPS_Read(void); 
-    void GPS_Get(void); 
-
-    // Compass 
-    void CompassRead(void); 
-
-    // IMU 
-    void IMU_Read(void); 
-
-    // Telemetry 
-    void TelemetryRead(void); 
-    void TelemetryWrite(void); 
-
-    // RC 
-    void RC_Read(void); 
-
-    // Memory 
-    void MemoryRead(void); 
-    void MemoryWrite(void); 
-
-    // Rangefinder 
-    void RangefinderRead(void); 
-}; 
+};
 
 //=======================================================================================
 

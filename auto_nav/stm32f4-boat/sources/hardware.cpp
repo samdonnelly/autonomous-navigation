@@ -5,7 +5,11 @@
  * 
  * @brief Vehicle hardware 
  * 
- * @details This 
+ * @details This file is added by the project (not the autopilot) to define the vehicle 
+ *          hardware functions. These functions provide a hardware specific interface 
+ *          that's unique to each project that uses the autopilot. The autopilot 
+ *          purposely does not define these because their definition will change 
+ *          depending on what the user wants to use. 
  * 
  * @version 0.1
  * @date 2025-02-27
@@ -17,7 +21,7 @@
 //=======================================================================================
 // Include 
 
-#include "vehicle.h" 
+#include "hardware.h" 
 
 //=======================================================================================
 
@@ -27,7 +31,8 @@
 
 void VehicleHardware::HardwareSetup(void)
 {
-    // 
+    // Store pointer to hardware buffer that holds telemetry data. 
+    telemetry_buff; 
 }
 
 //=======================================================================================
@@ -77,7 +82,16 @@ void VehicleHardware::IMU_Read(void)
 
 void VehicleHardware::TelemetryRead(void)
 {
-    // 
+    // Read from radio (if needed) 
+    // - With SiK radios over UART I will likely use DMA instead so no need to read here. 
+    
+    // Set a flag to indicate new data if it's available. 
+    data_ready.telemetry_ready;   // Assign interrupt flag status 
+    // Clear interrupt flag 
+    telemetry_data_size;   // Assign size of data received 
+    
+    // - We dom't want to process messages here because that is not a time-dependent 
+    //   activity. 
 }
 
 
