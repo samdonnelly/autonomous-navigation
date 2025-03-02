@@ -53,6 +53,10 @@
 //=======================================================================================
 // Vehicle Settings (VS) 
 
+// Telemetry ID 
+#define VS_SYSTEM_ID 1 
+#define VS_GCS_ID 255 
+
 // The vehicle specific settings below only have an affect when the corresponding vehicle 
 // type (VT) is selected. 
 
