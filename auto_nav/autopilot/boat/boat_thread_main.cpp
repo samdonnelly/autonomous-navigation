@@ -212,8 +212,10 @@ void Boat::MainStandbyState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::RADIO_CHECK: 
+        // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
+        case MainEvents::TELEMETRY_CHECK: 
+            data.telemetry.MAVLinkMessageDecode(data.hardware); 
             break; 
         
         default: 
@@ -256,8 +258,10 @@ void Boat::MainAutoState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::RADIO_CHECK: 
+        // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
+        case MainEvents::TELEMETRY_CHECK: 
+            data.telemetry.MAVLinkMessageDecode(data.hardware); 
             break; 
         
         case MainEvents::NAV_HEADING_CALC: 
@@ -308,8 +312,10 @@ void Boat::MainManualState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::RADIO_CHECK: 
+        // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
+        case MainEvents::TELEMETRY_CHECK: 
+            data.telemetry.MAVLinkMessageDecode(data.hardware); 
             break; 
         
         case MainEvents::RADIO_CONNECTION: 
@@ -522,8 +528,10 @@ void Boat::MainLowPwrState(Boat& data, Event event)
     
     switch (data.main_event)
     {
-        case MainEvents::RADIO_CHECK: 
+        // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
+        case MainEvents::TELEMETRY_CHECK: 
+            data.telemetry.MAVLinkMessageDecode(data.hardware); 
             break; 
         
         default: 
@@ -563,8 +571,10 @@ void Boat::MainFaultState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::RADIO_CHECK: 
+        // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
+        case MainEvents::TELEMETRY_CHECK: 
+            data.telemetry.MAVLinkMessageDecode(data.hardware); 
             break; 
         
         default: 

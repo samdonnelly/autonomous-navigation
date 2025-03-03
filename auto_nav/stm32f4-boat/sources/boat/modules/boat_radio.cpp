@@ -102,7 +102,7 @@ void BoatRadio::CommandSet(
     const char *command)
 {
     // 'write_ptr' is not protected because 'CommandSend' is only called after this 
-    // functions. 
+    // function. 
 
     write_ptr = (uint8_t *)command; 
     boat_radio.CommsEventQueue((Event)Boat::CommsEvents::RADIO_SEND); 

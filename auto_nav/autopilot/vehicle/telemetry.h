@@ -71,7 +71,7 @@ public:   // Public methods
 
     // MAVLink message decode 
     void MAVLinkMessageDecode(VehicleHardware &hardware); 
-}; 
+};
 
 
 class VehicleMAVLink 

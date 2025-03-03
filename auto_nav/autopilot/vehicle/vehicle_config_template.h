@@ -57,6 +57,9 @@
 #define VS_SYSTEM_ID 1 
 #define VS_GCS_ID 255 
 
+// Timing 
+#define VS_HEARTBEAT_TIMEOUT 100   // Max count without a heartbeat before timeout 
+
 // The vehicle specific settings below only have an affect when the corresponding vehicle 
 // type (VT) is selected. 
 

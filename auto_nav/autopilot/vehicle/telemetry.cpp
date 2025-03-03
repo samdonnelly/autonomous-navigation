@@ -27,13 +27,16 @@
 void VehicleTelemetry::MAVLinkMessageDecode(VehicleHardware &hardware)
 {
     // Check for a connection (heartbeat) timeout 
-    if (heartbeat_status_timer++ >= 100)
+    if (heartbeat_status_timer++ >= VS_HEARTBEAT_TIMEOUT)
     {
         // Have not seen a heartbeat message from a GCS for too long. The system is 
         // considered to be disconnected. 
         heartbeat_status_timer--; 
         connected = FLAG_CLEAR; 
     }
+
+    // No data protection is done here because this action is queued right after a 
+    // telemetry read event so it's unlikely the data will be accessed simultaneously. 
 
     // Check if new data is available. If so then get the data and process it. 
     if (hardware.data_ready.telemetry_ready == FLAG_SET)
@@ -100,7 +103,7 @@ void VehicleTelemetry::MAVLinkHeartbeat(void)
     // are correct. 
     if ((mavlink.heartbeat_msg_gcs.type == MAV_TYPE_GCS) && 
         (mavlink.heartbeat_msg_gcs.autopilot == MAV_AUTOPILOT_INVALID) && 
-        (msg.sysid == 255) && 
+        (msg.sysid == VS_GCS_ID) && 
         (msg.compid == MAV_COMP_ID_MISSIONPLANNER))
     {
         heartbeat_status_timer = RESET; 
