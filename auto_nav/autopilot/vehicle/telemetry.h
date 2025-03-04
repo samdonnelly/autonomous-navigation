@@ -18,7 +18,7 @@
 //=======================================================================================
 // Includes 
 
-#include "hardware.h" 
+#include "vehicle.h" 
 
 extern "C"
 {
@@ -45,6 +45,8 @@ private:   // Private members
     mavlink_message_t msg; 
     mavlink_status_t status; 
     uint16_t data_index; 
+    uint16_t data_size; 
+    uint8_t data_buff[VS_TELEMETRY_BUFF]; 
 
     // MAVLink messages 
     VehicleMAVLink mavlink; 
@@ -70,7 +72,9 @@ private:   // Private methods
 public:   // Public methods 
 
     // MAVLink message decode 
-    void MAVLinkMessageDecode(VehicleHardware &hardware); 
+    void MAVLinkMessageDecode(
+        SemaphoreHandle_t &mutex, 
+        VehicleHardware &hardware); 
 };
 
 

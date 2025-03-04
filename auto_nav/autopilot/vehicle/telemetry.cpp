@@ -24,7 +24,9 @@
 // MAVLink 
 
 // MAVLink message decode 
-void VehicleTelemetry::MAVLinkMessageDecode(VehicleHardware &hardware)
+void VehicleTelemetry::MAVLinkMessageDecode(
+    SemaphoreHandle_t &mutex, 
+    VehicleHardware &hardware)
 {
     // Check for a connection (heartbeat) timeout 
     if (heartbeat_status_timer++ >= VS_HEARTBEAT_TIMEOUT)
@@ -35,24 +37,24 @@ void VehicleTelemetry::MAVLinkMessageDecode(VehicleHardware &hardware)
         connected = FLAG_CLEAR; 
     }
 
-    // Get a copy of the data so we don't have to hold the comms mutex throughout the 
-    // whole decoding process. 
-
-    // No data protection is done here because this action is queued right after a 
-    // telemetry read event so it's unlikely the data will be accessed simultaneously. 
-
     // Check if new data is available. If so then get the data and process it. 
     if (hardware.data_ready.telemetry_ready == FLAG_SET)
     {
         hardware.data_ready.telemetry_ready = FLAG_CLEAR; 
         data_index = RESET; 
+
+        // Get a copy of the data so we don't have to hold the comms mutex throughout the 
+        // whole decoding process. 
+        xSemaphoreTake(mutex, portMAX_DELAY); 
+        hardware.TelemetryGet(data_size, data_buff); 
+        xSemaphoreGive(mutex); 
         
         // Look at each byte of the received data and try to decode MAVLink messages 
         // until there is no more data to check. 
-        while (data_index < hardware.telemetry_data_size)
+        while (data_index < data_size)
         {
             if (mavlink_parse_char(channel, 
-                                   *(hardware.telemetry_buff + data_index++), 
+                                   data_buff[data_index++], 
                                    &msg, 
                                    &status))
             {
@@ -60,6 +62,8 @@ void VehicleTelemetry::MAVLinkMessageDecode(VehicleHardware &hardware)
             }
         }
     }
+
+    // Perform any needed higher-level action. 
 }
 
 

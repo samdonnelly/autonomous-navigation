@@ -59,6 +59,61 @@ void Boat::MainDispatch(Event event)
                 state = MainStates::MANUAL_STATE; 
             }
             break; 
+            
+        case MainStates::MANUAL_STATE: 
+            if (boat.main_flags.fault_state)
+            {
+                state = MainStates::FAULT_STATE; 
+            }
+            else if (boat.main_flags.low_pwr_state)
+            {
+                state = MainStates::LOW_PWR_STATE; 
+            }
+            else if (boat.main_flags.standby_state)
+            {
+                state = MainStates::STANDBY_STATE; 
+            }
+            else if (boat.main_flags.auto_state)
+            {
+                state = MainStates::AUTO_STATE; 
+            }
+            break; 
+
+        case MainStates::ACRO_STATE: 
+            state = MainStates::INIT_STATE; 
+            break; 
+
+        case MainStates::STEERING_STATE: 
+            state = MainStates::INIT_STATE; 
+            break; 
+
+        case MainStates::HOLD_STATE: 
+            state = MainStates::INIT_STATE; 
+            break; 
+
+        case MainStates::LOITER_STATE: 
+            state = MainStates::INIT_STATE; 
+            break; 
+
+        case MainStates::FOLLOW_STATE: 
+            state = MainStates::INIT_STATE; 
+            break; 
+
+        case MainStates::SIMPLE_STATE: 
+            state = MainStates::INIT_STATE; 
+            break; 
+
+        case MainStates::LAUNCH_STATE: 
+            state = MainStates::INIT_STATE; 
+            break; 
+
+        case MainStates::DOCK_STATE: 
+            state = MainStates::INIT_STATE; 
+            break; 
+
+        case MainStates::CIRCLE_STATE: 
+            state = MainStates::INIT_STATE; 
+            break; 
 
         case MainStates::AUTO_STATE: 
             if (boat.main_flags.fault_state)
@@ -79,40 +134,18 @@ void Boat::MainDispatch(Event event)
             }
             break; 
 
-        case MainStates::MANUAL_STATE: 
-            if (boat.main_flags.fault_state)
-            {
-                state = MainStates::FAULT_STATE; 
-            }
-            else if (boat.main_flags.low_pwr_state)
-            {
-                state = MainStates::LOW_PWR_STATE; 
-            }
-            else if (boat.main_flags.standby_state)
-            {
-                state = MainStates::STANDBY_STATE; 
-            }
-            else if (boat.main_flags.auto_state)
-            {
-                state = MainStates::AUTO_STATE; 
-            }
+        case MainStates::RTL_STATE: 
+            state = MainStates::INIT_STATE; 
             break; 
 
-        case MainStates::HOME_STATE: 
+        case MainStates::SMART_RTL_STATE: 
+            state = MainStates::INIT_STATE; 
             break; 
 
-        case MainStates::LOITER_STATE: 
+        case MainStates::GUIDED_STATE: 
+            state = MainStates::INIT_STATE; 
             break; 
-
-        case MainStates::FOLLOW_STATE: 
-            break; 
-
-        case MainStates::LAUNCH_STATE: 
-            break; 
-
-        case MainStates::DOCK_STATE: 
-            break; 
-
+        
         case MainStates::LOW_PWR_STATE: 
             if (boat.main_flags.standby_state)
             {
@@ -139,6 +172,7 @@ void Boat::MainDispatch(Event event)
             break; 
         
         default: 
+            state = MainStates::INIT_STATE; 
             break; 
     }
 
@@ -215,7 +249,7 @@ void Boat::MainStandbyState(Boat& data, Event event)
         // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
         case MainEvents::TELEMETRY_CHECK: 
-            data.telemetry.MAVLinkMessageDecode(data.hardware); 
+            data.telemetry.MAVLinkMessageDecode(data.comms_mutex, data.hardware); 
             break; 
         
         default: 
@@ -261,7 +295,7 @@ void Boat::MainAutoState(Boat& data, Event event)
         // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
         case MainEvents::TELEMETRY_CHECK: 
-            data.telemetry.MAVLinkMessageDecode(data.hardware); 
+            data.telemetry.MAVLinkMessageDecode(data.comms_mutex, data.hardware); 
             break; 
         
         case MainEvents::NAV_HEADING_CALC: 
@@ -315,7 +349,7 @@ void Boat::MainManualState(Boat& data, Event event)
         // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
         case MainEvents::TELEMETRY_CHECK: 
-            data.telemetry.MAVLinkMessageDecode(data.hardware); 
+            data.telemetry.MAVLinkMessageDecode(data.comms_mutex, data.hardware); 
             break; 
         
         case MainEvents::RADIO_CONNECTION: 
@@ -346,7 +380,7 @@ void Boat::MainManualState(Boat& data, Event event)
 //=======================================================================================
 // Home state 
 
-void Boat::MainHomeState(Boat& data, Event event)
+void Boat::MainRTLState(Boat& data, Event event)
 {
     // State entry 
     if (data.main_flags.state_entry)
@@ -368,7 +402,7 @@ void Boat::MainHomeState(Boat& data, Event event)
     {
         data.main_flags.state_exit = FLAG_CLEAR; 
         data.main_flags.state_entry = FLAG_SET; 
-        data.main_flags.home_state = FLAG_CLEAR; 
+        data.main_flags.rtl_state = FLAG_CLEAR; 
     }
 }
 
@@ -531,7 +565,7 @@ void Boat::MainLowPwrState(Boat& data, Event event)
         // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
         case MainEvents::TELEMETRY_CHECK: 
-            data.telemetry.MAVLinkMessageDecode(data.hardware); 
+            data.telemetry.MAVLinkMessageDecode(data.comms_mutex, data.hardware); 
             break; 
         
         default: 
@@ -574,7 +608,7 @@ void Boat::MainFaultState(Boat& data, Event event)
         // case MainEvents::RADIO_CHECK: 
             // data.radio.CommandCheck(data); 
         case MainEvents::TELEMETRY_CHECK: 
-            data.telemetry.MAVLinkMessageDecode(data.hardware); 
+            data.telemetry.MAVLinkMessageDecode(data.comms_mutex, data.hardware); 
             break; 
         
         default: 
@@ -640,6 +674,99 @@ void Boat::MainStateChange(void)
 {
     main_flags.state_exit = FLAG_SET; 
     MainEventQueue((Event)MainEvents::NO_EVENT); 
+}
+
+
+// Main thread state selection 
+void Boat::MainStateSelect(uint8_t state)
+{
+    uint8_t no_state = FLAG_CLEAR; 
+
+    if (state >= (uint8_t)MainStates::NUM_STATES)
+    {
+        return; 
+    }
+
+    switch ((MainStates)state)
+    {
+        case MainStates::INIT_STATE: 
+            main_flags.init_state = FLAG_SET; 
+            break; 
+
+        case MainStates::STANDBY_STATE: 
+            main_flags.standby_state = FLAG_SET; 
+            break; 
+            
+        case MainStates::MANUAL_STATE: 
+            main_flags.manual_state = FLAG_SET; 
+            break; 
+
+        case MainStates::ACRO_STATE: 
+            break; 
+
+        case MainStates::STEERING_STATE: 
+            break; 
+
+        case MainStates::HOLD_STATE: 
+            break; 
+
+        case MainStates::LOITER_STATE: 
+            main_flags.loiter_state = FLAG_SET; 
+            break; 
+
+        case MainStates::FOLLOW_STATE: 
+            main_flags.follow_state = FLAG_SET; 
+            break; 
+
+        case MainStates::SIMPLE_STATE: 
+            break; 
+
+        case MainStates::LAUNCH_STATE: 
+            main_flags.launch_state = FLAG_SET; 
+            break; 
+
+        case MainStates::DOCK_STATE: 
+            main_flags.dock_state = FLAG_SET; 
+            break; 
+
+        case MainStates::CIRCLE_STATE: 
+            break; 
+
+        case MainStates::AUTO_STATE: 
+            main_flags.auto_state = FLAG_SET; 
+            break; 
+
+        case MainStates::RTL_STATE: 
+            main_flags.rtl_state = FLAG_SET; 
+            break; 
+
+        case MainStates::SMART_RTL_STATE: 
+            break; 
+
+        case MainStates::GUIDED_STATE: 
+            break; 
+        
+        case MainStates::LOW_PWR_STATE: 
+            main_flags.low_pwr_state = FLAG_SET; 
+            break; 
+
+        case MainStates::FAULT_STATE: 
+            main_flags.fault_state = FLAG_SET; 
+            break; 
+
+        case MainStates::RESET_STATE: 
+            main_flags.reset_state = FLAG_SET; 
+            break; 
+        
+        default: 
+            no_state = FLAG_SET; 
+            break; 
+    }
+
+    if (no_state == FLAG_CLEAR)
+    {
+        MainStateChange(); 
+    }
 }
 
 //=======================================================================================

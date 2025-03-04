@@ -22,10 +22,10 @@
 //=======================================================================================
 // Includes 
 
-#include "system_tools.h" 
-#include "vehicle_config.h" 
+#include "vehicle.h" 
 
 //=======================================================================================
+
 
 //=======================================================================================
 // Classes 
@@ -43,38 +43,35 @@ public:   // Public members
     }
     data_ready; 
 
-    // Telemetry 
-    uint8_t *telemetry_buff; 
-    uint16_t telemetry_data_size; 
-
 public:   // Public methods 
 
     // Hardware setup 
     void HardwareSetup(void); 
 
-    // GPS 
-    void GPS_Read(void); 
-    void GPS_Get(void); 
+    // // GPS 
+    // void GPS_Read(void); 
+    // void GPS_Get(void); 
 
-    // Compass 
-    void CompassRead(void); 
+    // // Compass 
+    // void CompassRead(void); 
 
-    // IMU 
-    void IMU_Read(void); 
+    // // IMU 
+    // void IMU_Read(void); 
 
     // Telemetry 
     void TelemetryRead(void); 
+    void TelemetryGet(uint16_t &size, uint8_t *buffer); 
     void TelemetryWrite(void); 
 
-    // RC 
-    void RC_Read(void); 
+    // // RC 
+    // void RC_Read(void); 
 
-    // Memory 
-    void MemoryRead(void); 
-    void MemoryWrite(void); 
+    // // Memory 
+    // void MemoryRead(void); 
+    // void MemoryWrite(void); 
 
-    // Rangefinder 
-    void RangefinderRead(void); 
+    // // Rangefinder 
+    // void RangefinderRead(void); 
 }; 
 
 //=======================================================================================

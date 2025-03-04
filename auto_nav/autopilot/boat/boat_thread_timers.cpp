@@ -46,20 +46,20 @@ void Boat::TimerCallback100ms(TimerHandle_t xTimer)
 // 1s timer 
 void Boat::TimerCallback1s(TimerHandle_t xTimer)
 {
-    // Keep the current location up to date 
-    boat.CommsEventQueue((Event)CommsEvents::NAV_LOCATION_UPDATE); 
+    // // Keep the current location up to date 
+    // boat.CommsEventQueue((Event)CommsEvents::NAV_LOCATION_UPDATE); 
 
-    // Queue events based on the state 
-    if (boat.main_state == MainStates::AUTO_STATE)
-    {
-        // Perform navigation location calculations when in the auto state 
-        boat.MainEventQueue((Event)MainEvents::NAV_LOCATION_CALC); 
-    }
-    else if (boat.main_state == MainStates::MANUAL_STATE)
-    {
-        // Check that the radio is still connected when in manual mode 
-        boat.MainEventQueue((Event)MainEvents::RADIO_CONNECTION); 
-    }
+    // // Queue events based on the state 
+    // if (boat.main_state == MainStates::AUTO_STATE)
+    // {
+    //     // Perform navigation location calculations when in the auto state 
+    //     boat.MainEventQueue((Event)MainEvents::NAV_LOCATION_CALC); 
+    // }
+    // else if (boat.main_state == MainStates::MANUAL_STATE)
+    // {
+    //     // Check that the radio is still connected when in manual mode 
+    //     boat.MainEventQueue((Event)MainEvents::RADIO_CONNECTION); 
+    // }
 }
 
 //=======================================================================================

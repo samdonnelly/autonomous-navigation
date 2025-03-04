@@ -60,6 +60,9 @@
 // Timing 
 #define VS_HEARTBEAT_TIMEOUT 100   // Max count without a heartbeat before timeout 
 
+// Data sizes 
+#define VS_TELEMETRY_BUFF 1000   // Telemetry data buffer size (bytes) 
+
 // The vehicle specific settings below only have an affect when the corresponding vehicle 
 // type (VT) is selected. 
 

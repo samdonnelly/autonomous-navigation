@@ -33,69 +33,69 @@ void Boat::CommsDispatch(Event event)
 
     switch (boat.comms_event)
     {
-        case CommsEvents::LED_STROBE: 
-            // boat.leds.Strobe(); 
-            break; 
+        // case CommsEvents::LED_STROBE: 
+        //     // boat.leds.Strobe(); 
+        //     break; 
 
-        case CommsEvents::LED_STROBE_OFF: 
-            // boat.leds.StrobeOff(); 
-            break; 
+        // case CommsEvents::LED_STROBE_OFF: 
+        //     // boat.leds.StrobeOff(); 
+        //     break; 
 
-        case CommsEvents::LED_WRITE: 
-            // boat.leds.LEDWrite(); 
-            break; 
+        // case CommsEvents::LED_WRITE: 
+        //     // boat.leds.LEDWrite(); 
+        //     break; 
 
-        case CommsEvents::RADIO_READ: 
-            // boat.radio.CommandRead(boat); 
-            break; 
+        // case CommsEvents::RADIO_READ: 
+        //     // boat.radio.CommandRead(boat); 
+        //     break; 
 
-        case CommsEvents::RADIO_SEND: 
-            // boat.radio.CommandSend(); 
-            break; 
+        // case CommsEvents::RADIO_SEND: 
+        //     // boat.radio.CommandSend(); 
+        //     break; 
 
-        case CommsEvents::NAV_HEADING_UPDATE: 
-            // boat.navigation.HeadingUpdate(); 
-            break; 
+        // case CommsEvents::NAV_HEADING_UPDATE: 
+        //     // boat.navigation.HeadingUpdate(); 
+        //     break; 
 
-        case CommsEvents::NAV_LOCATION_UPDATE: 
-            // boat.navigation.LocationUpdate(); 
-            break; 
+        // case CommsEvents::NAV_LOCATION_UPDATE: 
+        //     // boat.navigation.LocationUpdate(); 
+        //     break; 
 
-        case CommsEvents::GPS_READ: 
-            boat.hardware.GPS_Read(); 
-            break; 
+        // case CommsEvents::GPS_READ: 
+        //     boat.hardware.GPS_Read(); 
+        //     break; 
 
-        case CommsEvents::COMPASS_READ: 
-            boat.hardware.CompassRead(); 
-            break; 
+        // case CommsEvents::COMPASS_READ: 
+        //     boat.hardware.CompassRead(); 
+        //     break; 
 
-        case CommsEvents::IMU_READ: 
-            boat.hardware.IMU_Read(); 
-            break; 
+        // case CommsEvents::IMU_READ: 
+        //     boat.hardware.IMU_Read(); 
+        //     break; 
 
         case CommsEvents::TELEMETRY_READ: 
             boat.hardware.TelemetryRead(); 
             break; 
 
-        case CommsEvents::TELEMETRY_WRITE: 
-            boat.hardware.TelemetryWrite(); 
-            break; 
+        // case CommsEvents::TELEMETRY_WRITE: 
+        //     boat.hardware.TelemetryWrite(); 
+        //     break; 
 
-        case CommsEvents::RC_READ: 
-            boat.hardware.RC_Read(); 
-            break; 
+        // case CommsEvents::RC_READ: 
+        //     boat.hardware.RC_Read(); 
+        //     break; 
 
-        case CommsEvents::MEMORY_READ: 
-            boat.hardware.MemoryRead(); 
-            break; 
+        // case CommsEvents::MEMORY_READ: 
+        //     boat.hardware.MemoryRead(); 
+        //     break; 
 
-        case CommsEvents::MEMORY_WRITE: 
-            boat.hardware.MemoryWrite(); 
-            break; 
+        // case CommsEvents::MEMORY_WRITE: 
+        //     boat.hardware.MemoryWrite(); 
+        //     break; 
 
-        case CommsEvents::RANGEFINDER_READ: 
-            boat.hardware.RangefinderRead(); 
-            break; 
+        // case CommsEvents::RANGEFINDER_READ: 
+        //     boat.hardware.RangefinderRead(); 
+        //     break; 
 
         default: 
             boat.comms_event = CommsEvents::NO_EVENT; 
