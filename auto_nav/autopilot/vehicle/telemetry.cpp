@@ -35,6 +35,9 @@ void VehicleTelemetry::MAVLinkMessageDecode(VehicleHardware &hardware)
         connected = FLAG_CLEAR; 
     }
 
+    // Get a copy of the data so we don't have to hold the comms mutex throughout the 
+    // whole decoding process. 
+
     // No data protection is done here because this action is queued right after a 
     // telemetry read event so it's unlikely the data will be accessed simultaneously. 
 
