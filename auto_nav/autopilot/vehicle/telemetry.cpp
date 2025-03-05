@@ -21,7 +21,7 @@
 
 
 //=======================================================================================
-// MAVLink 
+// MAVLink message decoding 
 
 // MAVLink message decode 
 void VehicleTelemetry::MAVLinkMessageDecode(
@@ -97,6 +97,11 @@ void VehicleTelemetry::MAVLinkPayloadDecode(void)
     }
 }
 
+//=======================================================================================
+
+
+//=======================================================================================
+// Heartbeat protocol 
 
 // MAVLink: HEARTBEAT 
 void VehicleTelemetry::MAVLinkHeartbeat(void)
@@ -116,32 +121,95 @@ void VehicleTelemetry::MAVLinkHeartbeat(void)
         heartbeat_status_timer = RESET; 
         connected = FLAG_SET; 
     }
-} 
+}
 
+
+// Heartbeat message send 
+// Add flight mode 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Parameter protocol 
 
 // MAVLink: PARAM_REQUEST_LIST 
 void VehicleTelemetry::MAVLinkParamRequestList(void)
 {
     // 
-} 
+}
 
+//=======================================================================================
+
+
+//=======================================================================================
+// Mission protocol 
 
 // MAVLink: MISSION_REQUEST 
 void VehicleTelemetry::MAVLinkMissionRequest(void)
 {
     // 
-} 
+}
+
+//=======================================================================================
 
 
-// MAVLink: REQUEST_DATA_STREAM 
-void VehicleTelemetry::MAVLinkRequestDataStream(void)
-{
-    // 
-} 
-
+//=======================================================================================
+// Command protocol 
 
 // MAVLink: COMMAND_LONG 
 void VehicleTelemetry::MAVLinkCommandLong(void)
+{
+    mavlink_msg_command_long_decode(
+        &msg, 
+        &mavlink.command_long_msg_gcs); 
+
+    // This system is only concerned with messages meant for this system. If the taget 
+    // system and component ID in the message does not match this system then abort. 
+    if ((mavlink.command_long_msg_gcs.target_system != system_id) || 
+        (mavlink.command_long_msg_gcs.target_component != component_id))
+    {
+        return; 
+    }
+
+    // // Acknowledge the command 
+    // mavlink_msg_command_ack_pack_chan(
+    //     system_data.system_id, 
+    //     system_data.component_id, 
+    //     system_data.channel, 
+    //     &system_data.msg, 
+    //     system_data.command_long_msg_gcs.command, 
+    //     MAV_RESULT_ACCEPTED, 
+    //     ZERO, 
+    //     ZERO, 
+    //     SIK_TEST_GCS_ID, 
+    //     MAV_COMP_ID_MISSIONPLANNER); 
+    // sik_radio_test_mavlink_send_msg(); 
+
+    // // Perform the needed action based on the command 
+    // uint16_t cmd_id = (uint16_t)system_data.command_long_msg_gcs.param1; 
+
+    // switch (cmd_id)
+    // {
+    //     case MAVLINK_MSG_ID_AUTOPILOT_VERSION: 
+    //         break; 
+
+    //     default: 
+    //         break; 
+    // }
+}
+
+
+// Command decode 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Other messages 
+
+// MAVLink: REQUEST_DATA_STREAM 
+void VehicleTelemetry::MAVLinkRequestDataStream(void)
 {
     // 
 } 

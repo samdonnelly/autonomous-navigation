@@ -51,6 +51,9 @@ private:   // Private members
     // MAVLink messages 
     VehicleMAVLink mavlink; 
 
+    // System data 
+    uint32_t flight_mode; 
+
     // Status timers 
     uint8_t heartbeat_status_timer; 
 
@@ -86,6 +89,7 @@ public:   // Public members
 
     // Incoming messages 
     mavlink_heartbeat_t heartbeat_msg_gcs;                       // HEARTBEAT 
+    mavlink_command_long_t command_long_msg_gcs;                 // COMMAND_LONG 
 
     // Outgoing messages 
     mavlink_heartbeat_t heartbeat_msg;                           // HEARTBEAT 
