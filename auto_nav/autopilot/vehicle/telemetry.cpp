@@ -73,23 +73,23 @@ void VehicleTelemetry::MAVLinkPayloadDecode(void)
     switch (msg.msgid)
     {
         case MAVLINK_MSG_ID_HEARTBEAT: 
-            MAVLinkHeartbeat(); 
+            MAVLinkHeartbeatReceive(); 
             break; 
 
         case MAVLINK_MSG_ID_PARAM_REQUEST_LIST: 
-            MAVLinkParamRequestList(); 
+            MAVLinkParamRequestListReceive(); 
             break; 
 
         case MAVLINK_MSG_ID_MISSION_REQUEST: 
-            MAVLinkMissionRequest(); 
+            MAVLinkMissionRequestReceive(); 
             break; 
 
         case MAVLINK_MSG_ID_REQUEST_DATA_STREAM: 
-            MAVLinkRequestDataStream(); 
+            MAVLinkRequestDataStreamReceive(); 
             break; 
         
         case MAVLINK_MSG_ID_COMMAND_LONG: 
-            MAVLinkCommandLong(); 
+            MAVLinkCommandLongReceive(); 
             break; 
         
         default: 
@@ -101,10 +101,10 @@ void VehicleTelemetry::MAVLinkPayloadDecode(void)
 
 
 //=======================================================================================
-// Heartbeat protocol 
+// MAVLink: Heartbeat protocol 
 
 // MAVLink: HEARTBEAT 
-void VehicleTelemetry::MAVLinkHeartbeat(void)
+void VehicleTelemetry::MAVLinkHeartbeatReceive(void)
 {
     mavlink_msg_heartbeat_decode(
         &msg, 
@@ -125,16 +125,19 @@ void VehicleTelemetry::MAVLinkHeartbeat(void)
 
 
 // Heartbeat message send 
-// Add flight mode 
+void VehicleTelemetry::MAVLinkHeartbeatSend(void)
+{
+    // Add flight mode 
+}
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Parameter protocol 
+// MAVLink: Parameter protocol 
 
 // MAVLink: PARAM_REQUEST_LIST 
-void VehicleTelemetry::MAVLinkParamRequestList(void)
+void VehicleTelemetry::MAVLinkParamRequestListReceive(void)
 {
     // 
 }
@@ -143,10 +146,10 @@ void VehicleTelemetry::MAVLinkParamRequestList(void)
 
 
 //=======================================================================================
-// Mission protocol 
+// MAVLink: Mission protocol 
 
 // MAVLink: MISSION_REQUEST 
-void VehicleTelemetry::MAVLinkMissionRequest(void)
+void VehicleTelemetry::MAVLinkMissionRequestReceive(void)
 {
     // 
 }
@@ -155,10 +158,10 @@ void VehicleTelemetry::MAVLinkMissionRequest(void)
 
 
 //=======================================================================================
-// Command protocol 
+// MAVLink: Command protocol 
 
 // MAVLink: COMMAND_LONG 
-void VehicleTelemetry::MAVLinkCommandLong(void)
+void VehicleTelemetry::MAVLinkCommandLongReceive(void)
 {
     mavlink_msg_command_long_decode(
         &msg, 
@@ -172,35 +175,70 @@ void VehicleTelemetry::MAVLinkCommandLong(void)
         return; 
     }
 
-    // // Acknowledge the command 
+    MAVLinkCommandACKSend(); 
+    MAVLinkCommandLongDecode(); 
+}
+
+
+// MAVLink command decode 
+void VehicleTelemetry::MAVLinkCommandLongDecode(void)
+{
+    switch (mavlink.command_long_msg_gcs.command)
+    {
+        case MAV_CMD_DO_SET_MODE: 
+            MAVLinkCommandDoSetModeReceive(); 
+            break; 
+        
+        case MAV_CMD_REQUEST_MESSAGE: 
+            MAVLinkCommandRequestMessageReceive(); 
+            break; 
+
+        default: 
+            break; 
+    }
+}
+
+
+// MAVLink command: DO_SET_MODE 
+void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(void)
+{
+    // 
+}
+
+
+// MAVLink command: REQUEST_MESSAGE 
+void VehicleTelemetry::MAVLinkCommandRequestMessageReceive(void)
+{
+    uint16_t msg_id = (uint16_t)mavlink.command_long_msg_gcs.param1; 
+
+    switch (msg_id)
+    {
+        case MAVLINK_MSG_ID_AUTOPILOT_VERSION: 
+            MAVLinkAutopilotVersionSend(); 
+            break; 
+
+        default: 
+            break; 
+    }
+}
+
+
+// MAVLink command: COMMAND_ACK 
+void VehicleTelemetry::MAVLinkCommandACKSend(void)
+{
     // mavlink_msg_command_ack_pack_chan(
-    //     system_data.system_id, 
-    //     system_data.component_id, 
-    //     system_data.channel, 
-    //     &system_data.msg, 
-    //     system_data.command_long_msg_gcs.command, 
+    //     mavlink.system_id, 
+    //     mavlink.component_id, 
+    //     mavlink.channel, 
+    //     &mavlink.msg, 
+    //     mavlink.command_long_msg_gcs.command, 
     //     MAV_RESULT_ACCEPTED, 
     //     ZERO, 
     //     ZERO, 
     //     SIK_TEST_GCS_ID, 
     //     MAV_COMP_ID_MISSIONPLANNER); 
-    // sik_radio_test_mavlink_send_msg(); 
-
-    // // Perform the needed action based on the command 
-    // uint16_t cmd_id = (uint16_t)system_data.command_long_msg_gcs.param1; 
-
-    // switch (cmd_id)
-    // {
-    //     case MAVLINK_MSG_ID_AUTOPILOT_VERSION: 
-    //         break; 
-
-    //     default: 
-    //         break; 
-    // }
+    // Send message to buffer to be sent to telemetry 
 }
-
-
-// Command decode 
 
 //=======================================================================================
 
@@ -209,9 +247,16 @@ void VehicleTelemetry::MAVLinkCommandLong(void)
 // Other messages 
 
 // MAVLink: REQUEST_DATA_STREAM 
-void VehicleTelemetry::MAVLinkRequestDataStream(void)
+void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
 {
     // 
-} 
+}
+
+
+// MAVLink: AUTOPILOT_VERSION 
+void VehicleTelemetry::MAVLinkAutopilotVersionSend(void)
+{
+    // 
+}
 
 //=======================================================================================

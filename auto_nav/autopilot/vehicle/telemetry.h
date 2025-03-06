@@ -65,12 +65,26 @@ private:   // Private methods
     // MAVLink message payload decode 
     void MAVLinkPayloadDecode(void); 
 
-    // Payload handling 
-    void MAVLinkHeartbeat(void); 
-    void MAVLinkParamRequestList(void); 
-    void MAVLinkMissionRequest(void); 
-    void MAVLinkRequestDataStream(void); 
-    void MAVLinkCommandLong(void); 
+    // MAVLink: Heartbeat protocol 
+    void MAVLinkHeartbeatReceive(void); 
+    void MAVLinkHeartbeatSend(void); 
+
+    // MAVLink: Parameter protocol 
+    void MAVLinkParamRequestListReceive(void); 
+
+    // MAVLink: Mission protocol 
+    void MAVLinkMissionRequestReceive(void); 
+
+    // MAVLink: Command protocol 
+    void MAVLinkCommandLongReceive(void); 
+    void MAVLinkCommandLongDecode(void); 
+    void MAVLinkCommandDoSetModeReceive(void); 
+    void MAVLinkCommandRequestMessageReceive(void); 
+    void MAVLinkCommandACKSend(void); 
+
+    // MAVLink: other commands 
+    void MAVLinkRequestDataStreamReceive(void); 
+    void MAVLinkAutopilotVersionSend(void); 
 
 public:   // Public methods 
 
