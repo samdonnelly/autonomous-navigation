@@ -55,7 +55,7 @@ private:   // Private members
         UNUSED3_STATE,     // 14: Unused 3 
         GUIDED_STATE,      // 15: Guided 
         // Custom states 
-        INIT_STATE,        // 16: Initialization 
+        INIT_STATE,        // 16: Initialization - also defined in ArduRover code 
         STANDBY_STATE,     // 17: Standby/Ready 
         LAUNCH_STATE,      // 18: Launch from dock or trailer 
         LOW_PWR_STATE,     // 19: Low power 
@@ -159,7 +159,7 @@ private:   // Private methods
 
     // Helper functions 
     void MainStateChange(void); 
-    void MainStateSelect(uint8_t state); 
+    void MainStateSelect(uint8_t state) override; 
 
     //==================================================
     // LED module 

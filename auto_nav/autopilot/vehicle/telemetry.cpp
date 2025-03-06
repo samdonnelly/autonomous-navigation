@@ -24,9 +24,7 @@
 // MAVLink message decoding 
 
 // MAVLink message decode 
-void VehicleTelemetry::MAVLinkMessageDecode(
-    SemaphoreHandle_t &mutex, 
-    VehicleHardware &hardware)
+void VehicleTelemetry::MAVLinkMessageDecode(Vehicle &vehicle)
 {
     // Check for a connection (heartbeat) timeout 
     if (heartbeat_status_timer++ >= VS_HEARTBEAT_TIMEOUT)
@@ -38,16 +36,16 @@ void VehicleTelemetry::MAVLinkMessageDecode(
     }
 
     // Check if new data is available. If so then get the data and process it. 
-    if (hardware.data_ready.telemetry_ready == FLAG_SET)
+    if (vehicle.hardware.data_ready.telemetry_ready == FLAG_SET)
     {
-        hardware.data_ready.telemetry_ready = FLAG_CLEAR; 
+        vehicle.hardware.data_ready.telemetry_ready = FLAG_CLEAR; 
         data_index = RESET; 
 
         // Get a copy of the data so we don't have to hold the comms mutex throughout the 
         // whole decoding process. 
-        xSemaphoreTake(mutex, portMAX_DELAY); 
-        hardware.TelemetryGet(data_size, data_buff); 
-        xSemaphoreGive(mutex); 
+        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
+        vehicle.hardware.TelemetryGet(data_size, data_buff); 
+        xSemaphoreGive(vehicle.comms_mutex); 
         
         // Look at each byte of the received data and try to decode MAVLink messages 
         // until there is no more data to check. 
@@ -58,17 +56,15 @@ void VehicleTelemetry::MAVLinkMessageDecode(
                                    &msg, 
                                    &status))
             {
-                MAVLinkPayloadDecode(); 
+                MAVLinkPayloadDecode(vehicle); 
             }
         }
     }
-
-    // Perform any needed higher-level action. 
 }
 
 
 // MAVLink message payload decode 
-void VehicleTelemetry::MAVLinkPayloadDecode(void)
+void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
 {
     switch (msg.msgid)
     {
@@ -89,7 +85,7 @@ void VehicleTelemetry::MAVLinkPayloadDecode(void)
             break; 
         
         case MAVLINK_MSG_ID_COMMAND_LONG: 
-            MAVLinkCommandLongReceive(); 
+            MAVLinkCommandLongReceive(vehicle); 
             break; 
         
         default: 
@@ -130,6 +126,13 @@ void VehicleTelemetry::MAVLinkHeartbeatSend(void)
     // Add flight mode 
 }
 
+
+// Set flight mode based on vehicle state 
+void VehicleTelemetry::MAVLinkHeartbeatSetMode(uint8_t mode)
+{
+    mavlink.heartbeat_msg.custom_mode = (uint32_t)mode; 
+}
+
 //=======================================================================================
 
 
@@ -161,7 +164,7 @@ void VehicleTelemetry::MAVLinkMissionRequestReceive(void)
 // MAVLink: Command protocol 
 
 // MAVLink: COMMAND_LONG 
-void VehicleTelemetry::MAVLinkCommandLongReceive(void)
+void VehicleTelemetry::MAVLinkCommandLongReceive(Vehicle &vehicle)
 {
     mavlink_msg_command_long_decode(
         &msg, 
@@ -176,17 +179,17 @@ void VehicleTelemetry::MAVLinkCommandLongReceive(void)
     }
 
     MAVLinkCommandACKSend(); 
-    MAVLinkCommandLongDecode(); 
+    MAVLinkCommandLongDecode(vehicle); 
 }
 
 
 // MAVLink command decode 
-void VehicleTelemetry::MAVLinkCommandLongDecode(void)
+void VehicleTelemetry::MAVLinkCommandLongDecode(Vehicle &vehicle)
 {
     switch (mavlink.command_long_msg_gcs.command)
     {
         case MAV_CMD_DO_SET_MODE: 
-            MAVLinkCommandDoSetModeReceive(); 
+            MAVLinkCommandDoSetModeReceive(vehicle); 
             break; 
         
         case MAV_CMD_REQUEST_MESSAGE: 
@@ -200,9 +203,14 @@ void VehicleTelemetry::MAVLinkCommandLongDecode(void)
 
 
 // MAVLink command: DO_SET_MODE 
-void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(void)
+void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(Vehicle &vehicle)
 {
-    // 
+    // Ardupilot sets param1 to MAV_MODE_FLAG_CUSTOM_MODE_ENABLED so we look for that 
+    // before attempting to update the vehicle state/mode. 
+    if ((uint16_t)mavlink.command_long_msg_gcs.param1 == MAV_MODE_FLAG_CUSTOM_MODE_ENABLED)
+    {
+        vehicle.MainStateSelect((uint8_t)mavlink.command_long_msg_gcs.param2); 
+    }
 }
 
 

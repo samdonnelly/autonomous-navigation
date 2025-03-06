@@ -40,16 +40,16 @@ void VehicleHardware::HardwareSetup(void)
 //=======================================================================================
 // GPS 
 
-void VehicleHardware::GPS_Read(void)
-{
-    // 
-}
+// void VehicleHardware::GPS_Read(void)
+// {
+//     // 
+// }
 
 
-void VehicleHardware::GPS_Get(void)
-{
-    // 
-}
+// void VehicleHardware::GPS_Get(void)
+// {
+//     // 
+// }
 
 //=======================================================================================
 
@@ -57,10 +57,10 @@ void VehicleHardware::GPS_Get(void)
 //=======================================================================================
 // Compass 
 
-void VehicleHardware::CompassRead(void)
-{
-    // 
-}
+// void VehicleHardware::CompassRead(void)
+// {
+//     // 
+// }
 
 //=======================================================================================
 
@@ -68,10 +68,10 @@ void VehicleHardware::CompassRead(void)
 //=======================================================================================
 // IMU 
 
-void VehicleHardware::IMU_Read(void)
-{
-    // 
-}
+// void VehicleHardware::IMU_Read(void)
+// {
+//     // 
+// }
 
 //=======================================================================================
 
@@ -112,10 +112,10 @@ void VehicleHardware::TelemetryWrite(void)
 //=======================================================================================
 // RC 
 
-void VehicleHardware::RC_Read(void)
-{
-    // 
-}
+// void VehicleHardware::RC_Read(void)
+// {
+//     // 
+// }
 
 //=======================================================================================
 
@@ -123,16 +123,16 @@ void VehicleHardware::RC_Read(void)
 //=======================================================================================
 // Memory 
 
-void VehicleHardware::MemoryRead(void)
-{
-    // 
-}
+// void VehicleHardware::MemoryRead(void)
+// {
+//     // 
+// }
 
 
-void VehicleHardware::MemoryWrite(void)
-{
-    // 
-}
+// void VehicleHardware::MemoryWrite(void)
+// {
+//     // 
+// }
 
 //=======================================================================================
 
@@ -140,9 +140,9 @@ void VehicleHardware::MemoryWrite(void)
 //=======================================================================================
 // Rangefinder 
 
-void VehicleHardware::RangefinderRead(void)
-{
-    // 
-}
+// void VehicleHardware::RangefinderRead(void)
+// {
+//     // 
+// }
 
 //=======================================================================================

@@ -34,6 +34,10 @@
 
 class Vehicle 
 {
+public:   // Friends 
+
+    friend class VehicleTelemetry; 
+
 protected:   // Protected members 
 
     // Thread info 
@@ -83,8 +87,9 @@ protected:   // Protected members
 
 protected:   // Protected methods 
 
-    // Initialization 
+    // Vehicle specific functions 
     virtual void VehicleSetup(void) = 0; 
+    virtual void MainStateSelect(uint8_t state) = 0; 
 
     // Helper functions 
     void MainEventQueue(Event event); 

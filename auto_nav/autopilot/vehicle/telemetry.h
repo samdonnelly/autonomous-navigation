@@ -63,7 +63,7 @@ private:   // Private members
 private:   // Private methods 
 
     // MAVLink message payload decode 
-    void MAVLinkPayloadDecode(void); 
+    void MAVLinkPayloadDecode(Vehicle &vehicle); 
 
     // MAVLink: Heartbeat protocol 
     void MAVLinkHeartbeatReceive(void); 
@@ -76,9 +76,9 @@ private:   // Private methods
     void MAVLinkMissionRequestReceive(void); 
 
     // MAVLink: Command protocol 
-    void MAVLinkCommandLongReceive(void); 
-    void MAVLinkCommandLongDecode(void); 
-    void MAVLinkCommandDoSetModeReceive(void); 
+    void MAVLinkCommandLongReceive(Vehicle &vehicle); 
+    void MAVLinkCommandLongDecode(Vehicle &vehicle); 
+    void MAVLinkCommandDoSetModeReceive(Vehicle &vehicle); 
     void MAVLinkCommandRequestMessageReceive(void); 
     void MAVLinkCommandACKSend(void); 
 
@@ -89,9 +89,10 @@ private:   // Private methods
 public:   // Public methods 
 
     // MAVLink message decode 
-    void MAVLinkMessageDecode(
-        SemaphoreHandle_t &mutex, 
-        VehicleHardware &hardware); 
+    void MAVLinkMessageDecode(Vehicle &vehicle); 
+
+    // Setters 
+    void MAVLinkHeartbeatSetMode(uint8_t mode); 
 };
 
 
