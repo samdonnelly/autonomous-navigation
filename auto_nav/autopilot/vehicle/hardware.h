@@ -61,6 +61,7 @@ public:   // Public methods
     // Telemetry 
     void TelemetryRead(void); 
     void TelemetryGet(uint16_t &size, uint8_t *buffer); 
+    void TelemetrySet(uint16_t &size, uint8_t *buffer); 
     void TelemetryWrite(void); 
 
     // // RC 

@@ -101,6 +101,15 @@ void VehicleHardware::TelemetryGet(uint16_t &size, uint8_t *buffer)
 }
 
 
+void VehicleHardware::TelemetrySet(uint16_t &size, uint8_t *buffer)
+{
+    // Copy contents of autopilot telemetry output buffer into hardware telemetry output 
+    // buffer. 
+    size;   // Assign size of data to send 
+    memcpy((void *)1, (void *)buffer, size);   // Copy from autopilot to hardware buffer 
+}
+
+
 void VehicleHardware::TelemetryWrite(void)
 {
     // 

@@ -39,20 +39,21 @@ void VehicleTelemetry::MAVLinkMessageDecode(Vehicle &vehicle)
     if (vehicle.hardware.data_ready.telemetry_ready == FLAG_SET)
     {
         vehicle.hardware.data_ready.telemetry_ready = FLAG_CLEAR; 
-        data_index = RESET; 
+        data_in_index = RESET; 
+        data_out_size = RESET; 
 
         // Get a copy of the data so we don't have to hold the comms mutex throughout the 
         // whole decoding process. 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        vehicle.hardware.TelemetryGet(data_size, data_buff); 
+        vehicle.hardware.TelemetryGet(data_in_size, data_in_buff); 
         xSemaphoreGive(vehicle.comms_mutex); 
         
         // Look at each byte of the received data and try to decode MAVLink messages 
         // until there is no more data to check. 
-        while (data_index < data_size)
+        while (data_in_index < data_in_size)
         {
             if (mavlink_parse_char(channel, 
-                                   data_buff[data_index++], 
+                                   data_in_buff[data_in_index++], 
                                    &msg, 
                                    &status))
             {
@@ -61,7 +62,8 @@ void VehicleTelemetry::MAVLinkMessageDecode(Vehicle &vehicle)
         }
     }
 
-    // Look for a flag that indicates if a telemetry write event needs to be queued. 
+    // Send any needed messages in response to messages received. 
+    MAVLinkMessageSend(vehicle); 
 }
 
 
@@ -92,6 +94,40 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
         
         default: 
             break; 
+    }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// MAVLink message encoding 
+
+// MAVLink periodic message encode 
+void VehicleTelemetry::MAVLinkMessageEncode(Vehicle &vehicle)
+{
+    data_out_size = RESET; 
+
+    MAVLinkMessageSend(vehicle); 
+}
+
+
+// MAVLink message send 
+void VehicleTelemetry::MAVLinkMessageSend(Vehicle &vehicle)
+{
+    // If the size of the data output is not zero it means messages have been encoded 
+    // to be sent. 
+    if (data_out_size)
+    {
+        // The specific vehicles comms thread must release the telemetry output mutex 
+        // after sending the telemetry data. This mutex exists because there are both 
+        // periodic message sends and sends in response to incoming messages which have 
+        // the potential the overwrite the sending buffer if not protected. 
+        xSemaphoreTake(vehicle.telemetry_out_mutex, portMAX_DELAY); 
+        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
+        vehicle.hardware.TelemetrySet(data_out_size, data_out_buff); 
+        xSemaphoreGive(vehicle.comms_mutex); 
+        vehicle.CommsEventQueueTelemetryWrite(); 
     }
 }
 

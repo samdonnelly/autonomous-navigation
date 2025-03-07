@@ -77,9 +77,10 @@ void Boat::CommsDispatch(Event event)
             boat.hardware.TelemetryRead(); 
             break; 
 
-        // case CommsEvents::TELEMETRY_WRITE: 
-        //     boat.hardware.TelemetryWrite(); 
-        //     break; 
+        case CommsEvents::TELEMETRY_WRITE: 
+            boat.hardware.TelemetryWrite(); 
+            xSemaphoreGive(boat.telemetry_out_mutex); 
+            break; 
 
         // case CommsEvents::RC_READ: 
         //     boat.hardware.RC_Read(); 

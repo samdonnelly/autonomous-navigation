@@ -44,9 +44,13 @@ private:   // Private members
     // MAVLink packet handling 
     mavlink_message_t msg; 
     mavlink_status_t status; 
-    uint16_t data_index; 
-    uint16_t data_size; 
-    uint8_t data_buff[VS_TELEMETRY_BUFF]; 
+    // Incoming data 
+    uint16_t data_in_index; 
+    uint16_t data_in_size; 
+    uint8_t data_in_buff[VS_TELEMETRY_BUFF]; 
+    // Outgoing data 
+    uint16_t data_out_size; 
+    uint8_t data_out_buff[VS_TELEMETRY_BUFF]; 
 
     // MAVLink messages 
     VehicleMAVLink mavlink; 
@@ -62,8 +66,11 @@ private:   // Private members
 
 private:   // Private methods 
 
-    // MAVLink message payload decode 
+    // MAVLink message decode 
     void MAVLinkPayloadDecode(Vehicle &vehicle); 
+
+    // MAVLink message encode 
+    void MAVLinkMessageSend(Vehicle &vehicle); 
 
     // MAVLink: Heartbeat protocol 
     void MAVLinkHeartbeatReceive(void); 
@@ -88,8 +95,9 @@ private:   // Private methods
 
 public:   // Public methods 
 
-    // MAVLink message decode 
+    // MAVLink message handling 
     void MAVLinkMessageDecode(Vehicle &vehicle); 
+    void MAVLinkMessageEncode(Vehicle &vehicle); 
 
     // Setters 
     void MAVLinkHeartbeatSetMode(uint8_t mode); 

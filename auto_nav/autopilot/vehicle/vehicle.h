@@ -44,17 +44,19 @@ protected:   // Protected members
     ThreadEventData main_event_info; 
     ThreadEventData comms_event_info; 
     TimerThreadData periodic_timer_100ms; 
+    TimerThreadData periodic_timer_250ms; 
     TimerThreadData periodic_timer_1s; 
 
     // Thread synchronization 
     SemaphoreHandle_t comms_mutex; 
+    SemaphoreHandle_t telemetry_out_mutex; 
 
     // Main thread events 
     enum class MainEvents : uint8_t {
         NO_EVENT, 
         INIT, 
-        RADIO_CHECK, 
-        TELEMETRY_CHECK, 
+        TELEMETRY_DECODE, 
+        TELEMETRY_ENCODE, 
         NAV_HEADING_CALC, 
         NAV_LOCATION_CALC, 
         RADIO_CONNECTION 
@@ -103,6 +105,9 @@ protected:   // Protected methods
     void MainEventQueue(Event event); 
     void MainStateChange(void); 
     void CommsEventQueue(Event event); 
+
+    // Wrapper functions 
+    void CommsEventQueueTelemetryWrite(void); 
 
 public:   // Public methods 
 

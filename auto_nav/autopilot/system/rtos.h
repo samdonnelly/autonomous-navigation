@@ -43,8 +43,9 @@
 #define COMMS_STACK_SIZE configMINIMAL_STACK_SIZE * COMMS_STACK_MULTIPLIER 
 #define COMMS_QUEUE_LEN 10 
 
-// Software timers thread 
+// Software timers thread (5ms tick period) 
 #define PERIODIC_TIMER_100MS_PERIOD 20   // Ticks 
+#define PERIODIC_TIMER_250MS_PERIOD 50   // Ticks 
 #define PERIODIC_TIMER_1S_PERIOD 200     // Ticks 
 
 //=======================================================================================

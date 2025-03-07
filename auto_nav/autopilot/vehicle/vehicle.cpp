@@ -71,13 +71,22 @@ void Vehicle::Setup(void)
         .id = 0, 
         .callback = nullptr 
     }; 
+    periodic_timer_250ms = 
+    {
+        .handler = nullptr, 
+        .name = "250ms", 
+        .ticks = PERIODIC_TIMER_250MS_PERIOD, 
+        .reload = pdTRUE, 
+        .id = 1, 
+        .callback = nullptr 
+    }; 
     periodic_timer_1s = 
     {
         .handler = nullptr, 
         .name = "1s", 
         .ticks = PERIODIC_TIMER_1S_PERIOD, 
         .reload = pdTRUE, 
-        .id = 1, 
+        .id = 2, 
         .callback = nullptr 
     }; 
     
@@ -97,6 +106,13 @@ void Vehicle::Setup(void)
         periodic_timer_100ms.reload, 
         (void *)periodic_timer_100ms.id, 
         periodic_timer_100ms.callback); 
+
+    periodic_timer_250ms.handler = xTimerCreate(
+        periodic_timer_250ms.name, 
+        periodic_timer_250ms.ticks, 
+        periodic_timer_250ms.reload, 
+        (void *)periodic_timer_250ms.id, 
+        periodic_timer_250ms.callback); 
     
     periodic_timer_1s.handler = xTimerCreate(
         periodic_timer_1s.name, 
@@ -107,6 +123,7 @@ void Vehicle::Setup(void)
 
     // Create mutex 
     comms_mutex = xSemaphoreCreateMutex(); 
+    telemetry_out_mutex = xSemaphoreCreateMutex(); 
 
     // Queue the first event to start the system 
     MainEventQueue((Event)MainEvents::INIT); 
@@ -146,6 +163,18 @@ void Vehicle::CommsEventQueue(Event event)
 {
     comms_event_info.event = event; 
     xQueueSend(comms_event_info.ThreadEventQueue, (void *)&comms_event_info.event, 0); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Wrapper functions 
+
+// Queue a TELEMETRY_WRITE event for the main thread 
+void Vehicle::CommsEventQueueTelemetryWrite(void)
+{
+    CommsEventQueue((Event)CommsEvents::TELEMETRY_WRITE); 
 }
 
 //=======================================================================================

@@ -29,10 +29,10 @@ void Boat::TimerCallback100ms(TimerHandle_t xTimer)
     // Update the LED strobe 
     // boat.CommsEventQueue((Event)CommsEvents::LED_STROBE); 
 
-    // Check for radio messages 
+    // Check for incoming telemetry messages 
     // boat.CommsEventQueue((Event)CommsEvents::RADIO_READ); 
     boat.CommsEventQueue((Event)CommsEvents::TELEMETRY_READ); 
-    boat.MainEventQueue((Event)MainEvents::TELEMETRY_CHECK); 
+    boat.MainEventQueue((Event)MainEvents::TELEMETRY_DECODE); 
 
     // Update the navigation heading when in the auto state 
     if (boat.main_state == MainStates::AUTO_STATE)
@@ -40,6 +40,14 @@ void Boat::TimerCallback100ms(TimerHandle_t xTimer)
         // boat.CommsEventQueue((Event)CommsEvents::NAV_HEADING_UPDATE); 
         // boat.MainEventQueue((Event)MainEvents::NAV_HEADING_CALC); 
     }
+}
+
+
+// 250ms timer 
+void Boat::TimerCallback250ms(TimerHandle_t xTimer)
+{
+    // Check for telemetry messages to send 
+    boat.MainEventQueue((Event)MainEvents::TELEMETRY_ENCODE); 
 }
 
 

@@ -216,10 +216,12 @@ void Boat::MainHoldState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        // case MainEvents::RADIO_CHECK: 
-            // data.radio.CommandCheck(data); 
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
         
         default: 
@@ -259,10 +261,12 @@ void Boat::MainManualState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        // case MainEvents::RADIO_CHECK: 
-            // data.radio.CommandCheck(data); 
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
         
         case MainEvents::RADIO_CONNECTION: 
@@ -304,8 +308,12 @@ void Boat::MainAcroState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -339,8 +347,12 @@ void Boat::MainSteeringState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -374,8 +386,12 @@ void Boat::MainLoiterState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -409,8 +425,12 @@ void Boat::MainFollowState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -444,8 +464,12 @@ void Boat::MainSimpleState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -479,8 +503,12 @@ void Boat::MainDockState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -514,8 +542,12 @@ void Boat::MainCircleState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -554,10 +586,12 @@ void Boat::MainAutoState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        // case MainEvents::RADIO_CHECK: 
-            // data.radio.CommandCheck(data); 
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
         
         case MainEvents::NAV_HEADING_CALC: 
@@ -604,8 +638,12 @@ void Boat::MainRTLState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -639,8 +677,12 @@ void Boat::MainSmartRTLState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -674,8 +716,12 @@ void Boat::MainGuidedState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
 
         default: 
@@ -725,10 +771,12 @@ void Boat::MainFaultState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        // case MainEvents::RADIO_CHECK: 
-            // data.radio.CommandCheck(data); 
-        case MainEvents::TELEMETRY_CHECK: 
+        case MainEvents::TELEMETRY_DECODE: 
             data.telemetry.MAVLinkMessageDecode(data); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            data.telemetry.MAVLinkMessageEncode(data); 
             break; 
         
         default: 

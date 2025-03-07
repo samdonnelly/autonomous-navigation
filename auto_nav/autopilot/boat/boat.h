@@ -100,6 +100,7 @@ private:   // Private methods
     static void MainDispatch(Event event); 
     static void CommsDispatch(Event event); 
     static void TimerCallback100ms(TimerHandle_t xTimer); 
+    static void TimerCallback250ms(TimerHandle_t xTimer); 
     static void TimerCallback1s(TimerHandle_t xTimer); 
 
     // Main thread state functions 

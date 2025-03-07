@@ -43,6 +43,7 @@ void Boat::VehicleSetup(void)
     comms_event_info.dispatch = CommsDispatch; 
 
     periodic_timer_100ms.callback = TimerCallback100ms; 
+    periodic_timer_250ms.callback = TimerCallback250ms; 
     periodic_timer_1s.callback = TimerCallback1s; 
 }
 
