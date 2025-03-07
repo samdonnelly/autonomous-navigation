@@ -54,51 +54,38 @@ private:   // Private members
         UNUSED2_STATE,     // 13: Unused 2 
         UNUSED3_STATE,     // 14: Unused 3 
         GUIDED_STATE,      // 15: Guided 
+        INIT_STATE,        // 16: Initialization - defined in the code only 
         // Custom states 
-        INIT_STATE,        // 16: Initialization - also defined in ArduRover code 
-        STANDBY_STATE,     // 17: Standby/Ready 
-        LAUNCH_STATE,      // 18: Launch from dock or trailer 
-        LOW_PWR_STATE,     // 19: Low power 
-        FAULT_STATE,       // 20: Fault 
-        RESET_STATE,       // 21: Reset 
+        FAULT_STATE,       // 17: Fault 
+        RESET_STATE,       // 18: Reset 
         NUM_STATES         // Not a state, just the total number of states 
     } main_state; 
 
-    // Main thread flags 
-    struct MainFlags 
+    // Main thread state flags 
+    union MainStateFlags 
     {
-        // System flags 
-        uint8_t state_entry : 1; 
-        uint8_t state_exit  : 1; 
-
-        // State flags 
-        uint8_t init_state    : 1;   // Initialization state 
-        uint8_t standby_state : 1;   // Standby/Ready state 
-        uint8_t manual_state  : 1;   // Manual/remote control (RC) state 
-        uint8_t loiter_state  : 1;   // Loiter in one location state 
-        uint8_t follow_state  : 1;   // Follow a target state 
-        uint8_t launch_state  : 1;   // Launch from dock or trailer state 
-        uint8_t dock_state    : 1;   // Navigate to dock or trailer state 
-        uint8_t auto_state    : 1;   // Autonomous waypoint navigation state 
-        uint8_t rtl_state     : 1;   // Return to home location state 
-        uint8_t low_pwr_state : 1;   // Low power state 
-        uint8_t fault_state   : 1;   // Fault state 
-        uint8_t reset_state   : 1;   // Reset state 
+        struct 
+        {
+            uint32_t init_state      : 1;   // Initialization state 
+            uint32_t hold_state      : 1;   // Standby/Ready state 
+            uint32_t manual_state    : 1;   // Manual/remote control (RC) state 
+            uint32_t acro_state      : 1;   // Acro state 
+            uint32_t steering_state  : 1;   // Steering state 
+            uint32_t loiter_state    : 1;   // Loiter in one location state 
+            uint32_t follow_state    : 1;   // Follow a target state 
+            uint32_t simple_state    : 1;   // Simple state 
+            uint32_t dock_state      : 1;   // Navigate to dock or trailer state 
+            uint32_t circle_state    : 1;   // Circle state 
+            uint32_t auto_state      : 1;   // Autonomous waypoint navigation state 
+            uint32_t rtl_state       : 1;   // Return to home location state 
+            uint32_t smart_rtl_state : 1;   // Return to home location on known path state 
+            uint32_t guided_state    : 1;   // Guided state 
+            uint32_t fault_state     : 1;   // Fault state 
+            uint32_t reset_state     : 1;   // Reset state 
+        }; 
+        uint32_t flags; 
     }
-    main_flags; 
-
-    //==================================================
-    // System data 
-
-    // uint16_t adc_buff[BOAT_ADC_BUFF_SIZE];     // ADC buffer - battery and PSU voltage 
-
-    // // Modules 
-    // WS2812_Controller leds; 
-    // BoatNav navigation; 
-    // BoatRadio radio; 
-    // BoatRC rc; 
-    
-    //==================================================
+    main_state_flags; 
 
 private:   // Private methods 
 
@@ -117,15 +104,19 @@ private:   // Private methods
 
     // Main thread state functions 
     static void MainInitState(Boat& data, Event event); 
-    static void MainStandbyState(Boat& data, Event event); 
+    static void MainHoldState(Boat& data, Event event); 
     static void MainManualState(Boat& data, Event event); 
+    static void MainAcroState(Boat& data, Event event); 
+    static void MainSteeringState(Boat& data, Event event); 
     static void MainLoiterState(Boat& data, Event event); 
     static void MainFollowState(Boat& data, Event event); 
-    static void MainLaunchState(Boat& data, Event event); 
+    static void MainSimpleState(Boat& data, Event event); 
     static void MainDockState(Boat& data, Event event); 
+    static void MainCircleState(Boat& data, Event event); 
     static void MainAutoState(Boat& data, Event event); 
     static void MainRTLState(Boat& data, Event event); 
-    static void MainLowPwrState(Boat& data, Event event); 
+    static void MainSmartRTLState(Boat& data, Event event); 
+    static void MainGuidedState(Boat& data, Event event); 
     static void MainFaultState(Boat& data, Event event); 
     static void MainResetState(Boat& data, Event event); 
 
@@ -133,44 +124,28 @@ private:   // Private methods
     const state_func_ptr main_state_table[(uint8_t)MainStates::NUM_STATES] = 
     {
         &MainManualState,    // 0: Manual/remote control (RC) 
-        nullptr,             // 1: Acro 
+        &MainAcroState,      // 1: Acro 
         nullptr,             // 2: Unused 1 
-        nullptr,             // 3: Steering 
-        nullptr,             // 4: Hold 
+        &MainSteeringState,  // 3: Steering 
+        &MainHoldState,      // 4: Hold 
         &MainLoiterState,    // 5: Loiter in one location 
         &MainFollowState,    // 6: Follow a target 
-        nullptr,             // 7: Simple 
+        &MainSimpleState,    // 7: Simple 
         &MainDockState,      // 8: Navigate to dock or trailer 
-        nullptr,             // 9: Circle 
+        &MainCircleState,    // 9: Circle 
         &MainAutoState,      // 10: Autonomous waypoint navigation 
         &MainRTLState,       // 11: RTL (Return to Launch) 
-        nullptr,             // 12: Smart RTL (return using known path) 
+        &MainSmartRTLState,  // 12: Smart RTL (return using known path) 
         nullptr,             // 13: Unused 2 
         nullptr,             // 14: Unused 3 
-        nullptr,             // 15: Guided 
+        &MainGuidedState,    // 15: Guided 
         &MainInitState,      // 16: Initialization 
-        &MainStandbyState,   // 17: Standby/Ready 
-        &MainLaunchState,    // 18: Launch from dock or trailer 
-        &MainLowPwrState,    // 19: Low power 
-        &MainFaultState,     // 20: Fault 
-        &MainResetState      // 21: Reset 
-        
+        &MainFaultState,     // 17: Fault 
+        &MainResetState      // 18: Reset 
     }; 
 
     // Helper functions 
-    void MainStateChange(void); 
     void MainStateSelect(uint8_t state) override; 
-
-    //==================================================
-    // LED module 
-
-    // void LEDStrobeUpdate(uint32_t led_colour); 
-    // void LEDStrobeOff(void); 
-    // void LEDUpdate(
-    //     uint32_t starbird_led_colour, 
-    //     uint32_t port_led_colour); 
-
-    //==================================================
 
 public:   // Public methods 
 

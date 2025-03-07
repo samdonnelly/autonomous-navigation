@@ -81,6 +81,14 @@ protected:   // Protected members
         RANGEFINDER_READ 
     } comms_event; 
 
+    // System flags 
+    struct SystemFlags 
+    {
+        uint8_t state_entry : 1; 
+        uint8_t state_exit  : 1; 
+    }
+    main_system_flags; 
+
     // Features a vehicle has 
     VehicleHardware hardware; 
     VehicleTelemetry telemetry; 
@@ -93,6 +101,7 @@ protected:   // Protected methods
 
     // Helper functions 
     void MainEventQueue(Event event); 
+    void MainStateChange(void); 
     void CommsEventQueue(Event event); 
 
 public:   // Public methods 

@@ -125,7 +125,7 @@ void VehicleTelemetry::MAVLinkHeartbeatReceive(void)
 // Heartbeat message send 
 void VehicleTelemetry::MAVLinkHeartbeatSend(void)
 {
-    // Add flight mode 
+    // 
 }
 
 

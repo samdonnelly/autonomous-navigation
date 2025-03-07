@@ -133,6 +133,14 @@ void Vehicle::MainEventQueue(Event event)
 }
 
 
+// Main thread state change 
+void Vehicle::MainStateChange(void)
+{
+    main_system_flags.state_exit = FLAG_SET; 
+    MainEventQueue((Event)MainEvents::NO_EVENT); 
+}
+
+
 // Queue an event for the comms thread 
 void Vehicle::CommsEventQueue(Event event)
 {
