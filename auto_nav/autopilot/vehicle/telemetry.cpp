@@ -60,6 +60,8 @@ void VehicleTelemetry::MAVLinkMessageDecode(Vehicle &vehicle)
             }
         }
     }
+
+    // Look for a flag that indicates if a telemetry write event needs to be queued. 
 }
 
 

@@ -694,7 +694,7 @@ void Boat::MainStateChange(void)
 // Main thread state selection 
 void Boat::MainStateSelect(uint8_t state)
 {
-    uint8_t no_state = FLAG_CLEAR; 
+    uint8_t state_select = FLAG_SET; 
 
     if (state >= (uint8_t)MainStates::NUM_STATES)
     {
@@ -703,25 +703,20 @@ void Boat::MainStateSelect(uint8_t state)
 
     switch ((MainStates)state)
     {
-        case MainStates::INIT_STATE: 
-            main_flags.init_state = FLAG_SET; 
-            break; 
-
-        case MainStates::STANDBY_STATE: 
-            main_flags.standby_state = FLAG_SET; 
-            break; 
-            
         case MainStates::MANUAL_STATE: 
             main_flags.manual_state = FLAG_SET; 
             break; 
 
         case MainStates::ACRO_STATE: 
+            state_select = FLAG_CLEAR; 
             break; 
 
         case MainStates::STEERING_STATE: 
+            state_select = FLAG_CLEAR; 
             break; 
 
         case MainStates::HOLD_STATE: 
+            state_select = FLAG_CLEAR; 
             break; 
 
         case MainStates::LOITER_STATE: 
@@ -733,10 +728,7 @@ void Boat::MainStateSelect(uint8_t state)
             break; 
 
         case MainStates::SIMPLE_STATE: 
-            break; 
-
-        case MainStates::LAUNCH_STATE: 
-            main_flags.launch_state = FLAG_SET; 
+            state_select = FLAG_CLEAR; 
             break; 
 
         case MainStates::DOCK_STATE: 
@@ -744,6 +736,7 @@ void Boat::MainStateSelect(uint8_t state)
             break; 
 
         case MainStates::CIRCLE_STATE: 
+            state_select = FLAG_CLEAR; 
             break; 
 
         case MainStates::AUTO_STATE: 
@@ -755,29 +748,26 @@ void Boat::MainStateSelect(uint8_t state)
             break; 
 
         case MainStates::SMART_RTL_STATE: 
+            state_select = FLAG_CLEAR; 
             break; 
 
         case MainStates::GUIDED_STATE: 
+            state_select = FLAG_CLEAR; 
             break; 
         
-        case MainStates::LOW_PWR_STATE: 
-            main_flags.low_pwr_state = FLAG_SET; 
-            break; 
-
-        case MainStates::FAULT_STATE: 
-            main_flags.fault_state = FLAG_SET; 
-            break; 
-
-        case MainStates::RESET_STATE: 
-            main_flags.reset_state = FLAG_SET; 
-            break; 
-        
-        default: 
-            no_state = FLAG_SET; 
+        default:   // Unused and non-ArduPilot states/modes 
+            // Non-ArduRover states: 
+            // - INIT_STATE 
+            // - STANDBY_STATE 
+            // - LAUNCH_STATE 
+            // - LOW_PWR_STATE 
+            // - FAULT_STATE 
+            // - RESET_STATE 
+            state_select = FLAG_CLEAR; 
             break; 
     }
 
-    if (no_state == FLAG_CLEAR)
+    if (state_select)
     {
         MainStateChange(); 
     }
