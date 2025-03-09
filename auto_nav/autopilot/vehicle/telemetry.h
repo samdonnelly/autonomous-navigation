@@ -110,12 +110,22 @@ class VehicleMAVLink
     
 public:   // Public members 
 
-    // Incoming messages 
+    struct MsgTiming 
+    {
+        uint8_t count; 
+        uint8_t count_lim; 
+        uint8_t enable : 1; 
+    }; 
+
+    // Incoming messages from the GCS 
     mavlink_heartbeat_t heartbeat_msg_gcs;                       // HEARTBEAT 
     mavlink_command_long_t command_long_msg_gcs;                 // COMMAND_LONG 
 
     // Outgoing messages 
     mavlink_heartbeat_t heartbeat_msg;                           // HEARTBEAT 
+
+    // Periodic outgoing message timing info 
+    MsgTiming heartbeat_msg_timing;                              // HEARTBEAT 
 };
 
 //=======================================================================================

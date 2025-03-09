@@ -28,6 +28,8 @@ void Boat::CommsDispatch(Event event)
 {
     boat.comms_event = (CommsEvents)event; 
 
+    // Disable interrupts? If so is a hardware interface required? 
+
     // General communication thread mutex grab 
     xSemaphoreTake(boat.comms_mutex, portMAX_DELAY); 
 

@@ -40,7 +40,6 @@ void VehicleTelemetry::MAVLinkMessageDecode(Vehicle &vehicle)
     {
         vehicle.hardware.data_ready.telemetry_ready = FLAG_CLEAR; 
         data_in_index = RESET; 
-        data_out_size = RESET; 
 
         // Get a copy of the data so we don't have to hold the comms mutex throughout the 
         // whole decoding process. 
@@ -106,7 +105,7 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
 // MAVLink periodic message encode 
 void VehicleTelemetry::MAVLinkMessageEncode(Vehicle &vehicle)
 {
-    data_out_size = RESET; 
+    MAVLinkHeartbeatSend(); 
 
     MAVLinkMessageSend(vehicle); 
 }
@@ -128,6 +127,7 @@ void VehicleTelemetry::MAVLinkMessageSend(Vehicle &vehicle)
         vehicle.hardware.TelemetrySet(data_out_size, data_out_buff); 
         xSemaphoreGive(vehicle.comms_mutex); 
         vehicle.CommsEventQueueTelemetryWrite(); 
+        data_out_size = RESET; 
     }
 }
 
@@ -161,7 +161,18 @@ void VehicleTelemetry::MAVLinkHeartbeatReceive(void)
 // Heartbeat message send 
 void VehicleTelemetry::MAVLinkHeartbeatSend(void)
 {
-    // 
+    if (mavlink.heartbeat_msg_timing.enable && 
+       (++mavlink.heartbeat_msg_timing.count >= mavlink.heartbeat_msg_timing.count_lim))
+    {
+        mavlink.heartbeat_msg_timing.count = RESET; 
+        mavlink_msg_heartbeat_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &mavlink.heartbeat_msg); 
+        data_out_size += mavlink_msg_to_send_buffer(data_out_buff + data_out_size, &msg); 
+    }
 }
 
 
