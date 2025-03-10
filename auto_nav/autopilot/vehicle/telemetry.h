@@ -71,6 +71,7 @@ private:   // Private methods
 
     // MAVLink message encode 
     void MAVLinkMessageSend(Vehicle &vehicle); 
+    void MAVLinkMessageFormat(void); 
 
     // MAVLink: Heartbeat protocol 
     void MAVLinkHeartbeatReceive(void); 

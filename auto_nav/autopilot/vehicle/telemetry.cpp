@@ -111,6 +111,13 @@ void VehicleTelemetry::MAVLinkMessageEncode(Vehicle &vehicle)
 }
 
 
+// MAVLink message format 
+void VehicleTelemetry::MAVLinkMessageFormat(void)
+{
+    data_out_size += mavlink_msg_to_send_buffer(data_out_buff + data_out_size, &msg); 
+}
+
+
 // MAVLink message send 
 void VehicleTelemetry::MAVLinkMessageSend(Vehicle &vehicle)
 {
@@ -171,7 +178,7 @@ void VehicleTelemetry::MAVLinkHeartbeatSend(void)
             channel, 
             &msg, 
             &mavlink.heartbeat_msg); 
-        data_out_size += mavlink_msg_to_send_buffer(data_out_buff + data_out_size, &msg); 
+        MAVLinkMessageFormat(); 
     }
 }
 
