@@ -333,8 +333,7 @@ void VehicleTelemetry::MAVLinkAutopilotVersionSend(void)
 void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(void)
 {
     if (mavlink.raw_imu_msg_timing.enable && 
-       (++mavlink.raw_imu_msg_timing.count >= 
-          mavlink.raw_imu_msg_timing.count_lim))
+       (++mavlink.raw_imu_msg_timing.count >= mavlink.raw_imu_msg_timing.count_lim))
     {
         mavlink.raw_imu_msg_timing.count = RESET; 
         // mavlink_msg_raw_imu_pack_chan(
@@ -363,8 +362,7 @@ void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(void)
 void VehicleTelemetry::MAVLinkGPSRawIntSendPeriodic(void)
 {
     if (mavlink.gps_raw_int_msg_timing.enable && 
-       (++mavlink.gps_raw_int_msg_timing.count >= 
-          mavlink.gps_raw_int_msg_timing.count_lim))
+       (++mavlink.gps_raw_int_msg_timing.count >= mavlink.gps_raw_int_msg_timing.count_lim))
     {
         mavlink.gps_raw_int_msg_timing.count = RESET; 
         // mavlink_msg_gps_raw_int_pack_chan(
@@ -463,8 +461,7 @@ void VehicleTelemetry::MAVLinkServoOutputRawSendPeriodic(void)
 void VehicleTelemetry::MAVLinkAttitudeSendPeriodic(void)
 {
     if (mavlink.attitude_msg_timing.enable && 
-       (++mavlink.attitude_msg_timing.count >= 
-          mavlink.attitude_msg_timing.count_lim))
+       (++mavlink.attitude_msg_timing.count >= mavlink.attitude_msg_timing.count_lim))
     {
         mavlink.attitude_msg_timing.count = RESET; 
         // mavlink_msg_attitude_pack_chan(
@@ -559,6 +556,14 @@ void VehicleTelemetry::MAVLinkLocalPositionNEDSendPeriodic(void)
           mavlink.local_position_ned_msg_timing.count_lim))
     {
         mavlink.local_position_ned_msg_timing.count = RESET; 
+
+        mavlink_local_position_ned_t local_position_ned_msg; 
+        mavlink_msg_local_position_ned_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &local_position_ned_msg); 
         // mavlink_msg_local_position_ned_pack_chan(
         //     system_id, 
         //     component_id, 
@@ -584,6 +589,14 @@ void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(void)
           mavlink.global_pos_int_msg_timing.count_lim))
     {
         mavlink.global_pos_int_msg_timing.count = RESET; 
+
+        mavlink_global_position_int_t global_position_int_msg; 
+        mavlink_msg_global_position_int_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &global_position_int_msg); 
         // mavlink_msg_global_position_int_pack_chan(
         //     system_id, 
         //     component_id, 
