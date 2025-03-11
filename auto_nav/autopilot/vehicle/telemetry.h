@@ -94,6 +94,18 @@ private:   // Private methods
     void MAVLinkRequestDataStreamReceive(void); 
     void MAVLinkAutopilotVersionSend(void); 
 
+    // MAVLink: Requestable outgoing messages 
+    void MAVLinkRawIMUSendPeriodic(void); 
+    void MAVLinkGPSRawIntSendPeriodic(void); 
+    void MAVLinkRCChannelScaledSendPeriodic(void); 
+    void MAVLinkRCChannelRawSendPeriodic(void); 
+    void MAVLinkServoOutputRawSendPeriodic(void); 
+    void MAVLinkAttitudeSendPeriodic(void); 
+    void MAVLinkPositionTargetGlobalIntSendPeriodic(void); 
+    void MAVLinkNavControllerSendPeriodic(void); 
+    void MAVLinkLocalPositionNEDSendPeriodic(void); 
+    void MAVLinkGlobalPositionIntSendPeriodic(void); 
+
 public:   // Public methods 
 
     // MAVLink message handling 
@@ -127,6 +139,16 @@ public:   // Public members
 
     // Periodic outgoing message timing info 
     MsgTiming heartbeat_msg_timing;                              // HEARTBEAT 
+    MsgTiming raw_imu_msg_timing;                                // RAW_IMU 
+    MsgTiming gps_raw_int_msg_timing;                            // GPS_RAW_INT 
+    MsgTiming rc_channels_scaled_msg_timing;                     // RC_CHANNELS_SCALED 
+    MsgTiming rc_channels_raw_msg_timing;                        // RC_CHANNELS_RAW 
+    MsgTiming servo_output_raw_msg_timing;                       // SERVO_OUTPUT_RAW 
+    MsgTiming attitude_msg_timing;                               // ATTITUDE 
+    MsgTiming position_target_global_int_msg_timing;             // POSITION_TARGET_GLOBAL_INT 
+    MsgTiming nav_controller_output_msg_timing;                  // NAV_CONTROLLER_OUTPUT 
+    MsgTiming local_position_ned_msg_timing;                     // LOCAL_POSITION_NED 
+    MsgTiming global_pos_int_msg_timing;                         // GLOBAL_POSITION_INT 
 };
 
 //=======================================================================================

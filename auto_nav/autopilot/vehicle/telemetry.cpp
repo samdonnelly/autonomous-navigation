@@ -324,3 +324,282 @@ void VehicleTelemetry::MAVLinkAutopilotVersionSend(void)
 }
 
 //=======================================================================================
+
+
+//=======================================================================================
+// MAVLink: Requestable outgoing messages 
+
+// MAVLink: RAW_IMU 
+void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(void)
+{
+    if (mavlink.raw_imu_msg_timing.enable && 
+       (++mavlink.raw_imu_msg_timing.count >= 
+          mavlink.raw_imu_msg_timing.count_lim))
+    {
+        mavlink.raw_imu_msg_timing.count = RESET; 
+        // mavlink_msg_raw_imu_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     SIK_TEST_MOCK_BOOT_TIME,   // Time since boot 
+        //     ZERO,                      // X accelerometer 
+        //     ZERO,                      // Y accelerometer 
+        //     SIK_TEST_MOCK_IMU_DIR,     // Z accelerometer 
+        //     ZERO,                      // X gyroscope 
+        //     ZERO,                      // Y gyroscope 
+        //     ZERO,                      // Z gyroscope 
+        //     SIK_TEST_MOCK_IMU_DIR,     // X magnetometer 
+        //     ZERO,                      // Y magnetometer 
+        //     ZERO,                      // Z magnetometer 
+        //     ZERO,                      // IMU ID 
+        //     ZERO);                     // Temperature 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: GPS_RAW_INT 
+void VehicleTelemetry::MAVLinkGPSRawIntSendPeriodic(void)
+{
+    if (mavlink.gps_raw_int_msg_timing.enable && 
+       (++mavlink.gps_raw_int_msg_timing.count >= 
+          mavlink.gps_raw_int_msg_timing.count_lim))
+    {
+        mavlink.gps_raw_int_msg_timing.count = RESET; 
+        // mavlink_msg_gps_raw_int_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     SIK_TEST_MOCK_BOOT_TIME,        // Timestamp 
+        //     GPS_FIX_TYPE_3D_FIX,            // GPS fix type 
+        //     SIK_TEST_MOCK_LAT,              // Latitude 
+        //     SIK_TEST_MOCK_LON,              // Longitude 
+        //     SIK_TEST_MOCK_ALTITUDE,         // Altitude 
+        //     HIGH_16BIT,                     // GPS HDOP horizontal dilution of position 
+        //     HIGH_16BIT,                     // GPS VDOP vertical dilution of position 
+        //     HIGH_16BIT,                     // GPS ground speed 
+        //     HIGH_16BIT,                     // Course over ground 
+        //     SIK_TEST_MOCK_NUM_SATELLITES,   // Number of satellites visible 
+        //     SIK_TEST_MOCK_ALTITUDE,         // Altitude 
+        //     ZERO,                           // Position uncertainty 
+        //     ZERO,                           // Altitude uncertainty 
+        //     ZERO,                           // Speed uncertainty 
+        //     ZERO,                           // Heading / track uncertainty 
+        //     ZERO);                          // Yaw in earth frame from north 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: RC_CHANNELS_SCALED 
+void VehicleTelemetry::MAVLinkRCChannelScaledSendPeriodic(void)
+{
+    if (mavlink.rc_channels_scaled_msg_timing.enable && 
+       (++mavlink.rc_channels_scaled_msg_timing.count >= 
+          mavlink.rc_channels_scaled_msg_timing.count_lim))
+    {
+        mavlink.rc_channels_scaled_msg_timing.count = RESET; 
+        // mavlink_msg_rc_channels_scaled_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     SIK_TEST_MOCK_BOOT_TIME,                          // Time since boot 
+        //     ZERO,                                             // Servo output port 
+        //     ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO,   // RC channels 1-8 
+        //     HIGH_8BIT);                                       // Receive signal strength 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: RC_CHANNELS_RAW 
+void VehicleTelemetry::MAVLinkRCChannelRawSendPeriodic(void)
+{
+    if (mavlink.rc_channels_raw_msg_timing.enable && 
+       (++mavlink.rc_channels_raw_msg_timing.count >= 
+          mavlink.rc_channels_raw_msg_timing.count_lim))
+    {
+        mavlink.rc_channels_raw_msg_timing.count = RESET; 
+        // mavlink_msg_rc_channels_raw_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     SIK_TEST_MOCK_BOOT_TIME,                          // Time since boot 
+        //     ZERO,                                             // Servo output port 
+        //     ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO,   // RC channels 1-8 
+        //     HIGH_8BIT);                                       // Receive signal strength 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: SERVO_OUTPUT_RAW 
+void VehicleTelemetry::MAVLinkServoOutputRawSendPeriodic(void)
+{
+    if (mavlink.servo_output_raw_msg_timing.enable && 
+       (++mavlink.servo_output_raw_msg_timing.count >= 
+          mavlink.servo_output_raw_msg_timing.count_lim))
+    {
+        mavlink.servo_output_raw_msg_timing.count = RESET; 
+        // mavlink_msg_servo_output_raw_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     SIK_TEST_MOCK_BOOT_TIME,                           // Time since boot 
+        //     ZERO,                                              // Servo output port 
+        //     ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO,    // Servo output 1-8 
+        //     ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO);   // Servo output 9-16 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: ATTITUDE 
+void VehicleTelemetry::MAVLinkAttitudeSendPeriodic(void)
+{
+    if (mavlink.attitude_msg_timing.enable && 
+       (++mavlink.attitude_msg_timing.count >= 
+          mavlink.attitude_msg_timing.count_lim))
+    {
+        mavlink.attitude_msg_timing.count = RESET; 
+        // mavlink_msg_attitude_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     SIK_TEST_MOCK_BOOT_TIME,   // Time since boot 
+        //     ZERO,                      // Roll angle (rad) 
+        //     ZERO,                      // Pitch angle (rad) 
+        //     ZERO,                      // Yaw angle (rad) 
+        //     ZERO,                      // Roll angular speed (rad/s) 
+        //     ZERO,                      // Pitch angular speed (rad/s) 
+        //     ZERO);                     // Yaw angular speed (rad/s) 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: POSITION_TARGET_GLOBAL_INT 
+void VehicleTelemetry::MAVLinkPositionTargetGlobalIntSendPeriodic(void)
+{
+    if (mavlink.position_target_global_int_msg_timing.enable && 
+       (++mavlink.position_target_global_int_msg_timing.count >= 
+          mavlink.position_target_global_int_msg_timing.count_lim))
+    {
+        mavlink.position_target_global_int_msg_timing.count = RESET; 
+        // uint16_t type_mask = POSITION_TARGET_TYPEMASK_VX_IGNORE | 
+        //                     POSITION_TARGET_TYPEMASK_VY_IGNORE | 
+        //                     POSITION_TARGET_TYPEMASK_VZ_IGNORE | 
+        //                     POSITION_TARGET_TYPEMASK_AX_IGNORE | 
+        //                     POSITION_TARGET_TYPEMASK_AY_IGNORE | 
+        //                     POSITION_TARGET_TYPEMASK_AZ_IGNORE | 
+        //                     POSITION_TARGET_TYPEMASK_YAW_IGNORE | 
+        //                     POSITION_TARGET_TYPEMASK_YAW_RATE_IGNORE | 
+        //                     0xF000; 
+        // mavlink_msg_position_target_global_int_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     SIK_TEST_MOCK_BOOT_TIME,   // Time since boot 
+        //     MAV_FRAME_GLOBAL,          // Coordinate frame (MAV_FRAME) 
+        //     type_mask,                 // Ignored dimensions (POSITION_TARGET_TYPEMASK) 
+        //     SIK_TEST_MOCK_LAT,         // Latitude 
+        //     SIK_TEST_MOCK_LON,         // Longitude 
+        //     SIK_TEST_MOCK_ALTITUDE,    // Altitude 
+        //     ZERO,                      // X velocity in NED frame (m/s) 
+        //     ZERO,                      // Y velocity in NED frame (m/s) 
+        //     ZERO,                      // Z velocity in NED frame (m/s) 
+        //     ZERO,                      // X acceleration or force in NED frame (N) 
+        //     ZERO,                      // y acceleration or force in NED frame (N) 
+        //     ZERO,                      // Z acceleration or force in NED frame (N) 
+        //     ZERO,                      // Yaw setpoint (rad) 
+        //     ZERO);                     // Yaw rate setpoint (rad/s) 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: NAV_CONTROLLER 
+void VehicleTelemetry::MAVLinkNavControllerSendPeriodic(void)
+{
+    if (mavlink.nav_controller_output_msg_timing.enable && 
+       (++mavlink.nav_controller_output_msg_timing.count >= 
+          mavlink.nav_controller_output_msg_timing.count_lim))
+    {
+        mavlink.nav_controller_output_msg_timing.count = RESET; 
+        // mavlink_msg_nav_controller_output_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     ZERO,                          // Current desired roll 
+        //     ZERO,                          // Current desired pitch 
+        //     ZERO,                          // Current desired heading 
+        //     ZERO,                          // Bearing to current waypoint/target 
+        //     SIK_TEST_MOCK_WP_DISTANCE,     // Distance to active waypoint 
+        //     ZERO,                          // Current altitude error 
+        //     ZERO,                          // Current airspeed error 
+        //     ZERO);                         // Current crosstrack error on x-y plane 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: LOCAL_POSITION_NED 
+void VehicleTelemetry::MAVLinkLocalPositionNEDSendPeriodic(void)
+{
+    if (mavlink.local_position_ned_msg_timing.enable && 
+       (++mavlink.local_position_ned_msg_timing.count >= 
+          mavlink.local_position_ned_msg_timing.count_lim))
+    {
+        mavlink.local_position_ned_msg_timing.count = RESET; 
+        // mavlink_msg_local_position_ned_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     SIK_TEST_MOCK_BOOT_TIME,   // Time since boot 
+        //     ZERO,                      // X position (m) 
+        //     ZERO,                      // Y position (m) 
+        //     ZERO,                      // Z position (m) 
+        //     ZERO,                      // X speed (m/s)  
+        //     ZERO,                      // Y speed (m/s)  
+        //     ZERO);                     // Z speed (m/s)  
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: GLOBAL_POSITION_INT 
+void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(void)
+{
+    if (mavlink.global_pos_int_msg_timing.enable && 
+       (++mavlink.global_pos_int_msg_timing.count >= 
+          mavlink.global_pos_int_msg_timing.count_lim))
+    {
+        mavlink.global_pos_int_msg_timing.count = RESET; 
+        // mavlink_msg_global_position_int_pack_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     SIK_TEST_MOCK_BOOT_TIME,   // Time since boot 
+        //     SIK_TEST_MOCK_LAT,         // Latitude 
+        //     SIK_TEST_MOCK_LON,         // Longitude 
+        //     SIK_TEST_MOCK_ALTITUDE,    // Altitude 
+        //     SIK_TEST_MOCK_ALTITUDE,    // Relative altitude (above home) 
+        //     ZERO,                      // X velocity 
+        //     ZERO,                      // Y velocity 
+        //     ZERO,                      // Z velocity 
+        //     ZERO);                     // Heading (yaw angle) 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+//=======================================================================================
