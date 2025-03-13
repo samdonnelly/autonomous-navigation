@@ -55,9 +55,6 @@ private:   // Private members
     // MAVLink messages 
     VehicleMAVLink mavlink; 
 
-    // System data 
-    uint32_t flight_mode; 
-
     // Status timers 
     uint8_t heartbeat_status_timer; 
 
@@ -70,8 +67,8 @@ private:   // Private methods
     void MAVLinkPayloadDecode(Vehicle &vehicle); 
 
     // MAVLink message encode 
-    void MAVLinkMessageSend(Vehicle &vehicle); 
     void MAVLinkMessageFormat(void); 
+    void MAVLinkMessageSend(Vehicle &vehicle); 
 
     // MAVLink: Heartbeat protocol 
     void MAVLinkHeartbeatReceive(void); 
