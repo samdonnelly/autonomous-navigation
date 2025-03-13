@@ -106,6 +106,16 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
 void VehicleTelemetry::MAVLinkMessageEncode(Vehicle &vehicle)
 {
     MAVLinkHeartbeatSend(); 
+    MAVLinkRawIMUSendPeriodic(); 
+    MAVLinkGPSRawIntSendPeriodic(); 
+    MAVLinkRCChannelScaledSendPeriodic(); 
+    MAVLinkRCChannelRawSendPeriodic(); 
+    MAVLinkServoOutputRawSendPeriodic(); 
+    MAVLinkAttitudeSendPeriodic(); 
+    MAVLinkPositionTargetGlobalIntSendPeriodic(); 
+    MAVLinkNavControllerSendPeriodic(); 
+    MAVLinkLocalPositionNEDSendPeriodic(); 
+    MAVLinkGlobalPositionIntSendPeriodic(); 
 
     MAVLinkMessageSend(vehicle); 
 }
@@ -336,6 +346,14 @@ void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(void)
        (++mavlink.raw_imu_msg_timing.count >= mavlink.raw_imu_msg_timing.count_lim))
     {
         mavlink.raw_imu_msg_timing.count = RESET; 
+
+        mavlink_raw_imu_t raw_imu_msg; 
+        mavlink_msg_raw_imu_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &raw_imu_msg); 
         // mavlink_msg_raw_imu_pack_chan(
         //     system_id, 
         //     component_id, 
@@ -365,6 +383,14 @@ void VehicleTelemetry::MAVLinkGPSRawIntSendPeriodic(void)
        (++mavlink.gps_raw_int_msg_timing.count >= mavlink.gps_raw_int_msg_timing.count_lim))
     {
         mavlink.gps_raw_int_msg_timing.count = RESET; 
+
+        mavlink_gps_raw_int_t gps_raw_int_msg; 
+        mavlink_msg_gps_raw_int_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &gps_raw_int_msg); 
         // mavlink_msg_gps_raw_int_pack_chan(
         //     system_id, 
         //     component_id, 
@@ -399,6 +425,14 @@ void VehicleTelemetry::MAVLinkRCChannelScaledSendPeriodic(void)
           mavlink.rc_channels_scaled_msg_timing.count_lim))
     {
         mavlink.rc_channels_scaled_msg_timing.count = RESET; 
+
+        mavlink_rc_channels_scaled_t rc_channels_scaled_msg; 
+        mavlink_msg_rc_channels_scaled_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &rc_channels_scaled_msg); 
         // mavlink_msg_rc_channels_scaled_pack_chan(
         //     system_id, 
         //     component_id, 
@@ -421,6 +455,14 @@ void VehicleTelemetry::MAVLinkRCChannelRawSendPeriodic(void)
           mavlink.rc_channels_raw_msg_timing.count_lim))
     {
         mavlink.rc_channels_raw_msg_timing.count = RESET; 
+
+        mavlink_rc_channels_raw_t rc_channels_raw_msg; 
+        mavlink_msg_rc_channels_raw_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &rc_channels_raw_msg); 
         // mavlink_msg_rc_channels_raw_pack_chan(
         //     system_id, 
         //     component_id, 
@@ -443,6 +485,14 @@ void VehicleTelemetry::MAVLinkServoOutputRawSendPeriodic(void)
           mavlink.servo_output_raw_msg_timing.count_lim))
     {
         mavlink.servo_output_raw_msg_timing.count = RESET; 
+
+        mavlink_servo_output_raw_t servo_output_raw_msg; 
+        mavlink_msg_servo_output_raw_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &servo_output_raw_msg); 
         // mavlink_msg_servo_output_raw_pack_chan(
         //     system_id, 
         //     component_id, 
@@ -464,6 +514,14 @@ void VehicleTelemetry::MAVLinkAttitudeSendPeriodic(void)
        (++mavlink.attitude_msg_timing.count >= mavlink.attitude_msg_timing.count_lim))
     {
         mavlink.attitude_msg_timing.count = RESET; 
+
+        mavlink_attitude_t attitude_msg; 
+        mavlink_msg_attitude_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &attitude_msg); 
         // mavlink_msg_attitude_pack_chan(
         //     system_id, 
         //     component_id, 
@@ -489,6 +547,14 @@ void VehicleTelemetry::MAVLinkPositionTargetGlobalIntSendPeriodic(void)
           mavlink.position_target_global_int_msg_timing.count_lim))
     {
         mavlink.position_target_global_int_msg_timing.count = RESET; 
+
+        mavlink_position_target_global_int_t position_target_global_int_msg; 
+        mavlink_msg_position_target_global_int_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &position_target_global_int_msg); 
         // uint16_t type_mask = POSITION_TARGET_TYPEMASK_VX_IGNORE | 
         //                     POSITION_TARGET_TYPEMASK_VY_IGNORE | 
         //                     POSITION_TARGET_TYPEMASK_VZ_IGNORE | 
@@ -530,6 +596,14 @@ void VehicleTelemetry::MAVLinkNavControllerSendPeriodic(void)
           mavlink.nav_controller_output_msg_timing.count_lim))
     {
         mavlink.nav_controller_output_msg_timing.count = RESET; 
+
+        mavlink_nav_controller_output_t nav_controller_output_msg; 
+        mavlink_msg_nav_controller_output_encode_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            &nav_controller_output_msg); 
         // mavlink_msg_nav_controller_output_pack_chan(
         //     system_id, 
         //     component_id, 
@@ -573,9 +647,9 @@ void VehicleTelemetry::MAVLinkLocalPositionNEDSendPeriodic(void)
         //     ZERO,                      // X position (m) 
         //     ZERO,                      // Y position (m) 
         //     ZERO,                      // Z position (m) 
-        //     ZERO,                      // X speed (m/s)  
-        //     ZERO,                      // Y speed (m/s)  
-        //     ZERO);                     // Z speed (m/s)  
+        //     ZERO,                      // X speed (m/s) 
+        //     ZERO,                      // Y speed (m/s) 
+        //     ZERO);                     // Z speed (m/s) 
         MAVLinkMessageFormat(); 
     }
 }
