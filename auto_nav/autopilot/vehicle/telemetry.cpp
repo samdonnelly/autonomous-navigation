@@ -106,7 +106,7 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
 void VehicleTelemetry::MAVLinkMessageEncode(Vehicle &vehicle)
 {
     MAVLinkHeartbeatSend(); 
-    MAVLinkRawIMUSendPeriodic(); 
+    MAVLinkRawIMUSendPeriodic(vehicle); 
     MAVLinkGPSRawIntSendPeriodic(); 
     MAVLinkRCChannelScaledSendPeriodic(); 
     MAVLinkRCChannelRawSendPeriodic(); 
@@ -340,7 +340,7 @@ void VehicleTelemetry::MAVLinkAutopilotVersionSend(void)
 // MAVLink: Requestable outgoing messages 
 
 // MAVLink: RAW_IMU 
-void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(void)
+void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(Vehicle &vehicle)
 {
     if (mavlink.raw_imu_msg_timing.enable && 
        (++mavlink.raw_imu_msg_timing.count >= mavlink.raw_imu_msg_timing.count_lim))
@@ -354,6 +354,7 @@ void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(void)
             channel, 
             &msg, 
             &raw_imu_msg); 
+        vehicle.navigation; 
         // mavlink_msg_raw_imu_pack_chan(
         //     system_id, 
         //     component_id, 

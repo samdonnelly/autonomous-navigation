@@ -92,7 +92,7 @@ private:   // Private methods
     void MAVLinkAutopilotVersionSend(void); 
 
     // MAVLink: Requestable outgoing messages 
-    void MAVLinkRawIMUSendPeriodic(void); 
+    void MAVLinkRawIMUSendPeriodic(Vehicle &vehicle); 
     void MAVLinkGPSRawIntSendPeriodic(void); 
     void MAVLinkRCChannelScaledSendPeriodic(void); 
     void MAVLinkRCChannelRawSendPeriodic(void); 

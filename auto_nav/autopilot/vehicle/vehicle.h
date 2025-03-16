@@ -25,6 +25,10 @@
 #include "vehicle_config.h" 
 #include "hardware.h" 
 #include "telemetry.h" 
+#include "navigation.h" 
+#include "control.h" 
+#include "memory.h" 
+#include "auxiliary.h" 
 
 //=======================================================================================
 
@@ -94,6 +98,10 @@ protected:   // Protected members
     // Features a vehicle has 
     VehicleHardware hardware; 
     VehicleTelemetry telemetry; 
+    VehicleNavigation navigation; 
+    VehicleControl control; 
+    VehicleMemory memory; 
+    VehicleAuxiliary auxiliary; 
 
 protected:   // Protected methods 
 
