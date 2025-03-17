@@ -347,31 +347,30 @@ void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(Vehicle &vehicle)
     {
         mavlink.raw_imu_msg_timing.count = RESET; 
 
-        mavlink_raw_imu_t raw_imu_msg; 
-        mavlink_msg_raw_imu_encode_chan(
-            system_id, 
-            component_id, 
-            channel, 
-            &msg, 
-            &raw_imu_msg); 
-        vehicle.navigation; 
-        // mavlink_msg_raw_imu_pack_chan(
+        // mavlink_raw_imu_t raw_imu_msg; 
+        // mavlink_msg_raw_imu_encode_chan(
         //     system_id, 
         //     component_id, 
         //     channel, 
         //     &msg, 
-        //     SIK_TEST_MOCK_BOOT_TIME,   // Time since boot 
-        //     ZERO,                      // X accelerometer 
-        //     ZERO,                      // Y accelerometer 
-        //     SIK_TEST_MOCK_IMU_DIR,     // Z accelerometer 
-        //     ZERO,                      // X gyroscope 
-        //     ZERO,                      // Y gyroscope 
-        //     ZERO,                      // Z gyroscope 
-        //     SIK_TEST_MOCK_IMU_DIR,     // X magnetometer 
-        //     ZERO,                      // Y magnetometer 
-        //     ZERO,                      // Z magnetometer 
-        //     ZERO,                      // IMU ID 
-        //     ZERO);                     // Temperature 
+        //     &raw_imu_msg); 
+        mavlink_msg_raw_imu_pack_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            0,                             // Time since boot 
+            vehicle.navigation.accel[0],   // X accelerometer 
+            vehicle.navigation.accel[1],   // Y accelerometer 
+            vehicle.navigation.accel[2],   // Z accelerometer 
+            vehicle.navigation.gyro[0],    // X gyroscope 
+            vehicle.navigation.gyro[1],    // Y gyroscope 
+            vehicle.navigation.gyro[2],    // Z gyroscope 
+            vehicle.navigation.mag[0],     // X magnetometer 
+            vehicle.navigation.mag[1],     // Y magnetometer 
+            vehicle.navigation.mag[2],     // Z magnetometer 
+            0,                             // IMU ID 
+            0);                            // Temperature 
         MAVLinkMessageFormat(); 
     }
 }
