@@ -28,9 +28,28 @@
 
 class VehicleMemory 
 {
-    // 
+public:   // public members 
+
+    // Parameters 
+    struct ParamInfo 
+    {
+        const char *name; 
+        float value; 
+        // Mission planner seems to only accept floats so 
+        // no option for MAV_PARAM_TYPE is offered here. 
+    };
+
+    uint8_t param_index; 
+    uint8_t num_params; 
+    MAV_PARAM_TYPE param_value_type; 
+
+public:   // public methods 
+
+    VehicleMemory(); 
 }; 
 
 //=======================================================================================
+
+extern const VehicleMemory::ParamInfo parameters[]; 
 
 #endif   // _MEMORY_H_ 

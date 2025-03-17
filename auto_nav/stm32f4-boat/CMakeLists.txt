@@ -68,6 +68,8 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/includes
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/modules
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/system_data
+    ${CMAKE_CURRENT_SOURCE_DIR}/../autopilot/vehicle
+    ${CMAKE_CURRENT_SOURCE_DIR}/../autopilot/system
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../STM32F4-driver-library/headers/core
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../STM32F4-driver-library/headers/devices
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../STM32F4-driver-library/headers/peripherals
@@ -108,8 +110,8 @@ endif()
 
 # External library code 
 set(LIBRARY_INCLUDE_DIRECTORIES 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../mavlink/c_library_v2
-    ${CMAKE_CURRENT_SOURCE_DIR}/../mavlink/c_library_v2/common)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../mavlink/c_library_v2
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../mavlink/c_library_v2/common)
 
 ###############################################################################
 
@@ -249,6 +251,8 @@ target_include_directories(${EXECUTABLE} SYSTEM PRIVATE
     ${STM32CUBEMX_INCLUDE_DIRECTORIES})
 target_include_directories(${EXECUTABLE} PRIVATE
     ${PROJECT_INCLUDE_DIRECTORIES})
+target_include_directories(${EXECUTABLE} PRIVATE
+    ${LIBRARY_INCLUDE_DIRECTORIES})
 
 ###############################################################################
 
@@ -265,6 +269,12 @@ target_compile_options(${EXECUTABLE} PRIVATE
         -fno-common
         -Wno-unused-parameter
         -Wno-format-nonliteral
+        #######################################
+        # Added by me 
+        # Due to mavlink library inclusion: 
+        -Wno-pedantic 
+        -Wno-address-of-packed-member
+        #######################################
         $<$<COMPILE_LANGUAGE:CXX>:
             # -Wconversion # STM libraries!
             -Wno-volatile

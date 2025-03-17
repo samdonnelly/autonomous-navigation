@@ -28,7 +28,10 @@
 
 class VehicleAuxiliary 
 {
-    // 
+public:   // public members 
+
+    int16_t temperature; 
+    uint32_t time_usec; 
 }; 
 
 //=======================================================================================

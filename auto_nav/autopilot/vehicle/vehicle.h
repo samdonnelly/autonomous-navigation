@@ -36,6 +36,8 @@
 //=======================================================================================
 // Classes 
 
+// class VehicleHardware; 
+
 class Vehicle 
 {
 public:   // Friends 

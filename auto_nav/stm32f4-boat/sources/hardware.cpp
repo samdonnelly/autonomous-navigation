@@ -112,7 +112,8 @@ void VehicleHardware::TelemetrySet(uint16_t &size, uint8_t *buffer)
 
 void VehicleHardware::TelemetryWrite(void)
 {
-    // 
+    // Send copied MAVLink message contents to the telemetry device. 
+    // sick_send_data(buff, size); 
 }
 
 //=======================================================================================

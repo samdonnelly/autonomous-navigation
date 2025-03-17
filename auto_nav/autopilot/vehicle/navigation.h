@@ -30,9 +30,29 @@ class VehicleNavigation
 {
 public:   // Public members 
 
-    int16_t accel[3]; 
-    int16_t gyro[3]; 
-    int16_t mag[3]; 
+    // Orientation 
+    struct Vector 
+    {
+        int16_t x, y, z; 
+    }
+    accel, gyro, mag; 
+
+    float roll, pitch, yaw; 
+    int16_t heading, target_heading; 
+
+    // Position 
+    struct Location 
+    {
+        int32_t lat, lon, alt; 
+    }
+    current, target, previous; 
+    
+    GPS_FIX_TYPE fix_type; 
+    MAV_FRAME coordinate_frame; 
+    uint16_t position_type_mask; 
+    uint16_t waypoint_distance; 
+    uint16_t ground_speed; 
+    uint16_t num_satellite; 
 }; 
 
 //=======================================================================================
