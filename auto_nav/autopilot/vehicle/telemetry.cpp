@@ -15,7 +15,33 @@
 //=======================================================================================
 // Includes 
 
-#include "telemetry.h" 
+#include "vehicle.h" 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Macros 
+
+// Periodic message send timing data. The send period is dependent on the 
+// TELEMETRY_ENCODE event being queued in the corresponding timer thread listed below. 
+#define S_TO_MS 1000    // Seconds to milliseconds 
+#define TELEMETRY_SEND_PERIOD S_TO_MS * PERIODIC_TIMER_250MS_PERIOD / configTICK_RATE_HZ 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Initialization 
+
+VehicleTelemetry::VehicleTelemetry()
+    : system_id(VS_SYSTEM_ID), 
+      component_id(MAV_COMP_ID_AUTOPILOT1), 
+      system_id_gcs(VS_SYSTEM_ID_GCS), 
+      component_id_gcs(MAV_COMP_ID_MISSIONPLANNER)
+{
+    // 
+}
 
 //=======================================================================================
 
@@ -79,8 +105,12 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
             MAVLinkParamRequestListReceive(vehicle); 
             break; 
 
+        case MAVLINK_MSG_ID_MISSION_COUNT: 
+            MAVLinkMissionCountReceive(); 
+            break; 
+
         case MAVLINK_MSG_ID_MISSION_REQUEST: 
-            MAVLinkMissionRequestReceive(); 
+            MAVLinkMissionRequestReceive(vehicle); 
             break; 
 
         case MAVLINK_MSG_ID_REQUEST_DATA_STREAM: 
@@ -167,8 +197,8 @@ void VehicleTelemetry::MAVLinkHeartbeatReceive(void)
     // are correct. 
     if ((mavlink.heartbeat_msg_gcs.type == MAV_TYPE_GCS) && 
         (mavlink.heartbeat_msg_gcs.autopilot == MAV_AUTOPILOT_INVALID) && 
-        (msg.sysid == VS_GCS_ID) && 
-        (msg.compid == MAV_COMP_ID_MISSIONPLANNER))
+        (msg.sysid == system_id_gcs) && 
+        (msg.compid == component_id_gcs))
     {
         heartbeat_status_timer = RESET; 
         connected = FLAG_SET; 
@@ -265,10 +295,98 @@ void VehicleTelemetry::MAVLinkParamValueSendPeriodic(Vehicle &vehicle)
 //=======================================================================================
 // MAVLink: Mission protocol 
 
-// MAVLink: MISSION_REQUEST 
-void VehicleTelemetry::MAVLinkMissionRequestReceive(void)
+// MAVLink: MISSION_COUNT 
+void VehicleTelemetry::MAVLinkMissionCountReceive(void)
 {
-    // 
+    mavlink_msg_mission_count_decode(
+        &msg, 
+        &mavlink.mission_count_msg_gcs); 
+
+    // This system is only concerned with messages meant for this system. If the taget 
+    // system and component ID in the message does not match this system then abort. 
+    if ((mavlink.mission_count_msg_gcs.target_system != system_id) || 
+        (mavlink.mission_count_msg_gcs.target_component != component_id))
+    {
+        return; 
+    }
+
+    mavlink.mission_count_msg_gcs.count; 
+    mission_item_count = RESET; 
+}
+
+
+// MAVLink: MISSION_REQUEST receive 
+void VehicleTelemetry::MAVLinkMissionRequestReceive(Vehicle &vehicle)
+{
+    // Mission planner sends MISSION_REQUEST messages despite the message being 
+    // deprecated by MAVLink in favour of MISSION_REQUEST_INT. When this message is 
+    // received, Mission Planner expects MISSION_ITEM_INT in return as discovered through 
+    // trial and error (i.e. MISSION_ITEM does not work). 
+    // MISSION_ITEM_INT takes the system and component IDs in its payload of the system 
+    // the message is being sent to. This should not be confused with the full MAVLink 
+    // message system and component IDs which identify where a message is coming from. 
+    // Mission Planner varries from standard MAVLink mission protocol in that the item 
+    // at mission sequence 0 is the home location, not the first waypoint location. 
+
+    mavlink_msg_mission_request_decode(
+        &msg, 
+        &mavlink.mission_request_msg_gcs); 
+
+    // This system is only concerned with messages meant for this system. If the taget 
+    // system and component ID in the message does not match this system then abort. 
+    if ((mavlink.mission_request_msg_gcs.target_system != system_id) || 
+        (mavlink.mission_request_msg_gcs.target_component != component_id))
+    {
+        return; 
+    }
+
+    // Only send the mission item if it exists 
+    if (mavlink.mission_request_msg_gcs.seq < vehicle.memory.mission_size)
+    {
+        // mavlink_msg_mission_item_int_encode_chan(
+        //     system_id, 
+        //     component_id, 
+        //     channel, 
+        //     &msg, 
+        //     &mission[mavlink.mission_request_msg_gcs.seq]); 
+        mavlink_msg_mission_item_int_pack_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            system_id_gcs, 
+            component_id_gcs, 
+            mavlink.mission_request_msg_gcs.seq, 
+            MAV_FRAME_GLOBAL_INT, 
+            0,     // command 
+            0,     // current 
+            0,     // autocontinue 
+            0.0,   // param1 
+            0.0,   // param2 
+            0.0,   // param2 
+            0.0,   // param2 
+            0,     // x 
+            0,     // y 
+            0.0,   // z 
+            0);    // mission_type 
+        MAVLinkMessageFormat(); 
+    }
+}
+
+
+// MAVLink: MISSION_REQUEST send 
+void VehicleTelemetry::MAVLinkMissionRequestIntSend(void)
+{
+    mavlink_msg_mission_request_int_pack_chan(
+        system_id, 
+        component_id, 
+        channel, 
+        &msg, 
+        system_id_gcs, 
+        component_id_gcs, 
+        0, 
+        0); 
+    MAVLinkMessageFormat(); 
 }
 
 //=======================================================================================
@@ -348,18 +466,18 @@ void VehicleTelemetry::MAVLinkCommandRequestMessageReceive(void)
 // MAVLink command: COMMAND_ACK 
 void VehicleTelemetry::MAVLinkCommandACKSend(void)
 {
-    // mavlink_msg_command_ack_pack_chan(
-    //     mavlink.system_id, 
-    //     mavlink.component_id, 
-    //     mavlink.channel, 
-    //     &mavlink.msg, 
-    //     mavlink.command_long_msg_gcs.command, 
-    //     MAV_RESULT_ACCEPTED, 
-    //     ZERO, 
-    //     ZERO, 
-    //     SIK_TEST_GCS_ID, 
-    //     MAV_COMP_ID_MISSIONPLANNER); 
-    // Send message to buffer to be sent to telemetry 
+    mavlink_msg_command_ack_pack_chan(
+        system_id, 
+        component_id, 
+        channel, 
+        &msg, 
+        mavlink.command_long_msg_gcs.command, 
+        MAV_RESULT_ACCEPTED, 
+        0, 
+        0, 
+        system_id_gcs, 
+        component_id_gcs); 
+    MAVLinkMessageFormat(); 
 }
 
 //=======================================================================================
@@ -371,14 +489,127 @@ void VehicleTelemetry::MAVLinkCommandACKSend(void)
 // MAVLink: REQUEST_DATA_STREAM 
 void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
 {
-    // 
+    // Mission Planner sends this message to request data from the autopilot. This 
+    // message is often sent in bursts to request all the needed messages. 
+
+    mavlink_msg_request_data_stream_decode(
+        &msg, 
+        &mavlink.request_data_stream_msg_gcs); 
+    
+    // This system is only concerned with messages meant for this system. If the taget 
+    // system and component ID in the message does not match this system then abort. 
+    if ((mavlink.request_data_stream_msg_gcs.target_system != system_id) || 
+        (mavlink.request_data_stream_msg_gcs.target_component != component_id))
+    {
+        return; 
+    }
+
+    // This message comes with a cooresponding requested message rate. The calculated 
+    // timer counter limit is the same calculation for each requested message so it's 
+    // done once here and assigned to the requested message. Note that the periodic 
+    // interrupt period should be equipped to handle whatever the requested rate is. 
+    uint8_t timer_limit = (uint8_t)(S_TO_MS / 
+        (mavlink.request_data_stream_msg_gcs.req_message_rate * TELEMETRY_SEND_PERIOD)); 
+    uint8_t enable = mavlink.request_data_stream_msg_gcs.start_stop; 
+
+    // Enable/disable the requested message and assign the message timer counter limit 
+    // so it gets sent to the GCS at the requested rate. 
+    switch (mavlink.request_data_stream_msg_gcs.req_stream_id)
+    {
+        case MAV_DATA_STREAM_ALL: 
+            break; 
+        
+        case MAV_DATA_STREAM_RAW_SENSORS: 
+            mavlink.raw_imu_msg_timing.enable = enable; 
+            mavlink.raw_imu_msg_timing.count_lim = timer_limit; 
+
+            mavlink.gps_raw_int_msg_timing.enable = enable; 
+            mavlink.gps_raw_int_msg_timing.count_lim = timer_limit; 
+            break; 
+
+        case MAV_DATA_STREAM_EXTENDED_STATUS: 
+            break; 
+
+        case MAV_DATA_STREAM_RC_CHANNELS: 
+            mavlink.rc_channels_scaled_msg_timing.enable = enable; 
+            mavlink.rc_channels_scaled_msg_timing.count_lim = timer_limit; 
+
+            mavlink.rc_channels_raw_msg_timing.enable = enable; 
+            mavlink.rc_channels_raw_msg_timing.count_lim = timer_limit; 
+
+            mavlink.servo_output_raw_msg_timing.enable = enable; 
+            mavlink.servo_output_raw_msg_timing.count_lim = timer_limit; 
+            break; 
+
+        case MAV_DATA_STREAM_RAW_CONTROLLER: 
+            mavlink.attitude_msg_timing.enable = enable; 
+            mavlink.attitude_msg_timing.count_lim = timer_limit; 
+
+            mavlink.position_target_global_int_msg_timing.enable = enable; 
+            mavlink.position_target_global_int_msg_timing.count_lim = timer_limit; 
+
+            mavlink.nav_controller_output_msg_timing.enable = enable; 
+            mavlink.nav_controller_output_msg_timing.count_lim = timer_limit; 
+            break; 
+
+        case MAV_DATA_STREAM_POSITION: 
+            mavlink.local_position_ned_msg_timing.enable = enable; 
+            mavlink.local_position_ned_msg_timing.count_lim = timer_limit; 
+
+            mavlink.global_pos_int_msg_timing.enable = enable; 
+            mavlink.global_pos_int_msg_timing.count_lim = timer_limit; 
+            break; 
+
+        case MAV_DATA_STREAM_EXTRA1: 
+            break; 
+
+        case MAV_DATA_STREAM_EXTRA2: 
+            break; 
+
+        case MAV_DATA_STREAM_EXTRA3: 
+            break; 
+
+        default: 
+            break; 
+    }
 }
 
 
 // MAVLink: AUTOPILOT_VERSION 
 void VehicleTelemetry::MAVLinkAutopilotVersionSend(void)
 {
-    // 
+    uint8_t version[8], hw_uid[18]; 
+    memset((void *)version, RESET, sizeof(version)); 
+    memset((void *)hw_uid, RESET, sizeof(hw_uid)); 
+
+    uint32_t capabilities = MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT | 
+                            MAV_PROTOCOL_CAPABILITY_MISSION_INT | 
+                            MAV_PROTOCOL_CAPABILITY_COMMAND_INT | 
+                            MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED | 
+                            MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT | 
+                            MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET | 
+                            MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT |
+                            MAV_PROTOCOL_CAPABILITY_COMPASS_CALIBRATION | 
+                            MAV_PROTOCOL_CAPABILITY_MAVLINK2; 
+
+    mavlink_msg_autopilot_version_pack_chan(
+        system_id, 
+        component_id, 
+        channel, 
+        &msg, 
+        capabilities,   // Autopilot capabilities (bitmap) 
+        0,              // Firmware version number 
+        0,              // Middleware version number 
+        0,              // Operating system version number 
+        0,              // HW/board version 
+        version,        // Custom firmware version 
+        version,        // Custom middleware version 
+        version,        // Custom operating system version 
+        0,              // ID of board vendor 
+        0,              // ID of the product 
+        0,              // UID if provided by hardware 
+        hw_uid);        // UID if provided by hardware 
+    MAVLinkMessageFormat(); 
 }
 
 //=======================================================================================

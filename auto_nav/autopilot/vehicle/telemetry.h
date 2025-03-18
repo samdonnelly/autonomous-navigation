@@ -18,13 +18,7 @@
 //=======================================================================================
 // Includes 
 
-#include "vehicle.h" 
-
-extern "C"
-{
-    // For C headers without C++ guards 
-    #include "common/mavlink.h" 
-}
+#include "includes.h" 
 
 //=======================================================================================
 
@@ -33,7 +27,6 @@ extern "C"
 // Classes 
 
 class Vehicle; 
-
 
 class VehicleMAVLink 
 {
@@ -48,14 +41,33 @@ public:   // Public members
         uint8_t enable : 1; 
     }; 
 
+    //==================================================
     // Incoming messages from the GCS 
+
+    // Heartbeat protocol 
     mavlink_heartbeat_t heartbeat_msg_gcs;                       // HEARTBEAT 
+    
+    // Parameter protocol 
     mavlink_param_request_list_t param_request_list_msg_gcs;     // PARAM_REQUEST_LIST 
+    
+    // Mission protocol 
+    mavlink_mission_count_t mission_count_msg_gcs;               // MISSION_COUNT 
+    mavlink_mission_request_t mission_request_msg_gcs;           // MISSION_REQUEST 
+
+    // Command protocol 
     mavlink_command_long_t command_long_msg_gcs;                 // COMMAND_LONG 
 
-    // Outgoing messages 
-    mavlink_heartbeat_t heartbeat_msg;                           // HEARTBEAT 
+    // Other messages 
+    mavlink_request_data_stream_t request_data_stream_msg_gcs;   // REQUEST_DATA_STREAM 
+    
+    //==================================================
 
+    //==================================================
+    // Outgoing messages 
+
+    // Heartbeat protocol 
+    mavlink_heartbeat_t heartbeat_msg;                           // HEARTBEAT 
+    
     // Periodic outgoing message timing info 
     MsgTiming heartbeat_msg_timing;                              // HEARTBEAT 
     MsgTiming raw_imu_msg_timing;                                // RAW_IMU 
@@ -69,6 +81,8 @@ public:   // Public members
     MsgTiming local_position_ned_msg_timing;                     // LOCAL_POSITION_NED 
     MsgTiming global_pos_int_msg_timing;                         // GLOBAL_POSITION_INT 
     MsgTiming param_value_msg_timing;                            // PARAM_VALUE 
+    
+    //==================================================
 };
 
 
@@ -80,23 +94,29 @@ private:   // Private members
     int channel; 
     uint8_t system_id; 
     uint8_t component_id; 
+    uint8_t system_id_gcs; 
+    uint8_t component_id_gcs; 
 
     // MAVLink packet handling 
     mavlink_message_t msg; 
     mavlink_status_t status; 
-    // Incoming data 
     uint16_t data_in_index; 
     uint16_t data_in_size; 
     uint8_t data_in_buff[VS_TELEMETRY_BUFF]; 
-    // Outgoing data 
     uint16_t data_out_size; 
     uint8_t data_out_buff[VS_TELEMETRY_BUFF]; 
 
     // MAVLink messages 
     VehicleMAVLink mavlink; 
 
+    mavlink_mission_item_int_t mission[5]; 
+
+    // Mission protocol 
+    uint16_t mission_item_count; 
+
     // Status timers 
     uint8_t heartbeat_status_timer; 
+    uint8_t mission_upload_timer; 
 
     // Status flags 
     uint8_t connected : 1; 
@@ -119,7 +139,9 @@ private:   // Private methods
     void MAVLinkParamValueSendPeriodic(Vehicle &vehicle); 
 
     // MAVLink: Mission protocol 
-    void MAVLinkMissionRequestReceive(void); 
+    void MAVLinkMissionCountReceive(void); 
+    void MAVLinkMissionRequestReceive(Vehicle &vehicle); 
+    void MAVLinkMissionRequestIntSend(void); 
 
     // MAVLink: Command protocol 
     void MAVLinkCommandLongReceive(Vehicle &vehicle); 
@@ -145,6 +167,8 @@ private:   // Private methods
     void MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle); 
 
 public:   // Public methods 
+
+    VehicleTelemetry(); 
 
     // MAVLink message handling 
     void MAVLinkMessageDecode(Vehicle &vehicle); 

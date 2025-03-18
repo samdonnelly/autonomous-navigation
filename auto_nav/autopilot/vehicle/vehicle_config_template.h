@@ -55,7 +55,7 @@
 
 // Telemetry ID 
 #define VS_SYSTEM_ID 1 
-#define VS_GCS_ID 255 
+#define VS_SYSTEM_ID_GCS 255 
 
 // Timing 
 #define VS_HEARTBEAT_TIMEOUT 100   // Max count without a heartbeat before timeout 

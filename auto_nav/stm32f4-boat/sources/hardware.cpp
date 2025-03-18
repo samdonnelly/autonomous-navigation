@@ -21,7 +21,7 @@
 //=======================================================================================
 // Include 
 
-#include "hardware.h" 
+#include "vehicle.h" 
 
 //=======================================================================================
 
@@ -87,7 +87,7 @@ void VehicleHardware::TelemetryRead(void)
     // Set a flag to indicate new data if it's available. 
     // Check interrupt flag status 
     // If true then clear interrupt flag and set telemetry data flag 
-    data_ready.telemetry_ready; 
+    // data_ready.telemetry_ready; 
     
     // - We dom't want to process messages here because that is not a time-dependent 
     //   activity. 
@@ -96,7 +96,7 @@ void VehicleHardware::TelemetryRead(void)
 
 void VehicleHardware::TelemetryGet(uint16_t &size, uint8_t *buffer)
 {
-    size;   // Assign size of data received 
+    // size;   // Assign size of data received 
     memcpy((void *)buffer, (void *)1, size);   // Copy from hardware to autopilot buffer 
 }
 
@@ -105,7 +105,7 @@ void VehicleHardware::TelemetrySet(uint16_t &size, uint8_t *buffer)
 {
     // Copy contents of autopilot telemetry output buffer into hardware telemetry output 
     // buffer. 
-    size;   // Assign size of data to send 
+    // size;   // Assign size of data to send 
     memcpy((void *)1, (void *)buffer, size);   // Copy from autopilot to hardware buffer 
 }
 

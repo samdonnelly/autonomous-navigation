@@ -20,9 +20,8 @@
 //=======================================================================================
 // Includes 
 
-#include "system_tools.h" 
-#include "rtos.h" 
-#include "vehicle_config.h" 
+#include "includes.h" 
+
 #include "hardware.h" 
 #include "telemetry.h" 
 #include "navigation.h" 

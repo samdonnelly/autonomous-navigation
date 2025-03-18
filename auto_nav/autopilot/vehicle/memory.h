@@ -18,7 +18,7 @@
 //=======================================================================================
 // Includes 
 
-#include "vehicle.h" 
+#include "includes.h" 
 
 //=======================================================================================
 
@@ -42,6 +42,9 @@ public:   // public members
     uint8_t param_index; 
     uint8_t num_params; 
     MAV_PARAM_TYPE param_value_type; 
+
+    // Mission 
+    uint16_t mission_size; 
 
 public:   // public methods 
 
