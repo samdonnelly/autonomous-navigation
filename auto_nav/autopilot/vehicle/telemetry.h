@@ -53,6 +53,9 @@ public:   // Public members
     // Mission protocol 
     mavlink_mission_count_t mission_count_msg_gcs;               // MISSION_COUNT 
     mavlink_mission_request_t mission_request_msg_gcs;           // MISSION_REQUEST 
+    mavlink_mission_item_int_t mission_item_int_msg_gcs;         // MISSION_ITEM_INT 
+
+    mavlink_mission_current_t g; 
 
     // Command protocol 
     mavlink_command_long_t command_long_msg_gcs;                 // COMMAND_LONG 
@@ -141,7 +144,9 @@ private:   // Private methods
     // MAVLink: Mission protocol 
     void MAVLinkMissionCountReceive(void); 
     void MAVLinkMissionRequestReceive(Vehicle &vehicle); 
+    void MAVLinkMissionItemIntReceive(void); 
     void MAVLinkMissionRequestIntSend(void); 
+    void MAVLinkMissionAck(void); 
 
     // MAVLink: Command protocol 
     void MAVLinkCommandLongReceive(Vehicle &vehicle); 
