@@ -58,7 +58,9 @@
 #define VS_SYSTEM_ID_GCS 255 
 
 // Timing 
-#define VS_HEARTBEAT_TIMEOUT 100   // Max count without a heartbeat before timeout 
+#define VS_HEARTBEAT_TIMEOUT 100   // Max count before heartbeat timeout 
+#define VS_MISSION_TIMEOUT 20      // Max count before mission protocol timeout 
+#define VS_MISSION_RESEND 3        // Max tries to resend a mission message 
 
 // Data sizes 
 #define VS_TELEMETRY_BUFF 1000   // Telemetry data buffer size (bytes) 

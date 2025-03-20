@@ -29,7 +29,11 @@
 //   switches to using the file with the new mission. An index that indicates which file 
 //   to use is stored in another file so that it can be kept track of between power 
 //   cycles. 
-// - A settings files which stores the aforementioned mission file index. 
+// - A settings files which stores: 
+//   - The aforementioned mission file index 
+//   - Mission ID (opaque ID) - increments on new mission upload 
+//   - Home location (so it can't be wiped by a mission upload) 
+//     - On this note, make sure to write this as the first item in a mission file. 
 
 //=======================================================================================
 

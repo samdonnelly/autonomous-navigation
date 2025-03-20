@@ -45,6 +45,7 @@ public:   // public members
 
     // Mission 
     uint16_t mission_size; 
+    uint32_t mission_id; 
 
 public:   // public methods 
 

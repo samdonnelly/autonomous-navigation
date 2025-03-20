@@ -54,6 +54,7 @@ public:   // Public members
     mavlink_mission_count_t mission_count_msg_gcs;               // MISSION_COUNT 
     mavlink_mission_request_t mission_request_msg_gcs;           // MISSION_REQUEST 
     mavlink_mission_item_int_t mission_item_int_msg_gcs;         // MISSION_ITEM_INT 
+    mavlink_mission_clear_all_t mission_clear_all_msg_gcs;       // MISSION_CLEAR_ALL 
 
     // mavlink_mission_current_t g; 
     // mavlink_mission_ack_t t; 
@@ -102,28 +103,34 @@ private:   // Private members
     uint8_t component_id_gcs; 
 
     // MAVLink packet handling 
+    VehicleMAVLink mavlink; 
     mavlink_message_t msg; 
-    mavlink_status_t status; 
+    mavlink_status_t msg_status; 
     uint16_t data_in_index; 
     uint16_t data_in_size; 
     uint8_t data_in_buff[VS_TELEMETRY_BUFF]; 
     uint16_t data_out_size; 
     uint8_t data_out_buff[VS_TELEMETRY_BUFF]; 
 
-    // MAVLink messages 
-    VehicleMAVLink mavlink; 
-
-    mavlink_mission_item_int_t mission[5]; 
-
     // Mission protocol 
-    uint16_t mission_item_count; 
+    uint16_t mission_item_index; 
+    uint8_t mission_resend_counter; 
 
     // Status timers 
-    uint8_t heartbeat_status_timer; 
-    uint8_t mission_upload_timer; 
+    struct Timers 
+    {
+        uint8_t heartbeat; 
+        uint8_t mission_upload; 
+    }
+    timers; 
 
     // Status flags 
-    uint8_t connected : 1; 
+    struct Status 
+    {
+        uint8_t heartbeat : 1; 
+        uint8_t mission_upload : 1; 
+    }
+    status; 
 
 private:   // Private methods 
 
@@ -144,11 +151,18 @@ private:   // Private methods
     void MAVLinkParamValueSendPeriodic(Vehicle &vehicle); 
 
     // MAVLink: Mission protocol 
-    void MAVLinkMissionCountReceive(void); 
+    void MAVLinkMissionRequestListSend(void); 
     void MAVLinkMissionRequestReceive(Vehicle &vehicle); 
-    void MAVLinkMissionRequestIntSend(void); 
-    void MAVLinkMissionItemIntReceive(void); 
-    void MAVLinkMissionAck(MAV_MISSION_RESULT result); 
+    void MAVLinkMissionCountReceive(Vehicle &vehicle); 
+    void MAVLinkMissionCountSend(void); 
+    void MAVLinkMissionRequestIntSend(uint8_t mission_type); 
+    void MAVLinkMissionItemIntReceive(Vehicle &vehicle); 
+    void MAVLinkMissionAckSend(MAV_MISSION_RESULT result, uint8_t mission_type, uint32_t opaque_id); 
+    void MAVLinkMissionCurrentSend(void); 
+    void MAVLinkMissionSetCurrentReceive(void); 
+    void MAVLinkMissionClearAllReceive(Vehicle &vehicle); 
+    void MAVLinkMissionItemReachedSend(void); 
+    void ClearMission(Vehicle &vehicle, uint8_t mission_type); 
 
     // MAVLink: Command protocol 
     void MAVLinkCommandLongReceive(Vehicle &vehicle); 
