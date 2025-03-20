@@ -21,6 +21,20 @@
 
 
 //=======================================================================================
+// Notes 
+
+// Mission storage 
+// - Two mission files, one to store the current mission the another to record a new 
+//   mission when it arrives. If a new mission upload is accepted then the system 
+//   switches to using the file with the new mission. An index that indicates which file 
+//   to use is stored in another file so that it can be kept track of between power 
+//   cycles. 
+// - A settings files which stores the aforementioned mission file index. 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Structs 
 
 struct ParameterValues 
