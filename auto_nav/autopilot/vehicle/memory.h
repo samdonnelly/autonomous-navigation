@@ -46,6 +46,8 @@ public:   // public members
     // Mission 
     uint16_t mission_size; 
     uint32_t mission_id; 
+    uint8_t mission_type; 
+    mavlink_mission_item_int_t mission_item; 
 
 public:   // public methods 
 

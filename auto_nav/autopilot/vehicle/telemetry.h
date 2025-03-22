@@ -45,25 +45,26 @@ public:   // Public members
     // Incoming messages from the GCS 
 
     // Heartbeat protocol 
-    mavlink_heartbeat_t heartbeat_msg_gcs;                       // HEARTBEAT 
+    mavlink_heartbeat_t heartbeat_msg_gcs;                         // HEARTBEAT 
     
     // Parameter protocol 
-    mavlink_param_request_list_t param_request_list_msg_gcs;     // PARAM_REQUEST_LIST 
+    mavlink_param_request_list_t param_request_list_msg_gcs;       // PARAM_REQUEST_LIST 
     
     // Mission protocol 
-    mavlink_mission_count_t mission_count_msg_gcs;               // MISSION_COUNT 
-    mavlink_mission_request_t mission_request_msg_gcs;           // MISSION_REQUEST 
-    mavlink_mission_item_int_t mission_item_int_msg_gcs;         // MISSION_ITEM_INT 
-    mavlink_mission_clear_all_t mission_clear_all_msg_gcs;       // MISSION_CLEAR_ALL 
+    mavlink_mission_request_list_t mission_request_list_msg_gcs;   // MISSION_REQUEST_LIST 
+    mavlink_mission_count_t mission_count_msg_gcs;                 // MISSION_COUNT 
+    mavlink_mission_request_t mission_request_msg_gcs;             // MISSION_REQUEST 
+    mavlink_mission_item_int_t mission_item_int_msg_gcs;           // MISSION_ITEM_INT 
+    mavlink_mission_clear_all_t mission_clear_all_msg_gcs;         // MISSION_CLEAR_ALL 
 
     // mavlink_mission_current_t g; 
     // mavlink_mission_ack_t t; 
 
     // Command protocol 
-    mavlink_command_long_t command_long_msg_gcs;                 // COMMAND_LONG 
+    mavlink_command_long_t command_long_msg_gcs;                   // COMMAND_LONG 
 
     // Other messages 
-    mavlink_request_data_stream_t request_data_stream_msg_gcs;   // REQUEST_DATA_STREAM 
+    mavlink_request_data_stream_t request_data_stream_msg_gcs;     // REQUEST_DATA_STREAM 
     
     //==================================================
 
@@ -71,21 +72,21 @@ public:   // Public members
     // Outgoing messages 
 
     // Heartbeat protocol 
-    mavlink_heartbeat_t heartbeat_msg;                           // HEARTBEAT 
+    mavlink_heartbeat_t heartbeat_msg;                             // HEARTBEAT 
     
     // Periodic outgoing message timing info 
-    MsgTiming heartbeat_msg_timing;                              // HEARTBEAT 
-    MsgTiming raw_imu_msg_timing;                                // RAW_IMU 
-    MsgTiming gps_raw_int_msg_timing;                            // GPS_RAW_INT 
-    MsgTiming rc_channels_scaled_msg_timing;                     // RC_CHANNELS_SCALED 
-    MsgTiming rc_channels_raw_msg_timing;                        // RC_CHANNELS_RAW 
-    MsgTiming servo_output_raw_msg_timing;                       // SERVO_OUTPUT_RAW 
-    MsgTiming attitude_msg_timing;                               // ATTITUDE 
-    MsgTiming position_target_global_int_msg_timing;             // POSITION_TARGET_GLOBAL_INT 
-    MsgTiming nav_controller_output_msg_timing;                  // NAV_CONTROLLER_OUTPUT 
-    MsgTiming local_position_ned_msg_timing;                     // LOCAL_POSITION_NED 
-    MsgTiming global_pos_int_msg_timing;                         // GLOBAL_POSITION_INT 
-    MsgTiming param_value_msg_timing;                            // PARAM_VALUE 
+    MsgTiming heartbeat_msg_timing;                                // HEARTBEAT 
+    MsgTiming raw_imu_msg_timing;                                  // RAW_IMU 
+    MsgTiming gps_raw_int_msg_timing;                              // GPS_RAW_INT 
+    MsgTiming rc_channels_scaled_msg_timing;                       // RC_CHANNELS_SCALED 
+    MsgTiming rc_channels_raw_msg_timing;                          // RC_CHANNELS_RAW 
+    MsgTiming servo_output_raw_msg_timing;                         // SERVO_OUTPUT_RAW 
+    MsgTiming attitude_msg_timing;                                 // ATTITUDE 
+    MsgTiming position_target_global_int_msg_timing;               // POSITION_TARGET_GLOBAL_INT 
+    MsgTiming nav_controller_output_msg_timing;                    // NAV_CONTROLLER_OUTPUT 
+    MsgTiming local_position_ned_msg_timing;                       // LOCAL_POSITION_NED 
+    MsgTiming global_pos_int_msg_timing;                           // GLOBAL_POSITION_INT 
+    MsgTiming param_value_msg_timing;                              // PARAM_VALUE 
     
     //==================================================
 };
@@ -151,12 +152,13 @@ private:   // Private methods
     void MAVLinkParamValueSendPeriodic(Vehicle &vehicle); 
 
     // MAVLink: Mission protocol 
-    void MAVLinkMissionRequestListSend(void); 
-    void MAVLinkMissionRequestReceive(Vehicle &vehicle); 
+    void MAVLinkMissionRequestListReceive(Vehicle &vehicle); 
     void MAVLinkMissionCountReceive(Vehicle &vehicle); 
-    void MAVLinkMissionCountSend(void); 
+    void MAVLinkMissionCountSend(Vehicle &vehicle); 
+    void MAVLinkMissionRequestReceive(Vehicle &vehicle); 
     void MAVLinkMissionRequestIntSend(uint8_t mission_type); 
     void MAVLinkMissionItemIntReceive(Vehicle &vehicle); 
+    void MAVLinkMissionItemIntSend(Vehicle &vehicle); 
     void MAVLinkMissionAckSend(MAV_MISSION_RESULT result, uint8_t mission_type, uint32_t opaque_id); 
     void MAVLinkMissionCurrentSend(void); 
     void MAVLinkMissionSetCurrentReceive(void); 
