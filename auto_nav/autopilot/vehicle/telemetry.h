@@ -55,6 +55,8 @@ public:   // Public members
     mavlink_mission_count_t mission_count_msg_gcs;                 // MISSION_COUNT 
     mavlink_mission_request_t mission_request_msg_gcs;             // MISSION_REQUEST 
     mavlink_mission_item_int_t mission_item_int_msg_gcs;           // MISSION_ITEM_INT 
+    mavlink_mission_ack_t mission_ack_msg_gcs;                     // MISSION_ACK 
+    mavlink_mission_set_current_t mission_set_current_msg_gcs;     // MISSION_SET_CURRENT 
     mavlink_mission_clear_all_t mission_clear_all_msg_gcs;         // MISSION_CLEAR_ALL 
 
     // mavlink_mission_current_t g; 
@@ -130,6 +132,7 @@ private:   // Private members
     {
         uint8_t heartbeat : 1; 
         uint8_t mission_upload : 1; 
+        uint8_t mission_item_reached : 1; 
     }
     status; 
 
@@ -160,10 +163,11 @@ private:   // Private methods
     void MAVLinkMissionItemIntReceive(Vehicle &vehicle); 
     void MAVLinkMissionItemIntSend(Vehicle &vehicle); 
     void MAVLinkMissionAckSend(MAV_MISSION_RESULT result, uint8_t mission_type, uint32_t opaque_id); 
-    void MAVLinkMissionCurrentSend(void); 
-    void MAVLinkMissionSetCurrentReceive(void); 
+    void MAVLinkMissionAckReceive(void); 
+    void MAVLinkMissionCurrentSend(Vehicle &vehicle); 
+    void MAVLinkMissionSetCurrentReceive(Vehicle &vehicle); 
     void MAVLinkMissionClearAllReceive(Vehicle &vehicle); 
-    void MAVLinkMissionItemReachedSend(void); 
+    void MAVLinkMissionItemReachedSend(Vehicle &vehicle); 
     void ClearMission(Vehicle &vehicle, uint8_t mission_type); 
 
     // MAVLink: Command protocol 
@@ -199,6 +203,7 @@ public:   // Public methods
 
     // Setters 
     void MAVLinkHeartbeatSetMode(uint8_t mode); 
+    void MAVLinkMissionItemReachedSet(void); 
 };
 
 //=======================================================================================

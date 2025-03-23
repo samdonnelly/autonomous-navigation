@@ -148,6 +148,14 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
             MAVLinkMissionItemIntReceive(vehicle); 
             break; 
 
+        case MAVLINK_MSG_ID_MISSION_ACK: 
+            MAVLinkMissionAckReceive(); 
+            break; 
+
+        case MAVLINK_MSG_ID_MISSION_SET_CURRENT: 
+            MAVLinkMissionSetCurrentReceive(vehicle); 
+            break; 
+
         case MAVLINK_MSG_ID_MISSION_CLEAR_ALL: 
             MAVLinkMissionClearAllReceive(vehicle); 
             break; 
@@ -186,6 +194,7 @@ void VehicleTelemetry::MAVLinkMessageEncode(Vehicle &vehicle)
     MAVLinkLocalPositionNEDSendPeriodic(vehicle); 
     MAVLinkGlobalPositionIntSendPeriodic(vehicle); 
     MAVLinkParamValueSendPeriodic(vehicle); 
+    MAVLinkMissionItemReachedSend(vehicle); 
 
     MAVLinkMessageSend(vehicle); 
 }
@@ -478,7 +487,7 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
         {
             // TODO Append/save the mission item. May need to check other item properties. 
             // Must be a global coordinate frame. 
-            vehicle.memory.mission_item; 
+            vehicle.memory.mission_items; 
 
             // Check if the received MISSION_ITEM_INT sequence number matches the total 
             // number of items expected in the mission upload. If so then the mission is 
@@ -570,17 +579,68 @@ void VehicleTelemetry::MAVLinkMissionAckSend(
 }
 
 
-// MAVLink: MISSION_CURRENT send 
-void VehicleTelemetry::MAVLinkMissionCurrentSend(void)
+// MAVLink: MISSION_ACK receive 
+void VehicleTelemetry::MAVLinkMissionAckReceive(void)
 {
-    // 
+    mavlink_msg_mission_ack_decode(
+        &msg, 
+        &mavlink.mission_ack_msg_gcs); 
+
+    // This system is only concerned with messages meant for this system. If the taget 
+    // system and component ID in the message does not match this system then abort. 
+    if ((mavlink.mission_ack_msg_gcs.target_system != system_id) || 
+        (mavlink.mission_ack_msg_gcs.target_component != component_id))
+    {
+        return; 
+    }
+
+    // Unclear what should be done when this is received. Whether a GCS specifies 
+    // success or failure on mission download, MAVLink mission protocol doesn't 
+    // specify a particular action. 
+}
+
+
+// MAVLink: MISSION_CURRENT send 
+void VehicleTelemetry::MAVLinkMissionCurrentSend(Vehicle &vehicle)
+{
+    mavlink_msg_mission_current_pack_chan(
+        system_id, 
+        component_id, 
+        channel, 
+        &msg, 
+        0,   // Sequence number 
+        vehicle.memory.mission_size,   // ? 
+        0,   // Mission state 
+        0,   // Mission mode 
+        vehicle.memory.mission_id,   // ? 
+        0,   // Fence ID 
+        0);   // Ralley point ID 
+    MAVLinkMessageFormat(); 
 }
 
 
 // MAVLink: MISSION_SET_CURRENT receive 
-void VehicleTelemetry::MAVLinkMissionSetCurrentReceive(void)
+void VehicleTelemetry::MAVLinkMissionSetCurrentReceive(Vehicle &vehicle)
 {
-    // 
+    mavlink_msg_mission_set_current_decode(
+        &msg, 
+        &mavlink.mission_set_current_msg_gcs); 
+
+    // This system is only concerned with messages meant for this system. If the taget 
+    // system and component ID in the message does not match this system then abort. 
+    if ((mavlink.mission_set_current_msg_gcs.target_system != system_id) || 
+        (mavlink.mission_set_current_msg_gcs.target_component != component_id))
+    {
+        return; 
+    }
+
+    // Update the mission item if valid 
+    if (mavlink.mission_set_current_msg_gcs.seq < vehicle.memory.mission_size)
+    {
+        // TODO 
+
+        MAVLinkMissionCurrentSend(vehicle); 
+    }
 }
 
 
@@ -604,9 +664,20 @@ void VehicleTelemetry::MAVLinkMissionClearAllReceive(Vehicle &vehicle)
 
 
 // MAVLink: MISSION_ITEM_REACHED send 
-void VehicleTelemetry::MAVLinkMissionItemReachedSend(void)
+void VehicleTelemetry::MAVLinkMissionItemReachedSend(Vehicle &vehicle)
 {
-    // 
+    if (status.mission_item_reached)
+    {
+        mavlink_msg_mission_item_reached_pack_chan(
+            system_id, 
+            component_id, 
+            channel, 
+            &msg, 
+            vehicle.memory.mission_index); 
+        MAVLinkMessageFormat(); 
+
+        status.mission_item_reached = FLAG_CLEAR; 
+    }
 }
 
 
@@ -621,6 +692,13 @@ void VehicleTelemetry::ClearMission(
         MAV_MISSION_ACCEPTED, 
         mission_type, 
         vehicle.memory.mission_id); 
+}
+
+
+// Set flag to trigger a MISSION_ITEM_REACHED message send 
+void VehicleTelemetry::MAVLinkMissionItemReachedSet(void)
+{
+    status.mission_item_reached = FLAG_SET; 
 }
 
 //=======================================================================================

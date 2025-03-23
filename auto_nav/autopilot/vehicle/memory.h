@@ -43,11 +43,12 @@ public:   // public members
     uint8_t num_params; 
     MAV_PARAM_TYPE param_value_type; 
 
-    // Mission 
+    // Mission - this may change as external storage is integrated 
     uint16_t mission_size; 
     uint32_t mission_id; 
     uint8_t mission_type; 
-    mavlink_mission_item_int_t mission_item; 
+    uint16_t mission_index; 
+    mavlink_mission_item_int_t mission_items[10]; 
 
 public:   // public methods 
 
