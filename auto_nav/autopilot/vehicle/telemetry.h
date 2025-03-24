@@ -59,9 +59,6 @@ public:   // Public members
     mavlink_mission_set_current_t mission_set_current_msg_gcs;     // MISSION_SET_CURRENT 
     mavlink_mission_clear_all_t mission_clear_all_msg_gcs;         // MISSION_CLEAR_ALL 
 
-    // mavlink_mission_current_t g; 
-    // mavlink_mission_ack_t t; 
-
     // Command protocol 
     mavlink_command_long_t command_long_msg_gcs;                   // COMMAND_LONG 
 
