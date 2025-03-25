@@ -3,7 +3,7 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Main program body 
+ * @brief Main 
  * 
  * @version 0.1
  * @date 2024-03-03
@@ -23,22 +23,22 @@
 #include "fatfs.h"
 
 // Application 
-#include "ground_station.h" 
+// #include "ground_station.h" 
 
-#if FREERTOS_ENABLE 
+// #if FREERTOS_ENABLE 
 
 // Application 
 #include "boat.h" 
 
-// FreeRTOS 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "cmsis_os2.h"
-#include "queue.h" 
-#include "semphr.h" 
-#include "timers.h" 
+// // FreeRTOS 
+// #include "FreeRTOS.h"
+// #include "task.h"
+// #include "cmsis_os2.h"
+// #include "queue.h" 
+// #include "semphr.h" 
+// #include "timers.h" 
 
-#endif   // FREERTOS_ENABLE 
+// #endif   // FREERTOS_ENABLE 
 
 //=======================================================================================
 
@@ -101,11 +101,12 @@ int main(void)
     SystemClock_Config(); 
 
     // Run application setup code 
-#if GROUND_STATION 
-    ground_station.GroundStationSetup(); 
-#elif BOAT 
-    boat.BoatSetup(); 
-#endif 
+// #if GROUND_STATION 
+//     ground_station.GroundStationSetup(); 
+// #elif BOAT 
+    // boat.BoatSetup(); 
+// #endif 
+    boat.Setup(); 
 
     // Initialize all configured peripherals 
     MX_GPIO_Init(); 
@@ -114,12 +115,13 @@ int main(void)
     // Main loop 
     while (1)
     {
-#if GROUND_STATION 
-        ground_station.GroundStationApp(); 
-#elif BOAT 
+// #if GROUND_STATION 
+//         ground_station.GroundStationApp(); 
+// #elif BOAT 
         // Start scheduler 
-        osKernelStart(); 
-#endif 
+        // osKernelStart(); 
+// #endif 
+        boat.Loop(); 
     }
 }
 
@@ -134,8 +136,8 @@ void SystemClock_Config(void)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct; 
     RCC_ClkInitTypeDef RCC_ClkInitStruct; 
-    memset((void *)&RCC_OscInitStruct, CLEAR, sizeof(RCC_OscInitTypeDef)); 
-    memset((void *)&RCC_ClkInitStruct, CLEAR, sizeof(RCC_ClkInitTypeDef)); 
+    memset((void *)&RCC_OscInitStruct, RESET, sizeof(RCC_OscInitTypeDef)); 
+    memset((void *)&RCC_ClkInitStruct, RESET, sizeof(RCC_ClkInitTypeDef)); 
 
     // Configure the main internal regulator output voltage 
     __HAL_RCC_PWR_CLK_ENABLE();
@@ -176,7 +178,7 @@ void SystemClock_Config(void)
 static void MX_GPIO_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct; 
-    memset((void *)&GPIO_InitStruct, CLEAR, sizeof(GPIO_InitTypeDef)); 
+    memset((void *)&GPIO_InitStruct, RESET, sizeof(GPIO_InitTypeDef)); 
 
     // GPIO Ports Clock Enable 
     __HAL_RCC_GPIOC_CLK_ENABLE();
