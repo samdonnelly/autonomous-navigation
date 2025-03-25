@@ -15,6 +15,10 @@
 #ifndef _FREERTOS_CONFIG_H_ 
 #define _FREERTOS_CONFIG_H_ 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //=======================================================================================
 // Application specific definitions 
 
@@ -87,7 +91,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelete                  1
 #define INCLUDE_vTaskCleanUpResources        0
 #define INCLUDE_vTaskSuspend                 1
-#define INCLUDE_vTaskDelayUntil              1
+// #define INCLUDE_vTaskDelayUntil              1
 #define INCLUDE_vTaskDelay                   1
 #define INCLUDE_xTaskGetSchedulerState       1
 #define INCLUDE_xTimerPendFunctionCall       1
@@ -145,7 +149,49 @@ standard names. */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
 /* USER CODE END Defines */
 
+
+//==================================================
+// <h>Memory Allocation Configuration
+// <i> Enable and configure memory allocation specific features.
+// <i> To configure FreeRTOS heap size use configTOTAL_HEAP_SIZE.
+
+//  <q> Support static memory allocation
+//  <i> Enable or disable static memory allocation.
+//  <i> When enabled RTOS objects can be created using application provided RAM.
+//  <i> Default: 1
+#define configSUPPORT_STATIC_ALLOCATION           1
+
+
+//  <q>Use kernel provided static memory
+//  <i> When enabled FreeRTOS kernel provides static memory for Idle and Timer tasks.
+//  <i> Otherwise user shall provide implementation of:
+//  <i> - vApplicationGetIdleTaskMemory and vApplicationGetTimerTaskMemory
+//  <i> - vApplicationGetPassiveIdleTaskMemory (when kernel uses SMP)
+//  <i> Default: 1
+#define configKERNEL_PROVIDED_STATIC_MEMORY       1
+
+//==================================================
+
+
+//==================================================
+// Additional CMSIS RTOS2 API Enabling Macros 
+
+/* Defines needed by FreeRTOS to implement CMSIS RTOS2 API. Do not change! */
+#define configUSE_TASK_NOTIFICATIONS              1
+
+/* Defines that include FreeRTOS functions which implement CMSIS RTOS2 API. Do not change! */
+#define INCLUDE_xEventGroupSetBitsFromISR         1
+#define INCLUDE_xSemaphoreGetMutexHolder          1
+#define INCLUDE_xTaskDelayUntil                   1
+#define INCLUDE_xTaskAbortDelay                   1
+
+//==================================================
+
 //=======================================================================================
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif   // _FREERTOS_CONFIG_H_ 
  

@@ -487,7 +487,7 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
         {
             // TODO Append/save the mission item. May need to check other item properties. 
             // Must be a global coordinate frame. 
-            vehicle.memory.mission_items; 
+            // vehicle.memory.mission_items; 
 
             // Check if the received MISSION_ITEM_INT sequence number matches the total 
             // number of items expected in the mission upload. If so then the mission is 
@@ -532,7 +532,24 @@ void VehicleTelemetry::MAVLinkMissionItemIntSend(Vehicle &vehicle)
     if (mavlink.mission_request_msg_gcs.seq < vehicle.memory.mission_size)
     {
         // Get the requested mission item 
-        mavlink_mission_item_int_t mission_item;   // vehicle.memeory(seq) 
+        mavlink_mission_item_int_t mission_item = // vehicle.memeory(seq) 
+        {
+            .param1 = 0, 
+            .param2 = 0, 
+            .param3 = 0, 
+            .param4 = 0, 
+            .x = 0, 
+            .y = 0, 
+            .z = 0, 
+            .seq = 0, 
+            .command = 0, 
+            .target_system = 0, 
+            .target_component = 0, 
+            .frame = 0, 
+            .current = 0, 
+            .autocontinue = 0, 
+            .mission_type = 0 
+        }; 
 
         mavlink_msg_mission_item_int_pack_chan(
             system_id, 

@@ -31,63 +31,117 @@ void Vehicle::Setup(void)
 
     // Thread definitions. Vehicle specific dispatch and callback function pointers get 
     // set in vehicle specific setup code. 
-    main_event_info = 
+    // main_event_info = 
+    // {
+    //     .attr = { .name = "MainThread", 
+    //               .attr_bits = CLEAR_SETTING, 
+    //               .cb_mem = nullptr, 
+    //               .cb_size = CLEAR_SETTING, 
+    //               .stack_mem = nullptr, 
+    //               .stack_size = MAIN_STACK_SIZE, 
+    //               .priority = (osPriority_t)osPriorityLow, 
+    //               .tz_module = CLEAR_SETTING, 
+    //               .reserved = CLEAR_SETTING }, 
+    //     .event = CLEAR_EVENT, 
+    //     .ThreadEventQueue = xQueueCreate(MAIN_QUEUE_LEN, sizeof(uint32_t)), 
+    //     .dispatch = nullptr 
+    // }; 
+    // comms_event_info = 
+    // {
+    //     .attr = { .name = "CommsThread", 
+    //               .attr_bits = CLEAR_SETTING, 
+    //               .cb_mem = nullptr, 
+    //               .cb_size = CLEAR_SETTING, 
+    //               .stack_mem = nullptr, 
+    //               .stack_size = COMMS_STACK_SIZE, 
+    //               .priority = (osPriority_t)osPriorityNormal, 
+    //               .tz_module = CLEAR_SETTING, 
+    //               .reserved = CLEAR_SETTING }, 
+    //     .event = CLEAR_EVENT, 
+    //     .ThreadEventQueue = xQueueCreate(COMMS_QUEUE_LEN, sizeof(uint32_t)), 
+    //     .dispatch = nullptr 
+    // }; 
+    main_event_info = (ThreadEventData)
     {
-        .attr = { .name = "MainThread", 
-                  .attr_bits = CLEAR_SETTING, 
-                  .cb_mem = nullptr, 
-                  .cb_size = CLEAR_SETTING, 
-                  .stack_mem = nullptr, 
-                  .stack_size = MAIN_STACK_SIZE, 
-                  .priority = (osPriority_t)osPriorityLow, 
-                  .tz_module = CLEAR_SETTING, 
-                  .reserved = CLEAR_SETTING }, 
-        .event = CLEAR_EVENT, 
-        .ThreadEventQueue = xQueueCreate(MAIN_QUEUE_LEN, sizeof(uint32_t)), 
-        .dispatch = nullptr 
+        (osThreadAttr_t)                                  // attr 
+        {
+            "Mainthread",                  // name 
+            CLEAR_SETTING,                 // attr_bits 
+            nullptr,                       // cb_mem 
+            CLEAR_SETTING,                 // cb_size 
+            nullptr,                       // stack_mem 
+            MAIN_STACK_SIZE,               // stack_size 
+            (osPriority_t)osPriorityLow,   // priority 
+            CLEAR_SETTING,                 // tz_module 
+            CLEAR_SETTING                  // reserved 
+        }, 
+        CLEAR_EVENT,                                      // event 
+        xQueueCreate(MAIN_QUEUE_LEN, sizeof(uint32_t)),   // ThreadEventQueue 
+        nullptr                                           // dispatch 
     }; 
-    comms_event_info = 
+    comms_event_info = (ThreadEventData)
     {
-        .attr = { .name = "CommsThread", 
-                  .attr_bits = CLEAR_SETTING, 
-                  .cb_mem = nullptr, 
-                  .cb_size = CLEAR_SETTING, 
-                  .stack_mem = nullptr, 
-                  .stack_size = COMMS_STACK_SIZE, 
-                  .priority = (osPriority_t)osPriorityNormal, 
-                  .tz_module = CLEAR_SETTING, 
-                  .reserved = CLEAR_SETTING }, 
-        .event = CLEAR_EVENT, 
-        .ThreadEventQueue = xQueueCreate(COMMS_QUEUE_LEN, sizeof(uint32_t)), 
-        .dispatch = nullptr 
+        (osThreadAttr_t)                                   // attr 
+        {
+            "CommsThread",                    // name 
+            CLEAR_SETTING,                    // attr_bits 
+            nullptr,                          // cb_mem 
+            CLEAR_SETTING,                    // cb_size 
+            nullptr,                          // stack_mem 
+            COMMS_STACK_SIZE,                 // stack_size 
+            (osPriority_t)osPriorityNormal,   // priority 
+            CLEAR_SETTING,                    // tz_module 
+            CLEAR_SETTING                     // reserved 
+        }, 
+        CLEAR_EVENT,                                       // event 
+        xQueueCreate(COMMS_QUEUE_LEN, sizeof(uint32_t)),   // ThreadEventQueue 
+        nullptr                                            // dispatch 
     }; 
 
-    periodic_timer_100ms = 
+    periodic_timer_100ms = (TimerThreadData)
     {
-        .handler = nullptr, 
-        .name = "100ms", 
-        .ticks = PERIODIC_TIMER_100MS_PERIOD, 
-        .reload = pdTRUE, 
-        .id = 0, 
-        .callback = nullptr 
+        // .handler = nullptr, 
+        // .name = "100ms", 
+        // .ticks = PERIODIC_TIMER_100MS_PERIOD, 
+        // .reload = pdTRUE, 
+        // .id = 0, 
+        // .callback = nullptr 
+        nullptr,                       // handler
+        "100ms",                       // name 
+        PERIODIC_TIMER_100MS_PERIOD,   // ticks 
+        pdTRUE,                        // reload 
+        0,                             // id 
+        nullptr                        // callback 
     }; 
-    periodic_timer_250ms = 
+    periodic_timer_250ms = (TimerThreadData)
     {
-        .handler = nullptr, 
-        .name = "250ms", 
-        .ticks = PERIODIC_TIMER_250MS_PERIOD, 
-        .reload = pdTRUE, 
-        .id = 1, 
-        .callback = nullptr 
+        // .handler = nullptr, 
+        // .name = "250ms", 
+        // .ticks = PERIODIC_TIMER_250MS_PERIOD, 
+        // .reload = pdTRUE, 
+        // .id = 1, 
+        // .callback = nullptr 
+        nullptr,                       // handler
+        "250ms",                       // name 
+        PERIODIC_TIMER_250MS_PERIOD,   // ticks 
+        pdTRUE,                        // reload 
+        1,                             // id 
+        nullptr                        // callback 
     }; 
-    periodic_timer_1s = 
+    periodic_timer_1s = (TimerThreadData)
     {
-        .handler = nullptr, 
-        .name = "1s", 
-        .ticks = PERIODIC_TIMER_1S_PERIOD, 
-        .reload = pdTRUE, 
-        .id = 2, 
-        .callback = nullptr 
+        // .handler = nullptr, 
+        // .name = "1s", 
+        // .ticks = PERIODIC_TIMER_1S_PERIOD, 
+        // .reload = pdTRUE, 
+        // .id = 2, 
+        // .callback = nullptr 
+        nullptr,                    // handler
+        "1s",                       // name 
+        PERIODIC_TIMER_1S_PERIOD,   // ticks 
+        pdTRUE,                     // reload 
+        2,                          // id 
+        nullptr                     // callback 
     }; 
     
     // Run vehicle specific setup code. Thread creation is done after this because the 
@@ -104,21 +158,21 @@ void Vehicle::Setup(void)
         periodic_timer_100ms.name, 
         periodic_timer_100ms.ticks, 
         periodic_timer_100ms.reload, 
-        (void *)periodic_timer_100ms.id, 
+        (void *)&periodic_timer_100ms.id, 
         periodic_timer_100ms.callback); 
 
     periodic_timer_250ms.handler = xTimerCreate(
         periodic_timer_250ms.name, 
         periodic_timer_250ms.ticks, 
         periodic_timer_250ms.reload, 
-        (void *)periodic_timer_250ms.id, 
+        (void *)&periodic_timer_250ms.id, 
         periodic_timer_250ms.callback); 
     
     periodic_timer_1s.handler = xTimerCreate(
         periodic_timer_1s.name, 
         periodic_timer_1s.ticks, 
         periodic_timer_1s.reload, 
-        (void *)periodic_timer_1s.id, 
+        (void *)&periodic_timer_1s.id, 
         periodic_timer_1s.callback); 
 
     // Create mutex 

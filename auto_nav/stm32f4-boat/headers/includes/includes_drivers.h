@@ -51,7 +51,6 @@ extern "C" {
 #include "uart_comm.h"
 
 // Tools 
-#include "active_object_framework.h" 
 #include "linked_list_driver.h"
 #include "stm32f411xe_custom.h"
 #include "switch_debounce.h"

@@ -76,7 +76,7 @@ struct ThreadEventData
 struct TimerThreadData 
 {
     TimerHandle_t handler;              // Pointer to timer handler 
-    char *name;                         // Name of timer 
+    const char *name;                   // Name of timer 
     TickType_t ticks;                   // Period of timer (ticks) 
     BaseType_t reload;                  // Auto-reload --> pdTRUE == Repeat Timer 
     uint8_t id;                         // Timer ID 
