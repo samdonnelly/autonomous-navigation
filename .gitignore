@@ -21,8 +21,8 @@ __pycache__/
 # Configuration 
 
 # System configuration 
-auto_nav/autopilot/vehicle/vehicle_config.h 
-auto_nav/stm32f4-boat/headers/core/system_config.h
+auto_nav/autopilot/system/system_config.h 
+auto_nav/stm32f4-boat/headers/core/hardware_config.h
 
 #==================================================
 

@@ -8,10 +8,10 @@
  * @details This is the template file for configuring the autopilot for your vehicle. 
  *          The values here will not be read and should not be altered unless adding 
  *          or removing a configuration. The contents of this file should be copied 
- *          and added to a "vehicle_config.h" file in the same folder as this file. 
- *          "vehicle_config.h" is not tracked but is required and will be read to 
+ *          and added to a "system_config.h" file in the same folder as this file. 
+ *          "system_config.h" is not tracked but is required and will be read to 
  *          understand how the user wants their vehicle configured. The user should 
- *          change the below values from 0 to 1 in "vehicle_config.h" if they want 
+ *          change the below values from 0 to 1 in "system_config.h" if they want 
  *          something enabled. Note that every system is different but some items 
  *          such as telemetry and GPS are necessary for most autonomous vehicle 
  *          navigation. 

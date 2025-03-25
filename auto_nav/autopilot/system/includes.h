@@ -20,7 +20,7 @@
 
 #include "system_tools.h" 
 #include "rtos.h" 
-#include "vehicle_config.h" 
+#include "system_config.h" 
 
 extern "C"
 {

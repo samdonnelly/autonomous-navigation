@@ -16,7 +16,7 @@
 // Includes 
 
 #include "stm32f4xx_setup.h"
-#include "system_config.h" 
+#include "hardware_config.h" 
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_tim.h"
 

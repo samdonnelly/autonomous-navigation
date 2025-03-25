@@ -16,7 +16,7 @@
 // Includes 
 
 // Configuration 
-#include "system_config.h" 
+#include "hardware_config.h" 
 
 // Library 
 #include "stm32f4xx_hal.h" 
