@@ -159,9 +159,7 @@ void Boat::MainInitState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::INIT_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::INIT_STATE, data.main_state_flags.flags); 
         
         data.main_state_flags.hold_state = FLAG_SET; 
 
@@ -188,8 +186,7 @@ void Boat::MainInitState(Boat& data, Event event)
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -203,9 +200,7 @@ void Boat::MainHoldState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::HOLD_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::HOLD_STATE, data.main_state_flags.flags); 
 
         // navigation.ThrustersOff(); 
         // LEDStrobeUpdate(ws2812_led_standby_not_ready); 
@@ -216,23 +211,14 @@ void Boat::MainHoldState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-        
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
 
         // LEDStrobeOff(); 
         // radio.MainStandbyStateCmdEnable(FLAG_CLEAR); 
@@ -249,9 +235,7 @@ void Boat::MainManualState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::MANUAL_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::MANUAL_STATE, data.main_state_flags.flags); 
 
         // LEDStrobeUpdate(ws2812_led_manual_strobe); 
         // radio.MainManualStateCmdEnable(FLAG_SET); 
@@ -261,27 +245,23 @@ void Boat::MainManualState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-        
-        case MainEvents::RADIO_CONNECTION: 
+        // case MainEvents::RADIO_CONNECTION: 
             // data.rc.RadioConnectionCheck(data.radio.ConnectionStatus()); 
+            // break; 
+
+        case MainEvents::REMOTE_CONTROL: 
+            // Check for RC receiver input to control the vehicle and simultaneously 
+            // check that there's still an RC radio connection. 
             break; 
         
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
 
         // rc.ThrustersOff(); 
         // LEDStrobeOff(); 
@@ -299,32 +279,21 @@ void Boat::MainAcroState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::ACRO_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::ACRO_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -338,32 +307,21 @@ void Boat::MainSteeringState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::STEERING_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::STEERING_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -377,32 +335,21 @@ void Boat::MainLoiterState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::LOITER_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::LOITER_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -416,32 +363,21 @@ void Boat::MainFollowState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::FOLLOW_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::FOLLOW_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -455,32 +391,21 @@ void Boat::MainSimpleState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::SIMPLE_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::SIMPLE_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -494,32 +419,21 @@ void Boat::MainDockState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::DOCK_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::DOCK_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -533,32 +447,21 @@ void Boat::MainCircleState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::CIRCLE_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::CIRCLE_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -572,9 +475,7 @@ void Boat::MainAutoState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::AUTO_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::AUTO_STATE, data.main_state_flags.flags); 
 
         // navigation.CurrentUpdate(boat); 
         // LEDStrobeUpdate(ws2812_led_auto_strobe); 
@@ -586,14 +487,6 @@ void Boat::MainAutoState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-        
         case MainEvents::NAV_HEADING_CALC: 
             // data.navigation.HeadingCalc(data); 
             break; 
@@ -603,14 +496,13 @@ void Boat::MainAutoState(Boat& data, Event event)
             break; 
         
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
 
         // navigation.ThrustersOff(); 
         // LEDStrobeOff(); 
@@ -629,32 +521,21 @@ void Boat::MainRTLState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::RTL_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::RTL_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -668,32 +549,21 @@ void Boat::MainSmartRTLState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::SMART_RTL_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::SMART_RTL_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -707,32 +577,21 @@ void Boat::MainGuidedState(Boat& data, Event event)
 {
     if (data.main_system_flags.state_entry)
     {
-        data.main_system_flags.state_entry = FLAG_CLEAR; 
-        data.main_state_flags.flags = RESET; 
-        data.telemetry.MAVLinkHeartbeatSetMode((uint8_t)MainStates::GUIDED_STATE); 
+        data.MainStateEnter((uint8_t)MainStates::GUIDED_STATE, data.main_state_flags.flags); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
     
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 
@@ -755,8 +614,8 @@ void Boat::MainFaultState(Boat& data, Event event)
         // From low power state 
 
         // Stop the software timers 
-        xTimerStop(data.periodic_timer_100ms.handler, 0); 
-        xTimerStop(data.periodic_timer_1s.handler, 0); 
+        // xTimerStop(data.periodic_timer_100ms.handler, 0); 
+        // xTimerStop(data.periodic_timer_1s.handler, 0); 
 
         // If all the software timers are stopped then there will be no radio checks or 
         // LED updates. 
@@ -771,23 +630,14 @@ void Boat::MainFaultState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::TELEMETRY_DECODE: 
-            data.telemetry.MAVLinkMessageDecode(data); 
-            break; 
-
-        case MainEvents::TELEMETRY_ENCODE: 
-            data.telemetry.MAVLinkMessageEncode(data); 
-            break; 
-        
         default: 
-            data.main_event = MainEvents::NO_EVENT; 
+            data.MainCommonEvents(data.main_event); 
             break; 
     }
 
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
 
         // radio.MainFaultStateCmdEnable(FLAG_CLEAR); 
 
@@ -830,8 +680,7 @@ void Boat::MainResetState(Boat& data, Event event)
 
     if (data.main_system_flags.state_exit)
     {
-        data.main_system_flags.state_exit = FLAG_CLEAR; 
-        data.main_system_flags.state_entry = FLAG_SET; 
+        data.MainStateExit(); 
     }
 }
 

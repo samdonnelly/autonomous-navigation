@@ -45,6 +45,12 @@ public:   // Public members
 
 public:   // Public methods 
 
+    // Constructor 
+    VehicleHardware() 
+    {
+        data_ready.telemetry_ready = FLAG_CLEAR; 
+    }
+
     // Hardware setup 
     void HardwareSetup(void); 
 

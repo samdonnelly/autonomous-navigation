@@ -52,6 +52,7 @@ public:   // public members
 
 public:   // public methods 
 
+    // Constructor 
     VehicleMemory(); 
 }; 
 

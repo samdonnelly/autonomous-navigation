@@ -32,6 +32,11 @@ public:   // public members
 
     int16_t temperature; 
     uint32_t time_usec; 
+
+public:   // public methods 
+
+    // Constructor 
+    VehicleAuxiliary() {}
 }; 
 
 //=======================================================================================

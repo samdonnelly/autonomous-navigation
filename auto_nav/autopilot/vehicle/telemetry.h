@@ -28,6 +28,7 @@
 
 class Vehicle; 
 
+
 class VehicleMAVLink 
 {
     // MAVLink messages and properites common to all vehicles. 
@@ -192,7 +193,8 @@ private:   // Private methods
 
 public:   // Public methods 
 
-    VehicleTelemetry(); 
+    // Constructor 
+    VehicleTelemetry(uint8_t vehicle_type); 
 
     // MAVLink message handling 
     void MAVLinkMessageDecode(Vehicle &vehicle); 

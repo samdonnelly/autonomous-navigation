@@ -53,6 +53,11 @@ public:   // Public members
     uint16_t waypoint_distance; 
     uint16_t ground_speed; 
     uint16_t num_satellite; 
+
+public:   // public methods 
+
+    // Constructor 
+    VehicleNavigation() {}
 }; 
 
 //=======================================================================================

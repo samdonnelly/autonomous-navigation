@@ -62,9 +62,9 @@ protected:   // Protected members
         INIT, 
         TELEMETRY_DECODE, 
         TELEMETRY_ENCODE, 
+        REMOTE_CONTROL, 
         NAV_HEADING_CALC, 
-        NAV_LOCATION_CALC, 
-        RADIO_CONNECTION 
+        NAV_LOCATION_CALC 
     } main_event; 
 
     // Communication thread events 
@@ -112,13 +112,16 @@ protected:   // Protected methods
 
     // Helper functions 
     void MainEventQueue(Event event); 
+    void MainCommonEvents(Vehicle::MainEvents &event); 
     void MainStateChange(void); 
+    void MainStateEnter(uint8_t state, uint32_t &flags); 
+    void MainStateExit(void); 
     void CommsEventQueue(Event event); 
 
-    // Wrapper functions 
-    void CommsEventQueueTelemetryWrite(void); 
-
 public:   // Public methods 
+
+    // Constructor 
+    Vehicle(uint8_t vehicle_type); 
 
     // Project interface 
     void Setup(void); 

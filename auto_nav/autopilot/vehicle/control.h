@@ -28,7 +28,10 @@
 
 class VehicleControl 
 {
-    // 
+public:   // public methods 
+
+    // Constructor 
+    VehicleControl() {}
 }; 
 
 //=======================================================================================

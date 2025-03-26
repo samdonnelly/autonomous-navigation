@@ -23,22 +23,7 @@
 #include "fatfs.h"
 
 // Application 
-// #include "ground_station.h" 
-
-// #if FREERTOS_ENABLE 
-
-// Application 
 #include "boat.h" 
-
-// // FreeRTOS 
-// #include "FreeRTOS.h"
-// #include "task.h"
-// #include "cmsis_os2.h"
-// #include "queue.h" 
-// #include "semphr.h" 
-// #include "timers.h" 
-
-// #endif   // FREERTOS_ENABLE 
 
 //=======================================================================================
 
@@ -101,11 +86,6 @@ int main(void)
     SystemClock_Config(); 
 
     // Run application setup code 
-// #if GROUND_STATION 
-//     ground_station.GroundStationSetup(); 
-// #elif BOAT 
-    // boat.BoatSetup(); 
-// #endif 
     boat.Setup(); 
 
     // Initialize all configured peripherals 
@@ -115,12 +95,7 @@ int main(void)
     // Main loop 
     while (1)
     {
-// #if GROUND_STATION 
-//         ground_station.GroundStationApp(); 
-// #elif BOAT 
-        // Start scheduler 
-        // osKernelStart(); 
-// #endif 
+        // Run the application 
         boat.Loop(); 
     }
 }

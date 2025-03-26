@@ -23,44 +23,33 @@
 //=======================================================================================
 // Project interface 
 
+// Constructor 
+Vehicle::Vehicle(uint8_t vehicle_type) 
+    : main_event(MainEvents::NO_EVENT), 
+      comms_event(CommsEvents::NO_EVENT), 
+      hardware(), 
+      telemetry(vehicle_type), 
+      navigation(), 
+      control(), 
+      memory(), 
+      auxiliary()
+{
+    main_system_flags.state_entry = FLAG_CLEAR; 
+    main_system_flags.state_exit = FLAG_CLEAR; 
+}
+
+
 // Vehicle setup 
 void Vehicle::Setup(void)
 {
+    // Initialize FreeRTOS scheduler 
+    osKernelInitialize(); 
+
     // Set up the vehicle hardware (ex. UART, radio, etc); 
     hardware.HardwareSetup(); 
 
     // Thread definitions. Vehicle specific dispatch and callback function pointers get 
     // set in vehicle specific setup code. 
-    // main_event_info = 
-    // {
-    //     .attr = { .name = "MainThread", 
-    //               .attr_bits = CLEAR_SETTING, 
-    //               .cb_mem = nullptr, 
-    //               .cb_size = CLEAR_SETTING, 
-    //               .stack_mem = nullptr, 
-    //               .stack_size = MAIN_STACK_SIZE, 
-    //               .priority = (osPriority_t)osPriorityLow, 
-    //               .tz_module = CLEAR_SETTING, 
-    //               .reserved = CLEAR_SETTING }, 
-    //     .event = CLEAR_EVENT, 
-    //     .ThreadEventQueue = xQueueCreate(MAIN_QUEUE_LEN, sizeof(uint32_t)), 
-    //     .dispatch = nullptr 
-    // }; 
-    // comms_event_info = 
-    // {
-    //     .attr = { .name = "CommsThread", 
-    //               .attr_bits = CLEAR_SETTING, 
-    //               .cb_mem = nullptr, 
-    //               .cb_size = CLEAR_SETTING, 
-    //               .stack_mem = nullptr, 
-    //               .stack_size = COMMS_STACK_SIZE, 
-    //               .priority = (osPriority_t)osPriorityNormal, 
-    //               .tz_module = CLEAR_SETTING, 
-    //               .reserved = CLEAR_SETTING }, 
-    //     .event = CLEAR_EVENT, 
-    //     .ThreadEventQueue = xQueueCreate(COMMS_QUEUE_LEN, sizeof(uint32_t)), 
-    //     .dispatch = nullptr 
-    // }; 
     main_event_info = (ThreadEventData)
     {
         (osThreadAttr_t)                                  // attr 
@@ -100,12 +89,6 @@ void Vehicle::Setup(void)
 
     periodic_timer_100ms = (TimerThreadData)
     {
-        // .handler = nullptr, 
-        // .name = "100ms", 
-        // .ticks = PERIODIC_TIMER_100MS_PERIOD, 
-        // .reload = pdTRUE, 
-        // .id = 0, 
-        // .callback = nullptr 
         nullptr,                       // handler
         "100ms",                       // name 
         PERIODIC_TIMER_100MS_PERIOD,   // ticks 
@@ -115,12 +98,6 @@ void Vehicle::Setup(void)
     }; 
     periodic_timer_250ms = (TimerThreadData)
     {
-        // .handler = nullptr, 
-        // .name = "250ms", 
-        // .ticks = PERIODIC_TIMER_250MS_PERIOD, 
-        // .reload = pdTRUE, 
-        // .id = 1, 
-        // .callback = nullptr 
         nullptr,                       // handler
         "250ms",                       // name 
         PERIODIC_TIMER_250MS_PERIOD,   // ticks 
@@ -130,22 +107,17 @@ void Vehicle::Setup(void)
     }; 
     periodic_timer_1s = (TimerThreadData)
     {
-        // .handler = nullptr, 
-        // .name = "1s", 
-        // .ticks = PERIODIC_TIMER_1S_PERIOD, 
-        // .reload = pdTRUE, 
-        // .id = 2, 
-        // .callback = nullptr 
-        nullptr,                    // handler
-        "1s",                       // name 
-        PERIODIC_TIMER_1S_PERIOD,   // ticks 
-        pdTRUE,                     // reload 
-        2,                          // id 
-        nullptr                     // callback 
+        nullptr,                       // handler
+        "1s",                          // name 
+        PERIODIC_TIMER_1S_PERIOD,      // ticks 
+        pdTRUE,                        // reload 
+        2,                             // id 
+        nullptr                        // callback 
     }; 
     
-    // Run vehicle specific setup code. Thread creation is done after this because the 
-    // vehicle specific code assigns vehicle specific dispatch and callback functions. 
+    // Run vehicle specific setup code. This is done after thread definitions and before 
+    // thread creation so vehicle specific dispatch and callback functions can be 
+    // assigned and not overwritten. 
     VehicleSetup(); 
 
     // Create the threads 
@@ -187,6 +159,7 @@ void Vehicle::Setup(void)
 // Vehicle loop 
 void Vehicle::Loop(void)
 {
+    // Start the RTOS scheduler 
     osKernelStart(); 
 }
 
@@ -204,6 +177,26 @@ void Vehicle::MainEventQueue(Event event)
 }
 
 
+// Main thread common events 
+void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
+{
+    switch (event)
+    {
+        case MainEvents::TELEMETRY_DECODE: 
+            telemetry.MAVLinkMessageDecode(*this); 
+            break; 
+
+        case MainEvents::TELEMETRY_ENCODE: 
+            telemetry.MAVLinkMessageEncode(*this); 
+            break; 
+        
+        default: 
+            event = MainEvents::NO_EVENT; 
+            break; 
+    }
+}
+
+
 // Main thread state change 
 void Vehicle::MainStateChange(void)
 {
@@ -212,23 +205,30 @@ void Vehicle::MainStateChange(void)
 }
 
 
+// Main thread state enter 
+void Vehicle::MainStateEnter(
+    uint8_t state, 
+    uint32_t &flags)
+{
+    main_system_flags.state_entry = FLAG_CLEAR; 
+    flags = RESET; 
+    telemetry.MAVLinkHeartbeatSetMode(state); 
+}
+
+
+// Main thread state exit 
+void Vehicle::MainStateExit(void)
+{
+    main_system_flags.state_exit = FLAG_CLEAR; 
+    main_system_flags.state_entry = FLAG_SET; 
+}
+
+
 // Queue an event for the comms thread 
 void Vehicle::CommsEventQueue(Event event)
 {
     comms_event_info.event = event; 
     xQueueSend(comms_event_info.ThreadEventQueue, (void *)&comms_event_info.event, 0); 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Wrapper functions 
-
-// Queue a TELEMETRY_WRITE event for the main thread 
-void Vehicle::CommsEventQueueTelemetryWrite(void)
-{
-    CommsEventQueue((Event)CommsEvents::TELEMETRY_WRITE); 
 }
 
 //=======================================================================================

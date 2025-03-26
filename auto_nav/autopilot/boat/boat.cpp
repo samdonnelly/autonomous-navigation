@@ -23,7 +23,6 @@
 //=======================================================================================
 // Global data 
 
-// Boat definition 
 Boat boat; 
 
 //=======================================================================================
@@ -33,7 +32,13 @@ Boat boat;
 // Setup 
 
 // Constructor 
-Boat::Boat(void) {} 
+Boat::Boat() 
+    : Vehicle(MAV_TYPE_SURFACE_BOAT), 
+      main_state(MainStates::INIT_STATE)
+{
+    main_state_flags.flags = RESET; 
+    main_state_flags.init_state = FLAG_SET; 
+}
 
 
 // Boat setup 

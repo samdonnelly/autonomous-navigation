@@ -25,8 +25,10 @@
 
 // Periodic message send timing data. The send period is dependent on the 
 // TELEMETRY_ENCODE event being queued in the corresponding timer thread listed below. 
-#define S_TO_MS 1000    // Seconds to milliseconds 
 #define TELEMETRY_SEND_PERIOD S_TO_MS * PERIODIC_TIMER_250MS_PERIOD / configTICK_RATE_HZ 
+
+#define HB_SEND_FREQ 1   // Heartbeat message send frequency 
+#define PV_SEND_FREQ 4   // Parameter value message send frequency 
 
 //=======================================================================================
 
@@ -34,13 +36,57 @@
 //=======================================================================================
 // Initialization 
 
-VehicleTelemetry::VehicleTelemetry()
-    : system_id(VS_SYSTEM_ID), 
+// Constructor 
+VehicleTelemetry::VehicleTelemetry(uint8_t vehicle_type) 
+    : channel(MAVLINK_COMM_0), 
+      system_id(VS_SYSTEM_ID), 
       component_id(MAV_COMP_ID_AUTOPILOT1), 
       system_id_gcs(VS_SYSTEM_ID_GCS), 
-      component_id_gcs(MAV_COMP_ID_MISSIONPLANNER)
+      component_id_gcs(MAV_COMP_ID_MISSIONPLANNER), 
+      data_in_index(RESET), 
+      data_in_size(RESET), 
+      data_out_size(RESET), 
+      mission_item_index(RESET), 
+      mission_resend_counter(RESET)
 {
-    // 
+    mavlink.heartbeat_msg = 
+    {
+        .custom_mode = RESET, 
+        .type = vehicle_type, 
+        .autopilot = MAV_AUTOPILOT_GENERIC_WAYPOINTS_ONLY, 
+        .base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED | 
+                     MAV_MODE_FLAG_MANUAL_INPUT_ENABLED | 
+                     MAV_MODE_FLAG_GUIDED_ENABLED | 
+                     MAV_MODE_FLAG_SAFETY_ARMED, 
+        .system_status = MAV_STATE_ACTIVE, 
+        .mavlink_version = RESET   // Gets overwritten by MAVLink 
+    };
+
+    uint8_t hb_lim = S_TO_MS / (HB_SEND_FREQ * TELEMETRY_SEND_PERIOD); 
+    uint8_t pv_lim = S_TO_MS / (PV_SEND_FREQ * TELEMETRY_SEND_PERIOD); 
+
+    mavlink.heartbeat_msg_timing                  = { RESET, hb_lim, FLAG_SET }; 
+    mavlink.raw_imu_msg_timing                    = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.gps_raw_int_msg_timing                = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.rc_channels_scaled_msg_timing         = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.rc_channels_raw_msg_timing            = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.servo_output_raw_msg_timing           = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.attitude_msg_timing                   = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.position_target_global_int_msg_timing = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.nav_controller_output_msg_timing      = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.local_position_ned_msg_timing         = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.global_pos_int_msg_timing             = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.param_value_msg_timing                = { RESET, pv_lim, FLAG_CLEAR }; 
+
+    memset((void *)data_in_buff, RESET, sizeof(data_in_buff)); 
+    memset((void *)data_out_buff, RESET, sizeof(data_out_buff)); 
+
+    timers.heartbeat = RESET; 
+    timers.mission_upload = RESET; 
+
+    status.heartbeat = FLAG_CLEAR; 
+    status.mission_upload = FLAG_CLEAR; 
+    status.mission_item_reached = FLAG_CLEAR; 
 }
 
 //=======================================================================================
@@ -222,7 +268,7 @@ void VehicleTelemetry::MAVLinkMessageSend(Vehicle &vehicle)
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
         vehicle.hardware.TelemetrySet(data_out_size, data_out_buff); 
         xSemaphoreGive(vehicle.comms_mutex); 
-        vehicle.CommsEventQueueTelemetryWrite(); 
+        vehicle.CommsEventQueue((uint8_t)Vehicle::CommsEvents::TELEMETRY_WRITE); 
         data_out_size = RESET; 
     }
 }

@@ -150,11 +150,8 @@ private:   // Private methods
 
 public:   // Public methods 
 
-    // Constructor(s) 
+    // Constructor 
     Boat(); 
-
-    // Destructor 
-    ~Boat() {} 
 }; 
 
 extern Boat boat; 

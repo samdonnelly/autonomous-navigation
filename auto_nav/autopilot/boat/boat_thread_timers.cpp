@@ -34,12 +34,15 @@ void Boat::TimerCallback100ms(TimerHandle_t xTimer)
     boat.CommsEventQueue((Event)CommsEvents::TELEMETRY_READ); 
     boat.MainEventQueue((Event)MainEvents::TELEMETRY_DECODE); 
 
+    // Check for incoming RC messages 
+    // MainEvents::REMOTE_CONTROL; 
+
     // Update the navigation heading when in the auto state 
-    if (boat.main_state == MainStates::AUTO_STATE)
-    {
+    // if (boat.main_state == MainStates::AUTO_STATE)
+    // {
         // boat.CommsEventQueue((Event)CommsEvents::NAV_HEADING_UPDATE); 
         // boat.MainEventQueue((Event)MainEvents::NAV_HEADING_CALC); 
-    }
+    // }
 }
 
 

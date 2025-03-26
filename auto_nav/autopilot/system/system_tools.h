@@ -27,9 +27,13 @@
 //=======================================================================================
 // Macros 
 
+// Data resets 
 #define CLEAR_EVENT 0 
 #define CLEAR_SETTING 0 
 #define RESET 0 
+
+// Units 
+#define S_TO_MS 1000    // Seconds to milliseconds 
 
 //=======================================================================================
 
