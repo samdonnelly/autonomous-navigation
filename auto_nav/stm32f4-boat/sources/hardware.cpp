@@ -63,8 +63,9 @@ public:   // public members
         cb_index_t cb_index;                           // Circular buffer indexing info 
         dma_index_t dma_index;                         // DMA transfer indexing info 
         uint8_t data_in_buff[SERIAL_MSG_BUFF_SIZE];    // Buffer that stores latest UART input 
-        uint8_t data_out_buff[SERIAL_MSG_BUFF_SIZE];   // Buffer that stores outgoing data 
         uint16_t data_in_index;                        // Data input buffer index 
+        uint8_t data_out_buff[SERIAL_MSG_BUFF_SIZE];   // Buffer that stores outgoing data 
+        uint16_t data_out_size;                        // Size of the outgoing data 
     }
     telemetry_data, rc_data; 
 
@@ -496,8 +497,32 @@ void Hardware::SerialDataInit(
     serial_data.dma_index.ndt_old = dma_ndt_read(serial_data.dma_stream); 
     serial_data.dma_index.ndt_new = CLEAR; 
     memset((void *)serial_data.data_in_buff, CLEAR, sizeof(serial_data.data_in_buff)); 
-    memset((void *)serial_data.data_out_buff, CLEAR, sizeof(serial_data.data_out_buff)); 
     serial_data.data_in_index = CLEAR; 
+    memset((void *)serial_data.data_out_buff, CLEAR, sizeof(serial_data.data_out_buff)); 
+    serial_data.data_out_size = CLEAR; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Interrupt callbacks 
+
+// DMA2 Stream 2 
+void DMA2_Stream2_IRQHandler(void)
+{
+    // Parse the new radio data from the circular buffer into the data buffer. 
+    dma_cb_index(
+        hardware.telemetry_data.dma_stream, 
+        &hardware.telemetry_data.dma_index, 
+        &hardware.telemetry_data.cb_index); 
+    cb_parse(
+        hardware.telemetry_data.cb, 
+        &hardware.telemetry_data.cb_index, 
+        hardware.telemetry_data.data_in_buff); 
+
+    handler_flags.dma2_2_flag = SET_BIT; 
+    dma_clear_int_flags(DMA2); 
 }
 
 //=======================================================================================
@@ -562,24 +587,21 @@ void VehicleHardware::TelemetryRead(void)
 
 void VehicleHardware::TelemetryGet(uint16_t &size, uint8_t *buffer)
 {
-    // size;   // Assign size of data received 
-    memcpy((void *)buffer, (void *)1, size);   // Copy from hardware to autopilot buffer 
+    size = hardware.telemetry_data.dma_index.data_size; 
+    memcpy((void *)buffer, (void *)hardware.telemetry_data.data_in_buff, size); 
 }
 
 
 void VehicleHardware::TelemetrySet(uint16_t &size, uint8_t *buffer)
 {
-    // Copy contents of autopilot telemetry output buffer into hardware telemetry output 
-    // buffer. 
-    // size;   // Assign size of data to send 
-    memcpy((void *)1, (void *)buffer, size);   // Copy from autopilot to hardware buffer 
+    hardware.telemetry_data.data_out_size = size; 
+    memcpy((void *)hardware.telemetry_data.data_out_buff, (void *)buffer, size); 
 }
 
 
 void VehicleHardware::TelemetryWrite(void)
 {
-    // Send copied MAVLink message contents to the telemetry device. 
-    // sick_send_data(buff, size); 
+    sik_send_data(hardware.telemetry_data.data_out_buff, hardware.telemetry_data.data_out_size); 
 }
 
 //=======================================================================================

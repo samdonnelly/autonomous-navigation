@@ -26,6 +26,14 @@
 
 
 //=======================================================================================
+// Macros 
+
+#define __weak __attribute__((weak)) 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Globals 
 
 // Instance of interrupt flag data record 
@@ -259,7 +267,7 @@ void DMA2_Stream1_IRQHandler(void)
 
 
 // DMA2 Stream 2 
-void DMA2_Stream2_IRQHandler(void)
+__weak void DMA2_Stream2_IRQHandler(void)
 {
     handler_flags.dma2_2_flag = SET_BIT; 
     dma_clear_int_flags(DMA2); 
