@@ -91,7 +91,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelete                  1
 #define INCLUDE_vTaskCleanUpResources        0
 #define INCLUDE_vTaskSuspend                 1
-// #define INCLUDE_vTaskDelayUntil              1
+#define INCLUDE_vTaskDelayUntil              1
 #define INCLUDE_vTaskDelay                   1
 #define INCLUDE_xTaskGetSchedulerState       1
 #define INCLUDE_xTimerPendFunctionCall       1
@@ -182,7 +182,7 @@ standard names. */
 /* Defines that include FreeRTOS functions which implement CMSIS RTOS2 API. Do not change! */
 #define INCLUDE_xEventGroupSetBitsFromISR         1
 #define INCLUDE_xSemaphoreGetMutexHolder          1
-#define INCLUDE_xTaskDelayUntil                   1
+// #define INCLUDE_xTaskDelayUntil                   1
 #define INCLUDE_xTaskAbortDelay                   1
 
 //==================================================

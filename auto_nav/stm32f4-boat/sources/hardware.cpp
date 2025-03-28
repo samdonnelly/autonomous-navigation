@@ -127,40 +127,40 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // Timers 
 
-    // General purpose 1us counter 
-    tim_9_to_11_counter_init(
-        hardware.generic_timer, 
-        TIM_84MHZ_1US_PSC, 
-        0xFFFF,  // Max ARR value 
-        TIM_UP_INT_DISABLE); 
-    tim_enable(hardware.generic_timer); 
+    // // General purpose 1us counter 
+    // tim_9_to_11_counter_init(
+    //     hardware.generic_timer, 
+    //     TIM_84MHZ_1US_PSC, 
+    //     0xFFFF,  // Max ARR value 
+    //     TIM_UP_INT_DISABLE); 
+    // tim_enable(hardware.generic_timer); 
 
     //==================================================
 
     //==================================================
     // UART 
     
-    // UART1 init - SiK radio module 
-    uart_init(
-        hardware.telemetry_data.uart, 
-        GPIOA, 
-        PIN_10, 
-        PIN_9, 
-        UART_FRAC_84_57600, 
-        UART_MANT_84_57600, 
-        UART_DMA_DISABLE, 
-        UART_DMA_ENABLE); 
+    // // UART1 init - SiK radio module 
+    // uart_init(
+    //     hardware.telemetry_data.uart, 
+    //     GPIOA, 
+    //     PIN_10, 
+    //     PIN_9, 
+    //     UART_FRAC_84_57600, 
+    //     UART_MANT_84_57600, 
+    //     UART_DMA_DISABLE, 
+    //     UART_DMA_ENABLE); 
 
-    // UART1 interrupt init - SiK radio module - IDLE line (RX) interrupts 
-    uart_interrupt_init(
-        hardware.telemetry_data.uart, 
-        UART_INT_DISABLE, 
-        UART_INT_DISABLE, 
-        UART_INT_DISABLE, 
-        UART_INT_DISABLE, 
-        UART_INT_ENABLE, 
-        UART_INT_DISABLE, 
-        UART_INT_DISABLE); 
+    // // UART1 interrupt init - SiK radio module - IDLE line (RX) interrupts 
+    // uart_interrupt_init(
+    //     hardware.telemetry_data.uart, 
+    //     UART_INT_DISABLE, 
+    //     UART_INT_DISABLE, 
+    //     UART_INT_DISABLE, 
+    //     UART_INT_DISABLE, 
+    //     UART_INT_ENABLE, 
+    //     UART_INT_DISABLE, 
+    //     UART_INT_DISABLE); 
 
     // UART2 init - Serial terminal 
     uart_init(
@@ -200,36 +200,36 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // SPI 
     
-    // SPI 2 init - SD card 
-    spi_init(
-        SPI2, 
-        GPIOB,               // GPIO port for SCK pin 
-        PIN_10,              // SCK pin 
-        GPIOB,               // GPIO port for data (MISO/MOSI) pins 
-        PIN_14,              // MISO pin 
-        PIN_15,              // MOSI pin 
-        SPI_BR_FPCLK_8, 
-        SPI_CLOCK_MODE_0); 
+    // // SPI 2 init - SD card 
+    // spi_init(
+    //     SPI2, 
+    //     GPIOB,               // GPIO port for SCK pin 
+    //     PIN_10,              // SCK pin 
+    //     GPIOB,               // GPIO port for data (MISO/MOSI) pins 
+    //     PIN_14,              // MISO pin 
+    //     PIN_15,              // MOSI pin 
+    //     SPI_BR_FPCLK_8, 
+    //     SPI_CLOCK_MODE_0); 
 
-    // SD card slave select pin setup 
-    spi_ss_init(GPIOB, PIN_12); 
+    // // SD card slave select pin setup 
+    // spi_ss_init(GPIOB, PIN_12); 
 
     //==================================================
 
     //==================================================
     // I2C 
     
-    // I2C: GPS, IMU and magnetometer 
-    i2c_init(
-        I2C1, 
-        PIN_9, 
-        GPIOB, 
-        PIN_8, 
-        GPIOB, 
-        I2C_MODE_SM,
-        I2C_APB1_42MHZ,
-        I2C_CCR_SM_42_100,
-        I2C_TRISE_1000_42);
+    // // I2C: GPS, IMU and magnetometer 
+    // i2c_init(
+    //     I2C1, 
+    //     PIN_9, 
+    //     GPIOB, 
+    //     PIN_8, 
+    //     GPIOB, 
+    //     I2C_MODE_SM,
+    //     I2C_APB1_42MHZ,
+    //     I2C_CCR_SM_42_100,
+    //     I2C_TRISE_1000_42);
     
     //==================================================
 
@@ -274,27 +274,27 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // DMA 
     
-    // DMA2 stream init - UART1 - SiK radio module 
-    dma_stream_init(
-        DMA2, 
-        hardware.telemetry_data.dma_stream, 
-        DMA_CHNL_4, 
-        DMA_DIR_PM, 
-        DMA_CM_ENABLE,
-        DMA_PRIOR_HI, 
-        DMA_DBM_DISABLE, 
-        DMA_ADDR_INCREMENT,   // Increment the buffer pointer to fill the buffer 
-        DMA_ADDR_FIXED,       // No peripheral increment - copy from DR only 
-        DMA_DATA_SIZE_BYTE, 
-        DMA_DATA_SIZE_BYTE); 
+    // // DMA2 stream init - UART1 - SiK radio module 
+    // dma_stream_init(
+    //     DMA2, 
+    //     hardware.telemetry_data.dma_stream, 
+    //     DMA_CHNL_4, 
+    //     DMA_DIR_PM, 
+    //     DMA_CM_ENABLE,
+    //     DMA_PRIOR_HI, 
+    //     DMA_DBM_DISABLE, 
+    //     DMA_ADDR_INCREMENT,   // Increment the buffer pointer to fill the buffer 
+    //     DMA_ADDR_FIXED,       // No peripheral increment - copy from DR only 
+    //     DMA_DATA_SIZE_BYTE, 
+    //     DMA_DATA_SIZE_BYTE); 
         
-    // DMA2 stream config - UART1 - SiK radio module 
-    dma_stream_config(
-        hardware.telemetry_data.dma_stream, 
-        (uint32_t)(&hardware.telemetry_data.uart->DR), 
-        (uint32_t)hardware.telemetry_data.cb, 
-        (uint32_t)NULL, 
-        (uint16_t)SERIAL_MSG_BUFF_SIZE); 
+    // // DMA2 stream config - UART1 - SiK radio module 
+    // dma_stream_config(
+    //     hardware.telemetry_data.dma_stream, 
+    //     (uint32_t)(&hardware.telemetry_data.uart->DR), 
+    //     (uint32_t)hardware.telemetry_data.cb, 
+    //     (uint32_t)NULL, 
+    //     (uint16_t)SERIAL_MSG_BUFF_SIZE); 
 
     // // DMAX stream init - UART6 - RC receiver 
     // dma_stream_init(
@@ -341,7 +341,7 @@ void VehicleHardware::HardwareSetup(void)
     //     (uint16_t)ADC_BUFF_SIZE); 
 
     // Enable DMA streams 
-    dma_stream_enable(hardware.telemetry_data.dma_stream);   // UART1 - Sik radio 
+    // dma_stream_enable(hardware.telemetry_data.dma_stream);   // UART1 - Sik radio 
     // dma_stream_enable(hardware.rc_data.dma_stream);          // UART6 - RC receiver 
     // dma_stream_enable(hardware.adc_dma_stream);              // ADC1 - Voltages 
 
@@ -351,11 +351,11 @@ void VehicleHardware::HardwareSetup(void)
     // Interrupts 
 
     // Initialize interrupt handler flags 
-    int_handler_init(); 
+    // int_handler_init(); 
 
     // Enable the interrupt handlers 
-    nvic_config(USART1_IRQn, EXTI_PRIORITY_0);   // UART1 - SiK radio 
-    nvic_config(USART2_IRQn, EXTI_PRIORITY_1);   // UART6 - RC receiver 
+    // nvic_config(USART1_IRQn, EXTI_PRIORITY_0);   // UART1 - SiK radio 
+    // nvic_config(USART6_IRQn, EXTI_PRIORITY_1);   // UART6 - RC receiver 
     // nvic_config(ADC_IRQn, EXTI_PRIORITY_2);      // ADC1? 
 
     //==================================================
@@ -363,66 +363,66 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // GPS 
 
-    // SAM-M8Q module driver init 
-    m8q_init(
-        I2C1, 
-        &m8q_config_msgs[0][0], 
-        M8Q_CONFIG_MSG_NUM, 
-        M8Q_CONFIG_MSG_MAX_LEN, 
-        CLEAR); 
+    // // SAM-M8Q module driver init 
+    // m8q_init(
+    //     I2C1, 
+    //     &m8q_config_msgs[0][0], 
+    //     M8Q_CONFIG_MSG_NUM, 
+    //     M8Q_CONFIG_MSG_MAX_LEN, 
+    //     CLEAR); 
 
-    // Set up low power and TX ready pins 
-    m8q_pwr_pin_init(GPIOC, PIN_10); 
-    m8q_txr_pin_init(GPIOC, PIN_11); 
+    // // Set up low power and TX ready pins 
+    // m8q_pwr_pin_init(GPIOC, PIN_10); 
+    // m8q_txr_pin_init(GPIOC, PIN_11); 
 
-    // SAM-M8Q module controller init 
-    m8q_controller_init(hardware.generic_timer); 
+    // // SAM-M8Q module controller init 
+    // m8q_controller_init(hardware.generic_timer); 
 
     //==================================================
 
     //==================================================
     // IMUs 
 
-    // MPU-6050 module driver init 
-    mpu6050_init(
-        DEVICE_ONE, 
-        I2C1, 
-        MPU6050_ADDR_1,
-        mpu6050_standby_mask, 
-        MPU6050_DLPF_CFG_1,
-        mpu6050_sample_rate_divider,
-        MPU6050_AFS_SEL_4,
-        MPU6050_FS_SEL_500); 
+    // // MPU-6050 module driver init 
+    // mpu6050_init(
+    //     DEVICE_ONE, 
+    //     I2C1, 
+    //     MPU6050_ADDR_1,
+    //     mpu6050_standby_mask, 
+    //     MPU6050_DLPF_CFG_1,
+    //     mpu6050_sample_rate_divider,
+    //     MPU6050_AFS_SEL_4,
+    //     MPU6050_FS_SEL_500); 
 
-    // LSM303AGR module driver init 
-    lsm303agr_m_init(
-        I2C1, 
-        lsm303agr_config_dir_offsets, 
-        lsm303agr_lpf_gain, 
-        LSM303AGR_M_ODR_10, 
-        LSM303AGR_M_MODE_CONT, 
-        LSM303AGR_CFG_DISABLE, 
-        LSM303AGR_CFG_DISABLE, 
-        LSM303AGR_CFG_DISABLE, 
-        LSM303AGR_CFG_DISABLE); 
+    // // LSM303AGR module driver init 
+    // lsm303agr_m_init(
+    //     I2C1, 
+    //     lsm303agr_config_dir_offsets, 
+    //     lsm303agr_lpf_gain, 
+    //     LSM303AGR_M_ODR_10, 
+    //     LSM303AGR_M_MODE_CONT, 
+    //     LSM303AGR_CFG_DISABLE, 
+    //     LSM303AGR_CFG_DISABLE, 
+    //     LSM303AGR_CFG_DISABLE, 
+    //     LSM303AGR_CFG_DISABLE); 
 
     //==================================================
 
     //==================================================
     // Radios 
 
-    sik_init(hardware.telemetry_data.uart); 
+    // sik_init(hardware.telemetry_data.uart); 
 
     //==================================================
 
     //==================================================
     // SD Card 
 
-    // User initialization 
-    hw125_user_init(SPI2, GPIOB, GPIOX_PIN_12); 
+    // // User initialization 
+    // hw125_user_init(SPI2, GPIOB, GPIOX_PIN_12); 
 
-    // Controller init 
-    hw125_controller_init("auto_boat"); 
+    // // Controller init 
+    // hw125_controller_init("auto_boat"); 
 
     //==================================================
 
@@ -433,13 +433,13 @@ void VehicleHardware::HardwareSetup(void)
     // timer used for the ESCs because they run at different speeds and the WS2812 driver 
     // turns the timer on and off for sending. 
 
-    // WS2812 module driver init (Neopixel LEDs) - two LEDs run on one signal 
-    ws2812_init(
-        DEVICE_ONE, 
-        TIM4, 
-        TIMER_CH2, 
-        GPIOB, 
-        PIN_7); 
+    // // WS2812 module driver init (Neopixel LEDs) - two LEDs run on one signal 
+    // ws2812_init(
+    //     DEVICE_ONE, 
+    //     TIM4, 
+    //     TIMER_CH2, 
+    //     GPIOB, 
+    //     PIN_7); 
     
     //==================================================
 
@@ -450,32 +450,32 @@ void VehicleHardware::HardwareSetup(void)
     // timer used for the LEDs because they run at different speeds and the WS2812 driver 
     // turns the timer on and off for sending. 
 
-    // ESC driver init - right thruster (ESC1) 
-    esc_readytosky_init(
-        DEVICE_ONE, 
-        hardware.esc_timer, 
-        TIMER_CH4, 
-        GPIOB, 
-        PIN_1, 
-        TIM_84MHZ_1US_PSC, 
-        esc_period, 
-        esc1_fwd_speed_lim, 
-        esc1_rev_speed_lim); 
+    // // ESC driver init - right thruster (ESC1) 
+    // esc_readytosky_init(
+    //     DEVICE_ONE, 
+    //     hardware.esc_timer, 
+    //     TIMER_CH4, 
+    //     GPIOB, 
+    //     PIN_1, 
+    //     TIM_84MHZ_1US_PSC, 
+    //     esc_period, 
+    //     esc1_fwd_speed_lim, 
+    //     esc1_rev_speed_lim); 
 
-    // ESC driver init - left thruster (ESC2) 
-    esc_readytosky_init(
-        DEVICE_TWO, 
-        hardware.esc_timer, 
-        TIMER_CH3, 
-        GPIOB, 
-        PIN_0, 
-        TIM_84MHZ_1US_PSC, 
-        esc_period, 
-        esc2_fwd_speed_lim, 
-        esc2_rev_speed_lim); 
+    // // ESC driver init - left thruster (ESC2) 
+    // esc_readytosky_init(
+    //     DEVICE_TWO, 
+    //     hardware.esc_timer, 
+    //     TIMER_CH3, 
+    //     GPIOB, 
+    //     PIN_0, 
+    //     TIM_84MHZ_1US_PSC, 
+    //     esc_period, 
+    //     esc2_fwd_speed_lim, 
+    //     esc2_rev_speed_lim); 
 
-    // Enable the PWM timer 
-    tim_enable(hardware.esc_timer); 
+    // // Enable the PWM timer 
+    // tim_enable(hardware.esc_timer); 
 
     //==================================================
 }
@@ -573,17 +573,21 @@ void DMA2_Stream2_IRQHandler(void)
 //=======================================================================================
 // Telemetry 
 
-void VehicleHardware::TelemetryRead(uint8_t data_ready)
+uint8_t VehicleHardware::TelemetryRead(void)
 {
     // The telemetry radio communicates via UART and incoming data is processed using DMA 
     // and an interrupt. So instead of a direct call to a read function we check if the 
     // interrupt was run to set the data ready flag. 
 
+    uint8_t data_ready_status = FLAG_CLEAR; 
+
     if (handler_flags.dma2_2_flag)
     {
         handler_flags.dma2_2_flag = CLEAR_BIT; 
-        data_ready = FLAG_SET; 
+        data_ready_status = FLAG_SET; 
     }
+
+    return data_ready_status; 
 }
 
 

@@ -63,7 +63,7 @@
 #define VS_MISSION_RESEND 3        // Max tries to resend a mission message 
 
 // Data sizes 
-#define VS_TELEMETRY_BUFF 1000   // Telemetry data buffer size (bytes) 
+#define VS_TELEMETRY_BUFF 500   // Telemetry data buffer size (bytes) 
 
 // The vehicle specific settings below only have an affect when the corresponding vehicle 
 // type (VT) is selected. 

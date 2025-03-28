@@ -164,8 +164,8 @@ void Boat::MainInitState(Boat& data, Event event)
         data.main_state_flags.hold_state = FLAG_SET; 
 
         // Start software timers 
-        xTimerStart(data.periodic_timer_100ms.handler, 0); 
-        xTimerStart(data.periodic_timer_1s.handler, 0); 
+        // xTimerStart(data.periodic_timer_100ms.handler, 0); 
+        // xTimerStart(data.periodic_timer_1s.handler, 0); 
 
         // // Load a waypoint mission if it exists 
         // navigation.LoadMission(); 

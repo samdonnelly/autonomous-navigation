@@ -34,7 +34,7 @@ Vehicle::Vehicle(uint8_t vehicle_type)
       memory(), 
       auxiliary()
 {
-    main_system_flags.state_entry = FLAG_CLEAR; 
+    main_system_flags.state_entry = FLAG_SET; 
     main_system_flags.state_exit = FLAG_CLEAR; 
 }
 

@@ -122,6 +122,13 @@ void SysTick_Handler(void)
 
 #endif   // !FREERTOS_ENABLE 
 
+// This function handles System tick timer 
+void SysTick_Handler(void)
+{
+    // HAL timer counter increment 
+    HAL_IncTick();
+}
+
 //=======================================================================================
 
 

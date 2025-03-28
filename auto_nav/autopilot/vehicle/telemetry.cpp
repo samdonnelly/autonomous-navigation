@@ -751,7 +751,6 @@ void VehicleTelemetry::MAVLinkCommandLongReceive(Vehicle &vehicle)
         return; 
     }
 
-    MAVLinkCommandACKSend(); 
     MAVLinkCommandLongDecode(vehicle); 
 }
 
@@ -783,6 +782,7 @@ void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(Vehicle &vehicle)
     if ((uint16_t)mavlink.command_long_msg_gcs.param1 == MAV_MODE_FLAG_CUSTOM_MODE_ENABLED)
     {
         vehicle.MainStateSelect((uint8_t)mavlink.command_long_msg_gcs.param2); 
+        MAVLinkCommandACKSend(); 
     }
 }
 
@@ -795,6 +795,7 @@ void VehicleTelemetry::MAVLinkCommandRequestMessageReceive(void)
     switch (msg_id)
     {
         case MAVLINK_MSG_ID_AUTOPILOT_VERSION: 
+            MAVLinkCommandACKSend(); 
             MAVLinkAutopilotVersionSend(); 
             break; 
 

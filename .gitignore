@@ -51,6 +51,13 @@ simulation/simulation.py
 #==================================================
 # Unit tests 
 
+# Vehicle 
+auto_nav/unit_tests/vehicle/your_tests
+auto_nav/unit_tests/vehicle/test-lib
+auto_nav/unit_tests/vehicle/test-obj
+auto_nav/unit_tests/vehicle/*.exe
+auto_nav/unit_tests/vehicle/*.exe.stackdump
+
 # Boat 
 auto_nav/unit_tests/boat/your_tests
 auto_nav/unit_tests/boat/test-lib
