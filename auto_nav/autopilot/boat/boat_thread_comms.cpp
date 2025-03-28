@@ -76,7 +76,7 @@ void Boat::CommsDispatch(Event event)
         //     break; 
 
         case CommsEvents::TELEMETRY_READ: 
-            boat.hardware.TelemetryRead(); 
+            boat.hardware.TelemetryRead(boat.hardware.data_ready.telemetry_ready); 
             break; 
 
         case CommsEvents::TELEMETRY_WRITE: 

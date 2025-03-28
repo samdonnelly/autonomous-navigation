@@ -508,6 +508,9 @@ void Hardware::SerialDataInit(
 //=======================================================================================
 // Interrupt callbacks 
 
+// Any needed callbacks are overridden here so hardware data doesn't need to be included 
+// in the interrupt file. 
+
 // DMA2 Stream 2 
 void DMA2_Stream2_IRQHandler(void)
 {
@@ -570,18 +573,17 @@ void DMA2_Stream2_IRQHandler(void)
 //=======================================================================================
 // Telemetry 
 
-void VehicleHardware::TelemetryRead(void)
+void VehicleHardware::TelemetryRead(uint8_t data_ready)
 {
-    // Read from radio (if needed) 
-    // - With SiK radios over UART I will likely use DMA instead so no need to read here. 
-    
-    // Set a flag to indicate new data if it's available. 
-    // Check interrupt flag status 
-    // If true then clear interrupt flag and set telemetry data flag 
-    // data_ready.telemetry_ready; 
-    
-    // - We dom't want to process messages here because that is not a time-dependent 
-    //   activity. 
+    // The telemetry radio communicates via UART and incoming data is processed using DMA 
+    // and an interrupt. So instead of a direct call to a read function we check if the 
+    // interrupt was run to set the data ready flag. 
+
+    if (handler_flags.dma2_2_flag)
+    {
+        handler_flags.dma2_2_flag = CLEAR_BIT; 
+        data_ready = FLAG_SET; 
+    }
 }
 
 

@@ -140,7 +140,7 @@ void VehicleTelemetry::MsgTimerChecks(void)
     if (status.heartbeat && (timers.heartbeat++ >= VS_HEARTBEAT_TIMEOUT))
     {
         // Have not seen a heartbeat message from a GCS for too long. The system is 
-        // considered to be disconnected. 
+        // considered to be disconnected from telemetry. 
         status.heartbeat = FLAG_CLEAR; 
     }
 
@@ -577,46 +577,12 @@ void VehicleTelemetry::MAVLinkMissionItemIntSend(Vehicle &vehicle)
     // Only send the mission item if it exists 
     if (mavlink.mission_request_msg_gcs.seq < vehicle.memory.mission_size)
     {
-        // Get the requested mission item 
-        mavlink_mission_item_int_t mission_item = // vehicle.memeory(seq) 
-        {
-            .param1 = 0, 
-            .param2 = 0, 
-            .param3 = 0, 
-            .param4 = 0, 
-            .x = 0, 
-            .y = 0, 
-            .z = 0, 
-            .seq = 0, 
-            .command = 0, 
-            .target_system = 0, 
-            .target_component = 0, 
-            .frame = 0, 
-            .current = 0, 
-            .autocontinue = 0, 
-            .mission_type = 0 
-        }; 
-
-        mavlink_msg_mission_item_int_pack_chan(
+        mavlink_msg_mission_item_int_encode_chan(
             system_id, 
             component_id, 
             channel, 
             &msg, 
-            system_id_gcs, 
-            component_id_gcs, 
-            mavlink.mission_request_msg_gcs.seq, 
-            mission_item.frame, 
-            mission_item.command, 
-            mission_item.current, 
-            mission_item.autocontinue, 
-            mission_item.param1, 
-            mission_item.param2, 
-            mission_item.param3, 
-            mission_item.param4, 
-            mission_item.x, 
-            mission_item.y, 
-            mission_item.z, 
-            vehicle.memory.mission_type); 
+            &vehicle.memory.mission_items[mavlink.mission_request_msg_gcs.seq]); 
         MAVLinkMessageFormat(); 
     }
 }

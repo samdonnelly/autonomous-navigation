@@ -65,7 +65,7 @@ public:   // Public methods
     // void IMU_Read(void); 
 
     // Telemetry 
-    void TelemetryRead(void); 
+    void TelemetryRead(uint8_t data_ready); 
     void TelemetryGet(uint16_t &size, uint8_t *buffer); 
     void TelemetrySet(uint16_t &size, uint8_t *buffer); 
     void TelemetryWrite(void); 
