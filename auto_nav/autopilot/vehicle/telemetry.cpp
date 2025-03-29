@@ -260,14 +260,12 @@ void VehicleTelemetry::MAVLinkMessageSend(Vehicle &vehicle)
     // to be sent. 
     if (data_out_size)
     {
-        // The specific vehicles comms thread must release the telemetry output mutex 
-        // after sending the telemetry data. This mutex exists because there are both 
+        // The specific vehicles comms thread must release the telemetry output semaphore 
+        // after sending the telemetry data. This semaphore exists because there are both 
         // periodic message sends and sends in response to incoming messages which have 
         // the potential the overwrite the sending buffer if not protected. 
-        xSemaphoreTake(vehicle.telemetry_out_mutex, portMAX_DELAY); 
-        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
+        osSemaphoreAcquire(vehicle.telemetry_out_semaphore, portMAX_DELAY); 
         vehicle.hardware.TelemetrySet(data_out_size, data_out_buff); 
-        xSemaphoreGive(vehicle.comms_mutex); 
         vehicle.CommsEventQueue((uint8_t)Vehicle::CommsEvents::TELEMETRY_WRITE); 
         data_out_size = RESET; 
     }

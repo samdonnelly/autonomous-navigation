@@ -89,30 +89,47 @@ void Vehicle::Setup(void)
 
     periodic_timer_100ms = (TimerThreadData)
     {
-        nullptr,                       // handler
-        "100ms",                       // name 
-        PERIODIC_TIMER_100MS_PERIOD,   // ticks 
-        pdTRUE,                        // reload 
-        0,                             // id 
-        nullptr                        // callback 
-    }; 
+        nullptr,                       // Handler 
+        nullptr,                       // Callback 
+        osTimerPeriodic,               // Timer type 
+        PERIODIC_TIMER_100MS_PERIOD,   // Ticks 
+        (osTimerAttr_t)                // Attributes 
+        {
+            "100ms",         // Name 
+            CLEAR_SETTING,   // Attribute bits - reserved 
+            NULL,            // Memory for control block 
+            CLEAR_SETTING    // Control block memory size 
+        }
+    };
+
     periodic_timer_250ms = (TimerThreadData)
     {
-        nullptr,                       // handler
-        "250ms",                       // name 
-        PERIODIC_TIMER_250MS_PERIOD,   // ticks 
-        pdTRUE,                        // reload 
-        1,                             // id 
-        nullptr                        // callback 
-    }; 
+        nullptr,                       // Handler 
+        nullptr,                       // Callback 
+        osTimerPeriodic,               // Timer type 
+        PERIODIC_TIMER_250MS_PERIOD,   // Ticks 
+        (osTimerAttr_t)                // Attributes 
+        {
+            "250ms",         // Name 
+            CLEAR_SETTING,   // Attribute bits - reserved 
+            NULL,            // Memory for control block 
+            CLEAR_SETTING    // Control block memory size 
+        }
+    };
+
     periodic_timer_1s = (TimerThreadData)
     {
-        nullptr,                       // handler
-        "1s",                          // name 
-        PERIODIC_TIMER_1S_PERIOD,      // ticks 
-        pdTRUE,                        // reload 
-        2,                             // id 
-        nullptr                        // callback 
+        nullptr,                    // Handler 
+        nullptr,                    // Callback 
+        osTimerPeriodic,            // Timer type 
+        PERIODIC_TIMER_1S_PERIOD,   // Ticks 
+        (osTimerAttr_t)             // Attributes 
+        {
+            "1s",            // Name 
+            CLEAR_SETTING,   // Attribute bits - reserved 
+            NULL,            // Memory for control block 
+            CLEAR_SETTING    // Control block memory size 
+        }
     }; 
     
     // Run vehicle specific setup code. This is done after thread definitions and before 
@@ -125,31 +142,27 @@ void Vehicle::Setup(void)
     osThreadNew(eventLoop, (void *)&comms_event_info, &comms_event_info.attr); 
     // Check that the thread creation worked 
 
-    // Create software timers (executed within the software timers thread) 
-    periodic_timer_100ms.handler = xTimerCreate(
-        periodic_timer_100ms.name, 
-        periodic_timer_100ms.ticks, 
-        periodic_timer_100ms.reload, 
-        (void *)&periodic_timer_100ms.id, 
-        periodic_timer_100ms.callback); 
+    periodic_timer_100ms.handler = osTimerNew(
+        periodic_timer_100ms.callback, 
+        periodic_timer_100ms.type, 
+        nullptr, 
+        &periodic_timer_100ms.attributes); 
 
-    periodic_timer_250ms.handler = xTimerCreate(
-        periodic_timer_250ms.name, 
-        periodic_timer_250ms.ticks, 
-        periodic_timer_250ms.reload, 
-        (void *)&periodic_timer_250ms.id, 
-        periodic_timer_250ms.callback); 
-    
-    periodic_timer_1s.handler = xTimerCreate(
-        periodic_timer_1s.name, 
-        periodic_timer_1s.ticks, 
-        periodic_timer_1s.reload, 
-        (void *)&periodic_timer_1s.id, 
-        periodic_timer_1s.callback); 
+    periodic_timer_250ms.handler = osTimerNew(
+        periodic_timer_250ms.callback, 
+        periodic_timer_250ms.type, 
+        nullptr, 
+        &periodic_timer_250ms.attributes); 
 
-    // Create mutex 
+    periodic_timer_1s.handler = osTimerNew(
+        periodic_timer_1s.callback, 
+        periodic_timer_1s.type, 
+        nullptr, 
+        &periodic_timer_1s.attributes); 
+
+    // Create mutex and semaphores 
     comms_mutex = xSemaphoreCreateMutex(); 
-    telemetry_out_mutex = xSemaphoreCreateMutex(); 
+    telemetry_out_semaphore = osSemaphoreNew(1, 1, NULL); 
 
     // Queue the first event to start the system 
     MainEventQueue((Event)MainEvents::INIT); 

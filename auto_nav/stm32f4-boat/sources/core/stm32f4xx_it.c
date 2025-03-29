@@ -117,17 +117,10 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
     // HAL timer counter increment 
-    HAL_IncTick();
+    HAL_IncTick(); 
 }
 
 #endif   // !FREERTOS_ENABLE 
-
-// This function handles System tick timer 
-void SysTick_Handler(void)
-{
-    // HAL timer counter increment 
-    HAL_IncTick();
-}
 
 //=======================================================================================
 

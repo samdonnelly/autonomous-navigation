@@ -24,7 +24,7 @@
 // Callbacks 
 
 // 100ms timer 
-void Boat::TimerCallback100ms(TimerHandle_t xTimer)
+void Boat::TimerCallback100ms(void *timer_arg)
 {
     // Update the LED strobe 
     // boat.CommsEventQueue((Event)CommsEvents::LED_STROBE); 
@@ -47,7 +47,7 @@ void Boat::TimerCallback100ms(TimerHandle_t xTimer)
 
 
 // 250ms timer 
-void Boat::TimerCallback250ms(TimerHandle_t xTimer)
+void Boat::TimerCallback250ms(void *timer_arg)
 {
     // Check for telemetry messages to send 
     boat.MainEventQueue((Event)MainEvents::TELEMETRY_ENCODE); 
@@ -55,7 +55,7 @@ void Boat::TimerCallback250ms(TimerHandle_t xTimer)
 
 
 // 1s timer 
-void Boat::TimerCallback1s(TimerHandle_t xTimer)
+void Boat::TimerCallback1s(void *timer_arg)
 {
     // // Keep the current location up to date 
     // boat.CommsEventQueue((Event)CommsEvents::NAV_LOCATION_UPDATE); 

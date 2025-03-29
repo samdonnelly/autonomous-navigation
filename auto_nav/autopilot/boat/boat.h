@@ -99,9 +99,9 @@ private:   // Private methods
     // Dispatch and callback functions 
     static void MainDispatch(Event event); 
     static void CommsDispatch(Event event); 
-    static void TimerCallback100ms(TimerHandle_t xTimer); 
-    static void TimerCallback250ms(TimerHandle_t xTimer); 
-    static void TimerCallback1s(TimerHandle_t xTimer); 
+    static void TimerCallback100ms(void *timer_arg); 
+    static void TimerCallback250ms(void *timer_arg); 
+    static void TimerCallback1s(void *timer_arg); 
 
     // Main thread state functions 
     static void MainInitState(Boat& data, Event event); 

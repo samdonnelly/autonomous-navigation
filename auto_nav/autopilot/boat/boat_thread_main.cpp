@@ -164,8 +164,9 @@ void Boat::MainInitState(Boat& data, Event event)
         data.main_state_flags.hold_state = FLAG_SET; 
 
         // Start software timers 
-        // xTimerStart(data.periodic_timer_100ms.handler, 0); 
-        // xTimerStart(data.periodic_timer_1s.handler, 0); 
+        osTimerStart(data.periodic_timer_100ms.handler, data.periodic_timer_100ms.ticks); 
+        osTimerStart(data.periodic_timer_250ms.handler, data.periodic_timer_250ms.ticks); 
+        osTimerStart(data.periodic_timer_1s.handler, data.periodic_timer_1s.ticks); 
 
         // // Load a waypoint mission if it exists 
         // navigation.LoadMission(); 
@@ -665,8 +666,9 @@ void Boat::MainResetState(Boat& data, Event event)
         data.main_state_flags.flags = RESET; 
 
         // Stop the software timers 
-        xTimerStop(data.periodic_timer_100ms.handler, 0); 
-        xTimerStop(data.periodic_timer_1s.handler, 0); 
+        osTimerStop(data.periodic_timer_100ms.handler); 
+        osTimerStop(data.periodic_timer_250ms.handler); 
+        osTimerStop(data.periodic_timer_1s.handler); 
     }
 
     data.main_event = (MainEvents)event; 

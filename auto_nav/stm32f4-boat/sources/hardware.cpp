@@ -127,40 +127,40 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // Timers 
 
-    // // General purpose 1us counter 
-    // tim_9_to_11_counter_init(
-    //     hardware.generic_timer, 
-    //     TIM_84MHZ_1US_PSC, 
-    //     0xFFFF,  // Max ARR value 
-    //     TIM_UP_INT_DISABLE); 
-    // tim_enable(hardware.generic_timer); 
+    // General purpose 1us counter 
+    tim_9_to_11_counter_init(
+        hardware.generic_timer, 
+        TIM_84MHZ_1US_PSC, 
+        0xFFFF,  // Max ARR value 
+        TIM_UP_INT_DISABLE); 
+    tim_enable(hardware.generic_timer); 
 
     //==================================================
 
     //==================================================
     // UART 
     
-    // // UART1 init - SiK radio module 
-    // uart_init(
-    //     hardware.telemetry_data.uart, 
-    //     GPIOA, 
-    //     PIN_10, 
-    //     PIN_9, 
-    //     UART_FRAC_84_57600, 
-    //     UART_MANT_84_57600, 
-    //     UART_DMA_DISABLE, 
-    //     UART_DMA_ENABLE); 
+    // UART1 init - SiK radio module 
+    uart_init(
+        hardware.telemetry_data.uart, 
+        GPIOA, 
+        PIN_10, 
+        PIN_9, 
+        UART_FRAC_84_57600, 
+        UART_MANT_84_57600, 
+        UART_DMA_DISABLE, 
+        UART_DMA_ENABLE); 
 
-    // // UART1 interrupt init - SiK radio module - IDLE line (RX) interrupts 
-    // uart_interrupt_init(
-    //     hardware.telemetry_data.uart, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_ENABLE, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_DISABLE); 
+    // UART1 interrupt init - SiK radio module - IDLE line (RX) interrupts 
+    uart_interrupt_init(
+        hardware.telemetry_data.uart, 
+        UART_INT_DISABLE, 
+        UART_INT_DISABLE, 
+        UART_INT_DISABLE, 
+        UART_INT_DISABLE, 
+        UART_INT_ENABLE, 
+        UART_INT_DISABLE, 
+        UART_INT_DISABLE); 
 
     // UART2 init - Serial terminal 
     uart_init(
@@ -274,27 +274,27 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // DMA 
     
-    // // DMA2 stream init - UART1 - SiK radio module 
-    // dma_stream_init(
-    //     DMA2, 
-    //     hardware.telemetry_data.dma_stream, 
-    //     DMA_CHNL_4, 
-    //     DMA_DIR_PM, 
-    //     DMA_CM_ENABLE,
-    //     DMA_PRIOR_HI, 
-    //     DMA_DBM_DISABLE, 
-    //     DMA_ADDR_INCREMENT,   // Increment the buffer pointer to fill the buffer 
-    //     DMA_ADDR_FIXED,       // No peripheral increment - copy from DR only 
-    //     DMA_DATA_SIZE_BYTE, 
-    //     DMA_DATA_SIZE_BYTE); 
+    // DMA2 stream init - UART1 - SiK radio module 
+    dma_stream_init(
+        DMA2, 
+        hardware.telemetry_data.dma_stream, 
+        DMA_CHNL_4, 
+        DMA_DIR_PM, 
+        DMA_CM_ENABLE,
+        DMA_PRIOR_HI, 
+        DMA_DBM_DISABLE, 
+        DMA_ADDR_INCREMENT,   // Increment the buffer pointer to fill the buffer 
+        DMA_ADDR_FIXED,       // No peripheral increment - copy from DR only 
+        DMA_DATA_SIZE_BYTE, 
+        DMA_DATA_SIZE_BYTE); 
         
-    // // DMA2 stream config - UART1 - SiK radio module 
-    // dma_stream_config(
-    //     hardware.telemetry_data.dma_stream, 
-    //     (uint32_t)(&hardware.telemetry_data.uart->DR), 
-    //     (uint32_t)hardware.telemetry_data.cb, 
-    //     (uint32_t)NULL, 
-    //     (uint16_t)SERIAL_MSG_BUFF_SIZE); 
+    // DMA2 stream config - UART1 - SiK radio module 
+    dma_stream_config(
+        hardware.telemetry_data.dma_stream, 
+        (uint32_t)(&hardware.telemetry_data.uart->DR), 
+        (uint32_t)hardware.telemetry_data.cb, 
+        (uint32_t)NULL, 
+        (uint16_t)SERIAL_MSG_BUFF_SIZE); 
 
     // // DMAX stream init - UART6 - RC receiver 
     // dma_stream_init(
@@ -341,7 +341,7 @@ void VehicleHardware::HardwareSetup(void)
     //     (uint16_t)ADC_BUFF_SIZE); 
 
     // Enable DMA streams 
-    // dma_stream_enable(hardware.telemetry_data.dma_stream);   // UART1 - Sik radio 
+    dma_stream_enable(hardware.telemetry_data.dma_stream);   // UART1 - Sik radio 
     // dma_stream_enable(hardware.rc_data.dma_stream);          // UART6 - RC receiver 
     // dma_stream_enable(hardware.adc_dma_stream);              // ADC1 - Voltages 
 
@@ -351,10 +351,10 @@ void VehicleHardware::HardwareSetup(void)
     // Interrupts 
 
     // Initialize interrupt handler flags 
-    // int_handler_init(); 
+    int_handler_init(); 
 
     // Enable the interrupt handlers 
-    // nvic_config(USART1_IRQn, EXTI_PRIORITY_0);   // UART1 - SiK radio 
+    nvic_config(USART1_IRQn, EXTI_PRIORITY_0);   // UART1 - SiK radio 
     // nvic_config(USART6_IRQn, EXTI_PRIORITY_1);   // UART6 - RC receiver 
     // nvic_config(ADC_IRQn, EXTI_PRIORITY_2);      // ADC1? 
 
@@ -411,7 +411,7 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // Radios 
 
-    // sik_init(hardware.telemetry_data.uart); 
+    sik_init(hardware.telemetry_data.uart); 
 
     //==================================================
 

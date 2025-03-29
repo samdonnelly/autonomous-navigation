@@ -54,7 +54,7 @@ protected:   // Protected members
 
     // Thread synchronization 
     SemaphoreHandle_t comms_mutex; 
-    SemaphoreHandle_t telemetry_out_mutex; 
+    osSemaphoreId_t telemetry_out_semaphore; 
 
     // Main thread events 
     enum class MainEvents : uint8_t {
