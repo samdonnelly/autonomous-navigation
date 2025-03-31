@@ -46,4 +46,33 @@ osStatus_t osKernelStart(void)
     return (stat); 
 }
 
+
+osStatus_t osSemaphoreAcquire(
+    osSemaphoreId_t semaphore_id, 
+    uint32_t timeout)
+{
+    return osOK; 
+}
+
+
+osTimerId_t osTimerNew(
+    osTimerFunc_t func, 
+    osTimerType_t type, 
+    void *argument, 
+    const osTimerAttr_t *attr)
+{
+    TimerHandle_t hTimer = NULL; 
+    return ((osTimerId_t)hTimer); 
+}
+
+
+osSemaphoreId_t osSemaphoreNew(
+    uint32_t max_count, 
+    uint32_t initial_count, 
+    const osSemaphoreAttr_t *attr)
+{
+    SemaphoreHandle_t hSemaphore = NULL; 
+    return ((osSemaphoreId_t)hSemaphore); 
+}
+
 //=======================================================================================

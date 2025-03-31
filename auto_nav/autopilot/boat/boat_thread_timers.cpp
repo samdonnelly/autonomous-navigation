@@ -30,7 +30,6 @@ void Boat::TimerCallback100ms(void *timer_arg)
     // boat.CommsEventQueue((Event)CommsEvents::LED_STROBE); 
 
     // Check for incoming telemetry messages 
-    // boat.CommsEventQueue((Event)CommsEvents::RADIO_READ); 
     boat.CommsEventQueue((Event)CommsEvents::TELEMETRY_READ); 
     boat.MainEventQueue((Event)MainEvents::TELEMETRY_DECODE); 
 

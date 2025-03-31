@@ -24,6 +24,14 @@
 
 
 //=======================================================================================
+// Macros 
+
+#define NUM_PARAMETERS 5 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Classes 
 
 class VehicleMemory 
@@ -62,7 +70,8 @@ public:   // public methods
 //=======================================================================================
 // Other data 
 
-extern const VehicleMemory::ParamInfo parameters[]; 
+extern const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters; 
+// extern const VehicleMemory::ParamInfo parameters[]; 
 
 //=======================================================================================
 

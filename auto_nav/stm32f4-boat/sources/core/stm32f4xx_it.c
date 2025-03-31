@@ -267,7 +267,7 @@ void DMA2_Stream1_IRQHandler(void)
 
 
 // DMA2 Stream 2 
-__weak void DMA2_Stream2_IRQHandler(void)
+void DMA2_Stream2_IRQHandler(void)
 {
     handler_flags.dma2_2_flag = SET_BIT; 
     dma_clear_int_flags(DMA2); 

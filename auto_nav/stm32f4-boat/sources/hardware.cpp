@@ -511,23 +511,6 @@ void Hardware::SerialDataInit(
 // Any needed callbacks are overridden here so hardware data doesn't need to be included 
 // in the interrupt file. 
 
-// DMA2 Stream 2 
-void DMA2_Stream2_IRQHandler(void)
-{
-    // Parse the new radio data from the circular buffer into the data buffer. 
-    dma_cb_index(
-        hardware.telemetry_data.dma_stream, 
-        &hardware.telemetry_data.dma_index, 
-        &hardware.telemetry_data.cb_index); 
-    cb_parse(
-        hardware.telemetry_data.cb, 
-        &hardware.telemetry_data.cb_index, 
-        hardware.telemetry_data.data_in_buff); 
-
-    handler_flags.dma2_2_flag = SET_BIT; 
-    dma_clear_int_flags(DMA2); 
-}
-
 //=======================================================================================
 
 
@@ -581,10 +564,20 @@ uint8_t VehicleHardware::TelemetryRead(void)
 
     uint8_t data_ready_status = FLAG_CLEAR; 
 
-    if (handler_flags.dma2_2_flag)
+    if (handler_flags.usart1_flag)
     {
-        handler_flags.dma2_2_flag = CLEAR_BIT; 
+        handler_flags.usart1_flag = CLEAR_BIT; 
         data_ready_status = FLAG_SET; 
+
+        // Parse the new radio data from the circular buffer into the data buffer. 
+        dma_cb_index(
+            hardware.telemetry_data.dma_stream, 
+            &hardware.telemetry_data.dma_index, 
+            &hardware.telemetry_data.cb_index); 
+        cb_parse(
+            hardware.telemetry_data.cb, 
+            &hardware.telemetry_data.cb_index, 
+            hardware.telemetry_data.data_in_buff); 
     }
 
     return data_ready_status; 

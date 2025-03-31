@@ -59,14 +59,14 @@ static ParameterValues params;
 //=======================================================================================
 // Parameters 
 
-const VehicleMemory::ParamInfo parameters[] = 
-{
-    {"CRUISE_SPEED", params.cruise_speed}, 
-    {"FRAME_CLASS",  params.frame_class}, 
-    {"TURN_RADIUS",  params.turn_radius}, 
-    {"LOIT_TYPE",    params.loit_type}, 
-    {"LOIT_RADIUS",  params.loit_radius} 
-}; 
+const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters = 
+{{
+    {"CRUISE_SPEED", params.cruise_speed},    // 1 
+    {"FRAME_CLASS",  params.frame_class},     // 2 
+    {"TURN_RADIUS",  params.turn_radius},     // 3 
+    {"LOIT_TYPE",    params.loit_type},       // 4 
+    {"LOIT_RADIUS",  params.loit_radius}      // 5 
+}}; 
 
 //=======================================================================================
 
@@ -75,9 +75,13 @@ const VehicleMemory::ParamInfo parameters[] =
 // Initialization 
 
 VehicleMemory::VehicleMemory()
-    : param_value_type(MAV_PARAM_TYPE_REAL32)
+    : param_index(RESET), 
+      param_value_type(MAV_PARAM_TYPE_REAL32), 
+      mission_size(RESET), 
+      mission_id(RESET), 
+      mission_index(RESET) 
 {
-    num_params = sizeof(parameters) / sizeof(*parameters); 
+    num_params = sizeof(parameters) / sizeof(parameters[0]); 
 }
 
 //=======================================================================================

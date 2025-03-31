@@ -430,9 +430,6 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
     }
     else 
     {
-        // TODO overwrite mission file not in use so it's blank or has a header then 
-        // add the home location as the first item. 
-
         status.mission_upload = FLAG_SET; 
         mission_resend_counter = RESET; 
         mission_item_index = RESET; 
@@ -529,9 +526,8 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
         // item number. If not then the received items are not in the expected sequence. 
         if (mavlink.mission_item_int_msg_gcs.seq == mission_item_index)
         {
-            // TODO Append/save the mission item. May need to check other item properties. 
-            // Must be a global coordinate frame. 
-            // vehicle.memory.mission_items; 
+            // TODO May need to check other item properties. Must be a global coordinate frame. 
+            vehicle.memory.mission_items[mission_item_index] = mavlink.mission_item_int_msg_gcs; 
 
             // Check if the received MISSION_ITEM_INT sequence number matches the total 
             // number of items expected in the mission upload. If so then the mission is 
@@ -549,7 +545,7 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
                 MAVLinkMissionAckSend(
                     MAV_MISSION_ACCEPTED, 
                     mavlink.mission_item_int_msg_gcs.mission_type, 
-                    vehicle.memory.mission_id); 
+                    vehicle.memory.mission_id++); 
             }
             else 
             {
