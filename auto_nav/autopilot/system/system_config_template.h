@@ -59,7 +59,7 @@
 
 // Timing 
 #define VS_HEARTBEAT_TIMEOUT 100   // Max count before heartbeat timeout 
-#define VS_MISSION_TIMEOUT 20      // Max count before mission protocol timeout 
+#define VS_MISSION_TIMEOUT 10      // Max count before mission protocol timeout 
 #define VS_MISSION_RESEND 3        // Max tries to resend a mission message 
 
 // Data sizes 

@@ -339,10 +339,8 @@ void VehicleTelemetry::MAVLinkParamRequestListReceive(Vehicle &vehicle)
         &msg, 
         &mavlink.param_request_list_msg_gcs); 
 
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.param_request_list_msg_gcs.target_system != system_id) || 
-        (mavlink.param_request_list_msg_gcs.target_component != component_id))
+    if (VerifyVehicleIDs(mavlink.param_request_list_msg_gcs.target_system, 
+                         mavlink.param_request_list_msg_gcs.target_component))
     {
         return; 
     }
@@ -391,6 +389,9 @@ void VehicleTelemetry::MAVLinkParamValueSendPeriodic(Vehicle &vehicle)
 //=======================================================================================
 // MAVLink: Mission protocol 
 
+//==================================================
+// Receive 
+
 // MAVLink: MISSION_REQUEST_LIST receive 
 void VehicleTelemetry::MAVLinkMissionRequestListReceive(Vehicle &vehicle)
 {
@@ -398,10 +399,8 @@ void VehicleTelemetry::MAVLinkMissionRequestListReceive(Vehicle &vehicle)
         &msg, 
         &mavlink.mission_request_list_msg_gcs); 
 
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.mission_request_list_msg_gcs.target_system != system_id) || 
-        (mavlink.mission_request_list_msg_gcs.target_component != component_id))
+    if (VerifyVehicleIDs(mavlink.mission_request_list_msg_gcs.target_system, 
+                         mavlink.mission_request_list_msg_gcs.target_component))
     {
         return; 
     }
@@ -417,10 +416,8 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
         &msg, 
         &mavlink.mission_count_msg_gcs); 
 
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.mission_count_msg_gcs.target_system != system_id) || 
-        (mavlink.mission_count_msg_gcs.target_component != component_id))
+    if (VerifyVehicleIDs(mavlink.mission_count_msg_gcs.target_system, 
+                         mavlink.mission_count_msg_gcs.target_component))
     {
         return; 
     }
@@ -442,49 +439,20 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
 }
 
 
-// MAVLink: MISSION_COUNT send 
-void VehicleTelemetry::MAVLinkMissionCountSend(Vehicle &vehicle)
-{
-    mavlink_msg_mission_count_pack_chan(
-        system_id, 
-        component_id, 
-        channel, 
-        &msg, 
-        system_id_gcs, 
-        component_id_gcs, 
-        vehicle.memory.mission_size, 
-        vehicle.memory.mission_type, 
-        vehicle.memory.mission_id); 
-    MAVLinkMessageFormat(); 
-}
-
-
 // MAVLink: MISSION_REQUEST_INT receive 
 void VehicleTelemetry::MAVLinkMissionRequestIntReceive(Vehicle &vehicle)
 {
-    // Mission planner sends MISSION_REQUEST messages despite the message being 
-    // deprecated by MAVLink in favour of MISSION_REQUEST_INT. When this message is 
-    // received, Mission Planner expects MISSION_ITEM_INT in return as discovered through 
-    // trial and error (i.e. MISSION_ITEM does not work). 
-    // MISSION_ITEM_INT takes the system and component IDs in its payload of the system 
-    // the message is being sent to. This should not be confused with the full MAVLink 
-    // message system and component IDs which identify where a message is coming from. 
-    // Mission Planner varries from standard MAVLink mission protocol in that the item 
-    // at mission sequence 0 is the home location, not the first waypoint location. 
-
     mavlink_msg_mission_request_int_decode(
         &msg, 
         &mavlink.mission_request_int_msg_gcs); 
 
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.mission_request_int_msg_gcs.target_system != system_id) || 
-        (mavlink.mission_request_int_msg_gcs.target_component != component_id))
+    if (VerifyVehicleIDs(mavlink.mission_request_int_msg_gcs.target_system, 
+                         mavlink.mission_request_int_msg_gcs.target_component))
     {
         return; 
     }
 
-    MAVLinkMissionItemIntSend(vehicle); 
+    MAVLinkMissionItemIntSend(vehicle, mavlink.mission_request_int_msg_gcs.seq); 
 }
 
 
@@ -505,15 +473,154 @@ void VehicleTelemetry::MAVLinkMissionRequestReceive(Vehicle &vehicle)
         &msg, 
         &mavlink.mission_request_msg_gcs); 
 
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.mission_request_msg_gcs.target_system != system_id) || 
-        (mavlink.mission_request_msg_gcs.target_component != component_id))
+    if (VerifyVehicleIDs(mavlink.mission_request_msg_gcs.target_system, 
+                         mavlink.mission_request_msg_gcs.target_component))
     {
         return; 
     }
 
-    MAVLinkMissionItemIntSend(vehicle); 
+    MAVLinkMissionItemIntSend(vehicle, mavlink.mission_request_msg_gcs.seq); 
+}
+
+
+// MAVLink: MISSION_ITEM_INT receive 
+void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
+{
+    mavlink_msg_mission_item_int_decode(
+        &msg, 
+        &mavlink.mission_item_int_msg_gcs); 
+
+    if (VerifyVehicleIDs(mavlink.mission_item_int_msg_gcs.target_system, 
+                         mavlink.mission_item_int_msg_gcs.target_component))
+    {
+        return; 
+    }
+
+    // Check if the mission upload process has been initiated. If so then proceed to 
+    // evaluate mission item. 
+    if (status.mission_upload)
+    {
+        // Check if the received MISSION_ITEM_INT sequence number matches the requested 
+        // item number. If not then the received items are not in the expected sequence. 
+        if (mavlink.mission_item_int_msg_gcs.seq == mission_item_index)
+        {
+            // TODO May need to check other item properties. Must be a global coordinate frame. 
+            // Home location is at index 0 even though MP sends the first item indexed at 0. 
+            vehicle.memory.mission_items[mission_item_index + 1] = mavlink.mission_item_int_msg_gcs; 
+
+            // Check if the received MISSION_ITEM_INT sequence number matches the total 
+            // number of items expected in the mission upload. If so then the mission is 
+            // acknowledged as having been successfully received. Otherwise proceed to 
+            // request the next expected item. 
+            if (mavlink.mission_item_int_msg_gcs.seq >= (mavlink.mission_count_msg_gcs.count - 1))
+            {
+                // TODO generate a new mission id (opaque_id) 
+                // Save mission ID, mission size and mission type in memory 
+
+                status.mission_upload = FLAG_CLEAR; 
+                vehicle.memory.mission_size = mavlink.mission_count_msg_gcs.count + 1; 
+                vehicle.memory.mission_type = mavlink.mission_item_int_msg_gcs.mission_type; 
+
+                MAVLinkMissionAckSend(
+                    MAV_MISSION_ACCEPTED, 
+                    mavlink.mission_item_int_msg_gcs.mission_type, 
+                    ++vehicle.memory.mission_id); 
+            }
+            else 
+            {
+                mission_item_index++; 
+                mission_resend_counter = RESET; 
+                MAVLinkMissionRequestIntSend(mavlink.mission_item_int_msg_gcs.mission_type); 
+            }
+        }
+        else 
+        {
+            MAVLinkMissionAckSend(
+                MAV_MISSION_INVALID_SEQUENCE, 
+                mavlink.mission_item_int_msg_gcs.mission_type, 
+                mavlink.mission_count_msg_gcs.opaque_id); 
+        }
+    }
+}
+
+
+// MAVLink: MISSION_ACK receive 
+void VehicleTelemetry::MAVLinkMissionAckReceive(void)
+{
+    mavlink_msg_mission_ack_decode(
+        &msg, 
+        &mavlink.mission_ack_msg_gcs); 
+
+    if (VerifyVehicleIDs(mavlink.mission_ack_msg_gcs.target_system, 
+                         mavlink.mission_ack_msg_gcs.target_component))
+    {
+        return; 
+    }
+
+    // Unclear what should be done when this is received. Whether a GCS specifies 
+    // success or failure on mission download, MAVLink mission protocol doesn't 
+    // specify a particular action. 
+}
+
+
+// MAVLink: MISSION_SET_CURRENT receive 
+void VehicleTelemetry::MAVLinkMissionSetCurrentReceive(Vehicle &vehicle)
+{
+    mavlink_msg_mission_set_current_decode(
+        &msg, 
+        &mavlink.mission_set_current_msg_gcs); 
+
+    if (VerifyVehicleIDs(mavlink.mission_set_current_msg_gcs.target_system, 
+                         mavlink.mission_set_current_msg_gcs.target_component))
+    {
+        return; 
+    }
+
+    // Update the mission item if valid 
+    if (mavlink.mission_set_current_msg_gcs.seq < vehicle.memory.mission_size)
+    {
+        vehicle.memory.mission_index = mavlink.mission_set_current_msg_gcs.seq; 
+        MAVLinkMissionCurrentSend(vehicle); 
+    }
+}
+
+
+// MAVLink: MISSION_CLEAR_ALL receive 
+void VehicleTelemetry::MAVLinkMissionClearAllReceive(Vehicle &vehicle)
+{
+    mavlink_msg_mission_clear_all_decode(
+        &msg, 
+        &mavlink.mission_clear_all_msg_gcs); 
+
+    if (VerifyVehicleIDs(mavlink.mission_clear_all_msg_gcs.target_system, 
+                         mavlink.mission_clear_all_msg_gcs.target_component))
+    {
+        return; 
+    }
+
+    ClearMission(vehicle, mavlink.mission_clear_all_msg_gcs.mission_type); 
+}
+
+//==================================================
+
+
+//==================================================
+// Send 
+
+// MAVLink: MISSION_COUNT send 
+void VehicleTelemetry::MAVLinkMissionCountSend(Vehicle &vehicle)
+{
+    mavlink_msg_mission_count_pack_chan(
+        system_id, 
+        component_id, 
+        channel, 
+        &msg, 
+        system_id_gcs, 
+        component_id_gcs, 
+        vehicle.memory.mission_size, 
+        vehicle.memory.mission_type, 
+        vehicle.memory.mission_id); 
+    MAVLinkMessageFormat(); 
 }
 
 
@@ -536,81 +643,20 @@ void VehicleTelemetry::MAVLinkMissionRequestIntSend(uint8_t mission_type)
 }
 
 
-// MAVLink: MISSION_ITEM_INT receive 
-void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
-{
-    mavlink_msg_mission_item_int_decode(
-        &msg, 
-        &mavlink.mission_item_int_msg_gcs); 
-
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.mission_item_int_msg_gcs.target_system != system_id) || 
-        (mavlink.mission_item_int_msg_gcs.target_component != component_id))
-    {
-        return; 
-    }
-
-    // Check if the mission upload process has been initiated. If so then proceed to 
-    // evaluate mission item. 
-    if (status.mission_upload)
-    {
-        // Check if the received MISSION_ITEM_INT sequence number matches the requested 
-        // item number. If not then the received items are not in the expected sequence. 
-        if (mavlink.mission_item_int_msg_gcs.seq == mission_item_index)
-        {
-            // TODO May need to check other item properties. Must be a global coordinate frame. 
-            // Home location is at index 0 even though MP sends the first item indexed at 0. 
-            vehicle.memory.mission_items[mission_item_index + 1] = mavlink.mission_item_int_msg_gcs; 
-
-            // Check if the received MISSION_ITEM_INT sequence number matches the total 
-            // number of items expected in the mission upload. If so then the mission is 
-            // acknowledged as having been successfully received. Otherwise proceed to 
-            // request the next expected item. 
-            if (mavlink.mission_item_int_msg_gcs.seq == (mavlink.mission_count_msg_gcs.count - 1))
-            {
-                // TODO generate a new mission id (opaque_id) 
-                // Save mission ID, mission size and mission type in memory 
-
-                status.mission_upload = FLAG_CLEAR; 
-                vehicle.memory.mission_size = mavlink.mission_count_msg_gcs.count; 
-                vehicle.memory.mission_type = mavlink.mission_item_int_msg_gcs.mission_type; 
-
-                MAVLinkMissionAckSend(
-                    MAV_MISSION_ACCEPTED, 
-                    mavlink.mission_item_int_msg_gcs.mission_type, 
-                    vehicle.memory.mission_id++); 
-            }
-            else 
-            {
-                mission_item_index++; 
-                mission_resend_counter = RESET; 
-                MAVLinkMissionRequestIntSend(mavlink.mission_item_int_msg_gcs.mission_type); 
-            }
-        }
-        else 
-        {
-            MAVLinkMissionAckSend(
-                MAV_MISSION_INVALID_SEQUENCE, 
-                mavlink.mission_item_int_msg_gcs.mission_type, 
-                mavlink.mission_count_msg_gcs.opaque_id); 
-        }
-    }
-}
-
-
 // MAVLink: MISSION_ITEM_INT send 
-void VehicleTelemetry::MAVLinkMissionItemIntSend(Vehicle &vehicle)
+void VehicleTelemetry::MAVLinkMissionItemIntSend(
+    Vehicle &vehicle, 
+    uint16_t sequence)
 {
     // Only send the mission item if it exists 
-    if (mavlink.mission_request_msg_gcs.seq <= vehicle.memory.mission_size)
+    if (sequence < vehicle.memory.mission_size)
     {
         mavlink_msg_mission_item_int_encode_chan(
             system_id, 
             component_id, 
             channel, 
             &msg, 
-            &vehicle.memory.mission_items[mavlink.mission_request_msg_gcs.seq]); 
+            &vehicle.memory.mission_items[sequence]); 
         MAVLinkMessageFormat(); 
     }
 }
@@ -636,87 +682,25 @@ void VehicleTelemetry::MAVLinkMissionAckSend(
 }
 
 
-// MAVLink: MISSION_ACK receive 
-void VehicleTelemetry::MAVLinkMissionAckReceive(void)
-{
-    mavlink_msg_mission_ack_decode(
-        &msg, 
-        &mavlink.mission_ack_msg_gcs); 
-
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.mission_ack_msg_gcs.target_system != system_id) || 
-        (mavlink.mission_ack_msg_gcs.target_component != component_id))
-    {
-        return; 
-    }
-
-    // Unclear what should be done when this is received. Whether a GCS specifies 
-    // success or failure on mission download, MAVLink mission protocol doesn't 
-    // specify a particular action. 
-}
-
-
 // MAVLink: MISSION_CURRENT send 
 void VehicleTelemetry::MAVLinkMissionCurrentSend(Vehicle &vehicle)
 {
+    // TODO this message should be broadcast when running a mission (i.e. auto mode). Add 
+    // a means to enable/disable this message. 
+
     mavlink_msg_mission_current_pack_chan(
         system_id, 
         component_id, 
         channel, 
         &msg, 
-        0,   // Sequence number 
-        vehicle.memory.mission_size,   // ? 
-        0,   // Mission state 
-        0,   // Mission mode 
-        vehicle.memory.mission_id,   // ? 
-        0,   // Fence ID 
-        0);   // Ralley point ID 
+        vehicle.memory.mission_index,   // Sequence number 
+        vehicle.memory.mission_size,    // Total number of mission items 
+        MISSION_STATE_UNKNOWN,          // Mission state - not supported 
+        0,                              // Mission mode - not supported 
+        vehicle.memory.mission_id,      // Mission ID 
+        0,                              // Fence ID - not supported 
+        0);                             // Ralley point ID - not supported 
     MAVLinkMessageFormat(); 
-}
-
-
-// MAVLink: MISSION_SET_CURRENT receive 
-void VehicleTelemetry::MAVLinkMissionSetCurrentReceive(Vehicle &vehicle)
-{
-    mavlink_msg_mission_set_current_decode(
-        &msg, 
-        &mavlink.mission_set_current_msg_gcs); 
-
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.mission_set_current_msg_gcs.target_system != system_id) || 
-        (mavlink.mission_set_current_msg_gcs.target_component != component_id))
-    {
-        return; 
-    }
-
-    // Update the mission item if valid 
-    if (mavlink.mission_set_current_msg_gcs.seq < vehicle.memory.mission_size)
-    {
-        // TODO 
-
-        MAVLinkMissionCurrentSend(vehicle); 
-    }
-}
-
-
-// MAVLink: MISSION_CLEAR_ALL receive 
-void VehicleTelemetry::MAVLinkMissionClearAllReceive(Vehicle &vehicle)
-{
-    mavlink_msg_mission_clear_all_decode(
-        &msg, 
-        &mavlink.mission_clear_all_msg_gcs); 
-
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.mission_clear_all_msg_gcs.target_system != system_id) || 
-        (mavlink.mission_clear_all_msg_gcs.target_component != component_id))
-    {
-        return; 
-    }
-
-    ClearMission(vehicle, mavlink.mission_clear_all_msg_gcs.mission_type); 
 }
 
 
@@ -737,6 +721,11 @@ void VehicleTelemetry::MAVLinkMissionItemReachedSend(Vehicle &vehicle)
     }
 }
 
+//==================================================
+
+
+//==================================================
+// Other 
 
 // Clear current mission 
 void VehicleTelemetry::ClearMission(
@@ -758,56 +747,121 @@ void VehicleTelemetry::MAVLinkMissionItemReachedSet(void)
     status.mission_item_reached = FLAG_SET; 
 }
 
+//==================================================
+
 //=======================================================================================
 
 
 //=======================================================================================
 // MAVLink: Command protocol 
 
-// MAVLink: COMMAND_LONG 
+//==================================================
+// Receive 
+
+// MAVLink: COMMAND_LONG receive 
 void VehicleTelemetry::MAVLinkCommandLongReceive(Vehicle &vehicle)
 {
     mavlink_msg_command_long_decode(
         &msg, 
         &mavlink.command_long_msg_gcs); 
-
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.command_long_msg_gcs.target_system != system_id) || 
-        (mavlink.command_long_msg_gcs.target_component != component_id))
+        
+    if (VerifyVehicleIDs(mavlink.command_long_msg_gcs.target_system, 
+                         mavlink.command_long_msg_gcs.target_component))
     {
         return; 
     }
 
-    MAVLinkCommandLongDecode(vehicle); 
+    mavlink_cmd_msg_t cmd_msg = 
+    {
+        .param1 = mavlink.command_long_msg_gcs.param1, 
+        .param2 = mavlink.command_long_msg_gcs.param2, 
+        .param3 = mavlink.command_long_msg_gcs.param3, 
+        .param4 = mavlink.command_long_msg_gcs.param4, 
+        .param5 = mavlink.command_long_msg_gcs.param5, 
+        .param6 = mavlink.command_long_msg_gcs.param6, 
+        .param7 = mavlink.command_long_msg_gcs.param7, 
+        .x = RESET, 
+        .y = RESET, 
+        .z = RESET, 
+        .command = mavlink.command_long_msg_gcs.command, 
+        .frame = RESET, 
+        .confirmation = mavlink.command_long_msg_gcs.confirmation 
+    }; 
+    
+    MAVLinkCommandDecode(vehicle, cmd_msg); 
 }
 
 
-// MAVLink command decode 
-void VehicleTelemetry::MAVLinkCommandLongDecode(Vehicle &vehicle)
+// MAVLink: COMMAND_INT receive 
+void VehicleTelemetry::MAVLinkCommandIntReceive(Vehicle &vehicle)
 {
-    switch (mavlink.command_long_msg_gcs.command)
+    mavlink_msg_command_int_decode(
+        &msg, 
+        &mavlink.command_int_msg_gcs); 
+        
+    if (VerifyVehicleIDs(mavlink.command_int_msg_gcs.target_system, 
+                         mavlink.command_int_msg_gcs.target_component))
+    {
+        return; 
+    }
+
+    mavlink_cmd_msg_t cmd_msg = 
+    {
+        .param1 = mavlink.command_int_msg_gcs.param1, 
+        .param2 = mavlink.command_int_msg_gcs.param2, 
+        .param3 = mavlink.command_int_msg_gcs.param3, 
+        .param4 = mavlink.command_int_msg_gcs.param4, 
+        .param5 = RESET, 
+        .param6 = RESET, 
+        .param7 = RESET, 
+        .x = mavlink.command_int_msg_gcs.x, 
+        .y = mavlink.command_int_msg_gcs.y, 
+        .z = mavlink.command_int_msg_gcs.z, 
+        .command = mavlink.command_int_msg_gcs.command, 
+        .frame = mavlink.command_int_msg_gcs.frame, 
+        .confirmation = RESET 
+    }; 
+        
+    MAVLinkCommandDecode(vehicle, cmd_msg); 
+}
+    
+    
+// MAVLink command decode 
+void VehicleTelemetry::MAVLinkCommandDecode(
+    Vehicle &vehicle, 
+    mavlink_cmd_msg_t &cmd_msg)
+{
+    switch (cmd_msg.command)
     {
         case MAV_CMD_DO_SET_MODE: 
-            MAVLinkCommandDoSetModeReceive(vehicle); 
+            MAVLinkCommandDoSetModeReceive(vehicle, cmd_msg); 
+            break; 
+        
+        case MAV_CMD_DO_SET_HOME: 
+            MAVLinkCommandDoSetHomeReceive(cmd_msg); 
+            break; 
+
+        case MAV_CMD_COMPONENT_ARM_DISARM: 
             break; 
         
         case MAV_CMD_REQUEST_MESSAGE: 
-            MAVLinkCommandRequestMessageReceive(); 
+            MAVLinkCommandRequestMessageReceive(cmd_msg); 
             break; 
-
+        
         default: 
             break; 
     }
 }
-
-
-// MAVLink command: DO_SET_MODE 
-void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(Vehicle &vehicle)
+    
+    
+// MAVLink command: DO_SET_MODE receive 
+void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(
+    Vehicle &vehicle, 
+    mavlink_cmd_msg_t &cmd_msg)
 {
     // Ardupilot sets param1 to MAV_MODE_FLAG_CUSTOM_MODE_ENABLED so we look for that 
     // before attempting to update the vehicle state/mode. 
-    if ((uint16_t)mavlink.command_long_msg_gcs.param1 == MAV_MODE_FLAG_CUSTOM_MODE_ENABLED)
+    if ((uint16_t)cmd_msg.param1 == MAV_MODE_FLAG_CUSTOM_MODE_ENABLED)
     {
         vehicle.MainStateSelect((uint8_t)mavlink.command_long_msg_gcs.param2); 
         MAVLinkCommandACKSend(); 
@@ -815,23 +869,35 @@ void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(Vehicle &vehicle)
 }
 
 
-// MAVLink command: REQUEST_MESSAGE 
-void VehicleTelemetry::MAVLinkCommandRequestMessageReceive(void)
+// MAVLink command: DO_SET_HOME receive 
+void VehicleTelemetry::MAVLinkCommandDoSetHomeReceive(mavlink_cmd_msg_t &cmd_msg)
 {
-    uint16_t msg_id = (uint16_t)mavlink.command_long_msg_gcs.param1; 
+    // 
+}
 
+
+// MAVLink command: REQUEST_MESSAGE 
+void VehicleTelemetry::MAVLinkCommandRequestMessageReceive(mavlink_cmd_msg_t &cmd_msg)
+{
+    uint16_t msg_id = (uint16_t)cmd_msg.param1; 
+    
     switch (msg_id)
     {
         case MAVLINK_MSG_ID_AUTOPILOT_VERSION: 
             MAVLinkCommandACKSend(); 
             MAVLinkAutopilotVersionSend(); 
             break; 
-
+        
         default: 
             break; 
     }
 }
 
+//==================================================
+
+
+//==================================================
+// Send 
 
 // MAVLink command: COMMAND_ACK 
 void VehicleTelemetry::MAVLinkCommandACKSend(void)
@@ -850,6 +916,8 @@ void VehicleTelemetry::MAVLinkCommandACKSend(void)
     MAVLinkMessageFormat(); 
 }
 
+//==================================================
+
 //=======================================================================================
 
 
@@ -865,11 +933,9 @@ void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
     mavlink_msg_request_data_stream_decode(
         &msg, 
         &mavlink.request_data_stream_msg_gcs); 
-    
-    // This system is only concerned with messages meant for this system. If the taget 
-    // system and component ID in the message does not match this system then abort. 
-    if ((mavlink.request_data_stream_msg_gcs.target_system != system_id) || 
-        (mavlink.request_data_stream_msg_gcs.target_component != component_id))
+
+    if (VerifyVehicleIDs(mavlink.request_data_stream_msg_gcs.target_system, 
+                         mavlink.request_data_stream_msg_gcs.target_component))
     {
         return; 
     }
@@ -901,14 +967,14 @@ void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
             break; 
 
         case MAV_DATA_STREAM_RC_CHANNELS: 
-            mavlink.rc_channels_scaled_msg_timing.enable = enable; 
-            mavlink.rc_channels_scaled_msg_timing.count_lim = timer_limit; 
+            // mavlink.rc_channels_scaled_msg_timing.enable = enable; 
+            // mavlink.rc_channels_scaled_msg_timing.count_lim = timer_limit; 
 
-            mavlink.rc_channels_raw_msg_timing.enable = enable; 
-            mavlink.rc_channels_raw_msg_timing.count_lim = timer_limit; 
+            // mavlink.rc_channels_raw_msg_timing.enable = enable; 
+            // mavlink.rc_channels_raw_msg_timing.count_lim = timer_limit; 
 
-            mavlink.servo_output_raw_msg_timing.enable = enable; 
-            mavlink.servo_output_raw_msg_timing.count_lim = timer_limit; 
+            // mavlink.servo_output_raw_msg_timing.enable = enable; 
+            // mavlink.servo_output_raw_msg_timing.count_lim = timer_limit; 
             break; 
 
         case MAV_DATA_STREAM_RAW_CONTROLLER: 
@@ -923,8 +989,8 @@ void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
             break; 
 
         case MAV_DATA_STREAM_POSITION: 
-            mavlink.local_position_ned_msg_timing.enable = enable; 
-            mavlink.local_position_ned_msg_timing.count_lim = timer_limit; 
+            // mavlink.local_position_ned_msg_timing.enable = enable; 
+            // mavlink.local_position_ned_msg_timing.count_lim = timer_limit; 
 
             mavlink.global_pos_int_msg_timing.enable = enable; 
             mavlink.global_pos_int_msg_timing.count_lim = timer_limit; 
@@ -1257,6 +1323,27 @@ void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle)
             vehicle.navigation.heading);      // Heading (yaw angle) 
         MAVLinkMessageFormat(); 
     }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Helper functions 
+
+uint8_t VehicleTelemetry::VerifyVehicleIDs(
+    uint8_t target_system, 
+    uint8_t target_component)
+{
+    // This system is only concerned with messages meant for this system. If the taget 
+    // system and component ID in the message does not match this system then abort 
+    // message decoding. 
+    if ((target_system != system_id) || (target_component != component_id))
+    {
+        return true; 
+    }
+
+    return false; 
 }
 
 //=======================================================================================
