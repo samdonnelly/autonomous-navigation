@@ -186,6 +186,10 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
             MAVLinkMissionCountReceive(vehicle); 
             break; 
 
+        case MAVLINK_MSG_ID_MISSION_REQUEST_INT: 
+            MAVLinkMissionRequestIntReceive(vehicle); 
+            break; 
+
         case MAVLINK_MSG_ID_MISSION_REQUEST: 
             MAVLinkMissionRequestReceive(vehicle); 
             break; 
@@ -358,7 +362,7 @@ void VehicleTelemetry::MAVLinkParamValueSendPeriodic(Vehicle &vehicle)
     {
         mavlink.param_value_msg_timing.count = RESET; 
 
-        if (vehicle.memory.param_index < vehicle.memory.num_params)
+        if (vehicle.memory.param_index < parameters.size())
         {
             mavlink_msg_param_value_pack_chan(
                 system_id, 
@@ -368,7 +372,7 @@ void VehicleTelemetry::MAVLinkParamValueSendPeriodic(Vehicle &vehicle)
                 parameters[vehicle.memory.param_index].name, 
                 parameters[vehicle.memory.param_index].value, 
                 vehicle.memory.param_value_type, 
-                vehicle.memory.num_params, 
+                parameters.size(), 
                 vehicle.memory.param_index); 
             MAVLinkMessageFormat(); 
 
@@ -455,6 +459,35 @@ void VehicleTelemetry::MAVLinkMissionCountSend(Vehicle &vehicle)
 }
 
 
+// MAVLink: MISSION_REQUEST_INT receive 
+void VehicleTelemetry::MAVLinkMissionRequestIntReceive(Vehicle &vehicle)
+{
+    // Mission planner sends MISSION_REQUEST messages despite the message being 
+    // deprecated by MAVLink in favour of MISSION_REQUEST_INT. When this message is 
+    // received, Mission Planner expects MISSION_ITEM_INT in return as discovered through 
+    // trial and error (i.e. MISSION_ITEM does not work). 
+    // MISSION_ITEM_INT takes the system and component IDs in its payload of the system 
+    // the message is being sent to. This should not be confused with the full MAVLink 
+    // message system and component IDs which identify where a message is coming from. 
+    // Mission Planner varries from standard MAVLink mission protocol in that the item 
+    // at mission sequence 0 is the home location, not the first waypoint location. 
+
+    mavlink_msg_mission_request_int_decode(
+        &msg, 
+        &mavlink.mission_request_int_msg_gcs); 
+
+    // This system is only concerned with messages meant for this system. If the taget 
+    // system and component ID in the message does not match this system then abort. 
+    if ((mavlink.mission_request_int_msg_gcs.target_system != system_id) || 
+        (mavlink.mission_request_int_msg_gcs.target_component != component_id))
+    {
+        return; 
+    }
+
+    MAVLinkMissionItemIntSend(vehicle); 
+}
+
+
 // MAVLink: MISSION_REQUEST receive 
 void VehicleTelemetry::MAVLinkMissionRequestReceive(Vehicle &vehicle)
 {
@@ -527,7 +560,8 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
         if (mavlink.mission_item_int_msg_gcs.seq == mission_item_index)
         {
             // TODO May need to check other item properties. Must be a global coordinate frame. 
-            vehicle.memory.mission_items[mission_item_index] = mavlink.mission_item_int_msg_gcs; 
+            // Home location is at index 0 even though MP sends the first item indexed at 0. 
+            vehicle.memory.mission_items[mission_item_index + 1] = mavlink.mission_item_int_msg_gcs; 
 
             // Check if the received MISSION_ITEM_INT sequence number matches the total 
             // number of items expected in the mission upload. If so then the mission is 
@@ -569,7 +603,7 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
 void VehicleTelemetry::MAVLinkMissionItemIntSend(Vehicle &vehicle)
 {
     // Only send the mission item if it exists 
-    if (mavlink.mission_request_msg_gcs.seq < vehicle.memory.mission_size)
+    if (mavlink.mission_request_msg_gcs.seq <= vehicle.memory.mission_size)
     {
         mavlink_msg_mission_item_int_encode_chan(
             system_id, 

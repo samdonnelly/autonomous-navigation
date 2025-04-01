@@ -47,6 +47,9 @@
 #define PERIODIC_TIMER_250MS_PERIOD 50   // Ticks 
 #define PERIODIC_TIMER_1S_PERIOD 200     // Ticks 
 
+// Thread synchronization 
+#define TELEMETRY_OUT_SEMAPHORE_COUNT 1 
+
 //=======================================================================================
 
 

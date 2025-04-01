@@ -27,6 +27,7 @@
 // Macros 
 
 #define NUM_PARAMETERS 5 
+#define MAX_MISSION_SIZE 10 
 
 //=======================================================================================
 
@@ -48,7 +49,6 @@ public:   // public members
     };
 
     uint8_t param_index; 
-    uint8_t num_params; 
     MAV_PARAM_TYPE param_value_type; 
 
     // Mission - this may change as external storage is integrated 
@@ -56,12 +56,15 @@ public:   // public members
     uint32_t mission_id; 
     uint8_t mission_type; 
     uint16_t mission_index; 
-    mavlink_mission_item_int_t mission_items[10]; 
+    mavlink_mission_item_int_t mission_items[MAX_MISSION_SIZE]; 
 
 public:   // public methods 
 
     // Constructor 
     VehicleMemory(); 
+
+    // Mission 
+    void MissionLoad(void); 
 }; 
 
 //=======================================================================================
@@ -71,7 +74,6 @@ public:   // public methods
 // Other data 
 
 extern const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters; 
-// extern const VehicleMemory::ParamInfo parameters[]; 
 
 //=======================================================================================
 

@@ -59,6 +59,10 @@ static ParameterValues params;
 //=======================================================================================
 // Parameters 
 
+// The following parameters are available across the vehicle system but cannot be 
+// modified outside of this file. Only parameter values can be changed and it's done 
+// using the ParameterValues struct. 
+
 const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters = 
 {{
     {"CRUISE_SPEED", params.cruise_speed},    // 1 
@@ -66,7 +70,7 @@ const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters =
     {"TURN_RADIUS",  params.turn_radius},     // 3 
     {"LOIT_TYPE",    params.loit_type},       // 4 
     {"LOIT_RADIUS",  params.loit_radius}      // 5 
-}}; 
+}};
 
 //=======================================================================================
 
@@ -79,9 +83,40 @@ VehicleMemory::VehicleMemory()
       param_value_type(MAV_PARAM_TYPE_REAL32), 
       mission_size(RESET), 
       mission_id(RESET), 
+      mission_type(MAV_MISSION_TYPE_ALL), 
       mission_index(RESET) 
 {
-    num_params = sizeof(parameters) / sizeof(parameters[0]); 
+    memset((void *)mission_items, RESET, sizeof(mission_size)); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Mission 
+
+void VehicleMemory::MissionLoad(void)
+{
+    mission_size = 1; 
+
+    mission_items[0] = 
+    {
+        .param1 = 0, 
+        .param2 = 10, 
+        .param3 = 10, 
+        .param4 = 0, 
+        .x = 506132550, 
+        .y = -1151204500, 
+        .z = 0, 
+        .seq = 0, 
+        .command = MAV_CMD_NAV_WAYPOINT, 
+        .target_system = VS_SYSTEM_ID_GCS, 
+        .target_component = MAV_COMP_ID_MISSIONPLANNER, 
+        .frame = MAV_FRAME_GLOBAL, 
+        .current = 0, 
+        .autocontinue = 0, 
+        .mission_type = MAV_MISSION_TYPE_MISSION 
+    };
 }
 
 //=======================================================================================
