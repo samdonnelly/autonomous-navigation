@@ -151,7 +151,7 @@ void VehicleTelemetry::MsgTimerChecks(void)
     {
         if (mission_resend_counter++ < VS_MISSION_RESEND)
         {
-            MAVLinkMissionRequestIntSend(mavlink.mission_count_msg_gcs.mission_type); 
+            MAVLinkMissionRequestSend(mavlink.mission_count_msg_gcs.mission_type); 
         }
         else 
         {
@@ -422,19 +422,30 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
         return; 
     }
 
-    // If the provided count is 0 then that's the same as clearing the vehicle's 
-    // currently stored mission. If the count is not 0 then we proceed to starting 
-    // the mission upload process. 
+    // If the provided count is 0 then that's the same as clearing the vehicles currently 
+    // stored mission. If the count is larger than the available mission item storage 
+    // space then the upload must be rejected. Otherwise the mission upload sequence is 
+    // started. 
     if (mavlink.mission_count_msg_gcs.count == 0)
     {
         ClearMission(vehicle, mavlink.mission_count_msg_gcs.mission_type); 
+    }
+    else if (mavlink.mission_count_msg_gcs.count > (MAX_MISSION_SIZE - 1))
+    {
+        // The home location is stored at index 0 so the max number of mission items is 
+        // one less than the total storage size. 
+
+        MAVLinkMissionAckSend(
+            MAV_MISSION_NO_SPACE, 
+            mavlink.mission_count_msg_gcs.mission_type, 
+            vehicle.memory.mission_id); 
     }
     else 
     {
         status.mission_upload = FLAG_SET; 
         mission_resend_counter = RESET; 
         mission_item_index = RESET; 
-        MAVLinkMissionRequestIntSend(mavlink.mission_count_msg_gcs.mission_type); 
+        MAVLinkMissionRequestSend(mavlink.mission_count_msg_gcs.mission_type); 
     }
 }
 
@@ -442,6 +453,9 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
 // MAVLink: MISSION_REQUEST_INT receive 
 void VehicleTelemetry::MAVLinkMissionRequestIntReceive(Vehicle &vehicle)
 {
+    // Mission Planner uses MISSION_REQUEST_INT when downloading a mission from the 
+    // vehicle instead of MISSION_REQUEST like it used for getting the home location. 
+
     mavlink_msg_mission_request_int_decode(
         &msg, 
         &mavlink.mission_request_int_msg_gcs); 
@@ -459,15 +473,10 @@ void VehicleTelemetry::MAVLinkMissionRequestIntReceive(Vehicle &vehicle)
 // MAVLink: MISSION_REQUEST receive 
 void VehicleTelemetry::MAVLinkMissionRequestReceive(Vehicle &vehicle)
 {
-    // Mission planner sends MISSION_REQUEST messages despite the message being 
-    // deprecated by MAVLink in favour of MISSION_REQUEST_INT. When this message is 
-    // received, Mission Planner expects MISSION_ITEM_INT in return as discovered through 
-    // trial and error (i.e. MISSION_ITEM does not work). 
-    // MISSION_ITEM_INT takes the system and component IDs in its payload of the system 
-    // the message is being sent to. This should not be confused with the full MAVLink 
-    // message system and component IDs which identify where a message is coming from. 
-    // Mission Planner varries from standard MAVLink mission protocol in that the item 
-    // at mission sequence 0 is the home location, not the first waypoint location. 
+    // Mission Planner only uses MISSION_REQUEST for retrieving the home position, and 
+    // when doing so expects MISSION_ITEM_INT in return. Mission Planner and Ardupilot 
+    // vary from standard MAVLink mission protocol in that the item at mission sequence 
+    // 0 is the home location, not the first waypoint location. 
 
     mavlink_msg_mission_request_decode(
         &msg, 
@@ -504,19 +513,19 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
         // item number. If not then the received items are not in the expected sequence. 
         if (mavlink.mission_item_int_msg_gcs.seq == mission_item_index)
         {
-            // TODO May need to check other item properties. Must be a global coordinate frame. 
-            // Home location is at index 0 even though MP sends the first item indexed at 0. 
+            // The home location is stored at index 0 even though Mission Planner sends 
+            // the first mission item with a sequence/index of 0. For this reason, the 
+            // saved mission item is stored at +1 index and the sequence is incremented. 
             vehicle.memory.mission_items[mission_item_index + 1] = mavlink.mission_item_int_msg_gcs; 
+            vehicle.memory.mission_items[mission_item_index + 1].seq++; 
 
             // Check if the received MISSION_ITEM_INT sequence number matches the total 
-            // number of items expected in the mission upload. If so then the mission is 
-            // acknowledged as having been successfully received. Otherwise proceed to 
-            // request the next expected item. 
+            // number of items expected in the mission upload. If so then the mission 
+            // upload sequence is done. Otherwise proceed to request the next item. 
             if (mavlink.mission_item_int_msg_gcs.seq >= (mavlink.mission_count_msg_gcs.count - 1))
             {
-                // TODO generate a new mission id (opaque_id) 
-                // Save mission ID, mission size and mission type in memory 
-
+                // Increment the mission ID to signify a new mission, update the mission 
+                // size, acknowledge a successful mission upload and end the sequence. 
                 status.mission_upload = FLAG_CLEAR; 
                 vehicle.memory.mission_size = mavlink.mission_count_msg_gcs.count + 1; 
                 vehicle.memory.mission_type = mavlink.mission_item_int_msg_gcs.mission_type; 
@@ -530,7 +539,7 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
             {
                 mission_item_index++; 
                 mission_resend_counter = RESET; 
-                MAVLinkMissionRequestIntSend(mavlink.mission_item_int_msg_gcs.mission_type); 
+                MAVLinkMissionRequestSend(mavlink.mission_item_int_msg_gcs.mission_type); 
             }
         }
         else 
@@ -624,10 +633,14 @@ void VehicleTelemetry::MAVLinkMissionCountSend(Vehicle &vehicle)
 }
 
 
-// MAVLink: MISSION_REQUEST_INT send 
-void VehicleTelemetry::MAVLinkMissionRequestIntSend(uint8_t mission_type)
+// MAVLink: MISSION_REQUEST send 
+void VehicleTelemetry::MAVLinkMissionRequestSend(uint8_t mission_type)
 {
-    mavlink_msg_mission_request_int_pack_chan(
+    // Mission Planner prefers MISSION_REQUEST over MISSION_REQUEST_INT when doing a 
+    // mission upload for some reason. Both work but it was observed that MISSION_REQUEST 
+    // uploaded much faster. 
+
+    mavlink_msg_mission_request_pack_chan(
         system_id, 
         component_id, 
         channel, 
@@ -648,15 +661,24 @@ void VehicleTelemetry::MAVLinkMissionItemIntSend(
     Vehicle &vehicle, 
     uint16_t sequence)
 {
+    // Mission Planner looks for MISSION_ITEM_INT when getting mission items from the 
+    // vehicle during mission download and when getting the home location despite 
+    // MISSION_REQUEST_INT and MISSION_REQUEST being used respectfully. 
+
     // Only send the mission item if it exists 
     if (sequence < vehicle.memory.mission_size)
     {
+        mavlink_mission_item_int_t mission_item = vehicle.memory.mission_items[sequence]; 
+
+        mission_item.target_system = system_id_gcs; 
+        mission_item.target_component = component_id_gcs; 
+
         mavlink_msg_mission_item_int_encode_chan(
             system_id, 
             component_id, 
             channel, 
             &msg, 
-            &vehicle.memory.mission_items[sequence]); 
+            &mission_item); 
         MAVLinkMessageFormat(); 
     }
 }

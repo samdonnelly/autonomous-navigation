@@ -188,7 +188,7 @@ private:   // Private methods
     void MAVLinkMissionSetCurrentReceive(Vehicle &vehicle); 
     void MAVLinkMissionClearAllReceive(Vehicle &vehicle); 
     void MAVLinkMissionCountSend(Vehicle &vehicle); 
-    void MAVLinkMissionRequestIntSend(uint8_t mission_type); 
+    void MAVLinkMissionRequestSend(uint8_t mission_type); 
     void MAVLinkMissionItemIntSend(Vehicle &vehicle, uint16_t sequence); 
     void MAVLinkMissionAckSend(MAV_MISSION_RESULT result, uint8_t mission_type, uint32_t opaque_id); 
     void MAVLinkMissionCurrentSend(Vehicle &vehicle); 
