@@ -65,11 +65,11 @@ static ParameterValues params;
 
 const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters = 
 {{
-    {"CRUISE_SPEED", params.cruise_speed},    // 1 
-    {"FRAME_CLASS",  params.frame_class},     // 2 
-    {"TURN_RADIUS",  params.turn_radius},     // 3 
-    {"LOIT_TYPE",    params.loit_type},       // 4 
-    {"LOIT_RADIUS",  params.loit_radius}      // 5 
+    {"CRUISE_SPEED", &params.cruise_speed},    // 1 
+    {"FRAME_CLASS",  &params.frame_class},     // 2 
+    {"TURN_RADIUS",  &params.turn_radius},     // 3 
+    {"LOIT_TYPE",    &params.loit_type},       // 4 
+    {"LOIT_RADIUS",  &params.loit_radius}      // 5 
 }};
 
 //=======================================================================================
@@ -86,7 +86,40 @@ VehicleMemory::VehicleMemory()
       mission_type(MAV_MISSION_TYPE_ALL), 
       mission_index(RESET) 
 {
-    memset((void *)mission_items, RESET, sizeof(mission_size)); 
+    memset((void *)mission, RESET, sizeof(mission)); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Parameters 
+
+void VehicleMemory::ParameterLookUp(char *param_id)
+{
+    for (uint8_t i = RESET; i < parameters.size(); i++)
+    {
+        if (!strcmp(param_id, parameters[i].name))
+        {
+            param_index = i; 
+            return; 
+        }
+    }
+
+    param_index = parameters.size(); 
+}
+
+
+void VehicleMemory::ParameterSet(
+    char *param_id, 
+    float &value)
+{
+    ParameterLookUp(param_id); 
+
+    if (param_index < parameters.size())
+    {
+        *parameters[param_index].value = value; 
+    }
 }
 
 //=======================================================================================
@@ -99,7 +132,7 @@ void VehicleMemory::MissionLoad(void)
 {
     mission_size = 1; 
 
-    mission_items[0] = 
+    mission[0] = 
     {
         .param1 = 0, 
         .param2 = 10, 

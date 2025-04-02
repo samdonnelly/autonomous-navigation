@@ -198,11 +198,11 @@ void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
     switch (event)
     {
         case MainEvents::TELEMETRY_DECODE: 
-            telemetry.MAVLinkMessageDecode(*this); 
+            telemetry.MessageDecode(*this); 
             break; 
 
         case MainEvents::TELEMETRY_ENCODE: 
-            telemetry.MAVLinkMessageEncode(*this); 
+            telemetry.MessageEncode(*this); 
             break; 
         
         default: 

@@ -74,6 +74,8 @@ public:   // Public members
     
     // Parameter protocol 
     mavlink_param_request_list_t param_request_list_msg_gcs;       // PARAM_REQUEST_LIST 
+    mavlink_param_request_read_t param_request_read_msg_gcs;       // PARAM_REQUEST_READ 
+    mavlink_param_set_t param_set_msg_gcs;                         // PARAM_SET 
     
     // Mission protocol 
     mavlink_mission_request_list_t mission_request_list_msg_gcs;   // MISSION_REQUEST_LIST 
@@ -100,20 +102,32 @@ public:   // Public members
     // Heartbeat protocol 
     mavlink_heartbeat_t heartbeat_msg;                             // HEARTBEAT 
     
-    // Periodic outgoing message timing info 
+    //==================================================
+    
+    //==================================================
+    // Outgoing message timing 
+    
+    // Heartbeat protocol 
     MsgTiming heartbeat_msg_timing;                                // HEARTBEAT 
+
+    // Parameter protocol 
+    MsgTiming param_value_msg_timing;                              // PARAM_VALUE 
+
+    // Mission protocol 
+    MsgTiming mission_current_msg_timing;                          // MISSION_CURRENT 
+
+    // Periodic requestable messages 
     MsgTiming raw_imu_msg_timing;                                  // RAW_IMU 
     MsgTiming gps_raw_int_msg_timing;                              // GPS_RAW_INT 
-    MsgTiming rc_channels_scaled_msg_timing;                       // RC_CHANNELS_SCALED 
-    MsgTiming rc_channels_raw_msg_timing;                          // RC_CHANNELS_RAW 
-    MsgTiming servo_output_raw_msg_timing;                         // SERVO_OUTPUT_RAW 
+    // MsgTiming rc_channels_scaled_msg_timing;                       // RC_CHANNELS_SCALED 
+    // MsgTiming rc_channels_raw_msg_timing;                          // RC_CHANNELS_RAW 
+    // MsgTiming servo_output_raw_msg_timing;                         // SERVO_OUTPUT_RAW 
     MsgTiming attitude_msg_timing;                                 // ATTITUDE 
     MsgTiming position_target_global_int_msg_timing;               // POSITION_TARGET_GLOBAL_INT 
     MsgTiming nav_controller_output_msg_timing;                    // NAV_CONTROLLER_OUTPUT 
-    MsgTiming local_position_ned_msg_timing;                       // LOCAL_POSITION_NED 
+    // MsgTiming local_position_ned_msg_timing;                       // LOCAL_POSITION_NED 
     MsgTiming global_pos_int_msg_timing;                           // GLOBAL_POSITION_INT 
-    MsgTiming param_value_msg_timing;                              // PARAM_VALUE 
-    
+
     //==================================================
 };
 
@@ -154,8 +168,10 @@ private:   // Private members
     // Status flags 
     struct Status 
     {
-        uint8_t heartbeat : 1; 
-        uint8_t mission_upload : 1; 
+        uint8_t heartbeat            : 1; 
+        uint8_t param_read           : 1; 
+        uint8_t mission_upload       : 1; 
+        uint8_t mission_current      : 1; 
         uint8_t mission_item_reached : 1; 
     }
     status; 
@@ -176,7 +192,9 @@ private:   // Private methods
 
     // MAVLink: Parameter protocol 
     void MAVLinkParamRequestListReceive(Vehicle &vehicle); 
-    void MAVLinkParamValueSendPeriodic(Vehicle &vehicle); 
+    void MAVLinkParamRequestReadReceive(Vehicle &vehicle); 
+    void MAVLinkParamSetReceive(Vehicle &vehicle); 
+    void MAVLinkParamValueSend(Vehicle &vehicle); 
 
     // MAVLink: Mission protocol 
     void MAVLinkMissionRequestListReceive(Vehicle &vehicle); 
@@ -211,13 +229,13 @@ private:   // Private methods
     // MAVLink: Requestable outgoing messages 
     void MAVLinkRawIMUSendPeriodic(Vehicle &vehicle); 
     void MAVLinkGPSRawIntSendPeriodic(Vehicle &vehicle); 
-    void MAVLinkRCChannelScaledSendPeriodic(Vehicle &vehicle); 
-    void MAVLinkRCChannelRawSendPeriodic(Vehicle &vehicle); 
-    void MAVLinkServoOutputRawSendPeriodic(Vehicle &vehicle); 
+    // void MAVLinkRCChannelScaledSendPeriodic(Vehicle &vehicle); 
+    // void MAVLinkRCChannelRawSendPeriodic(Vehicle &vehicle); 
+    // void MAVLinkServoOutputRawSendPeriodic(Vehicle &vehicle); 
     void MAVLinkAttitudeSendPeriodic(Vehicle &vehicle); 
     void MAVLinkPositionTargetGlobalIntSendPeriodic(Vehicle &vehicle); 
     void MAVLinkNavControllerSendPeriodic(Vehicle &vehicle); 
-    void MAVLinkLocalPositionNEDSendPeriodic(Vehicle &vehicle); 
+    // void MAVLinkLocalPositionNEDSendPeriodic(Vehicle &vehicle); 
     void MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle); 
 
     // Helper functions 
@@ -229,11 +247,13 @@ public:   // Public methods
     VehicleTelemetry(uint8_t vehicle_type); 
 
     // MAVLink message handling 
-    void MAVLinkMessageDecode(Vehicle &vehicle); 
-    void MAVLinkMessageEncode(Vehicle &vehicle); 
+    void MessageDecode(Vehicle &vehicle); 
+    void MessageEncode(Vehicle &vehicle); 
 
     // Setters 
     void MAVLinkHeartbeatSetMode(uint8_t mode); 
+    void MAVLinkMissionCurrentEnable(void); 
+    void MAVLinkMissionCurrentDisable(void); 
     void MAVLinkMissionItemReachedSet(void); 
 };
 

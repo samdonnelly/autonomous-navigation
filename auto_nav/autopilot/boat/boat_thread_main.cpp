@@ -478,6 +478,10 @@ void Boat::MainAutoState(Boat& data, Event event)
     if (data.main_system_flags.state_entry)
     {
         data.MainStateEnter((uint8_t)MainStates::AUTO_STATE, data.main_state_flags.flags); 
+        
+        // The MAVLink MISSION_CURRENT message should be broadcast when in auto mode so 
+        // the GCS knows what the vehicle is targeting. 
+        data.telemetry.MAVLinkMissionCurrentEnable(); 
 
         // navigation.CurrentUpdate(boat); 
         // LEDStrobeUpdate(ws2812_led_auto_strobe); 
@@ -505,6 +509,8 @@ void Boat::MainAutoState(Boat& data, Event event)
     if (data.main_system_flags.state_exit)
     {
         data.MainStateExit(); 
+
+        data.telemetry.MAVLinkMissionCurrentDisable(); 
 
         // navigation.ThrustersOff(); 
         // LEDStrobeOff(); 

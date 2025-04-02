@@ -76,12 +76,12 @@ public:
 
     void TelemetryDecode(void)
     {
-        telemetry.MAVLinkMessageDecode(*this); 
+        telemetry.MessageDecode(*this); 
     }
 
     void TelemetryEncode(void)
     {
-        telemetry.MAVLinkMessageEncode(*this); 
+        telemetry.MessageEncode(*this); 
     }
 }; 
 

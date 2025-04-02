@@ -28,6 +28,7 @@
 
 #define NUM_PARAMETERS 5 
 #define MAX_MISSION_SIZE 10 
+#define HOME_OFFSET 1 
 
 //=======================================================================================
 
@@ -43,7 +44,7 @@ public:   // public members
     struct ParamInfo 
     {
         const char *name; 
-        float value; 
+        float *value; 
         // Mission planner seems to only accept floats so 
         // no option for MAV_PARAM_TYPE is offered here. 
     };
@@ -56,12 +57,16 @@ public:   // public members
     uint32_t mission_id; 
     uint8_t mission_type; 
     uint16_t mission_index; 
-    mavlink_mission_item_int_t mission_items[MAX_MISSION_SIZE]; 
+    mavlink_mission_item_int_t mission[MAX_MISSION_SIZE]; 
 
 public:   // public methods 
 
     // Constructor 
     VehicleMemory(); 
+
+    // Parameters 
+    void ParameterLookUp(char *param_id); 
+    void ParameterSet(char *param_id, float &value); 
 
     // Mission 
     void MissionLoad(void); 
