@@ -82,11 +82,11 @@ VehicleMemory::VehicleMemory()
     : param_index(RESET), 
       param_value_type(MAV_PARAM_TYPE_REAL32), 
       mission_size(RESET), 
+      mission_index(RESET), 
       mission_id(RESET), 
-      mission_type(MAV_MISSION_TYPE_ALL), 
-      mission_index(RESET) 
+      mission_type(MAV_MISSION_TYPE_ALL) 
 {
-    memset((void *)mission, RESET, sizeof(mission)); 
+    memset((void *)&mission, RESET, sizeof(mission)); 
 }
 
 //=======================================================================================
@@ -128,13 +128,13 @@ void VehicleMemory::ParameterSet(
 //=======================================================================================
 // Mission 
 
+// Load a stored mission if it exists 
 void VehicleMemory::MissionLoad(void)
 {
     //==================================================
     // Test 
 
-    mission_size = 1; 
-    
+    // Manually setting the home location for now 
     mission[0] = 
     {
         .param1 = 0, 
@@ -155,6 +155,72 @@ void VehicleMemory::MissionLoad(void)
     };
     
     //==================================================
+}
+
+
+// Get a mission item 
+MissionItem VehicleMemory::MissionItemGet(uint16_t sequence)
+{
+    MissionItem mission_item; 
+
+    if (sequence < mission_size)
+    {
+        mission_item = mission[sequence + HOME_OFFSET]; 
+    }
+    else 
+    {
+        mission_item.seq = ~RESET; 
+    }
+
+    return mission_item; 
+}
+
+
+// Get the home location 
+MissionItem VehicleMemory::MissionHomeGet(void)
+{
+    return mission[HOME_INDEX]; 
+}
+
+
+// Set a mission item 
+void VehicleMemory::MissionItemSet(
+    uint16_t sequence, 
+    MissionItem &mission_item)
+{
+    if (sequence < MAX_MISSION_SIZE)
+    {
+        mission[sequence + HOME_OFFSET] = mission_item; 
+    }
+}
+
+
+// Set the home location 
+void VehicleMemory::MissionHomeSet(MissionItem &mission_item)
+{
+    mission[HOME_INDEX] = mission_item; 
+}
+
+
+// Set the current mission item 
+bool VehicleMemory::MissionTargetSet(uint16_t sequence)
+{
+    if (sequence < mission_size)
+    {
+        mission_index = sequence; 
+        return true; 
+    }
+
+    return false; 
+}
+
+
+// Clear the stored mission 
+void VehicleMemory::MissionClear(void)
+{
+    // Clear the mission but not the home location 
+    memset((void *)&mission[HOME_OFFSET], RESET, mission_size*sizeof(mission[0])); 
+    mission_size = RESET; 
 }
 
 //=======================================================================================

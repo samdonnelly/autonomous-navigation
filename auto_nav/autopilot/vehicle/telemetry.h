@@ -24,30 +24,6 @@
 
 
 //=======================================================================================
-// Structs 
-
-// Combined COMMAND_LONG and COMMAND_INT message 
-struct mavlink_cmd_msg_t 
-{
-    float param1; 
-    float param2; 
-    float param3; 
-    float param4; 
-    float param5; 
-    float param6; 
-    float param7; 
-    int32_t x; 
-    int32_t y; 
-    float z; 
-    uint16_t command; 
-    uint8_t frame; 
-    uint8_t confirmation; 
-}; 
-
-//=======================================================================================
-
-
-//=======================================================================================
 // Classes 
 
 class Vehicle; 
@@ -204,24 +180,26 @@ private:   // Private methods
     void MAVLinkMissionItemIntReceive(Vehicle &vehicle); 
     void MAVLinkMissionAckReceive(void); 
     void MAVLinkMissionSetCurrentReceive(Vehicle &vehicle); 
-    void MAVLinkMissionClearAllReceive(Vehicle &vehicle); 
+    // void MAVLinkMissionClearAllReceive(Vehicle &vehicle); 
     void MAVLinkMissionCountSend(Vehicle &vehicle); 
-    void MAVLinkMissionRequestSend(uint8_t mission_type); 
-    void MAVLinkMissionItemIntSend(Vehicle &vehicle, uint16_t sequence); 
-    void MAVLinkMissionAckSend(MAV_MISSION_RESULT result, uint8_t mission_type, uint32_t opaque_id); 
+    void MAVLinkMissionRequestSend(void); 
+    // void MAVLinkMissionItemIntSend(Vehicle &vehicle, uint16_t sequence); 
+    void MAVLinkMissionItemIntSend(mavlink_mission_item_int_t &mission_item); 
+    void MAVLinkMissionAckSend(MAV_MISSION_RESULT result, /* uint8_t mission_type,*/ uint32_t opaque_id); 
     void MAVLinkMissionCurrentSend(Vehicle &vehicle); 
     void MAVLinkMissionItemReachedSend(Vehicle &vehicle); 
-    void ClearMission(Vehicle &vehicle, uint8_t mission_type); 
+    // void ClearMission(Vehicle &vehicle, uint8_t mission_type); 
 
     // MAVLink: Command protocol 
     void MAVLinkCommandLongReceive(Vehicle &vehicle); 
+    void MAVLinkCommandLongDecode(Vehicle &vehicle); 
     void MAVLinkCommandIntReceive(Vehicle &vehicle); 
-    void MAVLinkCommandDecode(Vehicle &vehicle, mavlink_cmd_msg_t &cmd_msg); 
-    void MAVLinkCommandDoSetModeReceive(Vehicle &vehicle, mavlink_cmd_msg_t &cmd_msg); 
-    void MAVLinkCommandDoSetHomeReceive(mavlink_cmd_msg_t &cmd_msg); 
-    void MAVLinkCommandDoSetMissionCurrentReceive(void); 
-    void MAVLinkCommandRequestMessageReceive(mavlink_cmd_msg_t &cmd_msg); 
-    void MAVLinkCommandACKSend(void); 
+    void MAVLinkCommandIntDecode(Vehicle &vehicle); 
+    void MAVLinkCommandDoSetModeReceive(Vehicle &vehicle); 
+    void MAVLinkCommandDoSetHomeReceive(Vehicle &vehicle); 
+    void MAVLinkCommandDoSetMissionCurrentReceive(Vehicle &vehicle); 
+    void MAVLinkCommandRequestMessageReceive(void); 
+    void MAVLinkCommandACKSend(MAV_RESULT result); 
 
     // MAVLink: other commands 
     void MAVLinkRequestDataStreamReceive(void); 

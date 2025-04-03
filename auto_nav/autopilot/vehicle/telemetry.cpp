@@ -157,14 +157,14 @@ void VehicleTelemetry::MsgTimerChecks(void)
     {
         if (mission_resend_counter++ < VS_MISSION_RESEND)
         {
-            MAVLinkMissionRequestSend(mavlink.mission_count_msg_gcs.mission_type); 
+            MAVLinkMissionRequestSend(); 
         }
         else 
         {
             status.mission_upload = FLAG_CLEAR; 
             MAVLinkMissionAckSend(
                 MAV_MISSION_OPERATION_CANCELLED, 
-                mavlink.mission_count_msg_gcs.mission_type, 
+                // mavlink.mission_count_msg_gcs.mission_type, 
                 mavlink.mission_count_msg_gcs.opaque_id); 
         }
     }
@@ -216,9 +216,9 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
             MAVLinkMissionSetCurrentReceive(vehicle); 
             break; 
 
-        case MAVLINK_MSG_ID_MISSION_CLEAR_ALL: 
-            MAVLinkMissionClearAllReceive(vehicle); 
-            break; 
+        // case MAVLINK_MSG_ID_MISSION_CLEAR_ALL: 
+        //     MAVLinkMissionClearAllReceive(vehicle); 
+        //     break; 
 
         case MAVLINK_MSG_ID_REQUEST_DATA_STREAM: 
             MAVLinkRequestDataStreamReceive(); 
@@ -512,16 +512,26 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
     // started. 
     if (mavlink.mission_count_msg_gcs.count == 0)
     {
-        ClearMission(vehicle, mavlink.mission_count_msg_gcs.mission_type); 
-    }
-    else if (mavlink.mission_count_msg_gcs.count > (MAX_MISSION_SIZE - HOME_OFFSET))
-    {
-        // The home location is stored at index 0 so the max number of mission items is 
-        // one less than the total storage size. 
+        // ClearMission(vehicle, mavlink.mission_count_msg_gcs.mission_type); 
+
+        // Clear the vehicle mission (but not the home position), update the mission size, 
+        // generate a new mission ID and acknowledge that the mission has been cleared. 
+
+        vehicle.memory.MissionClear(); 
 
         MAVLinkMissionAckSend(
+            MAV_MISSION_ACCEPTED, 
+            // mavlink.mission_count_msg_gcs.mission_type, 
+            ++vehicle.memory.mission_id); 
+    }
+    // else if (mavlink.mission_count_msg_gcs.count > (MAX_MISSION_SIZE - HOME_OFFSET))
+    else if (mavlink.mission_count_msg_gcs.count > MAX_MISSION_SIZE)
+    {
+        // The home location is stored at index 0 so the max number of mission items has 
+        // to be less than the max mission storage size. 
+        MAVLinkMissionAckSend(
             MAV_MISSION_NO_SPACE, 
-            mavlink.mission_count_msg_gcs.mission_type, 
+            // mavlink.mission_count_msg_gcs.mission_type, 
             vehicle.memory.mission_id); 
     }
     else 
@@ -529,7 +539,7 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
         status.mission_upload = FLAG_SET; 
         mission_resend_counter = RESET; 
         mission_item_index = RESET; 
-        MAVLinkMissionRequestSend(mavlink.mission_count_msg_gcs.mission_type); 
+        MAVLinkMissionRequestSend(); 
     }
 }
 
@@ -538,7 +548,7 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
 void VehicleTelemetry::MAVLinkMissionRequestIntReceive(Vehicle &vehicle)
 {
     // Mission Planner uses MISSION_REQUEST_INT when downloading a mission from the 
-    // vehicle instead of MISSION_REQUEST like it used for getting the home location. 
+    // vehicle instead of MISSION_REQUEST like it uses for getting the home location. 
 
     mavlink_msg_mission_request_int_decode(
         &msg, 
@@ -550,7 +560,15 @@ void VehicleTelemetry::MAVLinkMissionRequestIntReceive(Vehicle &vehicle)
         return; 
     }
 
-    MAVLinkMissionItemIntSend(vehicle, mavlink.mission_request_int_msg_gcs.seq); 
+    // MAVLinkMissionItemIntSend(vehicle, mavlink.mission_request_int_msg_gcs.seq); 
+    // MAVLinkMissionItemIntSend(vehicle, mavlink.mission_request_int_msg_gcs.seq + HOME_OFFSET); 
+    MissionItem mission_item = vehicle.memory.MissionItemGet(mavlink.mission_request_int_msg_gcs.seq); 
+
+    if (mission_item.seq == mavlink.mission_request_int_msg_gcs.seq)
+    {
+        MAVLinkMissionItemIntSend(mission_item); 
+    }
+
 }
 
 
@@ -572,7 +590,9 @@ void VehicleTelemetry::MAVLinkMissionRequestReceive(Vehicle &vehicle)
         return; 
     }
 
-    MAVLinkMissionItemIntSend(vehicle, mavlink.mission_request_msg_gcs.seq); 
+    // MAVLinkMissionItemIntSend(vehicle, mavlink.mission_request_msg_gcs.seq); 
+    MissionItem mission_item = vehicle.memory.MissionHomeGet(); 
+    MAVLinkMissionItemIntSend(mission_item); 
 }
 
 
@@ -600,8 +620,9 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
             // The home location is stored at index 0 even though Mission Planner sends 
             // the first mission item with a sequence/index of 0. For this reason, the 
             // saved mission item is stored at +1 index and the sequence is incremented. 
-            vehicle.memory.mission[mission_item_index + HOME_OFFSET] = mavlink.mission_item_int_msg_gcs; 
-            vehicle.memory.mission[mission_item_index + HOME_OFFSET].seq++; 
+            vehicle.memory.MissionItemSet(mission_item_index, mavlink.mission_item_int_msg_gcs); 
+            // vehicle.memory.mission[mission_item_index + HOME_OFFSET] = mavlink.mission_item_int_msg_gcs; 
+            // vehicle.memory.mission[mission_item_index + HOME_OFFSET].seq++; 
 
             // Check if the received MISSION_ITEM_INT sequence number matches the total 
             // number of items expected in the mission upload. If so then the mission 
@@ -611,26 +632,28 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
                 // Increment the mission ID to signify a new mission, update the mission 
                 // size, acknowledge a successful mission upload and end the sequence. 
                 status.mission_upload = FLAG_CLEAR; 
-                vehicle.memory.mission_size = mavlink.mission_count_msg_gcs.count + HOME_OFFSET; 
-                vehicle.memory.mission_type = mavlink.mission_item_int_msg_gcs.mission_type; 
+                // vehicle.memory.mission_size = mavlink.mission_count_msg_gcs.count + HOME_OFFSET; 
+                vehicle.memory.mission_size = mavlink.mission_count_msg_gcs.count; 
+                // vehicle.memory.mission_type = mavlink.mission_item_int_msg_gcs.mission_type; 
+                vehicle.memory.mission_type = mavlink.mission_count_msg_gcs.mission_type; 
 
                 MAVLinkMissionAckSend(
                     MAV_MISSION_ACCEPTED, 
-                    mavlink.mission_item_int_msg_gcs.mission_type, 
+                    // vehicle.memory.mission_type, 
                     ++vehicle.memory.mission_id); 
             }
             else 
             {
                 mission_item_index++; 
                 mission_resend_counter = RESET; 
-                MAVLinkMissionRequestSend(mavlink.mission_item_int_msg_gcs.mission_type); 
+                MAVLinkMissionRequestSend(); 
             }
         }
         else 
         {
             MAVLinkMissionAckSend(
                 MAV_MISSION_INVALID_SEQUENCE, 
-                mavlink.mission_item_int_msg_gcs.mission_type, 
+                // mavlink.mission_item_int_msg_gcs.mission_type, 
                 mavlink.mission_count_msg_gcs.opaque_id); 
         }
     }
@@ -679,21 +702,21 @@ void VehicleTelemetry::MAVLinkMissionSetCurrentReceive(Vehicle &vehicle)
 }
 
 
-// MAVLink: MISSION_CLEAR_ALL receive 
-void VehicleTelemetry::MAVLinkMissionClearAllReceive(Vehicle &vehicle)
-{
-    mavlink_msg_mission_clear_all_decode(
-        &msg, 
-        &mavlink.mission_clear_all_msg_gcs); 
+// // MAVLink: MISSION_CLEAR_ALL receive 
+// void VehicleTelemetry::MAVLinkMissionClearAllReceive(Vehicle &vehicle)
+// {
+//     mavlink_msg_mission_clear_all_decode(
+//         &msg, 
+//         &mavlink.mission_clear_all_msg_gcs); 
 
-    if (VerifyVehicleIDs(mavlink.mission_clear_all_msg_gcs.target_system, 
-                         mavlink.mission_clear_all_msg_gcs.target_component))
-    {
-        return; 
-    }
+//     if (VerifyVehicleIDs(mavlink.mission_clear_all_msg_gcs.target_system, 
+//                          mavlink.mission_clear_all_msg_gcs.target_component))
+//     {
+//         return; 
+//     }
 
-    ClearMission(vehicle, mavlink.mission_clear_all_msg_gcs.mission_type); 
-}
+//     ClearMission(vehicle, mavlink.mission_clear_all_msg_gcs.mission_type); 
+// }
 
 //==================================================
 
@@ -719,7 +742,7 @@ void VehicleTelemetry::MAVLinkMissionCountSend(Vehicle &vehicle)
 
 
 // MAVLink: MISSION_REQUEST send 
-void VehicleTelemetry::MAVLinkMissionRequestSend(uint8_t mission_type)
+void VehicleTelemetry::MAVLinkMissionRequestSend(void)
 {
     // Mission Planner prefers MISSION_REQUEST over MISSION_REQUEST_INT when doing a 
     // mission upload for some reason. Both work but it was observed that MISSION_REQUEST 
@@ -733,7 +756,7 @@ void VehicleTelemetry::MAVLinkMissionRequestSend(uint8_t mission_type)
         system_id_gcs, 
         component_id_gcs, 
         mission_item_index, 
-        mission_type); 
+        mavlink.mission_count_msg_gcs.mission_type); 
     MAVLinkMessageFormat(); 
 
     // Start mission upload timer 
@@ -743,17 +766,21 @@ void VehicleTelemetry::MAVLinkMissionRequestSend(uint8_t mission_type)
 
 // MAVLink: MISSION_ITEM_INT send 
 void VehicleTelemetry::MAVLinkMissionItemIntSend(
-    Vehicle &vehicle, 
-    uint16_t sequence)
+    // Vehicle &vehicle, 
+    // uint16_t sequence)
+    mavlink_mission_item_int_t &mission_item)
 {
     // Mission Planner looks for MISSION_ITEM_INT when getting mission items from the 
     // vehicle during mission download and when getting the home location despite 
     // MISSION_REQUEST_INT and MISSION_REQUEST being used respectfully. 
 
     // Only send the mission item if it exists 
-    if (sequence < vehicle.memory.mission_size)
-    {
-        mavlink_mission_item_int_t mission_item = vehicle.memory.mission[sequence]; 
+    // if (mission_item.seq <= MAX_MISSION_SIZE)
+    // if (sequence < (vehicle.memory.mission_size + HOME_OFFSET))
+    // if (sequence < vehicle.memory.mission_size)
+    // {
+        // mavlink_mission_item_int_t mission_item = vehicle.memory.mission[sequence]; 
+        // MissionItem mission_item = vehicle.memory.MissionItemGet(sequence); 
 
         mission_item.target_system = system_id_gcs; 
         mission_item.target_component = component_id_gcs; 
@@ -765,14 +792,14 @@ void VehicleTelemetry::MAVLinkMissionItemIntSend(
             &msg, 
             &mission_item); 
         MAVLinkMessageFormat(); 
-    }
+    // }
 }
 
 
 // MAVLink: MISSION_ACK send 
 void VehicleTelemetry::MAVLinkMissionAckSend(
     MAV_MISSION_RESULT result, 
-    uint8_t mission_type, 
+    // uint8_t mission_type, 
     uint32_t opaque_id)
 {
     mavlink_msg_mission_ack_pack_chan(
@@ -783,7 +810,8 @@ void VehicleTelemetry::MAVLinkMissionAckSend(
         system_id_gcs, 
         component_id_gcs, 
         result, 
-        mission_type, 
+        // mission_type, 
+        mavlink.mission_count_msg_gcs.mission_type, 
         opaque_id); 
     MAVLinkMessageFormat(); 
 }
@@ -820,6 +848,8 @@ void VehicleTelemetry::MAVLinkMissionItemReachedSend(Vehicle &vehicle)
 {
     if (status.mission_item_reached)
     {
+        status.mission_item_reached = FLAG_CLEAR; 
+
         mavlink_msg_mission_item_reached_pack_chan(
             system_id, 
             component_id, 
@@ -827,8 +857,6 @@ void VehicleTelemetry::MAVLinkMissionItemReachedSend(Vehicle &vehicle)
             &msg, 
             vehicle.memory.mission_index); 
         MAVLinkMessageFormat(); 
-
-        status.mission_item_reached = FLAG_CLEAR; 
     }
 }
 
@@ -838,25 +866,21 @@ void VehicleTelemetry::MAVLinkMissionItemReachedSend(Vehicle &vehicle)
 //==================================================
 // Other 
 
-// Clear current mission 
-void VehicleTelemetry::ClearMission(
-    Vehicle &vehicle, 
-    uint8_t mission_type)
-{
-    // Clear the vehicle mission (but not the home position), update the mission size, 
-    // generate a new mission ID and acknowledge that the mission has been cleared. 
+// // Clear current mission 
+// void VehicleTelemetry::ClearMission(
+//     Vehicle &vehicle, 
+//     uint8_t mission_type)
+// {
+//     // Clear the vehicle mission (but not the home position), update the mission size, 
+//     // generate a new mission ID and acknowledge that the mission has been cleared. 
 
-    memset((void *)&vehicle.memory.mission[HOME_OFFSET], 
-           RESET, 
-           (MAX_MISSION_SIZE - HOME_OFFSET)*sizeof(vehicle.memory.mission[0])); 
+//     vehicle.memory.MissionClear(); 
 
-    vehicle.memory.mission_size = HOME_OFFSET; 
-
-    MAVLinkMissionAckSend(
-        MAV_MISSION_ACCEPTED, 
-        mission_type, 
-        ++vehicle.memory.mission_id); 
-}
+//     MAVLinkMissionAckSend(
+//         MAV_MISSION_ACCEPTED, 
+//         mission_type, 
+//         ++vehicle.memory.mission_id); 
+// }
 
 
 // Enable the MISSION_CURRENT message 
@@ -902,25 +926,27 @@ void VehicleTelemetry::MAVLinkCommandLongReceive(Vehicle &vehicle)
     {
         return; 
     }
-
-    mavlink_cmd_msg_t cmd_msg = 
-    {
-        .param1 = mavlink.command_long_msg_gcs.param1, 
-        .param2 = mavlink.command_long_msg_gcs.param2, 
-        .param3 = mavlink.command_long_msg_gcs.param3, 
-        .param4 = mavlink.command_long_msg_gcs.param4, 
-        .param5 = mavlink.command_long_msg_gcs.param5, 
-        .param6 = mavlink.command_long_msg_gcs.param6, 
-        .param7 = mavlink.command_long_msg_gcs.param7, 
-        .x = RESET, 
-        .y = RESET, 
-        .z = RESET, 
-        .command = mavlink.command_long_msg_gcs.command, 
-        .frame = RESET, 
-        .confirmation = mavlink.command_long_msg_gcs.confirmation 
-    }; 
     
-    MAVLinkCommandDecode(vehicle, cmd_msg); 
+    MAVLinkCommandLongDecode(vehicle); 
+}
+
+
+// MAVLink COMMAND_LONG decode 
+void VehicleTelemetry::MAVLinkCommandLongDecode(Vehicle &vehicle)
+{
+    switch (mavlink.command_long_msg_gcs.command)
+    {
+        case MAV_CMD_DO_SET_MODE: 
+            MAVLinkCommandDoSetModeReceive(vehicle); 
+            break; 
+        
+        case MAV_CMD_REQUEST_MESSAGE: 
+            MAVLinkCommandRequestMessageReceive(); 
+            break; 
+        
+        default: 
+            break; 
+    }
 }
 
 
@@ -936,49 +962,22 @@ void VehicleTelemetry::MAVLinkCommandIntReceive(Vehicle &vehicle)
     {
         return; 
     }
-
-    mavlink_cmd_msg_t cmd_msg = 
-    {
-        .param1 = mavlink.command_int_msg_gcs.param1, 
-        .param2 = mavlink.command_int_msg_gcs.param2, 
-        .param3 = mavlink.command_int_msg_gcs.param3, 
-        .param4 = mavlink.command_int_msg_gcs.param4, 
-        .param5 = RESET, 
-        .param6 = RESET, 
-        .param7 = RESET, 
-        .x = mavlink.command_int_msg_gcs.x, 
-        .y = mavlink.command_int_msg_gcs.y, 
-        .z = mavlink.command_int_msg_gcs.z, 
-        .command = mavlink.command_int_msg_gcs.command, 
-        .frame = mavlink.command_int_msg_gcs.frame, 
-        .confirmation = RESET 
-    }; 
         
-    MAVLinkCommandDecode(vehicle, cmd_msg); 
+    MAVLinkCommandIntDecode(vehicle); 
 }
 
 
-// MAVLink command decode 
-void VehicleTelemetry::MAVLinkCommandDecode(
-    Vehicle &vehicle, 
-    mavlink_cmd_msg_t &cmd_msg)
+// MAVLink COMMAND_INT decode 
+void VehicleTelemetry::MAVLinkCommandIntDecode(Vehicle &vehicle)
 {
-    switch (cmd_msg.command)
+    switch (mavlink.command_int_msg_gcs.command)
     {
-        case MAV_CMD_DO_SET_MODE: 
-            MAVLinkCommandDoSetModeReceive(vehicle, cmd_msg); 
-            break; 
-        
         case MAV_CMD_DO_SET_HOME: 
-            MAVLinkCommandDoSetHomeReceive(cmd_msg); 
+            MAVLinkCommandDoSetHomeReceive(vehicle); 
             break; 
 
         case MAV_CMD_DO_SET_MISSION_CURRENT: 
-            MAVLinkCommandDoSetMissionCurrentReceive(); 
-            break; 
-        
-        case MAV_CMD_REQUEST_MESSAGE: 
-            MAVLinkCommandRequestMessageReceive(cmd_msg); 
+            MAVLinkCommandDoSetMissionCurrentReceive(vehicle); 
             break; 
         
         default: 
@@ -988,43 +987,83 @@ void VehicleTelemetry::MAVLinkCommandDecode(
 
 
 // MAVLink command: DO_SET_MODE receive 
-void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(
-    Vehicle &vehicle, 
-    mavlink_cmd_msg_t &cmd_msg)
+void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(Vehicle &vehicle)
 {
     // Ardupilot sets param1 to MAV_MODE_FLAG_CUSTOM_MODE_ENABLED so we look for that 
     // before attempting to update the vehicle state/mode. 
-    if ((uint16_t)cmd_msg.param1 == MAV_MODE_FLAG_CUSTOM_MODE_ENABLED)
+    if ((uint16_t)mavlink.command_long_msg_gcs.param1 == MAV_MODE_FLAG_CUSTOM_MODE_ENABLED)
     {
         vehicle.MainStateSelect((uint8_t)mavlink.command_long_msg_gcs.param2); 
-        MAVLinkCommandACKSend(); 
+        MAVLinkCommandACKSend(MAV_RESULT_ACCEPTED); 
     }
 }
 
 
 // MAVLink command: DO_SET_HOME receive 
-void VehicleTelemetry::MAVLinkCommandDoSetHomeReceive(mavlink_cmd_msg_t &cmd_msg)
+void VehicleTelemetry::MAVLinkCommandDoSetHomeReceive(Vehicle &vehicle)
 {
-    // 
+    MissionItem mission_home = 
+    {
+        .param1 = mavlink.command_int_msg_gcs.param1, 
+        .param2 = mavlink.command_int_msg_gcs.param2, 
+        .param3 = mavlink.command_int_msg_gcs.param3, 
+        .param4 = mavlink.command_int_msg_gcs.param4, 
+        .x = mavlink.command_int_msg_gcs.x, 
+        .y = mavlink.command_int_msg_gcs.y, 
+        .z = mavlink.command_int_msg_gcs.z, 
+        .seq = HOME_INDEX, 
+        .command = mavlink.command_int_msg_gcs.command, 
+        .target_system = mavlink.command_int_msg_gcs.target_system, 
+        .target_component = mavlink.command_int_msg_gcs.target_component, 
+        .frame = mavlink.command_int_msg_gcs.frame, 
+        .current = RESET, 
+        .autocontinue = RESET, 
+        .mission_type = MAV_MISSION_TYPE_ALL 
+    }; 
+
+    // If param1 is set that means the vehicles current location should be used to set 
+    // the home position. A position lock is not checked for because Mission Planner 
+    // won't send this command and specify that the vehicle use its current location as 
+    // the home position unless the vehicle is already reporting a valid GPS position. 
+    if (mavlink.command_int_msg_gcs.param1)
+    {
+        VehicleNavigation::Location home = vehicle.navigation.LocationCurrentGet(); 
+
+        mission_home.x = home.lat; 
+        mission_home.y = home.lon; 
+        mission_home.z = home.altF; 
+    }
+
+    vehicle.memory.MissionHomeSet(mission_home); 
 }
 
 
 // MAVLink command: DO_SET_MISSION_CURRENT 
-void VehicleTelemetry::MAVLinkCommandDoSetMissionCurrentReceive(void)
+void VehicleTelemetry::MAVLinkCommandDoSetMissionCurrentReceive(Vehicle &vehicle)
 {
-    // 
+    // Note that "Reset Mission" is not supported at this time. 
+
+    if ((mavlink.command_int_msg_gcs.param1 >= 0) && 
+        !vehicle.memory.MissionTargetSet((uint16_t)mavlink.command_int_msg_gcs.param1))
+    {
+        // Report a failure if the specified sequence number is out of range. 
+        MAVLinkCommandACKSend(MAV_RESULT_FAILED); 
+    }
+
+    status.mission_current = FLAG_SET; 
+    MAVLinkMissionCurrentSend(vehicle); 
 }
 
 
 // MAVLink command: REQUEST_MESSAGE 
-void VehicleTelemetry::MAVLinkCommandRequestMessageReceive(mavlink_cmd_msg_t &cmd_msg)
+void VehicleTelemetry::MAVLinkCommandRequestMessageReceive(void)
 {
-    uint16_t msg_id = (uint16_t)cmd_msg.param1; 
+    uint16_t msg_id = (uint16_t)mavlink.command_long_msg_gcs.param1; 
     
     switch (msg_id)
     {
         case MAVLINK_MSG_ID_AUTOPILOT_VERSION: 
-            MAVLinkCommandACKSend(); 
+            MAVLinkCommandACKSend(MAV_RESULT_ACCEPTED); 
             MAVLinkAutopilotVersionSend(); 
             break; 
         
@@ -1040,7 +1079,7 @@ void VehicleTelemetry::MAVLinkCommandRequestMessageReceive(mavlink_cmd_msg_t &cm
 // Send 
 
 // MAVLink command: COMMAND_ACK 
-void VehicleTelemetry::MAVLinkCommandACKSend(void)
+void VehicleTelemetry::MAVLinkCommandACKSend(MAV_RESULT result)
 {
     mavlink_msg_command_ack_pack_chan(
         system_id, 
@@ -1048,7 +1087,7 @@ void VehicleTelemetry::MAVLinkCommandACKSend(void)
         channel, 
         &msg, 
         mavlink.command_long_msg_gcs.command, 
-        MAV_RESULT_ACCEPTED, 
+        result, 
         0, 
         0, 
         system_id_gcs, 
@@ -1244,7 +1283,7 @@ void VehicleTelemetry::MAVLinkGPSRawIntSendPeriodic(Vehicle &vehicle)
             vehicle.navigation.fix_type,        // GPS fix type 
             vehicle.navigation.current.lat,     // Latitude 
             vehicle.navigation.current.lon,     // Longitude 
-            vehicle.navigation.current.alt,     // Altitude 
+            vehicle.navigation.current.altI,    // Altitude 
             0xFFFF,                             // GPS HDOP horizontal dilution of position 
             0xFFFF,                             // GPS VDOP vertical dilution of position 
             vehicle.navigation.ground_speed,    // GPS ground speed 
@@ -1374,7 +1413,7 @@ void VehicleTelemetry::MAVLinkPositionTargetGlobalIntSendPeriodic(Vehicle &vehic
             vehicle.navigation.position_type_mask,   // Ignored dimensions (POSITION_TARGET_TYPEMASK) 
             vehicle.navigation.current.lat,          // Latitude 
             vehicle.navigation.current.lon,          // Longitude 
-            (float)vehicle.navigation.current.alt,   // Altitude 
+            vehicle.navigation.current.altF,         // Altitude 
             0.0,                                     // X velocity in NED frame (m/s) 
             0.0,                                     // Y velocity in NED frame (m/s) 
             0.0,                                     // Z velocity in NED frame (m/s) 
@@ -1455,15 +1494,15 @@ void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle)
             component_id, 
             channel, 
             &msg, 
-            vehicle.auxiliary.time_usec,      // Time since boot 
-            vehicle.navigation.current.lat,   // Latitude 
-            vehicle.navigation.current.lon,   // Longitude 
-            vehicle.navigation.current.alt,   // Altitude 
-            vehicle.navigation.current.alt,   // Relative altitude (above home) 
-            0,                                // X velocity 
-            0,                                // Y velocity 
-            0,                                // Z velocity 
-            vehicle.navigation.heading);      // Heading (yaw angle) 
+            vehicle.auxiliary.time_usec,       // Time since boot 
+            vehicle.navigation.current.lat,    // Latitude 
+            vehicle.navigation.current.lon,    // Longitude 
+            vehicle.navigation.current.altI,   // Altitude 
+            vehicle.navigation.current.altI,   // Relative altitude (above home) 
+            0,                                 // X velocity 
+            0,                                 // Y velocity 
+            0,                                 // Z velocity 
+            vehicle.navigation.heading);       // Heading (yaw angle) 
         MAVLinkMessageFormat(); 
     }
 }
