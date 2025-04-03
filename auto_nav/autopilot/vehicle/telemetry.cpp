@@ -223,6 +223,10 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
         case MAVLINK_MSG_ID_REQUEST_DATA_STREAM: 
             MAVLinkRequestDataStreamReceive(); 
             break; 
+
+        case MAVLINK_MSG_ID_COMMAND_INT: 
+            MAVLinkCommandIntReceive(vehicle); 
+            break; 
         
         case MAVLINK_MSG_ID_COMMAND_LONG: 
             MAVLinkCommandLongReceive(vehicle); 
@@ -502,8 +506,6 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
         return; 
     }
 
-    // TODO check how old missions are cleared when overwriting a mission. 
-
     // If the provided count is 0 then that's the same as clearing the vehicles currently 
     // stored mission. If the count is larger than the available mission item storage 
     // space then the upload must be rejected. Otherwise the mission upload sequence is 
@@ -668,7 +670,6 @@ void VehicleTelemetry::MAVLinkMissionSetCurrentReceive(Vehicle &vehicle)
     }
 
     // Update the mission item if valid 
-    // TODO verify sequence indexing 
     if (mavlink.mission_set_current_msg_gcs.seq < vehicle.memory.mission_size)
     {
         vehicle.memory.mission_index = mavlink.mission_set_current_msg_gcs.seq; 
@@ -842,12 +843,14 @@ void VehicleTelemetry::ClearMission(
     Vehicle &vehicle, 
     uint8_t mission_type)
 {
-    // Clear the vehicle mission (but not the home position), generate a new mission ID 
-    // and acknowledge that the mission has been cleared. 
+    // Clear the vehicle mission (but not the home position), update the mission size, 
+    // generate a new mission ID and acknowledge that the mission has been cleared. 
 
     memset((void *)&vehicle.memory.mission[HOME_OFFSET], 
            RESET, 
            (MAX_MISSION_SIZE - HOME_OFFSET)*sizeof(vehicle.memory.mission[0])); 
+
+    vehicle.memory.mission_size = HOME_OFFSET; 
 
     MAVLinkMissionAckSend(
         MAV_MISSION_ACCEPTED, 
@@ -970,7 +973,8 @@ void VehicleTelemetry::MAVLinkCommandDecode(
             MAVLinkCommandDoSetHomeReceive(cmd_msg); 
             break; 
 
-        case MAV_CMD_COMPONENT_ARM_DISARM: 
+        case MAV_CMD_DO_SET_MISSION_CURRENT: 
+            MAVLinkCommandDoSetMissionCurrentReceive(); 
             break; 
         
         case MAV_CMD_REQUEST_MESSAGE: 
@@ -1001,7 +1005,14 @@ void VehicleTelemetry::MAVLinkCommandDoSetModeReceive(
 // MAVLink command: DO_SET_HOME receive 
 void VehicleTelemetry::MAVLinkCommandDoSetHomeReceive(mavlink_cmd_msg_t &cmd_msg)
 {
-    // TODO is this the only point at which Mission Planner sets the home positon? 
+    // 
+}
+
+
+// MAVLink command: DO_SET_MISSION_CURRENT 
+void VehicleTelemetry::MAVLinkCommandDoSetMissionCurrentReceive(void)
+{
+    // 
 }
 
 

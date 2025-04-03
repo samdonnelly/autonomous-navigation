@@ -219,6 +219,7 @@ private:   // Private methods
     void MAVLinkCommandDecode(Vehicle &vehicle, mavlink_cmd_msg_t &cmd_msg); 
     void MAVLinkCommandDoSetModeReceive(Vehicle &vehicle, mavlink_cmd_msg_t &cmd_msg); 
     void MAVLinkCommandDoSetHomeReceive(mavlink_cmd_msg_t &cmd_msg); 
+    void MAVLinkCommandDoSetMissionCurrentReceive(void); 
     void MAVLinkCommandRequestMessageReceive(mavlink_cmd_msg_t &cmd_msg); 
     void MAVLinkCommandACKSend(void); 
 

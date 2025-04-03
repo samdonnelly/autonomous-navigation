@@ -130,8 +130,11 @@ void VehicleMemory::ParameterSet(
 
 void VehicleMemory::MissionLoad(void)
 {
-    mission_size = 1; 
+    //==================================================
+    // Test 
 
+    mission_size = 1; 
+    
     mission[0] = 
     {
         .param1 = 0, 
@@ -150,6 +153,8 @@ void VehicleMemory::MissionLoad(void)
         .autocontinue = 0, 
         .mission_type = MAV_MISSION_TYPE_MISSION 
     };
+    
+    //==================================================
 }
 
 //=======================================================================================
