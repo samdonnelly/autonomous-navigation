@@ -81,7 +81,7 @@ const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters =
 VehicleMemory::VehicleMemory()
     : param_index(RESET), 
       param_value_type(MAV_PARAM_TYPE_REAL32), 
-      mission_size(RESET), 
+      mission_size(HOME_OFFSET), 
       mission_index(RESET), 
       mission_id(RESET), 
       mission_type(MAV_MISSION_TYPE_ALL) 
@@ -135,7 +135,7 @@ void VehicleMemory::MissionLoad(void)
     // Test 
 
     // Manually setting the home location for now 
-    mission[0] = 
+    mission[HOME_INDEX] = 
     {
         .param1 = 0, 
         .param2 = 10, 
@@ -165,7 +165,7 @@ MissionItem VehicleMemory::MissionItemGet(uint16_t sequence)
 
     if (sequence < mission_size)
     {
-        mission_item = mission[sequence + HOME_OFFSET]; 
+        mission_item = mission[sequence]; 
     }
     else 
     {
@@ -176,21 +176,14 @@ MissionItem VehicleMemory::MissionItemGet(uint16_t sequence)
 }
 
 
-// Get the home location 
-MissionItem VehicleMemory::MissionHomeGet(void)
-{
-    return mission[HOME_INDEX]; 
-}
-
-
 // Set a mission item 
-void VehicleMemory::MissionItemSet(
-    uint16_t sequence, 
-    MissionItem &mission_item)
+void VehicleMemory::MissionItemSet(MissionItem &mission_item)
 {
-    if (sequence < MAX_MISSION_SIZE)
+    if (mission_item.seq < MAX_MISSION_SIZE)
     {
-        mission[sequence + HOME_OFFSET] = mission_item; 
+        uint16_t index = mission_item.seq + HOME_OFFSET; 
+        mission[index] = mission_item; 
+        mission[index].seq = index; 
     }
 }
 

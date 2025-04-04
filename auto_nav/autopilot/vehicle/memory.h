@@ -71,7 +71,6 @@ private:   // private members
 
     // Mission - this may change as external storage is integrated 
     std::array<MissionItem, MAX_MISSION_SIZE + HOME_OFFSET> mission; 
-    // mavlink_mission_item_int_t mission[MAX_MISSION_SIZE + HOME_OFFSET]; 
 
 public:   // public members 
 
@@ -98,8 +97,7 @@ public:   // public methods
     // Mission 
     void MissionLoad(void); 
     MissionItem MissionItemGet(uint16_t sequence); 
-    MissionItem MissionHomeGet(void); 
-    void MissionItemSet(uint16_t sequence, MissionItem &mission_item); 
+    void MissionItemSet(MissionItem &mission_item); 
     void MissionHomeSet(MissionItem &mission_item); 
     bool MissionTargetSet(uint16_t sequence); 
     void MissionClear(void); 
