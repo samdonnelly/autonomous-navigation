@@ -71,6 +71,7 @@ public:   // public members
 
     // Serial debug 
     USART_TypeDef *user_uart; 
+    // char debug_buff[100]; 
 
     // ADC 
     ADC_TypeDef *adc; 
@@ -510,6 +511,23 @@ void Hardware::SerialDataInit(
 
 // Any needed callbacks are overridden here so hardware data doesn't need to be included 
 // in the interrupt file. 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Debug 
+
+// void VehicleHardware::DebugSet(uint8_t size, char *debug)
+// {
+//     memcpy((void *)hardware.debug_buff, (void *)debug, size); 
+// }
+
+
+// void VehicleHardware::DebugWrite(void)
+// {
+//     uart_send_str(hardware.user_uart, hardware.debug_buff); 
+// }
 
 //=======================================================================================
 

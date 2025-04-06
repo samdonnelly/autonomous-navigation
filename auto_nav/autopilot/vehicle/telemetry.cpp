@@ -48,7 +48,8 @@ VehicleTelemetry::VehicleTelemetry(uint8_t vehicle_type)
       data_in_size(RESET), 
       data_out_size(RESET), 
       mission_item_index(RESET), 
-      mission_resend_counter(RESET)
+      mission_resend_counter(RESET) 
+    //   debug_out_size(RESET) 
 {
     mavlink.heartbeat_msg = 
     {
@@ -121,9 +122,18 @@ void VehicleTelemetry::MessageDecode(Vehicle &vehicle)
                                    &msg, 
                                    &msg_status))
             {
+                // debug_out_size += snprintf((debug_out + debug_out_size), 100, "%lu\r\n", (uint32_t)msg.msgid); 
                 MAVLinkPayloadDecode(vehicle); 
             }
         }
+
+        // if (debug_out_size)
+        // {
+        //     vehicle.hardware.DebugSet(debug_out_size, debug_out); 
+        //     vehicle.CommsEventQueue((uint8_t)Vehicle::CommsEvents::DEBUG_WRITE); 
+
+        //     debug_out_size = RESET; 
+        // }
     }
 
     // Message decoding is checked periodically so message timers are checked at the 
@@ -174,6 +184,14 @@ void VehicleTelemetry::MAVLinkPayloadDecode(Vehicle &vehicle)
         case MAVLINK_MSG_ID_HEARTBEAT: 
             MAVLinkHeartbeatReceive(); 
             break; 
+
+        // case MAVLINK_MSG_ID_CHANGE_OPERATOR_CONTROL: 
+        //     MAVLinkChangeOperatorControlReceive(); 
+        //     break; 
+
+        // case MAVLINK_MSG_ID_CHANGE_OPERATOR_CONTROL_ACK: 
+        //     MAVLinkChangeOperatorControlACKReceive(); 
+        //     break; 
 
         case MAVLINK_MSG_ID_PARAM_REQUEST_LIST: 
             MAVLinkParamRequestListReceive(vehicle); 
@@ -1031,7 +1049,35 @@ void VehicleTelemetry::MAVLinkCommandACKSend(
 //=======================================================================================
 // Other messages 
 
-// MAVLink: REQUEST_DATA_STREAM 
+// // MAVLink: CHANGE_OPERATOR_CONTROL_ACK receive 
+// void VehicleTelemetry::MAVLinkChangeOperatorControlReceive(void)
+// {
+//     mavlink_msg_change_operator_control_decode(
+//         &msg, 
+//         &mavlink.change_op_ctrl_msg_gcs); 
+
+//     if (mavlink.change_op_ctrl_msg_gcs.target_system)
+//     {
+//         return; 
+//     }
+// }
+
+
+// // MAVLink: CHANGE_OPERATOR_CONTROL_ACK receive 
+// void VehicleTelemetry::MAVLinkChangeOperatorControlACKReceive(void)
+// {
+//     mavlink_msg_change_operator_control_ack_decode(
+//         &msg, 
+//         &mavlink.change_op_ctrl_ack_msg_gcs); 
+
+//     if (mavlink.change_op_ctrl_ack_msg_gcs.gcs_system_id)
+//     {
+//         return; 
+//     }
+// }
+
+
+// MAVLink: REQUEST_DATA_STREAM receive 
 void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
 {
     // Mission Planner sends this message to request data from the autopilot. This 
@@ -1118,7 +1164,7 @@ void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
 }
 
 
-// MAVLink: AUTOPILOT_VERSION 
+// MAVLink: AUTOPILOT_VERSION receive 
 void VehicleTelemetry::MAVLinkAutopilotVersionSend(void)
 {
     uint8_t version[8], hw_uid[18]; 

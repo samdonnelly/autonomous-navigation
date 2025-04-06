@@ -85,7 +85,8 @@ protected:   // Protected members
         RC_READ, 
         MEMORY_READ, 
         MEMORY_WRITE, 
-        RANGEFINDER_READ 
+        RANGEFINDER_READ, 
+        // DEBUG_WRITE 
     } comms_event; 
 
     // System flags 

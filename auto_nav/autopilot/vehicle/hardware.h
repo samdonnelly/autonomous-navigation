@@ -54,6 +54,10 @@ public:   // Public methods
     // Hardware setup 
     void HardwareSetup(void); 
 
+    // // Debug 
+    // void DebugSet(uint8_t size, char *debug); 
+    // void DebugWrite(void); 
+
     // // GPS 
     // void GPS_Read(void); 
     // void GPS_Get(void); 
