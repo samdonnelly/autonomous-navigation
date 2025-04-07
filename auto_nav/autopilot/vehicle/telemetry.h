@@ -211,6 +211,7 @@ private:   // Private methods
     // void MAVLinkChangeOperatorControlACKReceive(void); 
     void MAVLinkRequestDataStreamReceive(void); 
     void MAVLinkAutopilotVersionSend(void); 
+    void MAVLinkHomePositionSend(Vehicle &vehicle); 
 
     // MAVLink: Requestable outgoing messages 
     void MAVLinkRawIMUSendPeriodic(Vehicle &vehicle); 

@@ -1203,6 +1203,19 @@ void VehicleTelemetry::MAVLinkAutopilotVersionSend(void)
 
 
 // MAVLink: HOME_POSITION send 
+void VehicleTelemetry::MAVLinkHomePositionSend(Vehicle &vehicle)
+{
+    // mavlink_mission_item_int_t home = vehicle.memory.MissionItemGet(HOME_INDEX); 
+    mavlink_home_position_t home; 
+
+    mavlink_msg_home_position_encode_chan(
+        system_id, 
+        component_id, 
+        channel, 
+        &msg, 
+        &home); 
+    MAVLinkMessageFormat(); 
+}
 
 //=======================================================================================
 
