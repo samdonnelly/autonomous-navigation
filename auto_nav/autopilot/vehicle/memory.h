@@ -37,6 +37,7 @@
 //=======================================================================================
 // Datatypes 
 
+typedef uint8_t ParamIndex; 
 typedef mavlink_mission_item_int_t MissionItem; 
 
 //=======================================================================================
@@ -52,10 +53,9 @@ public:   // public types
     // Parameters 
     struct ParamInfo 
     {
-        const char *name;   // Name/Key/ID of parameter - used to match/identify 
-        float *value;       // Value of parameter that gets used in the system 
-        // Mission planner seems to only accept floats so 
-        // no option for MAV_PARAM_TYPE is offered here. 
+        const char *name;            // Name/Key/ID of parameter - used to match/identify 
+        float *value;                // Value of parameter that gets used in the system 
+        const MAV_PARAM_TYPE type;   // Parameter datatype - See AUTOPILOT_VERSION.capabilities 
     };
     
     // Mission 
@@ -74,10 +74,6 @@ private:   // private members
 
 public:   // public members 
 
-    // Parameters 
-    uint8_t param_index; 
-    MAV_PARAM_TYPE param_value_type; 
-
     // Mission - this may change as external storage is integrated 
     uint16_t mission_size; 
     uint16_t mission_index; 
@@ -91,8 +87,9 @@ public:   // public methods
     VehicleMemory(); 
 
     // Parameters 
-    void ParameterLookUp(char *param_id); 
-    void ParameterSet(char *param_id, float &value); 
+    bool ParameterIndexCheck(uint8_t index); 
+    ParamIndex ParameterLookUp(const char *param_id); 
+    ParamIndex ParameterSet(char *param_id, float &value); 
 
     // Mission 
     void MissionLoad(void); 

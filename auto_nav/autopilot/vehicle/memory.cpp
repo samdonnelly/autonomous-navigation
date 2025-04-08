@@ -65,11 +65,11 @@ static ParameterValues params;
 
 const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters = 
 {{
-    {"CRUISE_SPEED", &params.cruise_speed},    // 1 
-    {"FRAME_CLASS",  &params.frame_class},     // 2 
-    {"TURN_RADIUS",  &params.turn_radius},     // 3 
-    {"LOIT_TYPE",    &params.loit_type},       // 4 
-    {"LOIT_RADIUS",  &params.loit_radius}      // 5 
+    {"CRUISE_SPEED", &params.cruise_speed, MAV_PARAM_TYPE_REAL32},    // 1 
+    {"FRAME_CLASS",  &params.frame_class, MAV_PARAM_TYPE_REAL32},     // 2 
+    {"TURN_RADIUS",  &params.turn_radius, MAV_PARAM_TYPE_REAL32},     // 3 
+    {"LOIT_TYPE",    &params.loit_type, MAV_PARAM_TYPE_REAL32},       // 4 
+    {"LOIT_RADIUS",  &params.loit_radius, MAV_PARAM_TYPE_REAL32}      // 5 
 }};
 
 //=======================================================================================
@@ -79,9 +79,7 @@ const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters =
 // Initialization 
 
 VehicleMemory::VehicleMemory()
-    : param_index(RESET), 
-      param_value_type(MAV_PARAM_TYPE_REAL32), 
-      mission_size(HOME_OFFSET), 
+    : mission_size(HOME_OFFSET), 
       mission_index(RESET), 
       mission_id(RESET), 
       mission_type(MAV_MISSION_TYPE_ALL) 
@@ -95,31 +93,48 @@ VehicleMemory::VehicleMemory()
 //=======================================================================================
 // Parameters 
 
-void VehicleMemory::ParameterLookUp(char *param_id)
+// Check if an index is within the parameter size 
+bool VehicleMemory::ParameterIndexCheck(uint8_t param_index)
 {
-    for (uint8_t i = RESET; i < parameters.size(); i++)
-    {
-        if (!strcmp(param_id, parameters[i].name))
-        {
-            param_index = i; 
-            return; 
-        }
-    }
-
-    param_index = parameters.size(); 
+    return (param_index < parameters.size()); 
 }
 
 
-void VehicleMemory::ParameterSet(
+// Look up a parameter using the ID/name 
+ParamIndex VehicleMemory::ParameterLookUp(const char *param_id)
+{
+    ParamIndex param_index = RESET; 
+
+    do
+    {
+        if (!strcmp(param_id, parameters[param_index].name))
+        {
+            break; 
+        }
+    } 
+    while (++param_index < parameters.size());
+
+    return param_index; 
+}
+
+
+// Set the parameter that matches the ID/name 
+ParamIndex VehicleMemory::ParameterSet(
     char *param_id, 
     float &value)
 {
-    ParameterLookUp(param_id); 
+    ParamIndex param_index = ParameterLookUp(param_id); 
 
-    if (param_index < parameters.size())
+    if (ParameterIndexCheck(param_index))
     {
+        // Use parameters[param_index].type to properly store the value. The stored 
+        // type should be used to figure out how to store the value, not the type 
+        // received from the GCS. 
+
         *parameters[param_index].value = value; 
     }
+
+    return param_index; 
 }
 
 //=======================================================================================

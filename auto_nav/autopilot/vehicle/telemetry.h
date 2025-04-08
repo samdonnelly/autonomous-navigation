@@ -68,8 +68,6 @@ public:   // Public members
     mavlink_command_int_t command_int_msg_gcs;                     // COMMAND_INT 
 
     // Other messages 
-    // mavlink_change_operator_control_t change_op_ctrl_msg_gcs; 
-    // mavlink_change_operator_control_ack_t change_op_ctrl_ack_msg_gcs; 
     mavlink_request_data_stream_t request_data_stream_msg_gcs;     // REQUEST_DATA_STREAM 
     
     //==================================================
@@ -131,13 +129,12 @@ private:   // Private members
     uint16_t data_out_size; 
     uint8_t data_out_buff[VS_TELEMETRY_BUFF]; 
 
+    // Parameter protocol 
+    uint8_t parameter_index; 
+
     // Mission protocol 
     uint16_t mission_item_index; 
     uint8_t mission_resend_counter; 
-
-    // // Debugging 
-    // char debug_out[100]; 
-    // uint8_t debug_out_size; 
 
     // Status timers 
     struct Timers 
@@ -200,15 +197,13 @@ private:   // Private methods
     // MAVLink: Command protocol 
     void MAVLinkCommandLongReceive(Vehicle &vehicle); 
     void MAVLinkCommandIntReceive(Vehicle &vehicle); 
-    void MAVLinkCommandDoSetModeReceive(Vehicle &vehicle, MAV_RESULT &result); 
+    void MAVLinkCommandDoSetModeReceive(Vehicle &vehicle); 
     void MAVLinkCommandDoSetHomeReceive(Vehicle &vehicle); 
-    void MAVLinkCommandDoSetMissionCurrentReceive(Vehicle &vehicle, MAV_RESULT &result); 
-    void MAVLinkCommandRequestMessageReceive(MAV_RESULT &result); 
+    void MAVLinkCommandDoSetMissionCurrentReceive(Vehicle &vehicle); 
+    void MAVLinkCommandRequestMessageReceive(void); 
     void MAVLinkCommandACKSend(uint16_t command, MAV_RESULT result); 
 
     // MAVLink: other messages 
-    // void MAVLinkChangeOperatorControlReceive(void); 
-    // void MAVLinkChangeOperatorControlACKReceive(void); 
     void MAVLinkRequestDataStreamReceive(void); 
     void MAVLinkAutopilotVersionSend(void); 
     void MAVLinkHomePositionSend(Vehicle &vehicle); 
