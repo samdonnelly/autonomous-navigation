@@ -55,7 +55,7 @@ VehicleTelemetry::VehicleTelemetry(uint8_t vehicle_type)
     {
         .custom_mode = RESET, 
         .type = vehicle_type, 
-        .autopilot = MAV_AUTOPILOT_GENERIC_WAYPOINTS_ONLY, 
+        .autopilot = MAV_AUTOPILOT_ARDUPILOTMEGA,   // Allows for using ArduPilot modes 
         .base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED | 
                      MAV_MODE_FLAG_MANUAL_INPUT_ENABLED | 
                      MAV_MODE_FLAG_GUIDED_ENABLED | 
