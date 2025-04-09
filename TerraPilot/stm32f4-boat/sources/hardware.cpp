@@ -131,7 +131,7 @@ void VehicleHardware::HardwareSetup(void)
     tim_9_to_11_counter_init(
         hardware.generic_timer, 
         TIM_84MHZ_1US_PSC, 
-        0xFFFF,  // Max ARR value 
+        HIGH_16BIT,  // Max ARR value 
         TIM_UP_INT_DISABLE); 
     tim_enable(hardware.generic_timer); 
 
@@ -146,21 +146,23 @@ void VehicleHardware::HardwareSetup(void)
         GPIOA, 
         PIN_10, 
         PIN_9, 
+        UART_PARAM_DISABLE,    // Word length 
+        RESET,                 // STOP bits 
         UART_FRAC_84_57600, 
         UART_MANT_84_57600, 
-        UART_DMA_DISABLE, 
-        UART_DMA_ENABLE); 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_ENABLE); 
 
     // UART1 interrupt init - SiK radio module - IDLE line (RX) interrupts 
     uart_interrupt_init(
         hardware.telemetry_data.uart, 
-        UART_INT_DISABLE, 
-        UART_INT_DISABLE, 
-        UART_INT_DISABLE, 
-        UART_INT_DISABLE, 
-        UART_INT_ENABLE, 
-        UART_INT_DISABLE, 
-        UART_INT_DISABLE); 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_ENABLE, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_DISABLE); 
 
     // UART2 init - Serial terminal 
     uart_init(
@@ -168,32 +170,32 @@ void VehicleHardware::HardwareSetup(void)
         GPIOA, 
         PIN_3, 
         PIN_2, 
+        UART_PARAM_DISABLE,    // Word length 
+        RESET,                 // STOP bits 
         UART_FRAC_42_9600, 
         UART_MANT_42_9600, 
-        UART_DMA_DISABLE, 
-        UART_DMA_DISABLE); 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_DISABLE); 
 
     // // UART6 init - RC receiver 
-    // uart_init(
-    //     rc_data.uart, 
-    //     GPIOX, 
-    //     PIN_X, 
-    //     PIN_X, 
-    //     UART_FRAC_42_9600, 
-    //     UART_MANT_42_9600, 
-    //     UART_DMA_DISABLE, 
-    //     UART_DMA_ENABLE); 
+    // ibus_init(
+    //     hardware.user_uart, 
+    //     GPIOA, 
+    //     PIN_3, 
+    //     PIN_2, 
+    //     UART_PARAM_DISABLE, 
+    //     UART_PARAM_DISABLE); 
 
     // // UART6 interrupt init - RC receiver - IDLE line (RX) interrupts 
     // uart_interrupt_init(
     //     rc_data.uart, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_ENABLE, 
-    //     UART_INT_DISABLE, 
-    //     UART_INT_DISABLE); 
+    //     UART_PARAM_DISABLE, 
+    //     UART_PARAM_DISABLE, 
+    //     UART_PARAM_DISABLE, 
+    //     UART_PARAM_DISABLE, 
+    //     UART_PARAM_ENABLE, 
+    //     UART_PARAM_DISABLE, 
+    //     UART_PARAM_DISABLE); 
 
     //==================================================
 
