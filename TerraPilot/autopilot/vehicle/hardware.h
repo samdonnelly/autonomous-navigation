@@ -37,9 +37,14 @@ public:   // Public members
     // These store the data provided by the hardware. The hardware can directly populate 
     // them and the vehicle system can directly access them. 
 
-    struct DataReady 
+    union DataReady 
     {
-        uint8_t telemetry_ready : 1; 
+        struct 
+        {
+            uint32_t telemetry_ready : 1; 
+            uint32_t rc_ready        : 1; 
+        };
+        uint32_t flags; 
     }
     data_ready; 
 
@@ -48,7 +53,7 @@ public:   // Public methods
     // Constructor 
     VehicleHardware() 
     {
-        data_ready.telemetry_ready = FLAG_CLEAR; 
+        data_ready.flags = RESET; 
     }
 
     // Hardware setup 
@@ -64,14 +69,25 @@ public:   // Public methods
     // // IMU 
     // void IMU_Read(void); 
 
+    // RC 
+    // Serial protocol is used for remote control which means the hardware must read and 
+    // write data in the form of channels using a serial protocol (ex. IBUS or SBUS). 
+    void RCRead(void); 
+    void RCGet(
+        uint16_t &throttle, 
+        uint16_t &roll, 
+        uint16_t &pitch, 
+        uint16_t &yaw, 
+        uint16_t &mode_control, 
+        uint16_t &mode); 
+
     // Telemetry 
+    // MAVLink protocol is used for telemetry which means the hardware must provide 
+    // data in the form of MAVLink messages but also accept and send MAVLink messages. 
     uint8_t TelemetryRead(void); 
     void TelemetryGet(uint16_t &size, uint8_t *buffer); 
     void TelemetrySet(uint16_t &size, uint8_t *buffer); 
     void TelemetryWrite(void); 
-
-    // // RC 
-    // void RC_Read(void); 
 
     // // Memory 
     // void MemoryRead(void); 

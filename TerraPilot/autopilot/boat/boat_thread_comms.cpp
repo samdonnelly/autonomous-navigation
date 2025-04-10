@@ -79,6 +79,10 @@ void Boat::CommsDispatch(Event event)
         //     boat.hardware.IMU_Read(); 
         //     break; 
 
+        case CommsEvents::RC_READ: 
+            boat.hardware.RCRead(); 
+            break; 
+
         case CommsEvents::TELEMETRY_READ: 
             boat.hardware.data_ready.telemetry_ready = boat.hardware.TelemetryRead(); 
             break; 
@@ -87,10 +91,6 @@ void Boat::CommsDispatch(Event event)
             boat.hardware.TelemetryWrite(); 
             osSemaphoreRelease(boat.telemetry_out_semaphore); 
             break; 
-
-        // case CommsEvents::RC_READ: 
-        //     boat.hardware.RC_Read(); 
-        //     break; 
 
         // case CommsEvents::MEMORY_READ: 
         //     boat.hardware.MemoryRead(); 

@@ -556,6 +556,29 @@ void Hardware::SerialDataInit(
 
 
 //=======================================================================================
+// RC 
+
+void VehicleHardware::RCRead(void)
+{
+    // 
+}
+
+
+void VehicleHardware::RCGet(
+    uint16_t &throttle, 
+    uint16_t &roll, 
+    uint16_t &pitch, 
+    uint16_t &yaw, 
+    uint16_t &mode_control, 
+    uint16_t &mode)
+{
+    // 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Telemetry 
 
 uint8_t VehicleHardware::TelemetryRead(void)
@@ -604,17 +627,6 @@ void VehicleHardware::TelemetryWrite(void)
 {
     sik_send_data(hardware.telemetry_data.data_out_buff, hardware.telemetry_data.data_out_size); 
 }
-
-//=======================================================================================
-
-
-//=======================================================================================
-// RC 
-
-// void VehicleHardware::RC_Read(void)
-// {
-//     // 
-// }
 
 //=======================================================================================
 

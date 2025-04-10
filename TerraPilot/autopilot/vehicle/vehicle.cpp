@@ -87,6 +87,20 @@ void Vehicle::Setup(void)
         nullptr                                            // dispatch 
     }; 
 
+    periodic_timer_50ms = (TimerThreadData)
+    {
+        nullptr,                      // Handler 
+        nullptr,                      // Callback 
+        osTimerPeriodic,              // Timer type 
+        PERIODIC_TIMER_50MS_PERIOD,   // Ticks 
+        (osTimerAttr_t)               // Attributes 
+        {
+            "50ms",          // Name 
+            CLEAR_SETTING,   // Attribute bits - reserved 
+            NULL,            // Memory for control block 
+            CLEAR_SETTING    // Control block memory size 
+        }
+    };
     periodic_timer_100ms = (TimerThreadData)
     {
         nullptr,                       // Handler 
@@ -101,7 +115,6 @@ void Vehicle::Setup(void)
             CLEAR_SETTING    // Control block memory size 
         }
     };
-
     periodic_timer_250ms = (TimerThreadData)
     {
         nullptr,                       // Handler 
@@ -116,7 +129,6 @@ void Vehicle::Setup(void)
             CLEAR_SETTING    // Control block memory size 
         }
     };
-
     periodic_timer_1s = (TimerThreadData)
     {
         nullptr,                    // Handler 
@@ -142,6 +154,12 @@ void Vehicle::Setup(void)
     osThreadNew(eventLoop, (void *)&comms_event_info, &comms_event_info.attr); 
     // Check that the thread creation worked 
 
+    periodic_timer_50ms.handler = osTimerNew(
+        periodic_timer_50ms.callback, 
+        periodic_timer_50ms.type, 
+        nullptr, 
+        &periodic_timer_50ms.attributes); 
+    
     periodic_timer_100ms.handler = osTimerNew(
         periodic_timer_100ms.callback, 
         periodic_timer_100ms.type, 
@@ -197,6 +215,10 @@ void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
 {
     switch (event)
     {
+        case MainEvents::RC_DECODE: 
+            control.DataDecode(*this); 
+            break; 
+        
         case MainEvents::TELEMETRY_DECODE: 
             telemetry.MessageDecode(*this); 
             break; 

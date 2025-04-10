@@ -23,18 +23,24 @@
 //=======================================================================================
 // Callbacks 
 
+// 50ms timer 
+void Boat::TimerCallback50ms(void *timer_arg)
+{
+    // Check for incoming telemetry messages 
+    boat.CommsEventQueue((Event)CommsEvents::TELEMETRY_READ); 
+    boat.MainEventQueue((Event)MainEvents::TELEMETRY_DECODE); 
+
+    // Check for incoming RC (transmitter/receiver) data 
+    boat.CommsEventQueue((Event)CommsEvents::RC_READ); 
+    boat.MainEventQueue((Event)MainEvents::RC_DECODE); 
+}
+
+
 // 100ms timer 
 void Boat::TimerCallback100ms(void *timer_arg)
 {
     // Update the LED strobe 
     // boat.CommsEventQueue((Event)CommsEvents::LED_STROBE); 
-
-    // Check for incoming telemetry messages 
-    boat.CommsEventQueue((Event)CommsEvents::TELEMETRY_READ); 
-    boat.MainEventQueue((Event)MainEvents::TELEMETRY_DECODE); 
-
-    // Check for incoming RC messages 
-    // MainEvents::REMOTE_CONTROL; 
 
     // Update the navigation heading when in the auto state 
     // if (boat.main_state == MainStates::AUTO_STATE)

@@ -251,10 +251,10 @@ void Boat::MainManualState(Boat& data, Event event)
             // data.rc.RadioConnectionCheck(data.radio.ConnectionStatus()); 
             // break; 
 
-        case MainEvents::REMOTE_CONTROL: 
-            // Check for RC receiver input to control the vehicle and simultaneously 
-            // check that there's still an RC radio connection. 
-            break; 
+        // case MainEvents::REMOTE_CONTROL: 
+        //     // Check for RC receiver input to control the vehicle and simultaneously 
+        //     // check that there's still an RC radio connection. 
+        //     break; 
         
         default: 
             data.MainCommonEvents(data.main_event); 

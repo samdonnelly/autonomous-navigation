@@ -35,12 +35,11 @@
 //=======================================================================================
 // Classes 
 
-// class VehicleHardware; 
-
 class Vehicle 
 {
 public:   // Friends 
 
+    friend class VehicleControl; 
     friend class VehicleTelemetry; 
 
 protected:   // Protected members 
@@ -48,6 +47,7 @@ protected:   // Protected members
     // Thread info 
     ThreadEventData main_event_info; 
     ThreadEventData comms_event_info; 
+    TimerThreadData periodic_timer_50ms; 
     TimerThreadData periodic_timer_100ms; 
     TimerThreadData periodic_timer_250ms; 
     TimerThreadData periodic_timer_1s; 
@@ -62,7 +62,8 @@ protected:   // Protected members
         INIT, 
         TELEMETRY_DECODE, 
         TELEMETRY_ENCODE, 
-        REMOTE_CONTROL, 
+        RC_DECODE, 
+        // REMOTE_CONTROL, 
         NAV_HEADING_CALC, 
         NAV_LOCATION_CALC 
     } main_event; 
@@ -70,23 +71,22 @@ protected:   // Protected members
     // Communication thread events 
     enum class CommsEvents : uint8_t {
         NO_EVENT, 
-        LED_STROBE, 
-        LED_STROBE_OFF, 
-        LED_WRITE, 
-        RADIO_READ, 
-        RADIO_SEND, 
-        NAV_HEADING_UPDATE, 
-        NAV_LOCATION_UPDATE, 
-        GPS_READ, 
-        COMPASS_READ, 
-        IMU_READ, 
+        // LED_STROBE, 
+        // LED_STROBE_OFF, 
+        // LED_WRITE, 
+        // RADIO_READ, 
+        // RADIO_SEND, 
+        // NAV_HEADING_UPDATE, 
+        // NAV_LOCATION_UPDATE, 
+        // GPS_READ, 
+        // COMPASS_READ, 
+        // IMU_READ, 
+        RC_READ, 
         TELEMETRY_READ, 
         TELEMETRY_WRITE, 
-        RC_READ, 
-        MEMORY_READ, 
-        MEMORY_WRITE, 
-        RANGEFINDER_READ, 
-        // DEBUG_WRITE 
+        // MEMORY_READ, 
+        // MEMORY_WRITE, 
+        // RANGEFINDER_READ 
     } comms_event; 
 
     // System flags 

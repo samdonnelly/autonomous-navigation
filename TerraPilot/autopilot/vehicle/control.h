@@ -26,12 +26,26 @@
 //=======================================================================================
 // Classes 
 
+class Vehicle; 
+
+
 class VehicleControl 
 {
+public:   // public types 
+
+    struct ChannelFunctions 
+    {
+        uint16_t throttle, roll, pitch, yaw; 
+        uint16_t mode_control, mode; 
+    }; 
+
 public:   // public methods 
 
     // Constructor 
-    VehicleControl() {}
+    VehicleControl(); 
+
+    // Packet handling 
+    void DataDecode(Vehicle &vehicle); 
 }; 
 
 //=======================================================================================

@@ -1,12 +1,12 @@
 /**
- * @file boat.cpp
+ * @file control.cpp
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Boat 
+ * @brief Vehicle control 
  * 
  * @version 0.1
- * @date 2025-02-25
+ * @date 2025-04-10
  * 
  * @copyright Copyright (c) 2025
  * 
@@ -15,42 +15,39 @@
 //=======================================================================================
 // Includes 
 
-#include "boat.h" 
+#include "vehicle.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Global data 
-
-Boat boat; 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Setup 
+// Initialization 
 
 // Constructor 
-Boat::Boat() 
-    : Vehicle(MAV_TYPE_SURFACE_BOAT), 
-      main_state(MainStates::INIT_STATE)
+VehicleControl::VehicleControl()
 {
-    main_state_flags.flags = RESET; 
-    main_state_flags.init_state = FLAG_SET; 
+    // 
 }
 
+//=======================================================================================
 
-// Boat setup 
-void Boat::VehicleSetup(void)
+
+//=======================================================================================
+// Data decoding 
+
+// Data decode 
+void VehicleControl::DataDecode(Vehicle &vehicle)
 {
-    main_event_info.dispatch = MainDispatch; 
-    comms_event_info.dispatch = CommsDispatch; 
+    if (vehicle.hardware.data_ready.rc_ready == FLAG_SET)
+    {
+        vehicle.hardware.data_ready.rc_ready = FLAG_CLEAR; 
 
-    periodic_timer_50ms.callback = TimerCallback50ms; 
-    periodic_timer_100ms.callback = TimerCallback100ms; 
-    periodic_timer_250ms.callback = TimerCallback250ms; 
-    periodic_timer_1s.callback = TimerCallback1s; 
+        // Get a copy of the data so we don't have to hold the comms mutex throughout the 
+        // whole decoding process. 
+        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
+        // vehicle.hardware.TelemetryGet(data_in_size, data_in_buff); 
+        xSemaphoreGive(vehicle.comms_mutex); 
+    }
 }
 
 //=======================================================================================

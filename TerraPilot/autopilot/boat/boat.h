@@ -99,6 +99,7 @@ private:   // Private methods
     // Dispatch and callback functions 
     static void MainDispatch(Event event); 
     static void CommsDispatch(Event event); 
+    static void TimerCallback50ms(void *timer_arg); 
     static void TimerCallback100ms(void *timer_arg); 
     static void TimerCallback250ms(void *timer_arg); 
     static void TimerCallback1s(void *timer_arg); 
