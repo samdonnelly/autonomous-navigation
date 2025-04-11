@@ -39,6 +39,10 @@ public:   // public types
         uint16_t mode_control, mode; 
     }; 
 
+private:   // private members 
+
+    ChannelFunctions channels; 
+
 public:   // public methods 
 
     // Constructor 

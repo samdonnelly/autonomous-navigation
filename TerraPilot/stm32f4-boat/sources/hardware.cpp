@@ -22,7 +22,7 @@
 // Include 
 
 // Autopilot 
-#include "vehicle.h" 
+#include "hardware.h" 
 
 // Project 
 #include "stm32f4xx_it.h" 
@@ -41,7 +41,8 @@
 // Macros 
 
 // Buffer sizes 
-#define SERIAL_MSG_BUFF_SIZE 1000 
+#define TELEMETRY_MSG_BUFF_SIZE 1000 
+#define RC_MSG_BUFF_SIZE 500 
 #define ADC_BUFF_SIZE 3 
 
 //=======================================================================================
@@ -55,19 +56,36 @@ class Hardware
 public:   // public members 
 
     // UART/Serial 
+    // struct SerialData 
+    // {
+    //     USART_TypeDef *uart; 
+    //     DMA_Stream_TypeDef *dma_stream; 
+    //     uint8_t cb[TELEMETRY_MSG_BUFF_SIZE];              // Circular buffer populated by DMA 
+    //     cb_index_t cb_index;                           // Circular buffer indexing info 
+    //     dma_index_t dma_index;                         // DMA transfer indexing info 
+    //     uint8_t data_in[TELEMETRY_MSG_BUFF_SIZE];    // Buffer that stores latest UART input 
+    //     uint16_t data_in_index;                        // Data input buffer index 
+    //     uint8_t data_out[TELEMETRY_MSG_BUFF_SIZE];   // Buffer that stores outgoing data 
+    //     uint16_t data_out_size;                        // Size of the outgoing data 
+    // }
+    // telemetry_data, rc_data; 
+
+    template <size_t SIZE>
     struct SerialData 
     {
         USART_TypeDef *uart; 
         DMA_Stream_TypeDef *dma_stream; 
-        uint8_t cb[SERIAL_MSG_BUFF_SIZE];              // Circular buffer populated by DMA 
-        cb_index_t cb_index;                           // Circular buffer indexing info 
-        dma_index_t dma_index;                         // DMA transfer indexing info 
-        uint8_t data_in_buff[SERIAL_MSG_BUFF_SIZE];    // Buffer that stores latest UART input 
-        uint16_t data_in_index;                        // Data input buffer index 
-        uint8_t data_out_buff[SERIAL_MSG_BUFF_SIZE];   // Buffer that stores outgoing data 
-        uint16_t data_out_size;                        // Size of the outgoing data 
-    }
-    telemetry_data, rc_data; 
+        uint8_t cb[SIZE];                 // Circular buffer populated by DMA 
+        cb_index_t cb_index;              // Circular buffer indexing info 
+        dma_index_t dma_index;            // DMA transfer indexing info 
+        uint8_t data_in[SIZE];            // Buffer that stores latest UART input 
+        uint16_t data_in_index;           // Data input buffer index 
+        uint8_t data_out[SIZE];           // Buffer that stores outgoing data 
+        uint16_t data_out_size;           // Size of the outgoing data 
+    };
+
+    SerialData<TELEMETRY_MSG_BUFF_SIZE> telemetry; 
+    SerialData<RC_MSG_BUFF_SIZE> rc; 
 
     // Serial debug 
     USART_TypeDef *user_uart; 
@@ -80,14 +98,6 @@ public:   // public members
     // Timers 
     TIM_TypeDef *generic_timer; 
     TIM_TypeDef *esc_timer; 
-
-public:   // public methods 
-
-    // Helper functions 
-    void SerialDataInit(
-        SerialData &serial_data, 
-        USART_TypeDef *uart, 
-        DMA_Stream_TypeDef *dma_stream); 
 };
 
 static Hardware hardware; 
@@ -107,8 +117,33 @@ void VehicleHardware::HardwareSetup(void)
     gpio_port_init(); 
 
     // UART/Serial data 
-    hardware.SerialDataInit(hardware.telemetry_data, USART1, DMA2_Stream2); 
-    // hardware.SerialDataInit(hardware.rc_data, USARTX, DMAX_StreamX); 
+    hardware.telemetry.uart = USART1; 
+    hardware.telemetry.dma_stream = DMA2_Stream2; 
+    memset((void *)hardware.telemetry.cb, CLEAR, sizeof(hardware.telemetry.cb)); 
+    hardware.telemetry.cb_index.cb_size = TELEMETRY_MSG_BUFF_SIZE; 
+    hardware.telemetry.cb_index.head = CLEAR; 
+    hardware.telemetry.cb_index.tail = CLEAR; 
+    hardware.telemetry.dma_index.data_size = CLEAR; 
+    hardware.telemetry.dma_index.ndt_old = dma_ndt_read(hardware.telemetry.dma_stream); 
+    hardware.telemetry.dma_index.ndt_new = CLEAR; 
+    memset((void *)hardware.telemetry.data_in, CLEAR, sizeof(hardware.telemetry.data_in)); 
+    hardware.telemetry.data_in_index = CLEAR; 
+    memset((void *)hardware.telemetry.data_out, CLEAR, sizeof(hardware.telemetry.data_out)); 
+    hardware.telemetry.data_out_size = CLEAR; 
+
+    hardware.rc.uart = USART6; 
+    // hardware.rc.dma_stream = DMAX_StreamX; 
+    memset((void *)hardware.rc.cb, CLEAR, sizeof(hardware.rc.cb)); 
+    hardware.rc.cb_index.cb_size = RC_MSG_BUFF_SIZE; 
+    hardware.rc.cb_index.head = CLEAR; 
+    hardware.rc.cb_index.tail = CLEAR; 
+    hardware.rc.dma_index.data_size = CLEAR; 
+    hardware.rc.dma_index.ndt_old = dma_ndt_read(hardware.rc.dma_stream); 
+    hardware.rc.dma_index.ndt_new = CLEAR; 
+    memset((void *)hardware.rc.data_in, CLEAR, sizeof(hardware.rc.data_in)); 
+    hardware.rc.data_in_index = CLEAR; 
+    memset((void *)hardware.rc.data_out, CLEAR, sizeof(hardware.rc.data_out)); 
+    hardware.rc.data_out_size = CLEAR; 
 
     // Serial debug data 
     hardware.user_uart = USART2; 
@@ -142,7 +177,7 @@ void VehicleHardware::HardwareSetup(void)
     
     // UART1 init - SiK radio module 
     uart_init(
-        hardware.telemetry_data.uart, 
+        hardware.telemetry.uart, 
         GPIOA, 
         PIN_10, 
         PIN_9, 
@@ -155,7 +190,7 @@ void VehicleHardware::HardwareSetup(void)
 
     // UART1 interrupt init - SiK radio module - IDLE line (RX) interrupts 
     uart_interrupt_init(
-        hardware.telemetry_data.uart, 
+        hardware.telemetry.uart, 
         UART_PARAM_DISABLE, 
         UART_PARAM_DISABLE, 
         UART_PARAM_DISABLE, 
@@ -279,7 +314,7 @@ void VehicleHardware::HardwareSetup(void)
     // DMA2 stream init - UART1 - SiK radio module 
     dma_stream_init(
         DMA2, 
-        hardware.telemetry_data.dma_stream, 
+        hardware.telemetry.dma_stream, 
         DMA_CHNL_4, 
         DMA_DIR_PM, 
         DMA_CM_ENABLE,
@@ -292,11 +327,11 @@ void VehicleHardware::HardwareSetup(void)
         
     // DMA2 stream config - UART1 - SiK radio module 
     dma_stream_config(
-        hardware.telemetry_data.dma_stream, 
-        (uint32_t)(&hardware.telemetry_data.uart->DR), 
-        (uint32_t)hardware.telemetry_data.cb, 
+        hardware.telemetry.dma_stream, 
+        (uint32_t)(&hardware.telemetry.uart->DR), 
+        (uint32_t)hardware.telemetry.cb, 
         (uint32_t)NULL, 
-        (uint16_t)SERIAL_MSG_BUFF_SIZE); 
+        (uint16_t)TELEMETRY_MSG_BUFF_SIZE); 
 
     // // DMAX stream init - UART6 - RC receiver 
     // dma_stream_init(
@@ -318,7 +353,7 @@ void VehicleHardware::HardwareSetup(void)
     //     (uint32_t)(&hardware.rc_data.uart->DR), 
     //     (uint32_t)hardware.rc_data.cb, 
     //     (uint32_t)NULL, 
-    //     (uint16_t)SERIAL_MSG_BUFF_SIZE); 
+    //     (uint16_t)TELEMETRY_MSG_BUFF_SIZE); 
 
     // // DMA2 stream init - ADC1 - Voltages 
     // dma_stream_init(
@@ -343,7 +378,7 @@ void VehicleHardware::HardwareSetup(void)
     //     (uint16_t)ADC_BUFF_SIZE); 
 
     // Enable DMA streams 
-    dma_stream_enable(hardware.telemetry_data.dma_stream);   // UART1 - Sik radio 
+    dma_stream_enable(hardware.telemetry.dma_stream);   // UART1 - Sik radio 
     // dma_stream_enable(hardware.rc_data.dma_stream);          // UART6 - RC receiver 
     // dma_stream_enable(hardware.adc_dma_stream);              // ADC1 - Voltages 
 
@@ -413,7 +448,7 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // Radios 
 
-    sik_init(hardware.telemetry_data.uart); 
+    sik_init(hardware.telemetry.uart); 
 
     //==================================================
 
@@ -482,28 +517,6 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
 }
 
-
-// Serial data initialization 
-void Hardware::SerialDataInit(
-    Hardware::SerialData &serial_data, 
-    USART_TypeDef *uart, 
-    DMA_Stream_TypeDef *dma_stream)
-{
-    serial_data.uart = uart; 
-    serial_data.dma_stream = dma_stream; 
-    memset((void *)serial_data.cb, CLEAR, sizeof(serial_data.cb)); 
-    serial_data.cb_index.cb_size = SERIAL_MSG_BUFF_SIZE; 
-    serial_data.cb_index.head = CLEAR; 
-    serial_data.cb_index.tail = CLEAR; 
-    serial_data.dma_index.data_size = CLEAR; 
-    serial_data.dma_index.ndt_old = dma_ndt_read(serial_data.dma_stream); 
-    serial_data.dma_index.ndt_new = CLEAR; 
-    memset((void *)serial_data.data_in_buff, CLEAR, sizeof(serial_data.data_in_buff)); 
-    serial_data.data_in_index = CLEAR; 
-    memset((void *)serial_data.data_out_buff, CLEAR, sizeof(serial_data.data_out_buff)); 
-    serial_data.data_out_size = CLEAR; 
-}
-
 //=======================================================================================
 
 
@@ -564,13 +577,7 @@ void VehicleHardware::RCRead(void)
 }
 
 
-void VehicleHardware::RCGet(
-    uint16_t &throttle, 
-    uint16_t &roll, 
-    uint16_t &pitch, 
-    uint16_t &yaw, 
-    uint16_t &mode_control, 
-    uint16_t &mode)
+void VehicleHardware::RCGet(VehicleControl::ChannelFunctions &channels)
 {
     // 
 }
@@ -596,13 +603,13 @@ uint8_t VehicleHardware::TelemetryRead(void)
 
         // Parse the new radio data from the circular buffer into the data buffer. 
         dma_cb_index(
-            hardware.telemetry_data.dma_stream, 
-            &hardware.telemetry_data.dma_index, 
-            &hardware.telemetry_data.cb_index); 
+            hardware.telemetry.dma_stream, 
+            &hardware.telemetry.dma_index, 
+            &hardware.telemetry.cb_index); 
         cb_parse(
-            hardware.telemetry_data.cb, 
-            &hardware.telemetry_data.cb_index, 
-            hardware.telemetry_data.data_in_buff); 
+            hardware.telemetry.cb, 
+            &hardware.telemetry.cb_index, 
+            hardware.telemetry.data_in); 
     }
 
     return data_ready_status; 
@@ -611,21 +618,21 @@ uint8_t VehicleHardware::TelemetryRead(void)
 
 void VehicleHardware::TelemetryGet(uint16_t &size, uint8_t *buffer)
 {
-    size = hardware.telemetry_data.dma_index.data_size; 
-    memcpy((void *)buffer, (void *)hardware.telemetry_data.data_in_buff, size); 
+    size = hardware.telemetry.dma_index.data_size; 
+    memcpy((void *)buffer, (void *)hardware.telemetry.data_in, size); 
 }
 
 
 void VehicleHardware::TelemetrySet(uint16_t &size, uint8_t *buffer)
 {
-    hardware.telemetry_data.data_out_size = size; 
-    memcpy((void *)hardware.telemetry_data.data_out_buff, (void *)buffer, size); 
+    hardware.telemetry.data_out_size = size; 
+    memcpy((void *)hardware.telemetry.data_out, (void *)buffer, size); 
 }
 
 
 void VehicleHardware::TelemetryWrite(void)
 {
-    sik_send_data(hardware.telemetry_data.data_out_buff, hardware.telemetry_data.data_out_size); 
+    sik_send_data(hardware.telemetry.data_out, hardware.telemetry.data_out_size); 
 }
 
 //=======================================================================================

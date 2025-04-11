@@ -23,8 +23,8 @@
  * 
  */
 
-#ifndef _VEHICLE_CONFIG_TEMPLATE_H_ 
-#define _VEHICLE_CONFIG_TEMPLATE_H_ 
+#ifndef _SYSTEM_CONFIG_TEMPLATE_H_ 
+#define _SYSTEM_CONFIG_TEMPLATE_H_ 
 
 //=======================================================================================
 // Vehicle Type (VT) 
@@ -75,4 +75,4 @@
 
 //=======================================================================================
 
-#endif   // _VEHICLE_CONFIG_TEMPLATE_H_ 
+#endif   // _SYSTEM_CONFIG_TEMPLATE_H_ 

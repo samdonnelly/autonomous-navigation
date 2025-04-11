@@ -22,7 +22,8 @@
 //=======================================================================================
 // Includes 
 
-#include "includes.h" 
+#include "system_tools.h" 
+#include "control.h" 
 
 //=======================================================================================
 
@@ -73,13 +74,7 @@ public:   // Public methods
     // Serial protocol is used for remote control which means the hardware must read and 
     // write data in the form of channels using a serial protocol (ex. IBUS or SBUS). 
     void RCRead(void); 
-    void RCGet(
-        uint16_t &throttle, 
-        uint16_t &roll, 
-        uint16_t &pitch, 
-        uint16_t &yaw, 
-        uint16_t &mode_control, 
-        uint16_t &mode); 
+    void RCGet(VehicleControl::ChannelFunctions &channels); 
 
     // Telemetry 
     // MAVLink protocol is used for telemetry which means the hardware must provide 

@@ -45,7 +45,7 @@ void VehicleControl::DataDecode(Vehicle &vehicle)
         // Get a copy of the data so we don't have to hold the comms mutex throughout the 
         // whole decoding process. 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        // vehicle.hardware.TelemetryGet(data_in_size, data_in_buff); 
+        vehicle.hardware.RCGet(channels); 
         xSemaphoreGive(vehicle.comms_mutex); 
     }
 }
