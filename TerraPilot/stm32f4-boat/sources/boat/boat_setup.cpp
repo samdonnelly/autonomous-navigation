@@ -380,7 +380,7 @@ void Boat::BoatSetup(void)
     // turns the timer on and off for sending. 
 
     // ESC driver init - right thruster (ESC1) 
-    esc_readytosky_init(
+    esc_init(
         DEVICE_ONE, 
         TIM3, 
         TIMER_CH4, 
@@ -392,7 +392,7 @@ void Boat::BoatSetup(void)
         esc1_rev_speed_lim); 
 
     // ESC driver init - left thruster (ESC2) 
-    esc_readytosky_init(
+    esc_init(
         DEVICE_TWO, 
         TIM3, 
         TIMER_CH3, 

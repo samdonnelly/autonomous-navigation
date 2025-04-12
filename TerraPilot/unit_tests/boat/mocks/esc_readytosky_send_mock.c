@@ -1,5 +1,5 @@
 /**
- * @file esc_readytosky_send_mock.c
+ * @file esc_send_mock.c
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
@@ -15,7 +15,7 @@
 //=======================================================================================
 // Includes 
 
-#include "esc_readytosky_driver.h" 
+#include "esc_driver.h" 
 
 //=======================================================================================
 
@@ -24,7 +24,7 @@
 // Driver functions 
 
 // ESC initialization 
-void esc_readytosky_init(
+void esc_init(
     device_number_t device_num, 
     TIM_TypeDef *timer, 
     tim_channel_t tim_channel, 
@@ -40,7 +40,7 @@ void esc_readytosky_init(
 
 
 // ESC PWM command send 
-void esc_readytosky_send(
+void esc_send(
     device_number_t device_num, 
     int16_t throttle_cmd)
 {

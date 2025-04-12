@@ -488,7 +488,7 @@ void VehicleHardware::HardwareSetup(void)
     // turns the timer on and off for sending. 
 
     // // ESC driver init - right thruster (ESC1) 
-    // esc_readytosky_init(
+    // esc_init(
     //     DEVICE_ONE, 
     //     hardware.esc_timer, 
     //     TIMER_CH4, 
@@ -500,7 +500,7 @@ void VehicleHardware::HardwareSetup(void)
     //     esc1_rev_speed_lim); 
 
     // // ESC driver init - left thruster (ESC2) 
-    // esc_readytosky_init(
+    // esc_init(
     //     DEVICE_TWO, 
     //     hardware.esc_timer, 
     //     TIMER_CH3, 

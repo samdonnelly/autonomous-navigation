@@ -59,11 +59,11 @@ void BoatRC::RemoteControl(
     // Determine the motor 
     if (motor_id == GS_RADIO_RIGHT_JOYSTICK)
     {
-        esc_readytosky_send(DEVICE_ONE, throttle_value); 
+        esc_send(DEVICE_ONE, throttle_value); 
     }
     else if (motor_id == GS_RADIO_LEFT_JOYSTICK)
     {
-        esc_readytosky_send(DEVICE_TWO, throttle_value); 
+        esc_send(DEVICE_TWO, throttle_value); 
     }
 }
 
@@ -71,8 +71,8 @@ void BoatRC::RemoteControl(
 // Turn thrusters off 
 void BoatRC::ThrustersOff(void)
 {
-    esc_readytosky_send(DEVICE_ONE, ESC_NO_THRUST); 
-    esc_readytosky_send(DEVICE_TWO, ESC_NO_THRUST); 
+    esc_send(DEVICE_ONE, ESC_NO_THRUST); 
+    esc_send(DEVICE_TWO, ESC_NO_THRUST); 
 }
 
 //=======================================================================================

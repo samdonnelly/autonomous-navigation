@@ -113,8 +113,8 @@ void BoatNav::HeadingCalc(Boat& boat_nav)
         left_thruster  = THRUSTER_BASE_SPEED + heading_error*ESC_MAX_THROTTLE / 
                                                (MAX_HEADING_ERROR + MAX_HEADING_ERROR); 
 
-        esc_readytosky_send(DEVICE_ONE, right_thruster); 
-        esc_readytosky_send(DEVICE_TWO, left_thruster); 
+        esc_send(DEVICE_ONE, right_thruster); 
+        esc_send(DEVICE_TWO, left_thruster); 
     }
     else 
     {
@@ -172,8 +172,8 @@ void BoatNav::CurrentUpdate(Boat& boat_nav)
 // Turn thrusters off 
 void BoatNav::ThrustersOff(void)
 {
-    esc_readytosky_send(DEVICE_ONE, ESC_NO_THRUST); 
-    esc_readytosky_send(DEVICE_TWO, ESC_NO_THRUST); 
+    esc_send(DEVICE_ONE, ESC_NO_THRUST); 
+    esc_send(DEVICE_TWO, ESC_NO_THRUST); 
 }
 
 //=======================================================================================
