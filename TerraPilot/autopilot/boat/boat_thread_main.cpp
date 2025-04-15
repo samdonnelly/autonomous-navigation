@@ -704,7 +704,9 @@ void Boat::MainStateSelect(uint8_t state)
 {
     uint8_t state_select = FLAG_SET; 
 
-    if (state >= (uint8_t)MainStates::NUM_STATES)
+    // If the state number is invalid or the requested state is the current state, then 
+    // we can disregard the request. 
+    if ((state >= (uint8_t)MainStates::NUM_STATES) || (state == (uint8_t)main_state))
     {
         return; 
     }
@@ -775,6 +777,43 @@ void Boat::MainStateSelect(uint8_t state)
     if (state_select)
     {
         MainStateChange(); 
+    }
+}
+
+
+// Main thread state mapping to RC mode input 
+void Boat::MainStateRCModeMap(uint8_t &mode)
+{
+    switch (mode)
+    {
+        case VehicleControl::RCModes::RC_MODE1: 
+            mode = (uint8_t)MainStates::MANUAL_STATE; 
+            break; 
+
+        case VehicleControl::RCModes::RC_MODE2: 
+            mode = (uint8_t)MainStates::HOLD_STATE; 
+            break; 
+
+        case VehicleControl::RCModes::RC_MODE3: 
+            mode = (uint8_t)MainStates::STEERING_STATE; 
+            break; 
+
+        case VehicleControl::RCModes::RC_MODE4: 
+            mode = (uint8_t)MainStates::LOITER_STATE; 
+            break; 
+
+        case VehicleControl::RCModes::RC_MODE5: 
+            mode = (uint8_t)MainStates::AUTO_STATE; 
+            break; 
+
+        case VehicleControl::RCModes::RC_MODE6: 
+            mode = (uint8_t)MainStates::FOLLOW_STATE; 
+            break; 
+        
+        default: 
+            // Invalid 
+            mode = (uint8_t)MainStates::NUM_STATES; 
+            break; 
     }
 }
 

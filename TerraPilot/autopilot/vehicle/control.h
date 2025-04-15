@@ -37,7 +37,34 @@ public:   // public types
     {
         uint16_t throttle, roll, pitch, yaw; 
         uint16_t mode_control, mode; 
-    }; 
+        uint16_t aux1, aux2, aux3, aux4, aux5, aux6; 
+    };
+
+    enum RCModes : uint8_t 
+    {
+        RC_MODE1, 
+        RC_MODE2, 
+        RC_MODE3, 
+        RC_MODE4, 
+        RC_MODE5, 
+        RC_MODE6 
+    };
+
+private:   // private types 
+
+    enum PWMThresholds : uint16_t 
+    {
+        PWM_MIN = 800,          // PWM value must be higher than this to be valid 
+        PWM_AUX_LOW = 1200,     // Aux switch is low 
+        PWM_MAX_MODE1 = 1230,   // Max PWM for mode 1 
+        PWM_MAX_MODE2 = 1360,   // Max PWM for mode 2 
+        PWM_MAX_MODE3 = 1490,   // Max PWM for mode 3 
+        PWM_NEUTRAL = 1500,     // Netral PWM  
+        PWM_MAX_MODE4 = 1620,   // Max PWM for mode 4 
+        PWM_MAX_MODE5 = 1750,   // Max PWM for mode 5 
+        PWM_AUX_HIGH = 1800,    // Aux switch is high 
+        PWM_MAX = 2200          // PWM value must be lower than this to be valid 
+    };
 
 private:   // private members 
 
@@ -50,6 +77,7 @@ public:   // public methods
 
     // Packet handling 
     void DataDecode(Vehicle &vehicle); 
+    void RCModeDecode(Vehicle &vehicle); 
 }; 
 
 //=======================================================================================

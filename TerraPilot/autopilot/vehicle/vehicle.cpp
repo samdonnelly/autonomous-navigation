@@ -247,6 +247,9 @@ void Vehicle::MainStateEnter(
     uint8_t state, 
     uint32_t &flags)
 {
+    // All of the state/mode flags are cleared so a state flag doesn't get set for a 
+    // state that can't be moved to from the current state, but can for another state. 
+
     main_system_flags.state_entry = FLAG_CLEAR; 
     flags = RESET; 
     telemetry.MAVLinkHeartbeatSetMode(state); 

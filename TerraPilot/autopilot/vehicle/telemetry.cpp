@@ -344,6 +344,13 @@ void VehicleTelemetry::MAVLinkHeartbeatSetMode(uint8_t mode)
     mavlink.heartbeat_msg.custom_mode = (uint32_t)mode; 
 }
 
+
+// Get the current flight mode 
+uint8_t VehicleTelemetry::MAVLinkHeartbeatGetMode(void)
+{
+    return (uint8_t)mavlink.heartbeat_msg.custom_mode; 
+}
+
 //=======================================================================================
 
 

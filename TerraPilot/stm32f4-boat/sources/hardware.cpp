@@ -84,8 +84,12 @@ public:   // public members
         uint16_t data_out_size;           // Size of the outgoing data 
     };
 
+    // Telemetry 
     SerialData<TELEMETRY_MSG_BUFF_SIZE> telemetry; 
+
+    // RC 
     SerialData<RC_MSG_BUFF_SIZE> rc; 
+    uint8_t packet_count, num_packets; 
 
     // Serial debug 
     USART_TypeDef *user_uart; 
@@ -116,7 +120,7 @@ void VehicleHardware::HardwareSetup(void)
     // Initialize GPIO ports 
     gpio_port_init(); 
 
-    // UART/Serial data 
+    // Telemetry 
     hardware.telemetry.uart = USART1; 
     hardware.telemetry.dma_stream = DMA2_Stream2; 
     memset((void *)hardware.telemetry.cb, CLEAR, sizeof(hardware.telemetry.cb)); 
@@ -131,8 +135,9 @@ void VehicleHardware::HardwareSetup(void)
     memset((void *)hardware.telemetry.data_out, CLEAR, sizeof(hardware.telemetry.data_out)); 
     hardware.telemetry.data_out_size = CLEAR; 
 
+    // RC 
     hardware.rc.uart = USART6; 
-    // hardware.rc.dma_stream = DMAX_StreamX; 
+    hardware.rc.dma_stream = DMA2_Stream1; 
     memset((void *)hardware.rc.cb, CLEAR, sizeof(hardware.rc.cb)); 
     hardware.rc.cb_index.cb_size = RC_MSG_BUFF_SIZE; 
     hardware.rc.cb_index.head = CLEAR; 
@@ -144,6 +149,8 @@ void VehicleHardware::HardwareSetup(void)
     hardware.rc.data_in_index = CLEAR; 
     memset((void *)hardware.rc.data_out, CLEAR, sizeof(hardware.rc.data_out)); 
     hardware.rc.data_out_size = CLEAR; 
+    hardware.packet_count = CLEAR; 
+    hardware.num_packets = CLEAR; 
 
     // Serial debug data 
     hardware.user_uart = USART2; 
@@ -212,25 +219,25 @@ void VehicleHardware::HardwareSetup(void)
         UART_PARAM_DISABLE, 
         UART_PARAM_DISABLE); 
 
-    // // UART6 init - RC receiver 
-    // ibus_init(
-    //     hardware.user_uart, 
-    //     GPIOA, 
-    //     PIN_3, 
-    //     PIN_2, 
-    //     UART_PARAM_DISABLE, 
-    //     UART_PARAM_DISABLE); 
+    // UART6 init - RC receiver 
+    ibus_init(
+        hardware.rc.uart, 
+        GPIOA, 
+        PIN_12, 
+        PIN_11, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_ENABLE); 
 
-    // // UART6 interrupt init - RC receiver - IDLE line (RX) interrupts 
-    // uart_interrupt_init(
-    //     rc_data.uart, 
-    //     UART_PARAM_DISABLE, 
-    //     UART_PARAM_DISABLE, 
-    //     UART_PARAM_DISABLE, 
-    //     UART_PARAM_DISABLE, 
-    //     UART_PARAM_ENABLE, 
-    //     UART_PARAM_DISABLE, 
-    //     UART_PARAM_DISABLE); 
+    // UART6 interrupt init - RC receiver - IDLE line (RX) interrupts 
+    uart_interrupt_init(
+        hardware.rc.uart, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_ENABLE, 
+        UART_PARAM_DISABLE, 
+        UART_PARAM_DISABLE); 
 
     //==================================================
 
@@ -333,27 +340,27 @@ void VehicleHardware::HardwareSetup(void)
         (uint32_t)NULL, 
         (uint16_t)TELEMETRY_MSG_BUFF_SIZE); 
 
-    // // DMAX stream init - UART6 - RC receiver 
-    // dma_stream_init(
-    //     DMAX, 
-    //     hardware.rc_data.dma_stream, 
-    //     DMA_CHNL_4, 
-    //     DMA_DIR_PM, 
-    //     DMA_CM_ENABLE,
-    //     DMA_PRIOR_HI, 
-    //     DMA_DBM_DISABLE, 
-    //     DMA_ADDR_INCREMENT,   // Increment the buffer pointer to fill the buffer 
-    //     DMA_ADDR_FIXED,       // No peripheral increment - copy from DR only 
-    //     DMA_DATA_SIZE_BYTE, 
-    //     DMA_DATA_SIZE_BYTE); 
+    // DMAX stream init - UART6 - RC receiver 
+    dma_stream_init(
+        DMA2, 
+        hardware.rc.dma_stream, 
+        DMA_CHNL_5, 
+        DMA_DIR_PM, 
+        DMA_CM_ENABLE,
+        DMA_PRIOR_HI, 
+        DMA_DBM_DISABLE, 
+        DMA_ADDR_INCREMENT,   // Increment the buffer pointer to fill the buffer 
+        DMA_ADDR_FIXED,       // No peripheral increment - copy from DR only 
+        DMA_DATA_SIZE_BYTE, 
+        DMA_DATA_SIZE_BYTE); 
     
-    // // DMAX stream config - UART6 - RC receiver 
-    // dma_stream_config(
-    //     hardware.rc_data.dma_stream, 
-    //     (uint32_t)(&hardware.rc_data.uart->DR), 
-    //     (uint32_t)hardware.rc_data.cb, 
-    //     (uint32_t)NULL, 
-    //     (uint16_t)TELEMETRY_MSG_BUFF_SIZE); 
+    // DMAX stream config - UART6 - RC receiver 
+    dma_stream_config(
+        hardware.rc.dma_stream, 
+        (uint32_t)(&hardware.rc.uart->DR), 
+        (uint32_t)hardware.rc.cb, 
+        (uint32_t)NULL, 
+        (uint16_t)RC_MSG_BUFF_SIZE); 
 
     // // DMA2 stream init - ADC1 - Voltages 
     // dma_stream_init(
@@ -379,7 +386,7 @@ void VehicleHardware::HardwareSetup(void)
 
     // Enable DMA streams 
     dma_stream_enable(hardware.telemetry.dma_stream);   // UART1 - Sik radio 
-    // dma_stream_enable(hardware.rc_data.dma_stream);          // UART6 - RC receiver 
+    dma_stream_enable(hardware.rc.dma_stream);          // UART6 - RC receiver 
     // dma_stream_enable(hardware.adc_dma_stream);              // ADC1 - Voltages 
 
     //==================================================
@@ -392,7 +399,7 @@ void VehicleHardware::HardwareSetup(void)
 
     // Enable the interrupt handlers 
     nvic_config(USART1_IRQn, EXTI_PRIORITY_0);   // UART1 - SiK radio 
-    // nvic_config(USART6_IRQn, EXTI_PRIORITY_1);   // UART6 - RC receiver 
+    nvic_config(USART6_IRQn, EXTI_PRIORITY_1);   // UART6 - RC receiver 
     // nvic_config(ADC_IRQn, EXTI_PRIORITY_2);      // ADC1? 
 
     //==================================================
@@ -526,6 +533,16 @@ void VehicleHardware::HardwareSetup(void)
 // Any needed callbacks are overridden here so hardware data doesn't need to be included 
 // in the interrupt file. 
 
+// USART6 
+void USART6_IRQHandler(void)
+{
+    hardware.packet_count++; 
+
+    handler_flags.usart6_flag = SET_BIT; 
+    dummy_read(USART6->SR); 
+    dummy_read(USART6->DR); 
+}
+
 //=======================================================================================
 
 
@@ -573,13 +590,51 @@ void VehicleHardware::HardwareSetup(void)
 
 void VehicleHardware::RCRead(void)
 {
-    // 
+    // If data is ready, make sure to set the data_ready.telemetry_ready flag! 
+
+    // The RC receiver communicates via UART (IBUS) and incoming data is processed using 
+    // DMA and an interrupt. So instead of a direct call to a read function we check if 
+    // the interrupt was run to set the data ready flag. 
+
+    if (handler_flags.usart6_flag)
+    {
+        handler_flags.usart6_flag = CLEAR_BIT; 
+        data_ready.rc_ready = FLAG_SET; 
+
+        hardware.num_packets = hardware.packet_count; 
+        hardware.packet_count = CLEAR; 
+
+        // Parse the new radio data from the circular buffer into the data buffer. 
+        dma_cb_index(hardware.rc.dma_stream, &hardware.rc.dma_index, &hardware.rc.cb_index); 
+        cb_parse(hardware.rc.cb, &hardware.rc.cb_index, hardware.rc.data_in); 
+    }
 }
 
 
 void VehicleHardware::RCGet(VehicleControl::ChannelFunctions &channels)
 {
-    // 
+    // Assign packet channel data to their function within the autopilot. Each user can 
+    // cmap their hannels how they like. 
+
+    // Only the most recent packet is used since retrieval of this data happens slower 
+    // than the rate at which the receiver supplies packets. 
+    ibus_packet_t *packet = 
+        (ibus_packet_t *)&hardware.rc.data_in[hardware.num_packets*IBUS_PACKET_BYTES]; 
+
+    channels.throttle = packet->items[IBUS_CH1]; 
+    channels.roll = packet->items[IBUS_CH2]; 
+    channels.pitch = packet->items[IBUS_CH3]; 
+    channels.yaw = packet->items[IBUS_CH4]; 
+
+    channels.mode_control = packet->items[IBUS_CH5]; 
+    channels.mode = packet->items[IBUS_CH6]; 
+    
+    channels.aux1 = packet->items[IBUS_CH7]; 
+    channels.aux2 = packet->items[IBUS_CH8]; 
+    channels.aux3 = packet->items[IBUS_CH9]; 
+    channels.aux4 = packet->items[IBUS_CH10]; 
+    channels.aux5 = packet->items[IBUS_CH11]; 
+    channels.aux6 = packet->items[IBUS_CH12]; 
 }
 
 //=======================================================================================
@@ -588,18 +643,18 @@ void VehicleHardware::RCGet(VehicleControl::ChannelFunctions &channels)
 //=======================================================================================
 // Telemetry 
 
-uint8_t VehicleHardware::TelemetryRead(void)
+void VehicleHardware::TelemetryRead(void)
 {
+    // If data is ready, make sure to set the data_ready.telemetry_ready flag! 
+
     // The telemetry radio communicates via UART and incoming data is processed using DMA 
     // and an interrupt. So instead of a direct call to a read function we check if the 
     // interrupt was run to set the data ready flag. 
 
-    uint8_t data_ready_status = FLAG_CLEAR; 
-
     if (handler_flags.usart1_flag)
     {
         handler_flags.usart1_flag = CLEAR_BIT; 
-        data_ready_status = FLAG_SET; 
+        data_ready.telemetry_ready = FLAG_SET; 
 
         // Parse the new radio data from the circular buffer into the data buffer. 
         dma_cb_index(
@@ -611,8 +666,6 @@ uint8_t VehicleHardware::TelemetryRead(void)
             &hardware.telemetry.cb_index, 
             hardware.telemetry.data_in); 
     }
-
-    return data_ready_status; 
 }
 
 

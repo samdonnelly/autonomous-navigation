@@ -110,6 +110,7 @@ protected:   // Protected methods
     // Vehicle specific functions 
     virtual void VehicleSetup(void) = 0; 
     virtual void MainStateSelect(uint8_t state) = 0; 
+    virtual void MainStateRCModeMap(uint8_t &mode) = 0; 
 
     // Helper functions 
     void MainEventQueue(Event event); 

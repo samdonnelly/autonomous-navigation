@@ -21,6 +21,11 @@
 
 
 //=======================================================================================
+// Enums 
+//=======================================================================================
+
+
+//=======================================================================================
 // Initialization 
 
 // Constructor 
@@ -38,6 +43,7 @@ VehicleControl::VehicleControl()
 // Data decode 
 void VehicleControl::DataDecode(Vehicle &vehicle)
 {
+    // Check if new data is available. If so then get the data. 
     if (vehicle.hardware.data_ready.rc_ready == FLAG_SET)
     {
         vehicle.hardware.data_ready.rc_ready = FLAG_CLEAR; 
@@ -47,6 +53,54 @@ void VehicleControl::DataDecode(Vehicle &vehicle)
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
         vehicle.hardware.RCGet(channels); 
         xSemaphoreGive(vehicle.comms_mutex); 
+
+        // We only decode the mode if there is new data so modes can't remain stuck on 
+        // if the transmitter is turned off. 
+        RCModeDecode(vehicle); 
+    }
+}
+
+
+// RC mode decode 
+void VehicleControl::RCModeDecode(Vehicle &vehicle)
+{
+    // Check for a new mode input from the RC transmitter. 
+    if (channels.mode_control > PWM_AUX_HIGH)
+    {
+        if ((channels.mode < PWM_MIN) || (channels.mode > PWM_MAX))
+        {
+            return; 
+        }
+
+        uint8_t rc_mode = RC_MODE6; 
+
+        if (channels.mode < PWM_MAX_MODE1)
+        {
+            rc_mode = RC_MODE1; 
+        }
+        else if (channels.mode < PWM_MAX_MODE2)
+        {
+            rc_mode = RC_MODE2; 
+        }
+        else if (channels.mode < PWM_MAX_MODE3)
+        {
+            rc_mode = RC_MODE3; 
+        }
+        else if (channels.mode < PWM_MAX_MODE4)
+        {
+            rc_mode = RC_MODE4; 
+        }
+        else if (channels.mode < PWM_MAX_MODE5)
+        {
+            rc_mode = RC_MODE5; 
+        }
+
+        vehicle.MainStateRCModeMap(rc_mode); 
+
+        if (rc_mode != vehicle.telemetry.MAVLinkHeartbeatGetMode())
+        {
+            vehicle.MainStateSelect(rc_mode); 
+        }
     }
 }
 

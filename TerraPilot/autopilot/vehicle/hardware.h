@@ -79,7 +79,7 @@ public:   // Public methods
     // Telemetry 
     // MAVLink protocol is used for telemetry which means the hardware must provide 
     // data in the form of MAVLink messages but also accept and send MAVLink messages. 
-    uint8_t TelemetryRead(void); 
+    void TelemetryRead(void); 
     void TelemetryGet(uint16_t &size, uint8_t *buffer); 
     void TelemetrySet(uint16_t &size, uint8_t *buffer); 
     void TelemetryWrite(void); 

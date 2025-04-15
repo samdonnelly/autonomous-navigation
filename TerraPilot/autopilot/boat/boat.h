@@ -148,6 +148,7 @@ private:   // Private methods
 
     // Helper functions 
     void MainStateSelect(uint8_t state) override; 
+    void MainStateRCModeMap(uint8_t &mode) override; 
 
 public:   // Public methods 
 

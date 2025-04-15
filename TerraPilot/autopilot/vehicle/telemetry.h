@@ -237,6 +237,9 @@ public:   // Public methods
     void MAVLinkMissionCurrentEnable(void); 
     void MAVLinkMissionCurrentDisable(void); 
     void MAVLinkMissionItemReachedSet(void); 
+
+    // Getters 
+    uint8_t MAVLinkHeartbeatGetMode(void); 
 };
 
 //=======================================================================================
