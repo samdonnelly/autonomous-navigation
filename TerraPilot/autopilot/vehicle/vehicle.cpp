@@ -215,6 +215,10 @@ void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
 {
     switch (event)
     {
+        case MainEvents::GPS_UPDATE: 
+            navigation.LocationUpdate(*this); 
+            break; 
+        
         case MainEvents::RC_DECODE: 
             control.DataDecode(*this); 
             break; 

@@ -492,13 +492,13 @@ void Boat::MainAutoState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::NAV_HEADING_CALC: 
-            // data.navigation.HeadingCalc(data); 
-            break; 
+        // case MainEvents::NAV_HEADING_CALC: 
+        //     data.navigation.HeadingCalc(data); 
+        //     break; 
         
-        case MainEvents::NAV_LOCATION_CALC: 
-            // data.navigation.LocationCalc(data); 
-            break; 
+        // case MainEvents::NAV_LOCATION_CALC: 
+        //     data.navigation.LocationCalc(data); 
+        //     break; 
         
         default: 
             data.MainCommonEvents(data.main_event); 

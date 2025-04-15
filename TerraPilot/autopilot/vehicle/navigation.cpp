@@ -43,14 +43,53 @@
 
 VehicleNavigation::VehicleNavigation()
 {
-    // 
+    timers.gps = RESET; 
+
+    status.flags = RESET; 
 }
 
 //=======================================================================================
 
 
 //=======================================================================================
+// Orientation 
+//=======================================================================================
+
+
+//=======================================================================================
 // Position 
+
+// Update the vehicle location 
+void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
+{
+    if (vehicle.hardware.data_ready.gps_ready == FLAG_SET)
+    {
+        vehicle.hardware.data_ready.gps_ready = FLAG_CLEAR; 
+
+        // Get a copy of the data so we don't have to hold the comms mutex throughout the 
+        // whole decoding process. 
+        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
+        status.gps_lock = vehicle.hardware.GPSGet(); 
+        xSemaphoreGive(vehicle.comms_mutex); 
+
+        timers.gps = RESET; 
+    }
+
+    // Timing 
+    if (status.gps_lock && (timers.gps++ >= VS_GPS_TIMEOUT))
+    {
+        status.gps_lock = FLAG_CLEAR; 
+    }
+
+    // Home location 
+    if (!status.home_location && status.gps_lock)
+    {
+        // MissionItem mission; 
+        // vehicle.memory.MissionHomeSet(); 
+        status.home_location = FLAG_SET; 
+    }
+}
+
 
 // Get the current vehicle location 
 VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)

@@ -40,6 +40,7 @@ class Vehicle
 public:   // Friends 
 
     friend class VehicleControl; 
+    friend class VehicleNavigation; 
     friend class VehicleTelemetry; 
 
 protected:   // Protected members 
@@ -60,12 +61,13 @@ protected:   // Protected members
     enum class MainEvents : uint8_t {
         NO_EVENT, 
         INIT, 
+        GPS_UPDATE, 
         RC_DECODE, 
         // REMOTE_CONTROL, 
         TELEMETRY_DECODE, 
         TELEMETRY_ENCODE, 
-        NAV_HEADING_CALC, 
-        NAV_LOCATION_CALC 
+        // NAV_HEADING_CALC, 
+        // NAV_LOCATION_CALC 
     } main_event; 
 
     // Communication thread events 
@@ -78,8 +80,8 @@ protected:   // Protected members
         // RADIO_SEND, 
         // NAV_HEADING_UPDATE, 
         // NAV_LOCATION_UPDATE, 
-        // GPS_READ, 
         // COMPASS_READ, 
+        GPS_READ, 
         // IMU_READ, 
         RC_READ, 
         TELEMETRY_READ, 

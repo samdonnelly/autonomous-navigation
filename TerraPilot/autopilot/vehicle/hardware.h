@@ -42,8 +42,9 @@ public:   // Public members
     {
         struct 
         {
-            uint32_t telemetry_ready : 1; 
+            uint32_t gps_ready       : 1; 
             uint32_t rc_ready        : 1; 
+            uint32_t telemetry_ready : 1; 
         };
         uint32_t flags; 
     }
@@ -60,12 +61,12 @@ public:   // Public methods
     // Hardware setup 
     void HardwareSetup(void); 
 
-    // // GPS 
-    // void GPS_Read(void); 
-    // void GPS_Get(void); 
-
     // // Compass 
     // void CompassRead(void); 
+
+    // GPS 
+    void GPSRead(void); 
+    bool GPSGet(void); 
 
     // // IMU 
     // void IMU_Read(void); 

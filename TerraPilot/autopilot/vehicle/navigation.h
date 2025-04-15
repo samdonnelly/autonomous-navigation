@@ -26,6 +26,9 @@
 //=======================================================================================
 // Classes 
 
+class Vehicle; 
+
+
 class VehicleNavigation 
 {
 public:   // public types 
@@ -40,16 +43,36 @@ public:   // public types
     struct Location 
     {
         int32_t latI, lonI, altI; 
-        // float altF; 
         double lat, lon, alt; 
     };
 
-private:   // Private members 
+private:   // private members 
+
+    struct Timers 
+    {
+        uint8_t gps; 
+    }
+    timers; 
+
+    union Status
+    {
+        struct 
+        {
+            uint32_t home_location : 1; 
+            uint32_t gps_lock      : 1; 
+        }; 
+        uint32_t flags; 
+    }
+    status; 
+
+    // Orientation 
+
+    // Position 
 
     double coordinate_lpf_gain;  // Low pass filter gain for GPS coordinates 
     int16_t true_north_offset;   // True north offset from magnetic north 
     
-public:   // Public members 
+public:   // public members 
     
     // Orientation 
     Vector accel, gyro, mag; 
@@ -82,6 +105,7 @@ public:   // public methods
     // Orientation 
 
     // Position 
+    void LocationUpdate(Vehicle &vehicle); 
     Location LocationCurrentGet(void); 
 }; 
 

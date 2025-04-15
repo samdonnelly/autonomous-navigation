@@ -62,8 +62,10 @@ void Boat::TimerCallback250ms(void *timer_arg)
 // 1s timer 
 void Boat::TimerCallback1s(void *timer_arg)
 {
-    // // Keep the current location up to date 
+    // Keep the current location up to date 
     // boat.CommsEventQueue((Event)CommsEvents::NAV_LOCATION_UPDATE); 
+    boat.CommsEventQueue((Event)CommsEvents::GPS_READ); 
+    boat.MainEventQueue((Event)MainEvents::GPS_UPDATE); 
 
     // // Queue events based on the state 
     // if (boat.main_state == MainStates::AUTO_STATE)
