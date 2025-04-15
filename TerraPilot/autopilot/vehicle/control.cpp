@@ -31,7 +31,12 @@
 // Constructor 
 VehicleControl::VehicleControl()
 {
-    // 
+    channels.throttle = PWM_NEUTRAL; 
+    channels.roll = PWM_NEUTRAL; 
+    channels.pitch = PWM_NEUTRAL; 
+    channels.yaw = PWM_NEUTRAL; 
+    channels.mode_control = PWM_NEUTRAL; 
+    channels.mode = PWM_NEUTRAL; 
 }
 
 //=======================================================================================
@@ -55,7 +60,7 @@ void VehicleControl::DataDecode(Vehicle &vehicle)
         xSemaphoreGive(vehicle.comms_mutex); 
 
         // We only decode the mode if there is new data so modes can't remain stuck on 
-        // if the transmitter is turned off. 
+        // if the transmitter is turned off (i.e. no new data coming in). 
         RCModeDecode(vehicle); 
     }
 }
@@ -95,12 +100,10 @@ void VehicleControl::RCModeDecode(Vehicle &vehicle)
             rc_mode = RC_MODE5; 
         }
 
+        // Map the provided mode to a state index for the vehicle and attempt to update 
+        // the vehicle state using that index. 
         vehicle.MainStateRCModeMap(rc_mode); 
-
-        if (rc_mode != vehicle.telemetry.MAVLinkHeartbeatGetMode())
-        {
-            vehicle.MainStateSelect(rc_mode); 
-        }
+        vehicle.MainStateSelect(rc_mode); 
     }
 }
 

@@ -39,6 +39,7 @@
 
 typedef uint8_t ParamIndex; 
 typedef mavlink_mission_item_int_t MissionItem; 
+typedef uint16_t MissionIndex, MissionSize; 
 
 //=======================================================================================
 
@@ -61,25 +62,17 @@ public:   // public types
     // Mission 
     struct MissionInfo 
     {
-        uint16_t mission_size;    // Number of mission items (not including home) 
-        uint16_t mission_index;   // Mission item being executed (not including home) 
-        uint32_t mission_id;      // ID number of stored mission 
-        uint8_t mission_type;     // Type of the stored mission 
+        std::array<MissionItem, MAX_MISSION_SIZE + HOME_OFFSET> items; 
+        uint16_t target;   // Target mission item index 
+        uint16_t size;     // Number of mission items 
+        uint32_t id;       // ID number of stored mission 
+        uint8_t type;      // Type of the stored mission 
     }; 
 
 private:   // private members 
 
-    // Mission - this may change as external storage is integrated 
-    std::array<MissionItem, MAX_MISSION_SIZE + HOME_OFFSET> mission; 
-
-public:   // public members 
-
-    // Mission - this may change as external storage is integrated 
-    uint16_t mission_size; 
-    uint16_t mission_index; 
-    uint32_t mission_id; 
-    uint8_t mission_type; 
-    MissionInfo mission_info; 
+    // Mission 
+    MissionInfo mission; 
 
 public:   // public methods 
 
@@ -96,7 +89,14 @@ public:   // public methods
     MissionItem MissionItemGet(uint16_t sequence); 
     void MissionItemSet(MissionItem &mission_item); 
     void MissionHomeSet(MissionItem &mission_item); 
+    MissionIndex MissionTargetGet(void); 
     bool MissionTargetSet(uint16_t sequence); 
+    MissionSize MissionSizeGet(void); 
+    bool MissionSizeSet(uint16_t size); 
+    uint8_t MissionTypeGet(void); 
+    void MissionTypeSet(uint8_t type); 
+    uint32_t MissionIDGet(void); 
+    uint32_t MissionIDUpdate(void); 
     void MissionClear(void); 
 }; 
 

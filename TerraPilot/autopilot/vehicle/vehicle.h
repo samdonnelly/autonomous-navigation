@@ -60,10 +60,10 @@ protected:   // Protected members
     enum class MainEvents : uint8_t {
         NO_EVENT, 
         INIT, 
-        TELEMETRY_DECODE, 
-        TELEMETRY_ENCODE, 
         RC_DECODE, 
         // REMOTE_CONTROL, 
+        TELEMETRY_DECODE, 
+        TELEMETRY_ENCODE, 
         NAV_HEADING_CALC, 
         NAV_LOCATION_CALC 
     } main_event; 

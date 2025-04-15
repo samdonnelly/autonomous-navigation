@@ -39,9 +39,15 @@ public:   // public types
     // Position 
     struct Location 
     {
-        int32_t lat, lon, altI; 
-        float altF; 
+        int32_t latI, lonI, altI; 
+        // float altF; 
+        double lat, lon, alt; 
     };
+
+private:   // Private members 
+
+    double coordinate_lpf_gain;  // Low pass filter gain for GPS coordinates 
+    int16_t true_north_offset;   // True north offset from magnetic north 
     
 public:   // Public members 
     
@@ -59,10 +65,19 @@ public:   // Public members
     uint16_t ground_speed; 
     uint16_t num_satellite; 
 
+private:   // private methods 
+
+    // Position 
+    void CoordinateFilter(Location new_data, Location &filtered_data) const; 
+    int32_t GPSRadius(Location current, Location target); 
+    int16_t GPSHeading(Location current, Location target); 
+    int16_t TrueNorthHeading(int16_t heading) const; 
+    int16_t HeadingError(int16_t current_heading, int16_t target_heading); 
+
 public:   // public methods 
 
     // Constructor 
-    VehicleNavigation() {}
+    VehicleNavigation(); 
 
     // Orientation 
 

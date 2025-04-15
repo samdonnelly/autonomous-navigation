@@ -635,6 +635,8 @@ void VehicleHardware::RCGet(VehicleControl::ChannelFunctions &channels)
     channels.aux4 = packet->items[IBUS_CH10]; 
     channels.aux5 = packet->items[IBUS_CH11]; 
     channels.aux6 = packet->items[IBUS_CH12]; 
+    channels.aux7 = packet->items[IBUS_CH13]; 
+    channels.aux8 = packet->items[IBUS_CH14]; 
 }
 
 //=======================================================================================

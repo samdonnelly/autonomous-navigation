@@ -344,13 +344,6 @@ void VehicleTelemetry::MAVLinkHeartbeatSetMode(uint8_t mode)
     mavlink.heartbeat_msg.custom_mode = (uint32_t)mode; 
 }
 
-
-// Get the current flight mode 
-uint8_t VehicleTelemetry::MAVLinkHeartbeatGetMode(void)
-{
-    return (uint8_t)mavlink.heartbeat_msg.custom_mode; 
-}
-
 //=======================================================================================
 
 
@@ -514,20 +507,21 @@ void VehicleTelemetry::MAVLinkMissionCountReceive(Vehicle &vehicle)
     // If the provided count is 0 then that's the same as clearing the vehicles currently 
     // stored mission. If the count is larger than the available mission item storage 
     // space then the upload must be rejected. Otherwise the mission upload sequence is 
-    // started. 
+    // started. The count is the number of mission items not including the home location 
+    // (index 0). 
     if (mavlink.mission_count_msg_gcs.count == HOME_INDEX)
     {
         // Clear the vehicle mission (but not the home position), update the mission size, 
         // generate a new mission ID and acknowledge that the mission has been cleared. 
 
         vehicle.memory.MissionClear(); 
-        MAVLinkMissionAckSend(MAV_MISSION_ACCEPTED, ++vehicle.memory.mission_id); 
+        MAVLinkMissionAckSend(MAV_MISSION_ACCEPTED, vehicle.memory.MissionIDUpdate()); 
     }
     else if (mavlink.mission_count_msg_gcs.count > MAX_MISSION_SIZE)
     {
         // The home location is stored at index 0 so the max number of mission items has 
         // to be less than the max mission storage size. 
-        MAVLinkMissionAckSend(MAV_MISSION_NO_SPACE, vehicle.memory.mission_id); 
+        MAVLinkMissionAckSend(MAV_MISSION_NO_SPACE, vehicle.memory.MissionIDGet()); 
     }
     else 
     {
@@ -616,10 +610,10 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
                 // Increment the mission ID to signify a new mission, update the mission 
                 // size, acknowledge a successful mission upload and end the sequence. 
                 status.mission_upload = FLAG_CLEAR; 
-                vehicle.memory.mission_size = mavlink.mission_count_msg_gcs.count + HOME_OFFSET; 
-                vehicle.memory.mission_type = mavlink.mission_count_msg_gcs.mission_type; 
+                vehicle.memory.MissionSizeSet(mavlink.mission_count_msg_gcs.count); 
+                vehicle.memory.MissionTypeSet(mavlink.mission_count_msg_gcs.mission_type); 
 
-                MAVLinkMissionAckSend(MAV_MISSION_ACCEPTED, ++vehicle.memory.mission_id); 
+                MAVLinkMissionAckSend(MAV_MISSION_ACCEPTED, vehicle.memory.MissionIDUpdate()); 
             }
             else 
             {
@@ -671,12 +665,9 @@ void VehicleTelemetry::MAVLinkMissionSetCurrentReceive(Vehicle &vehicle)
     }
 
     // Update the mission item if valid 
-    if (mavlink.mission_set_current_msg_gcs.seq < vehicle.memory.mission_size)
-    {
-        vehicle.memory.mission_index = mavlink.mission_set_current_msg_gcs.seq; 
-        status.mission_current = FLAG_SET; 
-        MAVLinkMissionCurrentSend(vehicle); 
-    }
+    vehicle.memory.MissionTargetSet(mavlink.mission_set_current_msg_gcs.seq); 
+    status.mission_current = FLAG_SET; 
+    MAVLinkMissionCurrentSend(vehicle); 
 }
 
 //==================================================
@@ -695,9 +686,9 @@ void VehicleTelemetry::MAVLinkMissionCountSend(Vehicle &vehicle)
         &msg, 
         system_id_gcs, 
         component_id_gcs, 
-        vehicle.memory.mission_size, 
-        vehicle.memory.mission_type, 
-        vehicle.memory.mission_id); 
+        vehicle.memory.MissionSizeGet(), 
+        vehicle.memory.MissionTypeGet(), 
+        vehicle.memory.MissionIDGet()); 
     MAVLinkMessageFormat(); 
 }
 
@@ -785,13 +776,13 @@ void VehicleTelemetry::MAVLinkMissionCurrentSend(Vehicle &vehicle)
             component_id, 
             channel, 
             &msg, 
-            vehicle.memory.mission_index,   // Sequence number 
-            vehicle.memory.mission_size,    // Total number of mission items 
-            MISSION_STATE_UNKNOWN,          // Mission state - not supported 
-            0,                              // Mission mode - not supported 
-            vehicle.memory.mission_id,      // Mission ID 
-            0,                              // Fence ID - not supported 
-            0);                             // Ralley point ID - not supported 
+            vehicle.memory.MissionTargetGet(),   // Current sequence/index/target 
+            vehicle.memory.MissionSizeGet(),     // Total number of mission items 
+            MISSION_STATE_UNKNOWN,               // Mission state - not supported 
+            0,                                   // Mission mode - not supported 
+            vehicle.memory.MissionIDGet(),       // Mission ID 
+            0,                                   // Fence ID - not supported 
+            0);                                  // Ralley point ID - not supported 
         MAVLinkMessageFormat(); 
     }
 }
@@ -809,7 +800,7 @@ void VehicleTelemetry::MAVLinkMissionItemReachedSend(Vehicle &vehicle)
             component_id, 
             channel, 
             &msg, 
-            vehicle.memory.mission_index); 
+            vehicle.memory.MissionTargetGet()); 
         MAVLinkMessageFormat(); 
     }
 }
@@ -957,9 +948,9 @@ void VehicleTelemetry::MAVLinkCommandDoSetHomeReceive(Vehicle &vehicle)
     {
         VehicleNavigation::Location home = vehicle.navigation.LocationCurrentGet(); 
 
-        mission_home.x = home.lat; 
-        mission_home.y = home.lon; 
-        mission_home.z = home.altF; 
+        mission_home.x = home.latI; 
+        mission_home.y = home.lonI; 
+        mission_home.z = home.alt; 
     }
 
     vehicle.memory.MissionHomeSet(mission_home); 
@@ -1362,9 +1353,9 @@ void VehicleTelemetry::MAVLinkPositionTargetGlobalIntSendPeriodic(Vehicle &vehic
             vehicle.auxiliary.time_usec,             // Time since boot 
             vehicle.navigation.coordinate_frame,     // Coordinate frame (MAV_FRAME) 
             vehicle.navigation.position_type_mask,   // Ignored dimensions (POSITION_TARGET_TYPEMASK) 
-            vehicle.navigation.current.lat,          // Latitude 
-            vehicle.navigation.current.lon,          // Longitude 
-            vehicle.navigation.current.altF,         // Altitude 
+            vehicle.navigation.current.latI,         // Latitude 
+            vehicle.navigation.current.lonI,         // Longitude 
+            vehicle.navigation.current.alt,          // Altitude 
             0.0,                                     // X velocity in NED frame (m/s) 
             0.0,                                     // Y velocity in NED frame (m/s) 
             0.0,                                     // Z velocity in NED frame (m/s) 

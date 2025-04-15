@@ -79,12 +79,12 @@ const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters =
 // Initialization 
 
 VehicleMemory::VehicleMemory()
-    : mission_size(HOME_OFFSET), 
-      mission_index(RESET), 
-      mission_id(RESET), 
-      mission_type(MAV_MISSION_TYPE_ALL) 
 {
-    memset((void *)&mission, RESET, sizeof(mission)); 
+    memset((void *)&mission.items, RESET, sizeof(mission.items)); 
+    mission.target = HOME_OFFSET; 
+    mission.size = HOME_OFFSET; 
+    mission.id = RESET; 
+    mission.type = MAV_MISSION_TYPE_MISSION; 
 }
 
 //=======================================================================================
@@ -148,9 +148,9 @@ void VehicleMemory::MissionLoad(void)
 {
     //==================================================
     // Test 
-
+    
     // Manually setting the home location for now 
-    mission[HOME_INDEX] = 
+    mission.items[HOME_INDEX] = 
     {
         .param1 = 0, 
         .param2 = 10, 
@@ -178,9 +178,9 @@ MissionItem VehicleMemory::MissionItemGet(uint16_t sequence)
 {
     MissionItem mission_item; 
 
-    if (sequence < mission_size)
+    if (sequence < mission.size)
     {
-        mission_item = mission[sequence]; 
+        mission_item = mission.items[sequence]; 
     }
     else 
     {
@@ -197,8 +197,8 @@ void VehicleMemory::MissionItemSet(MissionItem &mission_item)
     if (mission_item.seq < MAX_MISSION_SIZE)
     {
         uint16_t index = mission_item.seq + HOME_OFFSET; 
-        mission[index] = mission_item; 
-        mission[index].seq = index; 
+        mission.items[index] = mission_item; 
+        mission.items[index].seq = index; 
     }
 }
 
@@ -206,16 +206,28 @@ void VehicleMemory::MissionItemSet(MissionItem &mission_item)
 // Set the home location 
 void VehicleMemory::MissionHomeSet(MissionItem &mission_item)
 {
-    mission[HOME_INDEX] = mission_item; 
+    mission.items[HOME_INDEX] = mission_item; 
 }
 
 
-// Set the current mission item 
+// Get the target mission item index 
+MissionIndex VehicleMemory::MissionTargetGet(void)
+{
+    return mission.target; 
+}
+
+
+/**
+ * @brief Set the target mission item index 
+ * 
+ * @param sequence : index of mission to target 
+ * @return true/false : target index update success status 
+ */
 bool VehicleMemory::MissionTargetSet(uint16_t sequence)
 {
-    if (sequence < mission_size)
+    if (sequence < mission.size)
     {
-        mission_index = sequence; 
+        mission.target = sequence; 
         return true; 
     }
 
@@ -223,12 +235,101 @@ bool VehicleMemory::MissionTargetSet(uint16_t sequence)
 }
 
 
-// Clear the stored mission 
+/**
+ * @brief Get the total mission size 
+ * 
+ * @return MissionSize : mission size including the home location 
+ */
+MissionSize VehicleMemory::MissionSizeGet(void)
+{
+    return mission.size; 
+}
+
+
+/**
+ * @brief Set the total mission size 
+ * 
+ * @details Size should be provided as a count, not an index, meaning the size can be up 
+ *          to and including the max mission size. The provided size should also not 
+ *          count the home location as part of the size. The home location offset is 
+ *          added after verifying the size is within range as the home location will be 
+ *          used for mission item index 0. Mission Planner will upload missions with 
+ *          items and a count that exclude the home location which is why this is done. 
+ * 
+ * @param size : size of mission (not including the home location) 
+ * @return true/false : mission size set success status 
+ */
+bool VehicleMemory::MissionSizeSet(uint16_t size)
+{
+    if (size <= MAX_MISSION_SIZE)
+    {
+        mission.size = size + HOME_OFFSET; 
+        return true; 
+    }
+
+    return false; 
+}
+
+
+/**
+ * @brief Return the current mission type 
+ * 
+ * @return uint8_t : mission type 
+ */
+uint8_t VehicleMemory::MissionTypeGet(void)
+{
+    return mission.type; 
+}
+
+
+/**
+ * @brief Set the mission type 
+ * 
+ * @details This is provided by the GCS when a new mission is uploaded. On successful 
+ *          mission upload, the new type can be copied here. 
+ * 
+ * @param type : mission type 
+ */
+void VehicleMemory::MissionTypeSet(uint8_t type)
+{
+    mission.type = type; 
+}
+
+
+/**
+ * @brief Return the current mission ID number 
+ * 
+ * @return uint32_t : mission ID number 
+ */
+uint32_t VehicleMemory::MissionIDGet(void)
+{
+    return mission.id; 
+}
+
+
+/**
+ * @brief Update and return the mission ID number 
+ * 
+ * @details The mission ID number simply has to be different than the previous mission 
+ *          so the GCS can check which mission a vehicle has without reading the whole 
+ *          mission. This system increments the ID whenever there's a mission change 
+ *          such as a mission upload or mission clear. 
+ * 
+ * @return uint32_t : mission ID number 
+ */
+uint32_t VehicleMemory::MissionIDUpdate(void)
+{
+    return ++mission.id; 
+}
+
+
+/**
+ * @brief Clear the stored mission exluding the home location 
+ */
 void VehicleMemory::MissionClear(void)
 {
-    // Clear the mission but not the home location 
-    memset((void *)&mission[HOME_OFFSET], RESET, mission_size*sizeof(mission[0])); 
-    mission_size = RESET; 
+    memset((void *)&mission.items[HOME_OFFSET], RESET, MAX_MISSION_SIZE*sizeof(MissionItem)); 
+    mission.size = HOME_OFFSET; 
 }
 
 //=======================================================================================

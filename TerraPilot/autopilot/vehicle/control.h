@@ -37,17 +37,17 @@ public:   // public types
     {
         uint16_t throttle, roll, pitch, yaw; 
         uint16_t mode_control, mode; 
-        uint16_t aux1, aux2, aux3, aux4, aux5, aux6; 
+        uint16_t aux1, aux2, aux3, aux4, aux5, aux6, aux7, aux8; 
     };
 
     enum RCModes : uint8_t 
     {
-        RC_MODE1, 
-        RC_MODE2, 
-        RC_MODE3, 
-        RC_MODE4, 
-        RC_MODE5, 
-        RC_MODE6 
+        RC_MODE1,   // PWM: 0-1230 
+        RC_MODE2,   // PWM: 1231-1360 
+        RC_MODE3,   // PWM: 1361-1490 
+        RC_MODE4,   // PWM: 1491-1620 
+        RC_MODE5,   // PWM: 1621-1750 
+        RC_MODE6    // PWM: 1751+ 
     };
 
 private:   // private types 
@@ -59,7 +59,7 @@ private:   // private types
         PWM_MAX_MODE1 = 1230,   // Max PWM for mode 1 
         PWM_MAX_MODE2 = 1360,   // Max PWM for mode 2 
         PWM_MAX_MODE3 = 1490,   // Max PWM for mode 3 
-        PWM_NEUTRAL = 1500,     // Netral PWM  
+        PWM_NEUTRAL = 1500,     // Neutral PWM  
         PWM_MAX_MODE4 = 1620,   // Max PWM for mode 4 
         PWM_MAX_MODE5 = 1750,   // Max PWM for mode 5 
         PWM_AUX_HIGH = 1800,    // Aux switch is high 

@@ -161,13 +161,11 @@ void Boat::MainInitState(Boat& data, Event event)
     {
         data.MainStateEnter((uint8_t)MainStates::INIT_STATE, data.main_state_flags.flags); 
         
-        data.main_state_flags.hold_state = FLAG_SET; 
-
         // Start software timers 
         osTimerStart(data.periodic_timer_100ms.handler, data.periodic_timer_100ms.ticks); 
         osTimerStart(data.periodic_timer_250ms.handler, data.periodic_timer_250ms.ticks); 
         osTimerStart(data.periodic_timer_1s.handler, data.periodic_timer_1s.ticks); 
-
+        
         // Load a waypoint mission if it exists 
         data.memory.MissionLoad(); 
         // navigation.LoadMission(); 
@@ -178,6 +176,7 @@ void Boat::MainInitState(Boat& data, Event event)
     switch (data.main_event)
     {
         case MainEvents::INIT: 
+            data.main_state_flags.hold_state = FLAG_SET; 
             data.MainStateChange(); 
             break; 
         
