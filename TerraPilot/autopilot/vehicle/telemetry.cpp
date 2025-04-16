@@ -651,7 +651,14 @@ void VehicleTelemetry::MAVLinkMissionAckReceive(void)
 }
 
 
-// MAVLink: MISSION_SET_CURRENT receive 
+/**
+ * @brief MAVLink: MISSION_SET_CURRENT receive 
+ * 
+ * @details Mission Planner seems to use this mission command as opposed to 
+ *          MAV_CMD_DO_SET_MISSION_CURRENT to set the current mission target. 
+ * 
+ * @param vehicle : vehicle object 
+ */
 void VehicleTelemetry::MAVLinkMissionSetCurrentReceive(Vehicle &vehicle)
 {
     mavlink_msg_mission_set_current_decode(
@@ -727,7 +734,7 @@ void VehicleTelemetry::MAVLinkMissionItemIntSend(
 
     MissionItem mission_item = vehicle.memory.MissionItemGet(sequence); 
 
-    if (mission_item.seq == mavlink.mission_request_int_msg_gcs.seq)
+    if (mission_item.seq == sequence)
     {
         mission_item.target_system = system_id_gcs; 
         mission_item.target_component = component_id_gcs; 

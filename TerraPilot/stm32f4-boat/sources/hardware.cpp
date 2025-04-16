@@ -568,7 +568,7 @@ void VehicleHardware::GPSRead(void)
 
 bool VehicleHardware::GPSGet(void)
 {
-    // 
+    return false; 
 }
 
 //=======================================================================================

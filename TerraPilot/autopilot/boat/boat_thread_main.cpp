@@ -162,6 +162,7 @@ void Boat::MainInitState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::INIT_STATE, data.main_state_flags.flags); 
         
         // Start software timers 
+        osTimerStart(data.periodic_timer_50ms.handler, data.periodic_timer_50ms.ticks); 
         osTimerStart(data.periodic_timer_100ms.handler, data.periodic_timer_100ms.ticks); 
         osTimerStart(data.periodic_timer_250ms.handler, data.periodic_timer_250ms.ticks); 
         osTimerStart(data.periodic_timer_1s.handler, data.periodic_timer_1s.ticks); 

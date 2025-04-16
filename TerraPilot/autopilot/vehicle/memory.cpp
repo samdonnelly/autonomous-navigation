@@ -81,7 +81,7 @@ const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters =
 VehicleMemory::VehicleMemory()
 {
     memset((void *)&mission.items, RESET, sizeof(mission.items)); 
-    mission.target = HOME_OFFSET; 
+    mission.target = HOME_INDEX; 
     mission.size = HOME_OFFSET; 
     mission.id = RESET; 
     mission.type = MAV_MISSION_TYPE_MISSION; 
@@ -191,14 +191,20 @@ MissionItem VehicleMemory::MissionItemGet(uint16_t sequence)
 }
 
 
-// Set a mission item 
+/**
+ * @brief Set a mission item 
+ * 
+ * @details When uploading a mission to the vehicle, Mission Planner will send the home 
+ *          location it has stored locally as the first item (index 0) so no index 
+ *          correction is needed. 
+ * 
+ * @param mission_item : item and sequence to set 
+ */
 void VehicleMemory::MissionItemSet(MissionItem &mission_item)
 {
-    if (mission_item.seq < MAX_MISSION_SIZE)
+    if (mission_item.seq < mission.items.size())
     {
-        uint16_t index = mission_item.seq + HOME_OFFSET; 
-        mission.items[index] = mission_item; 
-        mission.items[index].seq = index; 
+        mission.items[mission_item.seq] = mission_item; 
     }
 }
 
@@ -250,20 +256,17 @@ MissionSize VehicleMemory::MissionSizeGet(void)
  * @brief Set the total mission size 
  * 
  * @details Size should be provided as a count, not an index, meaning the size can be up 
- *          to and including the max mission size. The provided size should also not 
- *          count the home location as part of the size. The home location offset is 
- *          added after verifying the size is within range as the home location will be 
- *          used for mission item index 0. Mission Planner will upload missions with 
- *          items and a count that exclude the home location which is why this is done. 
+ *          to and including the max mission size. Mission Planner counts the home 
+ *          location as the first mission item. 
  * 
  * @param size : size of mission (not including the home location) 
  * @return true/false : mission size set success status 
  */
 bool VehicleMemory::MissionSizeSet(uint16_t size)
 {
-    if (size <= MAX_MISSION_SIZE)
+    if (size <= mission.items.size())
     {
-        mission.size = size + HOME_OFFSET; 
+        mission.size = size; 
         return true; 
     }
 
