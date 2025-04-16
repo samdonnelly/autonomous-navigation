@@ -82,9 +82,29 @@ VehicleMemory::VehicleMemory()
 {
     memset((void *)&mission.items, RESET, sizeof(mission.items)); 
     mission.target = HOME_INDEX; 
-    mission.size = HOME_OFFSET; 
+    mission.size = RESET; 
     mission.id = RESET; 
     mission.type = MAV_MISSION_TYPE_MISSION; 
+
+    // Default home item info. May change with Mission Planner uploads. 
+    mission.items[HOME_INDEX] = 
+    {
+        .param1 = RESET,                              // Hold - home location will hold indefinitely 
+        .param2 = HOME_RADIUS,                        // Waypoint acceptance radius 
+        .param3 = RESET,                              // Waypoint pass radius - pass through 
+        .param4 = RESET,                              // Yaw angle at waypoint 
+        .x = RESET,                                   // Home latitude - set by system or GCS 
+        .y = RESET,                                   // Home longitude - set by system or GCS 
+        .z = RESET,                                   // Home altitude - set by system or GCS 
+        .seq = HOME_INDEX,                            // Waypoint ID - home location index 
+        .command = MAV_CMD_NAV_WAYPOINT,              // Command - treat as waypoint 
+        .target_system = VS_SYSTEM_ID,                // System ID - same as received mission item 
+        .target_component = MAV_COMP_ID_AUTOPILOT1,   // Component ID - same as received mission item 
+        .frame = MAV_FRAME_GLOBAL,                    // Coordinate frame 
+        .current = true,                              // Current target item - true to start 
+        .autocontinue = false,                        // Autocontinue to next waypoint - false 
+        .mission_type = MAV_MISSION_TYPE_MISSION      // Mission type - generic waypoint 
+    };
 }
 
 //=======================================================================================
@@ -149,31 +169,20 @@ void VehicleMemory::MissionLoad(void)
     //==================================================
     // Test 
     
-    // Manually setting the home location for now 
-    mission.items[HOME_INDEX] = 
-    {
-        .param1 = 0, 
-        .param2 = 10, 
-        .param3 = 10, 
-        .param4 = 0, 
-        .x = 506132550, 
-        .y = -1151204500, 
-        .z = 0, 
-        .seq = 0, 
-        .command = MAV_CMD_NAV_WAYPOINT, 
-        .target_system = VS_SYSTEM_ID_GCS, 
-        .target_component = MAV_COMP_ID_MISSIONPLANNER, 
-        .frame = MAV_FRAME_GLOBAL, 
-        .current = 0, 
-        .autocontinue = 0, 
-        .mission_type = MAV_MISSION_TYPE_MISSION 
-    };
+    // Force the home location to be set for testing in the absence of GPS. 
+    mission.size = HOME_OFFSET; 
+    MissionHomeLocationSet(506132550, -1151204500, 0); 
     
     //==================================================
 }
 
 
-// Get a mission item 
+/**
+ * @brief Get a mission item 
+ * 
+ * @param sequence : index of mission item to get 
+ * @return MissionItem : mission item based on sequence number 
+ */
 MissionItem VehicleMemory::MissionItemGet(uint16_t sequence)
 {
     MissionItem mission_item; 
@@ -209,14 +218,32 @@ void VehicleMemory::MissionItemSet(MissionItem &mission_item)
 }
 
 
-// Set the home location 
-void VehicleMemory::MissionHomeSet(MissionItem &mission_item)
+/**
+ * @brief Set the home location 
+ * 
+ * @details This provides a means to update the location only for the home position since 
+ *          the home position is stored as a mission item at index 0. 
+ * 
+ * @param lat : home latitude 
+ * @param lon : home longitude 
+ * @param alt : home altitude 
+ */
+void VehicleMemory::MissionHomeLocationSet(
+    int32_t lat, 
+    int32_t lon, 
+    float alt)
 {
-    mission.items[HOME_INDEX] = mission_item; 
+    mission.items[HOME_INDEX].x = lat; 
+    mission.items[HOME_INDEX].y = lon; 
+    mission.items[HOME_INDEX].z = alt; 
 }
 
 
-// Get the target mission item index 
+/**
+ * @brief Get the target mission item index 
+ * 
+ * @return MissionIndex : index of current target mission item 
+ */
 MissionIndex VehicleMemory::MissionTargetGet(void)
 {
     return mission.target; 
@@ -226,6 +253,8 @@ MissionIndex VehicleMemory::MissionTargetGet(void)
 /**
  * @brief Set the target mission item index 
  * 
+ * @details The 'current' status is also updated for the previous and new waypoints. 
+ * 
  * @param sequence : index of mission to target 
  * @return true/false : target index update success status 
  */
@@ -233,6 +262,8 @@ bool VehicleMemory::MissionTargetSet(uint16_t sequence)
 {
     if (sequence < mission.size)
     {
+        mission.items[mission.target].current = false; 
+        mission.items[sequence].current = true; 
         mission.target = sequence; 
         return true; 
     }
@@ -277,6 +308,8 @@ bool VehicleMemory::MissionSizeSet(uint16_t size)
 /**
  * @brief Return the current mission type 
  * 
+ * @details Types are based on MAV_MISSION_TYPE but this datatype is not explicitly used. 
+ * 
  * @return uint8_t : mission type 
  */
 uint8_t VehicleMemory::MissionTypeGet(void)
@@ -289,7 +322,8 @@ uint8_t VehicleMemory::MissionTypeGet(void)
  * @brief Set the mission type 
  * 
  * @details This is provided by the GCS when a new mission is uploaded. On successful 
- *          mission upload, the new type can be copied here. 
+ *          mission upload, the new type can be copied here. Types are based on 
+ *          MAV_MISSION_TYPE but this datatype is not explicitly used. 
  * 
  * @param type : mission type 
  */

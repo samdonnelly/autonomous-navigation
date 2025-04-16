@@ -61,6 +61,7 @@ protected:   // Protected members
     enum class MainEvents : uint8_t {
         NO_EVENT, 
         INIT, 
+        GPS_DISTANCE, 
         GPS_UPDATE, 
         RC_DECODE, 
         // REMOTE_CONTROL, 

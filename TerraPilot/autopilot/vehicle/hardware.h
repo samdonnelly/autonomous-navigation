@@ -24,6 +24,7 @@
 
 #include "system_tools.h" 
 #include "control.h" 
+#include "navigation.h" 
 
 //=======================================================================================
 
@@ -66,7 +67,7 @@ public:   // Public methods
 
     // GPS 
     void GPSRead(void); 
-    bool GPSGet(void); 
+    bool GPSGet(VehicleNavigation::Location &location); 
 
     // // IMU 
     // void IMU_Read(void); 

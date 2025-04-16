@@ -928,24 +928,41 @@ void VehicleTelemetry::MAVLinkCommandDoSetHomeReceive(Vehicle &vehicle)
 {
     MAVLinkCommandACKSend(MAV_CMD_DO_SET_HOME, MAV_RESULT_ACCEPTED); 
 
-    MissionItem mission_home = 
-    {
-        .param1 = mavlink.command_int_msg_gcs.param1, 
-        .param2 = mavlink.command_int_msg_gcs.param2, 
-        .param3 = mavlink.command_int_msg_gcs.param3, 
-        .param4 = mavlink.command_int_msg_gcs.param4, 
-        .x = mavlink.command_int_msg_gcs.x, 
-        .y = mavlink.command_int_msg_gcs.y, 
-        .z = mavlink.command_int_msg_gcs.z, 
-        .seq = HOME_INDEX, 
-        .command = mavlink.command_int_msg_gcs.command, 
-        .target_system = mavlink.command_int_msg_gcs.target_system, 
-        .target_component = mavlink.command_int_msg_gcs.target_component, 
-        .frame = mavlink.command_int_msg_gcs.frame, 
-        .current = RESET, 
-        .autocontinue = RESET, 
-        .mission_type = MAV_MISSION_TYPE_ALL 
-    }; 
+    // MissionItem mission_home = 
+    // {
+    //     .param1 = mavlink.command_int_msg_gcs.param1, 
+    //     .param2 = mavlink.command_int_msg_gcs.param2, 
+    //     .param3 = mavlink.command_int_msg_gcs.param3, 
+    //     .param4 = mavlink.command_int_msg_gcs.param4, 
+    //     .x = mavlink.command_int_msg_gcs.x, 
+    //     .y = mavlink.command_int_msg_gcs.y, 
+    //     .z = mavlink.command_int_msg_gcs.z, 
+    //     .seq = HOME_INDEX, 
+    //     .command = mavlink.command_int_msg_gcs.command, 
+    //     .target_system = mavlink.command_int_msg_gcs.target_system, 
+    //     .target_component = mavlink.command_int_msg_gcs.target_component, 
+    //     .frame = mavlink.command_int_msg_gcs.frame, 
+    //     .current = mavlink.command_int_msg_gcs.current, 
+    //     .autocontinue = mavlink.command_int_msg_gcs.autocontinue, 
+    //     .mission_type = MAV_MISSION_TYPE_ALL 
+    // }; 
+
+    // // If param1 is set that means the vehicles current location should be used to set 
+    // // the home position. A position lock is not checked for because Mission Planner 
+    // // won't send this command and specify that the vehicle use its current location as 
+    // // the home position unless the vehicle is already reporting a valid GPS position. 
+    // if (mavlink.command_int_msg_gcs.param1)
+    // {
+    //     VehicleNavigation::Location home = vehicle.navigation.LocationCurrentGet(); 
+
+    //     mission_home.x = home.latI; 
+    //     mission_home.y = home.lonI; 
+    //     mission_home.z = home.alt; 
+    // }
+
+    // vehicle.memory.MissionHomeLocationSet(mission_home); 
+
+    VehicleNavigation::Location home; 
 
     // If param1 is set that means the vehicles current location should be used to set 
     // the home position. A position lock is not checked for because Mission Planner 
@@ -953,14 +970,16 @@ void VehicleTelemetry::MAVLinkCommandDoSetHomeReceive(Vehicle &vehicle)
     // the home position unless the vehicle is already reporting a valid GPS position. 
     if (mavlink.command_int_msg_gcs.param1)
     {
-        VehicleNavigation::Location home = vehicle.navigation.LocationCurrentGet(); 
-
-        mission_home.x = home.latI; 
-        mission_home.y = home.lonI; 
-        mission_home.z = home.alt; 
+        home = vehicle.navigation.LocationCurrentGet(); 
+    }
+    else 
+    {
+        home.latI = mavlink.command_int_msg_gcs.x; 
+        home.lonI = mavlink.command_int_msg_gcs.y; 
+        home.alt = mavlink.command_int_msg_gcs.z; 
     }
 
-    vehicle.memory.MissionHomeSet(mission_home); 
+    vehicle.memory.MissionHomeLocationSet(home.latI, home.lonI, home.alt); 
 
     // Respond with the new home position so Mission Planner knows it worked. 
     MAVLinkHomePositionSend(vehicle); 
@@ -1163,7 +1182,7 @@ void VehicleTelemetry::MAVLinkAutopilotVersionSend(void)
 void VehicleTelemetry::MAVLinkHomePositionSend(Vehicle &vehicle)
 {
     mavlink_home_position_t home_position; 
-    mavlink_mission_item_int_t home = vehicle.memory.MissionItemGet(HOME_INDEX); 
+    MissionItem home = vehicle.memory.MissionItemGet(HOME_INDEX); 
 
     // The other fields of HOME_POSITION are not currently supported. 
     home_position.latitude = home.x; 
@@ -1223,6 +1242,8 @@ void VehicleTelemetry::MAVLinkGPSRawIntSendPeriodic(Vehicle &vehicle)
     {
         mavlink.gps_raw_int_msg_timing.count = RESET; 
 
+        VehicleNavigation::Location location = vehicle.navigation.LocationCurrentGet(); 
+
         mavlink_msg_gps_raw_int_pack_chan(
             system_id, 
             component_id, 
@@ -1230,9 +1251,9 @@ void VehicleTelemetry::MAVLinkGPSRawIntSendPeriodic(Vehicle &vehicle)
             &msg, 
             vehicle.auxiliary.time_usec,        // Timestamp 
             vehicle.navigation.fix_type,        // GPS fix type 
-            vehicle.navigation.current.lat,     // Latitude 
-            vehicle.navigation.current.lon,     // Longitude 
-            vehicle.navigation.current.altI,    // Altitude 
+            location.latI,                      // Latitude 
+            location.lonI,                      // Longitude 
+            location.altI,                      // Altitude 
             0xFFFF,                             // GPS HDOP horizontal dilution of position 
             0xFFFF,                             // GPS VDOP vertical dilution of position 
             vehicle.navigation.ground_speed,    // GPS ground speed 
@@ -1352,6 +1373,8 @@ void VehicleTelemetry::MAVLinkPositionTargetGlobalIntSendPeriodic(Vehicle &vehic
     {
         mavlink.position_target_global_int_msg_timing.count = RESET; 
 
+        VehicleNavigation::Location location = vehicle.navigation.LocationCurrentGet(); 
+
         mavlink_msg_position_target_global_int_pack_chan(
             system_id, 
             component_id, 
@@ -1360,9 +1383,9 @@ void VehicleTelemetry::MAVLinkPositionTargetGlobalIntSendPeriodic(Vehicle &vehic
             vehicle.auxiliary.time_usec,             // Time since boot 
             vehicle.navigation.coordinate_frame,     // Coordinate frame (MAV_FRAME) 
             vehicle.navigation.position_type_mask,   // Ignored dimensions (POSITION_TARGET_TYPEMASK) 
-            vehicle.navigation.current.latI,         // Latitude 
-            vehicle.navigation.current.lonI,         // Longitude 
-            vehicle.navigation.current.alt,          // Altitude 
+            location.latI,                           // Latitude 
+            location.lonI,                           // Longitude 
+            location.alt,                            // Altitude 
             0.0,                                     // X velocity in NED frame (m/s) 
             0.0,                                     // Y velocity in NED frame (m/s) 
             0.0,                                     // Z velocity in NED frame (m/s) 
@@ -1438,20 +1461,22 @@ void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle)
     {
         mavlink.global_pos_int_msg_timing.count = RESET; 
 
+        VehicleNavigation::Location location = vehicle.navigation.LocationCurrentGet(); 
+
         mavlink_msg_global_position_int_pack_chan(
             system_id, 
             component_id, 
             channel, 
             &msg, 
-            vehicle.auxiliary.time_usec,       // Time since boot 
-            vehicle.navigation.current.lat,    // Latitude 
-            vehicle.navigation.current.lon,    // Longitude 
-            vehicle.navigation.current.altI,   // Altitude 
-            vehicle.navigation.current.altI,   // Relative altitude (above home) 
-            0,                                 // X velocity 
-            0,                                 // Y velocity 
-            0,                                 // Z velocity 
-            vehicle.navigation.heading);       // Heading (yaw angle) 
+            vehicle.auxiliary.time_usec,   // Time since boot 
+            location.latI,                 // Latitude 
+            location.lonI,                 // Longitude 
+            location.altI,                 // Altitude 
+            location.altI,                 // Relative altitude (above home) 
+            0,                             // X velocity 
+            0,                             // Y velocity 
+            0,                             // Z velocity 
+            vehicle.navigation.heading);   // Heading (yaw angle) 
         MAVLinkMessageFormat(); 
     }
 }

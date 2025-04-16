@@ -46,6 +46,8 @@ VehicleNavigation::VehicleNavigation()
     timers.gps = RESET; 
 
     status.flags = RESET; 
+
+    coordinate_lpf_gain = 0.5;   // Make parameter? 
 }
 
 //=======================================================================================
@@ -69,7 +71,7 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
         // Get a copy of the data so we don't have to hold the comms mutex throughout the 
         // whole decoding process. 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        status.gps_lock = vehicle.hardware.GPSGet(); 
+        status.gps_lock = vehicle.hardware.GPSGet(location_current); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
         timers.gps = RESET; 
@@ -78,23 +80,79 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
     // Timing 
     if (status.gps_lock && (timers.gps++ >= VS_GPS_TIMEOUT))
     {
+        // This helps to detect if the GPS device has been lost in some way. If no data 
+        // is coming in then we manually remove GPS lock so other functions can't use 
+        // old data. 
         status.gps_lock = FLAG_CLEAR; 
     }
 
     // Home location 
     if (!status.home_location && status.gps_lock)
     {
-        // MissionItem mission; 
-        // vehicle.memory.MissionHomeSet(); 
+        // Make sure allow time for the GPS to narrow in on the location before setting. 
+
+        // Set the home location to the current location as soon as it becomes. This can 
+        // be updated by the GCS later but autonomous missions and Mission Planner 
+        // require a home location. 
         status.home_location = FLAG_SET; 
+        vehicle.memory.MissionHomeLocationSet(location_current.latI, 
+                                              location_current.lonI, 
+                                              location_current.alt); 
+        
+        // The filtered location is set to the current location as soon as a connection 
+        // becomes available. This prevents the filtered location needing time to become 
+        // accurate since it will be {0, 0, 0} on startup. 
+        location_filtered = location_current; 
     }
+}
+
+
+/**
+ * @brief Find the distance between the vehicle location and target waypoint 
+ */
+void VehicleNavigation::WaypointDistance(void)
+{
+    if (status.gps_lock)
+    {
+        // Get the updated location by reading the GPS device coordinates then filtering 
+        // the result. 
+        // coordinate_filter(position, current); 
+        CoordinateFilter(location_current, location_filtered); 
+    
+        // Calculate the distance to the target location and the heading needed to get 
+        // there. 
+        // radius = gps_radius(current, target); 
+        // coordinate_heading = gps_heading(current, target); 
+    
+        // Check if the distance to the target is within the threshold. If so, the 
+        // target is considered "hit" and we can move to the next target. 
+        // if (radius < coordinate_radius)
+        // {
+        //     // Adjust waypoint index 
+        //     if (++waypoint_index >= num_gps_waypoints)
+        //     {
+        //         waypoint_index = CLEAR; 
+        //     }
+    
+        //     // Update the target waypoint 
+        //     SetTargetLocation(waypoints[waypoint_index]); 
+        // }
+    }
+    
+}
+
+
+// Get the navigation status 
+uint8_t VehicleNavigation::NavigationStatusGet(void)
+{
+    return status.gps_lock; 
 }
 
 
 // Get the current vehicle location 
 VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)
 {
-    return current; 
+    return location_current; 
 }
 
 //=======================================================================================
@@ -103,14 +161,14 @@ VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)
 //=======================================================================================
 // Calculations 
 
-// // Coordinate filter 
-// void VehicleNavigation::CoordinateFilter(
-//     Location new_data, 
-//     Location &filtered_data) const
-// {
-//     filtered_data.lat += (new_data.lat - filtered_data.lat)*coordinate_lpf_gain; 
-//     filtered_data.lon += (new_data.lon - filtered_data.lon)*coordinate_lpf_gain; 
-// }
+// Coordinate filter 
+void VehicleNavigation::CoordinateFilter(
+    Location new_location, 
+    Location &filtered_location) const
+{
+    filtered_location.lat += (new_location.lat - filtered_location.lat)*coordinate_lpf_gain; 
+    filtered_location.lon += (new_location.lon - filtered_location.lon)*coordinate_lpf_gain; 
+}
 
 
 // // GPS radius calculation 

@@ -39,11 +39,11 @@ public:   // public types
         int16_t x, y, z; 
     };
 
-    // Position 
+    // Location 
     struct Location 
     {
         int32_t latI, lonI, altI; 
-        double lat, lon, alt; 
+        float lat, lon, alt; 
     };
 
 private:   // private members 
@@ -67,9 +67,10 @@ private:   // private members
 
     // Orientation 
 
-    // Position 
+    // Location 
+    Location location_current, location_filtered; 
 
-    double coordinate_lpf_gain;  // Low pass filter gain for GPS coordinates 
+    float coordinate_lpf_gain;   // Low pass filter gain for GPS coordinates 
     int16_t true_north_offset;   // True north offset from magnetic north 
     
 public:   // public members 
@@ -79,8 +80,8 @@ public:   // public members
     float roll, pitch, yaw; 
     int16_t heading, target_heading; 
     
-    // Position 
-    Location current, target, previous; 
+    // Location 
+    Location location_target, location_previous; 
     GPS_FIX_TYPE fix_type; 
     MAV_FRAME coordinate_frame; 
     uint16_t position_type_mask; 
@@ -90,12 +91,12 @@ public:   // public members
 
 private:   // private methods 
 
-    // Position 
-    void CoordinateFilter(Location new_data, Location &filtered_data) const; 
-    int32_t GPSRadius(Location current, Location target); 
-    int16_t GPSHeading(Location current, Location target); 
-    int16_t TrueNorthHeading(int16_t heading) const; 
-    int16_t HeadingError(int16_t current_heading, int16_t target_heading); 
+    // Location 
+    void CoordinateFilter(Location new_location, Location &filtered_location) const; 
+    // int32_t GPSRadius(Location current, Location target); 
+    // int16_t GPSHeading(Location current, Location target); 
+    // int16_t TrueNorthHeading(int16_t heading) const; 
+    // int16_t HeadingError(int16_t current_heading, int16_t target_heading); 
 
 public:   // public methods 
 
@@ -104,9 +105,11 @@ public:   // public methods
 
     // Orientation 
 
-    // Position 
+    // Location 
     void LocationUpdate(Vehicle &vehicle); 
+    void WaypointDistance(void); 
     Location LocationCurrentGet(void); 
+    uint8_t NavigationStatusGet(void); 
 }; 
 
 //=======================================================================================

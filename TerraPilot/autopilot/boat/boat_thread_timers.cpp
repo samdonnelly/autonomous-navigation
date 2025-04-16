@@ -67,12 +67,11 @@ void Boat::TimerCallback1s(void *timer_arg)
     boat.CommsEventQueue((Event)CommsEvents::GPS_READ); 
     boat.MainEventQueue((Event)MainEvents::GPS_UPDATE); 
 
-    // // Queue events based on the state 
-    // if (boat.main_state == MainStates::AUTO_STATE)
-    // {
-    //     // Perform navigation location calculations when in the auto state 
-    //     boat.MainEventQueue((Event)MainEvents::NAV_LOCATION_CALC); 
-    // }
+    // Queue events based on the state 
+    if (boat.main_state == MainStates::AUTO_STATE)
+    {
+        boat.MainEventQueue((Event)MainEvents::GPS_DISTANCE); 
+    }
     // else if (boat.main_state == MainStates::MANUAL_STATE)
     // {
     //     // Check that the radio is still connected when in manual mode 

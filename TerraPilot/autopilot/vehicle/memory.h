@@ -30,6 +30,7 @@
 #define MAX_MISSION_SIZE 10 
 #define HOME_OFFSET 1 
 #define HOME_INDEX 0 
+#define HOME_RADIUS 3         // meters 
 
 //=======================================================================================
 
@@ -88,7 +89,7 @@ public:   // public methods
     void MissionLoad(void); 
     MissionItem MissionItemGet(uint16_t sequence); 
     void MissionItemSet(MissionItem &mission_item); 
-    void MissionHomeSet(MissionItem &mission_item); 
+    void MissionHomeLocationSet(int32_t lat, int32_t lon, float alt); 
     MissionIndex MissionTargetGet(void); 
     bool MissionTargetSet(uint16_t sequence); 
     MissionSize MissionSizeGet(void); 

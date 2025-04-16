@@ -53,22 +53,7 @@
 
 class Hardware 
 {
-public:   // public members 
-
-    // UART/Serial 
-    // struct SerialData 
-    // {
-    //     USART_TypeDef *uart; 
-    //     DMA_Stream_TypeDef *dma_stream; 
-    //     uint8_t cb[TELEMETRY_MSG_BUFF_SIZE];              // Circular buffer populated by DMA 
-    //     cb_index_t cb_index;                           // Circular buffer indexing info 
-    //     dma_index_t dma_index;                         // DMA transfer indexing info 
-    //     uint8_t data_in[TELEMETRY_MSG_BUFF_SIZE];    // Buffer that stores latest UART input 
-    //     uint16_t data_in_index;                        // Data input buffer index 
-    //     uint8_t data_out[TELEMETRY_MSG_BUFF_SIZE];   // Buffer that stores outgoing data 
-    //     uint16_t data_out_size;                        // Size of the outgoing data 
-    // }
-    // telemetry_data, rc_data; 
+public:   // public types 
 
     template <size_t SIZE>
     struct SerialData 
@@ -83,6 +68,8 @@ public:   // public members
         uint8_t data_out[SIZE];           // Buffer that stores outgoing data 
         uint16_t data_out_size;           // Size of the outgoing data 
     };
+
+public:   // public members 
 
     // Telemetry 
     SerialData<TELEMETRY_MSG_BUFF_SIZE> telemetry; 
@@ -566,7 +553,7 @@ void VehicleHardware::GPSRead(void)
 }
 
 
-bool VehicleHardware::GPSGet(void)
+bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 {
     return false; 
 }

@@ -62,6 +62,9 @@ void VehicleControl::DataDecode(Vehicle &vehicle)
         // We only decode the mode if there is new data so modes can't remain stuck on 
         // if the transmitter is turned off (i.e. no new data coming in). 
         RCModeDecode(vehicle); 
+
+        // Add a timer to check for an RC connection. If connection is lost then outputs 
+        // must be stopped. 
     }
 }
 

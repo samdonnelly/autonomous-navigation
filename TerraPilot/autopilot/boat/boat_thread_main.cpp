@@ -500,6 +500,10 @@ void Boat::MainAutoState(Boat& data, Event event)
         // case MainEvents::NAV_LOCATION_CALC: 
         //     data.navigation.LocationCalc(data); 
         //     break; 
+
+        case MainEvents::GPS_DISTANCE: 
+            data.navigation.WaypointDistance(); 
+            break; 
         
         default: 
             data.MainCommonEvents(data.main_event); 
@@ -673,6 +677,7 @@ void Boat::MainResetState(Boat& data, Event event)
         data.main_state_flags.flags = RESET; 
 
         // Stop the software timers 
+        osTimerStop(data.periodic_timer_50ms.handler); 
         osTimerStop(data.periodic_timer_100ms.handler); 
         osTimerStop(data.periodic_timer_250ms.handler); 
         osTimerStop(data.periodic_timer_1s.handler); 
