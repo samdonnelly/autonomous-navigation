@@ -607,11 +607,13 @@ void VehicleTelemetry::MAVLinkMissionItemIntReceive(Vehicle &vehicle)
             // upload sequence is done. Otherwise proceed to request the next item. 
             if (mavlink.mission_item_int_msg_gcs.seq >= (mavlink.mission_count_msg_gcs.count - 1))
             {
-                // Increment the mission ID to signify a new mission, update the mission 
-                // size, acknowledge a successful mission upload and end the sequence. 
+                // Mission upload complete. Update the mission size and type, reset the 
+                // mission target, acknowledge a successful mission upload and end the 
+                // sequence. 
                 status.mission_upload = FLAG_CLEAR; 
                 vehicle.memory.MissionSizeSet(mavlink.mission_count_msg_gcs.count); 
                 vehicle.memory.MissionTypeSet(mavlink.mission_count_msg_gcs.mission_type); 
+                vehicle.memory.MissionTargetSet(HOME_OFFSET); 
 
                 MAVLinkMissionAckSend(MAV_MISSION_ACCEPTED, vehicle.memory.MissionIDUpdate()); 
             }

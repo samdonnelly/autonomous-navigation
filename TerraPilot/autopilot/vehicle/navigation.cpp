@@ -21,6 +21,49 @@
 
 
 //=======================================================================================
+// Notes 
+
+// Home location access points: 
+// - Vehicle updates based on first obtained GPS position 
+// 	 - Check first to see if the home location has been set. Don't want to overwrite it 
+//     if it's already been set. 
+// 	 - If it has not been set then set the home location and set the home location flag. 
+// - Mission Planner does a mission upload (home location at mission index 0) 
+// 	 - Home location has been set 
+// 	 - Set the home location flag 
+// 	 - Mission Planner won't upload a mission without the home position set locally in 
+//     the application. It then 
+// 	   proceeds to send the home location as mission item 0. 
+// - Mission Planner manually updates the home position 
+// 	 - Home location has been set 
+// 	 - Set the home location flag 
+// - The vehicle loads a mission (home position at index 0) from memory 
+// 	 - This can happen on startup and when the system needs to reset (without powering 
+//     down) 
+// 	 - Home location has not been set, only read from historical data 
+// 	 - In this case, we don't want to use the loaded home position as the home location 
+//     because it has not been 
+// 	   explicity set, only read from recorded data. 
+// 	 - Do not set the home location flag. 
+
+// We need access to the home location (setter/getter) 
+
+// But what if the system resets mid-mission? Does it then update it's home position to 
+// the spot it reset? 
+// 	- Solved by no explicitly clearing the home location flag in mission load 
+
+// Mission Upload from Mission Planner doesn't have a means to set the home location 
+// flag yet. 
+// 	- It does now! 
+
+// The filtered location won't be initialized to the first obtained GPS position now that 
+// the home location flag is now in the memory module and accessed elsewhere. 
+// 	- Fixed by adding a dedicated flag to monitor GPS status changes. 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Macros 
 
 #define EARTH_RADIUS 6371         // Average radius of the Earth (km) 
@@ -61,7 +104,11 @@ VehicleNavigation::VehicleNavigation()
 //=======================================================================================
 // Position 
 
-// Update the vehicle location 
+/**
+ * @brief Update the vehicle location data 
+ * 
+ * @param vehicle : vehicle object 
+ */
 void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
 {
     if (vehicle.hardware.data_ready.gps_ready == FLAG_SET)
@@ -77,32 +124,51 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
         timers.gps = RESET; 
     }
 
-    // Timing 
-    if (status.gps_lock && (timers.gps++ >= VS_GPS_TIMEOUT))
-    {
-        // This helps to detect if the GPS device has been lost in some way. If no data 
-        // is coming in then we manually remove GPS lock so other functions can't use 
-        // old data. 
-        status.gps_lock = FLAG_CLEAR; 
-    }
+    LocationChecks(vehicle); 
+}
 
-    // Home location 
-    if (!status.home_location && status.gps_lock)
-    {
-        // Make sure allow time for the GPS to narrow in on the location before setting. 
 
-        // Set the home location to the current location as soon as it becomes. This can 
-        // be updated by the GCS later but autonomous missions and Mission Planner 
-        // require a home location. 
-        status.home_location = FLAG_SET; 
+/**
+ * @brief GPS data checks 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::LocationChecks(Vehicle &vehicle)
+{
+    // If the home location has not yet been set and the vehicle has a GPS position lock 
+    // then the home locaton is set to the current location. The home location can also 
+    // be set using Mission Planner either from a mission upload (home location uploaded 
+    // as mission item 0) or a manual home location update command. It's important to 
+    // know if Mission Planner has already set the home location so we don't overwrite 
+    // it which is done by checking the home location status. 
+    if ((vehicle.memory.MissionHomeLocationStatus() == false) && status.gps_lock)
+    {
         vehicle.memory.MissionHomeLocationSet(location_current.latI, 
                                               location_current.lonI, 
                                               location_current.alt); 
-        
-        // The filtered location is set to the current location as soon as a connection 
-        // becomes available. This prevents the filtered location needing time to become 
-        // accurate since it will be {0, 0, 0} on startup. 
+    }
+
+    // The filtered location is set to the current location as soon as a GPS connection 
+    // becomes available after previously not being available. This prevents the filtered 
+    // location needing time to become accurate since it will be {0, 0, 0} on startup. 
+    if (!status.gps_status_change && status.gps_lock)
+    {
+        status.gps_status_change = FLAG_SET; 
         location_filtered = location_current; 
+    }
+    else if (status.gps_status_change && !status.gps_lock)
+    {
+        status.gps_status_change = FLAG_CLEAR; 
+    }
+
+    // A timer is used to detect the physical loss of a GPS device. This is a case where 
+    // GPS data is no longer being received, regardless of position lock or not. If no 
+    // data has come in after a certain period of time then position lock is manually 
+    // removed to prevent the vehicle from operating on old data (since the lack of new 
+    // data prevents it from being updated). 
+    if (status.gps_lock && (timers.gps++ >= VS_GPS_TIMEOUT))
+    {
+        status.gps_lock = FLAG_CLEAR; 
     }
 }
 
@@ -110,14 +176,16 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
 /**
  * @brief Find the distance between the vehicle location and target waypoint 
  */
-void VehicleNavigation::WaypointDistance(void)
+void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
 {
     if (status.gps_lock)
     {
         // Get the updated location by reading the GPS device coordinates then filtering 
         // the result. 
-        // coordinate_filter(position, current); 
         CoordinateFilter(location_current, location_filtered); 
+
+        MissionIndex target_index = vehicle.memory.MissionTargetGet(); 
+        MissionItem target_item = vehicle.memory.MissionItemGet(target_index); 
     
         // Calculate the distance to the target location and the heading needed to get 
         // there. 
@@ -137,15 +205,10 @@ void VehicleNavigation::WaypointDistance(void)
         //     // Update the target waypoint 
         //     SetTargetLocation(waypoints[waypoint_index]); 
         // }
+
+        // Mission item reached 
     }
     
-}
-
-
-// Get the navigation status 
-uint8_t VehicleNavigation::NavigationStatusGet(void)
-{
-    return status.gps_lock; 
 }
 
 

@@ -72,6 +72,16 @@ public:   // public types
 
 private:   // private members 
 
+    union Status
+    {
+        struct 
+        {
+            uint32_t home_location : 1; 
+        }; 
+        uint32_t flags; 
+    }
+    status; 
+
     // Mission 
     MissionInfo mission; 
 
@@ -90,10 +100,11 @@ public:   // public methods
     MissionItem MissionItemGet(uint16_t sequence); 
     void MissionItemSet(MissionItem &mission_item); 
     void MissionHomeLocationSet(int32_t lat, int32_t lon, float alt); 
+    bool MissionHomeLocationStatus(void); 
     MissionIndex MissionTargetGet(void); 
     bool MissionTargetSet(uint16_t sequence); 
     MissionSize MissionSizeGet(void); 
-    bool MissionSizeSet(uint16_t size); 
+    void MissionSizeSet(uint16_t size); 
     uint8_t MissionTypeGet(void); 
     void MissionTypeSet(uint8_t type); 
     uint32_t MissionIDGet(void); 

@@ -105,6 +105,8 @@ VehicleMemory::VehicleMemory()
         .autocontinue = false,                        // Autocontinue to next waypoint - false 
         .mission_type = MAV_MISSION_TYPE_MISSION      // Mission type - generic waypoint 
     };
+
+    status.flags = RESET; 
 }
 
 //=======================================================================================
@@ -166,11 +168,17 @@ ParamIndex VehicleMemory::ParameterSet(
 // Load a stored mission if it exists 
 void VehicleMemory::MissionLoad(void)
 {
+    // Do not set the home location flag. Retrieving the home position from memory 
+    // (mission item 0) is not the same as explicitly setting the home location. 
+    // The home location flag is also not cleared because we don't want the system to 
+    // change the home position in the event of a reset. The home position flag will be 
+    // cleared on startup which will prompt the system to obtain an updated home 
+    // position for the current session. 
+
     //==================================================
     // Test 
     
     // Force the home location to be set for testing in the absence of GPS. 
-    mission.size = HOME_OFFSET; 
     MissionHomeLocationSet(506132550, -1151204500, 0); 
     
     //==================================================
@@ -205,7 +213,9 @@ MissionItem VehicleMemory::MissionItemGet(uint16_t sequence)
  * 
  * @details When uploading a mission to the vehicle, Mission Planner will send the home 
  *          location it has stored locally as the first item (index 0) so no index 
- *          correction is needed. 
+ *          correction is needed. If the home location is seen then the home location 
+ *          flag is set so the vehicle won't set it's own home position during the 
+ *          startup sequence. 
  * 
  * @param mission_item : item and sequence to set 
  */
@@ -214,6 +224,11 @@ void VehicleMemory::MissionItemSet(MissionItem &mission_item)
     if (mission_item.seq < mission.items.size())
     {
         mission.items[mission_item.seq] = mission_item; 
+
+        if (mission_item.seq == HOME_INDEX)
+        {
+            status.home_location = FLAG_SET; 
+        }
     }
 }
 
@@ -222,7 +237,9 @@ void VehicleMemory::MissionItemSet(MissionItem &mission_item)
  * @brief Set the home location 
  * 
  * @details This provides a means to update the location only for the home position since 
- *          the home position is stored as a mission item at index 0. 
+ *          the home position is stored as a mission item at index 0. If the mission size 
+ *          is zero it means the home position hasn't been set yet so the mission size is 
+ *          updated to reflect this. 
  * 
  * @param lat : home latitude 
  * @param lon : home longitude 
@@ -236,6 +253,26 @@ void VehicleMemory::MissionHomeLocationSet(
     mission.items[HOME_INDEX].x = lat; 
     mission.items[HOME_INDEX].y = lon; 
     mission.items[HOME_INDEX].z = alt; 
+
+    status.home_location = FLAG_SET; 
+
+    // If the mission size is greater than 0 it means there are mission items that we 
+    // can't ignore. 
+    if (mission.size == RESET)
+    {
+        mission.size = HOME_OFFSET; 
+    }
+}
+
+
+/**
+ * @brief Indicates if the home position has been set or not 
+ * 
+ * @return true/false : home location set status 
+ */
+bool VehicleMemory::MissionHomeLocationStatus(void)
+{
+    return status.home_location; 
 }
 
 
@@ -288,20 +325,14 @@ MissionSize VehicleMemory::MissionSizeGet(void)
  * 
  * @details Size should be provided as a count, not an index, meaning the size can be up 
  *          to and including the max mission size. Mission Planner counts the home 
- *          location as the first mission item. 
+ *          location as the first mission item. If the size is larger than the available 
+ *          mission storage space then it defaults to the max size. 
  * 
  * @param size : size of mission (not including the home location) 
- * @return true/false : mission size set success status 
  */
-bool VehicleMemory::MissionSizeSet(uint16_t size)
+void VehicleMemory::MissionSizeSet(uint16_t size)
 {
-    if (size <= mission.items.size())
-    {
-        mission.size = size; 
-        return true; 
-    }
-
-    return false; 
+    mission.size = (size <= mission.items.size()) ? size : mission.items.size(); 
 }
 
 

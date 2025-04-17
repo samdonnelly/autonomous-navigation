@@ -58,8 +58,8 @@ private:   // private members
     {
         struct 
         {
-            uint32_t home_location : 1; 
-            uint32_t gps_lock      : 1; 
+            uint32_t gps_lock          : 1; 
+            uint32_t gps_status_change : 1; 
         }; 
         uint32_t flags; 
     }
@@ -92,6 +92,7 @@ public:   // public members
 private:   // private methods 
 
     // Location 
+    void LocationChecks(Vehicle &vehicle); 
     void CoordinateFilter(Location new_location, Location &filtered_location) const; 
     // int32_t GPSRadius(Location current, Location target); 
     // int16_t GPSHeading(Location current, Location target); 
@@ -107,9 +108,8 @@ public:   // public methods
 
     // Location 
     void LocationUpdate(Vehicle &vehicle); 
-    void WaypointDistance(void); 
+    void WaypointDistance(Vehicle &vehicle); 
     Location LocationCurrentGet(void); 
-    uint8_t NavigationStatusGet(void); 
 }; 
 
 //=======================================================================================

@@ -502,7 +502,7 @@ void Boat::MainAutoState(Boat& data, Event event)
         //     break; 
 
         case MainEvents::GPS_DISTANCE: 
-            data.navigation.WaypointDistance(); 
+            data.navigation.WaypointDistance(data); 
             break; 
         
         default: 
