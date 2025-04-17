@@ -928,40 +928,6 @@ void VehicleTelemetry::MAVLinkCommandDoSetHomeReceive(Vehicle &vehicle)
 {
     MAVLinkCommandACKSend(MAV_CMD_DO_SET_HOME, MAV_RESULT_ACCEPTED); 
 
-    // MissionItem mission_home = 
-    // {
-    //     .param1 = mavlink.command_int_msg_gcs.param1, 
-    //     .param2 = mavlink.command_int_msg_gcs.param2, 
-    //     .param3 = mavlink.command_int_msg_gcs.param3, 
-    //     .param4 = mavlink.command_int_msg_gcs.param4, 
-    //     .x = mavlink.command_int_msg_gcs.x, 
-    //     .y = mavlink.command_int_msg_gcs.y, 
-    //     .z = mavlink.command_int_msg_gcs.z, 
-    //     .seq = HOME_INDEX, 
-    //     .command = mavlink.command_int_msg_gcs.command, 
-    //     .target_system = mavlink.command_int_msg_gcs.target_system, 
-    //     .target_component = mavlink.command_int_msg_gcs.target_component, 
-    //     .frame = mavlink.command_int_msg_gcs.frame, 
-    //     .current = mavlink.command_int_msg_gcs.current, 
-    //     .autocontinue = mavlink.command_int_msg_gcs.autocontinue, 
-    //     .mission_type = MAV_MISSION_TYPE_ALL 
-    // }; 
-
-    // // If param1 is set that means the vehicles current location should be used to set 
-    // // the home position. A position lock is not checked for because Mission Planner 
-    // // won't send this command and specify that the vehicle use its current location as 
-    // // the home position unless the vehicle is already reporting a valid GPS position. 
-    // if (mavlink.command_int_msg_gcs.param1)
-    // {
-    //     VehicleNavigation::Location home = vehicle.navigation.LocationCurrentGet(); 
-
-    //     mission_home.x = home.latI; 
-    //     mission_home.y = home.lonI; 
-    //     mission_home.z = home.alt; 
-    // }
-
-    // vehicle.memory.MissionHomeLocationSet(mission_home); 
-
     VehicleNavigation::Location home; 
 
     // If param1 is set that means the vehicles current location should be used to set 
