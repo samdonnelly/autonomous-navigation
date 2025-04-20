@@ -37,7 +37,7 @@ public:   // public types
     {
         uint16_t throttle, roll, pitch, yaw; 
         uint16_t mode_control, mode; 
-        uint16_t aux1, aux2, aux3, aux4, aux5, aux6, aux7, aux8; 
+        uint16_t aux3, aux4, aux5, aux6, aux7, aux8, aux9, aux10; 
     };
 
     enum RCModes : uint8_t 

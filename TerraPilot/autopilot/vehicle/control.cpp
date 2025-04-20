@@ -75,33 +75,44 @@ void VehicleControl::RCModeDecode(Vehicle &vehicle)
     // Check for a new mode input from the RC transmitter. 
     if (channels.mode_control > PWM_AUX_HIGH)
     {
-        if ((channels.mode < PWM_MIN) || (channels.mode > PWM_MAX))
-        {
-            return; 
-        }
+        uint8_t rc_mode = RC_MODE3; 
 
-        uint8_t rc_mode = RC_MODE6; 
-
-        if (channels.mode < PWM_MAX_MODE1)
+        if (channels.mode < PWM_MAX_MODE2)
         {
             rc_mode = RC_MODE1; 
         }
-        else if (channels.mode < PWM_MAX_MODE2)
+        else if (channels.mode < PWM_MAX_MODE4)
         {
             rc_mode = RC_MODE2; 
         }
-        else if (channels.mode < PWM_MAX_MODE3)
-        {
-            rc_mode = RC_MODE3; 
-        }
-        else if (channels.mode < PWM_MAX_MODE4)
-        {
-            rc_mode = RC_MODE4; 
-        }
-        else if (channels.mode < PWM_MAX_MODE5)
-        {
-            rc_mode = RC_MODE5; 
-        }
+
+        // if ((channels.mode < PWM_MIN) || (channels.mode > PWM_MAX))
+        // {
+        //     return; 
+        // }
+
+        // uint8_t rc_mode = RC_MODE6; 
+
+        // if (channels.mode < PWM_MAX_MODE1)
+        // {
+        //     rc_mode = RC_MODE1; 
+        // }
+        // else if (channels.mode < PWM_MAX_MODE2)
+        // {
+        //     rc_mode = RC_MODE2; 
+        // }
+        // else if (channels.mode < PWM_MAX_MODE3)
+        // {
+        //     rc_mode = RC_MODE3; 
+        // }
+        // else if (channels.mode < PWM_MAX_MODE4)
+        // {
+        //     rc_mode = RC_MODE4; 
+        // }
+        // else if (channels.mode < PWM_MAX_MODE5)
+        // {
+        //     rc_mode = RC_MODE5; 
+        // }
 
         // Map the provided mode to a state index for the vehicle and attempt to update 
         // the vehicle state using that index. 

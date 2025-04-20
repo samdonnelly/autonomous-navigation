@@ -76,7 +76,6 @@ public:   // public members
 
     // RC 
     SerialData<RC_MSG_BUFF_SIZE> rc; 
-    uint8_t packet_count, num_packets; 
 
     // Serial debug 
     USART_TypeDef *user_uart; 
@@ -136,8 +135,6 @@ void VehicleHardware::HardwareSetup(void)
     hardware.rc.data_in_index = CLEAR; 
     memset((void *)hardware.rc.data_out, CLEAR, sizeof(hardware.rc.data_out)); 
     hardware.rc.data_out_size = CLEAR; 
-    hardware.packet_count = CLEAR; 
-    hardware.num_packets = CLEAR; 
 
     // Serial debug data 
     hardware.user_uart = USART2; 
@@ -520,16 +517,6 @@ void VehicleHardware::HardwareSetup(void)
 // Any needed callbacks are overridden here so hardware data doesn't need to be included 
 // in the interrupt file. 
 
-// USART6 
-void USART6_IRQHandler(void)
-{
-    hardware.packet_count++; 
-
-    handler_flags.usart6_flag = SET_BIT; 
-    dummy_read(USART6->SR); 
-    dummy_read(USART6->DR); 
-}
-
 //=======================================================================================
 
 
@@ -588,9 +575,6 @@ void VehicleHardware::RCRead(void)
         handler_flags.usart6_flag = CLEAR_BIT; 
         data_ready.rc_ready = FLAG_SET; 
 
-        hardware.num_packets = hardware.packet_count; 
-        hardware.packet_count = CLEAR; 
-
         // Parse the new radio data from the circular buffer into the data buffer. 
         dma_cb_index(hardware.rc.dma_stream, &hardware.rc.dma_index, &hardware.rc.cb_index); 
         cb_parse(hardware.rc.cb, &hardware.rc.cb_index, hardware.rc.data_in); 
@@ -601,29 +585,26 @@ void VehicleHardware::RCRead(void)
 void VehicleHardware::RCGet(VehicleControl::ChannelFunctions &channels)
 {
     // Assign packet channel data to their function within the autopilot. Each user can 
-    // cmap their hannels how they like. 
+    // map their channels how they like. 
 
-    // Only the most recent packet is used since retrieval of this data happens slower 
-    // than the rate at which the receiver supplies packets. 
-    ibus_packet_t *packet = 
-        (ibus_packet_t *)&hardware.rc.data_in[hardware.num_packets*IBUS_PACKET_BYTES]; 
+    // Get the first full packet in the data buffer from the most recent sampling 
+    // interval. 
+    ibus_packet_t *packet = ibus_packet_align(hardware.rc.data_in, 
+                                              hardware.rc.dma_index.data_size); 
 
-    channels.throttle = packet->items[IBUS_CH1]; 
-    channels.roll = packet->items[IBUS_CH2]; 
-    channels.pitch = packet->items[IBUS_CH3]; 
-    channels.yaw = packet->items[IBUS_CH4]; 
+    if (packet != nullptr)
+    {
+        // Main controls 
+        channels.throttle = packet->items[IBUS_CH3]; 
+        channels.roll = packet->items[IBUS_CH1]; 
+        channels.pitch = packet->items[IBUS_CH2]; 
+        channels.yaw = packet->items[IBUS_CH4]; 
+        
+        // Auxiliary controls 
+        channels.mode_control = packet->items[IBUS_CH6]; 
+        channels.mode = packet->items[IBUS_CH7]; 
+    }
 
-    channels.mode_control = packet->items[IBUS_CH5]; 
-    channels.mode = packet->items[IBUS_CH6]; 
-    
-    channels.aux1 = packet->items[IBUS_CH7]; 
-    channels.aux2 = packet->items[IBUS_CH8]; 
-    channels.aux3 = packet->items[IBUS_CH9]; 
-    channels.aux4 = packet->items[IBUS_CH10]; 
-    channels.aux5 = packet->items[IBUS_CH11]; 
-    channels.aux6 = packet->items[IBUS_CH12]; 
-    channels.aux7 = packet->items[IBUS_CH13]; 
-    channels.aux8 = packet->items[IBUS_CH14]; 
 }
 
 //=======================================================================================
