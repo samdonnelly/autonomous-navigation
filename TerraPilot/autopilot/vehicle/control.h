@@ -31,25 +31,6 @@ class Vehicle;
 
 class VehicleControl 
 {
-public:   // public types 
-
-    struct ChannelFunctions 
-    {
-        uint16_t throttle, roll, pitch, yaw; 
-        uint16_t mode_control, mode; 
-        uint16_t aux3, aux4, aux5, aux6, aux7, aux8, aux9, aux10; 
-    };
-
-    enum RCModes : uint8_t 
-    {
-        RC_MODE1,   // PWM: 0-1230 
-        RC_MODE2,   // PWM: 1231-1360 
-        RC_MODE3,   // PWM: 1361-1490 
-        RC_MODE4,   // PWM: 1491-1620 
-        RC_MODE5,   // PWM: 1621-1750 
-        RC_MODE6    // PWM: 1751+ 
-    };
-
 private:   // private types 
 
     enum PWMThresholds : uint16_t 
@@ -66,18 +47,42 @@ private:   // private types
         PWM_MAX = 2200          // PWM value must be lower than this to be valid 
     };
 
+public:   // public types     
+
+    struct ChannelFunctions 
+    {
+        uint16_t throttle, roll, pitch, yaw; 
+        uint16_t mode_control, mode; 
+        uint16_t aux3, aux4, aux5, aux6, aux7, aux8, aux9, aux10; 
+    };    
+
+    enum RCModes : uint8_t 
+    {
+        RC_MODE1,   // PWM: 0-1230 
+        RC_MODE2,   // PWM: 1231-1360 
+        RC_MODE3,   // PWM: 1361-1490 
+        RC_MODE4,   // PWM: 1491-1620 
+        RC_MODE5,   // PWM: 1621-1750 
+        RC_MODE6    // PWM: 1751+ 
+    };    
+    
 private:   // private members 
 
     ChannelFunctions channels; 
+
+private:   // private methods 
+
+    // RC data handling 
+    void ModeDecode(Vehicle &vehicle); 
+    void DataChecks(void); 
 
 public:   // public methods 
 
     // Constructor 
     VehicleControl(); 
 
-    // Packet handling 
+    // RC data handling 
     void DataDecode(Vehicle &vehicle); 
-    void RCModeDecode(Vehicle &vehicle); 
 }; 
 
 //=======================================================================================

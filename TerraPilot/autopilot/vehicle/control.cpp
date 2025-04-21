@@ -43,9 +43,13 @@ VehicleControl::VehicleControl()
 
 
 //=======================================================================================
-// Data decoding 
+// RC data decoding 
 
-// Data decode 
+/**
+ * @brief RC data decode 
+ * 
+ * @param vehicle : vehicle object 
+ */
 void VehicleControl::DataDecode(Vehicle &vehicle)
 {
     // Check if new data is available. If so then get the data. 
@@ -59,18 +63,21 @@ void VehicleControl::DataDecode(Vehicle &vehicle)
         vehicle.hardware.RCGet(channels); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
-        // We only decode the mode if there is new data so modes can't remain stuck on 
-        // if the transmitter is turned off (i.e. no new data coming in). 
-        RCModeDecode(vehicle); 
-
-        // Add a timer to check for an RC connection. If connection is lost then outputs 
-        // must be stopped. 
+        // Only check for a mode command if new data is available. 
+        ModeDecode(vehicle); 
     }
+
+    // RC data checks 
+    DataChecks(); 
 }
 
 
-// RC mode decode 
-void VehicleControl::RCModeDecode(Vehicle &vehicle)
+/**
+ * @brief RC mode decode 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleControl::ModeDecode(Vehicle &vehicle)
 {
     // Check for a new mode input from the RC transmitter. 
     if (channels.mode_control > PWM_AUX_HIGH)
@@ -119,6 +126,19 @@ void VehicleControl::RCModeDecode(Vehicle &vehicle)
         vehicle.MainStateRCModeMap(rc_mode); 
         vehicle.MainStateSelect(rc_mode); 
     }
+}
+
+
+/**
+ * @brief RC data checks 
+ */
+void VehicleControl::DataChecks(void)
+{
+    // There isn't a clear way to check for transmitter connection loss across all 
+    // devices. The user must make sure the proper failsafes are enabled for their 
+    // receiver and transmitter setup. 
+    
+    // Check for a physical device loss 
 }
 
 //=======================================================================================
