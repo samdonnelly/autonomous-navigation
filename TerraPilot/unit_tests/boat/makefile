@@ -29,23 +29,21 @@ endif
 SRC_FILES += 
 SRC_DIRS += 
 
+# System code 
+SRC_FILES += ./../../autopilot/system/rtos.cpp
+
 # Boat code 
-SRC_FILES += ./../../sources/boat/modules/boat_led.cpp 
-SRC_FILES += ./../../sources/boat/modules/boat_nav.cpp 
-SRC_FILES += ./../../sources/boat/modules/boat_radio.cpp 
-SRC_FILES += ./../../sources/boat/modules/boat_rc.cpp 
-SRC_FILES += ./../../sources/boat/threads/boat_main.cpp 
-SRC_FILES += ./../../sources/boat/threads/boat_comms.cpp 
-SRC_FILES += ./../../sources/boat/threads/boat_timers.cpp 
+SRC_FILES += ./../../autopilot/boat/boat.cpp
+SRC_FILES += ./../../autopilot/boat/boat_thread_comms.cpp
+SRC_FILES += ./../../autopilot/boat/boat_thread_main.cpp
+SRC_FILES += ./../../autopilot/boat/boat_thread_timers.cpp
 
-# General vehicle code 
-SRC_DIRS += ./../../sources/config_files/devices 
-SRC_DIRS += ./../../sources/config_files/system 
-SRC_DIRS += ./../../sources/modules 
-SRC_DIRS += ./../../sources/system_data 
-
-# Library 
-SRC_FILES += ./../../../../STM32F4-driver-library/sources/tools/tools.c 
+# Vehicle code
+SRC_FILES += ./../../autopilot/vehicle/control.cpp
+SRC_FILES += ./../../autopilot/vehicle/memory.cpp
+SRC_FILES += ./../../autopilot/vehicle/navigation.cpp
+SRC_FILES += ./../../autopilot/vehicle/telemetry.cpp
+# SRC_FILES += ./../../autopilot/vehicle/vehicle.cpp
 
 # --------------------------------------------------------------------
 
@@ -61,11 +59,6 @@ SRC_FILES += ./../../../../STM32F4-driver-library/sources/tools/tools.c
 
 # All tests 
 TEST_SRC_DIRS += tests
-TEST_SRC_FILES += 
-
-# Threads 
-TEST_SRC_DIRS += tests/threads 
-TEST_SRC_DIRS += tests/modules 
 TEST_SRC_FILES += 
 
 # --------------------------------------------------------------------
@@ -96,37 +89,21 @@ CPPUTEST_USE_EXTENSIONS = Y
 # This includes all the headers in the subfolders of 'include' 
 INCLUDE_DIRS += $(CPPUTEST_HOME)/include
 
-# stmcode headers needed to get the tests to build 
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Drivers/CMSIS/Device/ST/STM32F4xx/Include
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Drivers/CMSIS/Core/Include
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/FATFS/App
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/FATFS/Target
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FatFs/src
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/include
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/stmcode/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
-
 # Production code 
-INCLUDE_DIRS += ./../../headers/boat 
-INCLUDE_DIRS += ./../../headers/boat/modules 
-INCLUDE_DIRS += ./../../headers/config_files 
-INCLUDE_DIRS += ./../../headers/config_files/devices 
-INCLUDE_DIRS += ./../../headers/config_files/system 
-INCLUDE_DIRS += ./../../headers/core 
-INCLUDE_DIRS += ./../../headers/includes 
-INCLUDE_DIRS += ./../../headers/modules 
-INCLUDE_DIRS += ./../../headers/system_data 
+INCLUDE_DIRS += ./../../autopilot/boat
+INCLUDE_DIRS += ./../../autopilot/vehicle
+INCLUDE_DIRS += ./../../autopilot/system
 
 # Library 
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/devices 
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/peripherals 
-INCLUDE_DIRS += ./../../../../STM32F4-driver-library/headers/tools 
+INCLUDE_DIRS += ./../../../../mavlink/c_library_v2
+INCLUDE_DIRS += ./../../../../CMSIS_6/CMSIS/RTOS2/Include
+INCLUDE_DIRS += ./../../../../CMSIS-FreeRTOS/CMSIS/RTOS2/FreeRTOS/Include
+INCLUDE_DIRS += ./../../../../CMSIS-FreeRTOS/Source/include
+INCLUDE_DIRS += ./../../../../CMSIS-FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 # Test files 
 INCLUDE_DIRS += mocks 
 INCLUDE_DIRS += tests 
-INCLUDE_DIRS += tests/threads 
-INCLUDE_DIRS += tests/modules 
 
 # --------------------------------------------------------------------
 
@@ -191,6 +168,8 @@ CPPUTEST_WARNINGFLAGS += -Wno-pedantic
 CPPUTEST_WARNINGFLAGS += -Wno-shadow
 CPPUTEST_WARNINGFLAGS += -Wno-missing-field-initializers
 CPPUTEST_WARNINGFLAGS += -Wno-unused-parameter
+CPPUTEST_WARNINGFLAGS += -Wno-switch-default
+CPPUTEST_WARNINGFLAGS += -Wno-address-of-packed-member
 CPPUTEST_CFLAGS += -pedantic
 CPPUTEST_CFLAGS += -Wno-missing-prototypes
 CPPUTEST_CFLAGS += -Wno-strict-prototypes

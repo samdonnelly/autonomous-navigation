@@ -35,16 +35,19 @@ public:   // public types
 
     enum PWMThresholds : uint16_t 
     {
-        PWM_MIN = 800,          // PWM value must be higher than this to be valid 
-        PWM_AUX_LOW = 1200,     // Aux switch is low 
-        PWM_MAX_MODE1 = 1230,   // Max PWM for mode 1 
-        PWM_MAX_MODE2 = 1360,   // Max PWM for mode 2 
-        PWM_MAX_MODE3 = 1490,   // Max PWM for mode 3 
-        PWM_NEUTRAL = 1500,     // Neutral PWM  
-        PWM_MAX_MODE4 = 1620,   // Max PWM for mode 4 
-        PWM_MAX_MODE5 = 1750,   // Max PWM for mode 5 
-        PWM_AUX_HIGH = 1800,    // Aux switch is high 
-        PWM_MAX = 2200          // PWM value must be lower than this to be valid 
+        PWM_DIR_DIFF_MAX = 500,   // Max difference between PWM low/high and neutral 
+        PWM_MIN = 800,            // PWM value must be higher than this to be valid 
+        PWM_LOW = 1000,           // Normal low PWM value 
+        PWM_AUX_LOW = 1200,       // Aux switch is low 
+        PWM_MAX_MODE1 = 1230,     // Max PWM for mode 1 
+        PWM_MAX_MODE2 = 1360,     // Max PWM for mode 2 
+        PWM_MAX_MODE3 = 1490,     // Max PWM for mode 3 
+        PWM_NEUTRAL = 1500,       // Neutral PWM  
+        PWM_MAX_MODE4 = 1620,     // Max PWM for mode 4 
+        PWM_MAX_MODE5 = 1750,     // Max PWM for mode 5 
+        PWM_AUX_HIGH = 1800,      // Aux switch is high 
+        PWM_HIGH = 2000,          // Normal max PWM value 
+        PWM_MAX = 2200            // PWM value must be lower than this to be valid 
     };
 
     enum RCModes : uint8_t 
@@ -91,8 +94,8 @@ private:   // private members
 private:   // private methods 
 
     // RC data handling 
-    void ModeDecode(Vehicle &vehicle); 
-    void DataChecks(void); 
+    void RCModeDecode(Vehicle &vehicle); 
+    void RCDataChecks(void); 
 
 public:   // public methods 
 
@@ -100,8 +103,11 @@ public:   // public methods
     VehicleControl(); 
 
     // RC data handling 
-    void DataDecode(Vehicle &vehicle); 
+    void RCUpdate(Vehicle &vehicle); 
     void RemoteControl(Vehicle &vehicle); 
+
+    // Propulsion and steering 
+    void ForceStop(Vehicle &vehicle); 
 }; 
 
 //=======================================================================================

@@ -45,11 +45,11 @@ VehicleControl::VehicleControl()
 // RC data decoding 
 
 /**
- * @brief RC data decode 
+ * @brief RC data update 
  * 
  * @param vehicle : vehicle object 
  */
-void VehicleControl::DataDecode(Vehicle &vehicle)
+void VehicleControl::RCUpdate(Vehicle &vehicle)
 {
     // Check if new data is available. If so then get the data. 
     if (vehicle.hardware.data_ready.rc_ready == FLAG_SET)
@@ -66,11 +66,11 @@ void VehicleControl::DataDecode(Vehicle &vehicle)
         status.rc_connected = FLAG_SET; 
 
         // Only check for a mode command if new data is available. 
-        ModeDecode(vehicle); 
+        RCModeDecode(vehicle); 
     }
 
     // RC data checks 
-    DataChecks(); 
+    RCDataChecks(); 
 }
 
 
@@ -79,7 +79,7 @@ void VehicleControl::DataDecode(Vehicle &vehicle)
  * 
  * @param vehicle : vehicle object 
  */
-void VehicleControl::ModeDecode(Vehicle &vehicle)
+void VehicleControl::RCModeDecode(Vehicle &vehicle)
 {
     // Check for a new mode input from the RC transmitter. 
     if (channels.mode_control > PWM_AUX_HIGH)
@@ -106,7 +106,7 @@ void VehicleControl::ModeDecode(Vehicle &vehicle)
 /**
  * @brief RC data checks 
  */
-void VehicleControl::DataChecks(void)
+void VehicleControl::RCDataChecks(void)
 {
     // There isn't a universal way to check for a transmitter connection loss across all 
     // receivers and transmitters. The user must make sure the proper failsafes are 
@@ -116,11 +116,6 @@ void VehicleControl::DataChecks(void)
     if (status.rc_connected && (timers.rc_connection++ >= VS_RC_TIMEOUT))
     {
         status.rc_connected = FLAG_CLEAR; 
-
-        channels.throttle = PWM_NEUTRAL; 
-        channels.roll = PWM_NEUTRAL; 
-        channels.pitch = PWM_NEUTRAL; 
-        channels.yaw = PWM_NEUTRAL; 
     }
 }
 
@@ -133,17 +128,19 @@ void VehicleControl::DataChecks(void)
 // Remote control 
 void VehicleControl::RemoteControl(Vehicle &vehicle)
 {
-    if (status.rc_connected)
-    {
-        vehicle.ManualDrive(channels); 
-    }
-    else 
-    {
-        // Vehicle stop 
-    }
+    status.rc_connected ? vehicle.ManualDrive(channels) : ForceStop(vehicle); 
 }
 
 
 // Vehicle stop 
+void VehicleControl::ForceStop(Vehicle &vehicle)
+{
+    channels.throttle = PWM_NEUTRAL; 
+    channels.roll = PWM_NEUTRAL; 
+    channels.pitch = PWM_NEUTRAL; 
+    channels.yaw = PWM_NEUTRAL; 
+
+    vehicle.ManualDrive(channels); 
+}
 
 //=======================================================================================

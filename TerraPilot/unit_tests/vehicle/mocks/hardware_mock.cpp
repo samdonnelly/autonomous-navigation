@@ -42,11 +42,64 @@ void VehicleHardware::HardwareSetup(void)
 //==================================================
 
 //==================================================
+// Actuators 
+
+void VehicleHardware::PropulsionSet(
+    uint16_t throttle_1, 
+    uint16_t throttle_2)
+{
+    // 
+}
+
+
+void VehicleHardware::SteeringSet(
+    uint16_t roll, 
+    uint16_t pitch, 
+    uint16_t yaw)
+{
+    // 
+}
+
+//==================================================
+
+//==================================================
+// GPS 
+
+void VehicleHardware::GPSRead(void)
+{
+    // 
+}
+
+
+bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
+{
+    return false; 
+}
+
+//==================================================
+
+//==================================================
+// RC 
+
+void VehicleHardware::RCRead(void)
+{
+    // 
+}
+
+
+void VehicleHardware::RCGet(VehicleControl::ChannelFunctions &channels)
+{
+    // 
+}
+
+//==================================================
+
+//==================================================
 // Telemetry 
 
-uint8_t VehicleHardware::TelemetryRead(void)
+void VehicleHardware::TelemetryRead(void)
 {
-    return true; 
+    // 
 }
 
 

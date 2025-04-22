@@ -184,8 +184,8 @@ void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
         // the result. 
         CoordinateFilter(location_current, location_filtered); 
 
-        MissionIndex target_index = vehicle.memory.MissionTargetGet(); 
-        MissionItem target_item = vehicle.memory.MissionItemGet(target_index); 
+        // MissionIndex target_index = vehicle.memory.MissionTargetGet(); 
+        // MissionItem target_item = vehicle.memory.MissionItemGet(target_index); 
     
         // Calculate the distance to the target location and the heading needed to get 
         // there. 

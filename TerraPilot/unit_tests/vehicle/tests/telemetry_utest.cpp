@@ -61,6 +61,21 @@ private:
         // 
     }
 
+    void MainStateRCModeMap(uint8_t &mode) override
+    {
+        // 
+    }
+
+    void ManualDrive(VehicleControl::ChannelFunctions main_channels) override
+    {
+        // 
+    }
+
+    void AutoDrive(int16_t heading_error) override
+    {
+        // 
+    }
+
 public: 
 
     // Constructor/Destructor 

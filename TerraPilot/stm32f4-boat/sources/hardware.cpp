@@ -648,7 +648,6 @@ void VehicleHardware::RCGet(VehicleControl::ChannelFunctions &channels)
         channels.mode_control = packet->items[IBUS_CH6]; 
         channels.mode = packet->items[IBUS_CH7]; 
     }
-
 }
 
 //=======================================================================================

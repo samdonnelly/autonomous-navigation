@@ -33,7 +33,9 @@ SRC_DIRS +=
 SRC_FILES += ./../../autopilot/system/rtos.cpp
 
 # Vehicle code
+SRC_FILES += ./../../autopilot/vehicle/control.cpp
 SRC_FILES += ./../../autopilot/vehicle/memory.cpp
+SRC_FILES += ./../../autopilot/vehicle/navigation.cpp
 SRC_FILES += ./../../autopilot/vehicle/telemetry.cpp
 SRC_FILES += ./../../autopilot/vehicle/vehicle.cpp
 

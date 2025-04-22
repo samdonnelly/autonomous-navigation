@@ -59,6 +59,9 @@ void Boat::VehicleSetup(void)
 //=======================================================================================
 // Vehicle Control 
 
+// Updates to propulsion and steering don't need to be protected because they're changing 
+// continuous PWM values, so there are no outgoing messages to interrupt. 
+
 // Manual drive output 
 void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
 {
@@ -67,12 +70,27 @@ void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
     // With this setup the steering command has to be mapped to a thruster output. 
 
     uint16_t 
-    left_thruster = VehicleControl::PWM_NEUTRAL, 
-    right_thruster = VehicleControl::PWM_NEUTRAL; 
+    left_thruster = main_channels.throttle, 
+    right_thruster = main_channels.throttle; 
 
-    // Map these 
-    main_channels.throttle; 
-    main_channels.roll; 
+    // Only account for steering input if there is any throttle and steering input. 
+    if ((main_channels.throttle != VehicleControl::PWM_NEUTRAL) && 
+        (main_channels.roll != VehicleControl::PWM_NEUTRAL))
+    {
+        int16_t rise = (int16_t)VehicleControl::PWM_NEUTRAL - (int16_t)main_channels.throttle; 
+        int16_t run = VehicleControl::PWM_DIR_DIFF_MAX; 
+        int16_t roll = (int16_t)VehicleControl::PWM_NEUTRAL - (int16_t)main_channels.roll; 
+        int16_t thrust_diff = (rise * roll) / run; 
+
+        if (main_channels.roll < VehicleControl::PWM_NEUTRAL)
+        {
+            left_thruster += (uint16_t)thrust_diff; 
+        }
+        else 
+        {
+            right_thruster += (uint16_t)(-thrust_diff); 
+        }
+    }
 
     hardware.PropulsionSet(left_thruster, right_thruster); 
 

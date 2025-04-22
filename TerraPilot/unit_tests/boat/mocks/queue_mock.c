@@ -3,84 +3,31 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief "queue.c" mock functions 
+ * @brief Queue mock 
  * 
  * @version 0.1
- * @date 2024-03-31
+ * @date 2025-03-28
  * 
- * @copyright Copyright (c) 2024
+ * @copyright Copyright (c) 2025
  * 
  */
 
 //=======================================================================================
-// Include 
+// Includes 
 
-#include "queue_mock.h" 
-#include "tools.h" 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Macros 
-
-#define QUEUE_MOCK_LEN 10 
+#include "rtos.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Prototypes 
+// Mock data 
 
-// Add an event to the mock queue 
-void QueueMockSetEvent(uint8_t event); 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Variables 
-
-// Queue Mock data 
-typedef struct 
+typedef struct QueueDefinition 
 {
-    // Circular buffer to store event queue 
-    uint8_t event_buff[QUEUE_MOCK_LEN]; 
-    uint8_t event_buff_set_index; 
-    uint8_t event_buff_get_index; 
-    uint8_t event_buff_index_delta; 
-}
-queue_mock_data; 
-
-// Queue Mock data object 
-static queue_mock_data mock_data; 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Driver functions 
-
-BaseType_t xQueueGenericSend(
-    QueueHandle_t xQueue, 
-    const void * const pvItemToQueue, 
-    TickType_t xTicksToWait, 
-    const BaseType_t xCopyPosition)
-{
-    if (pvItemToQueue != NULL)
-    {
-        QueueMockSetEvent(*((uint8_t *)pvItemToQueue)); 
-    }
-    return pdTRUE; 
-}
-
-
-BaseType_t xQueueSemaphoreTake(
-    QueueHandle_t xQueue, 
-    TickType_t xTicksToWait)
-{
-    return pdPASS; 
-}
+    // 
+} 
+Queue_t; 
 
 //=======================================================================================
 
@@ -88,44 +35,53 @@ BaseType_t xQueueSemaphoreTake(
 //=======================================================================================
 // Mock functions 
 
-// Mock driver initialization 
-void QueueMockInit(void)
+BaseType_t xQueueSemaphoreTake(
+    QueueHandle_t xQueue, 
+    TickType_t xTicksToWait)
 {
-    memset((void *)mock_data.event_buff, CLEAR, sizeof(mock_data.event_buff)); 
-    mock_data.event_buff_set_index = CLEAR; 
-    mock_data.event_buff_get_index = CLEAR; 
-    mock_data.event_buff_index_delta = CLEAR; 
+    return pdTRUE; 
 }
 
 
-// Add an event to the mock queue 
-void QueueMockSetEvent(uint8_t event)
+BaseType_t xQueueGenericSend(
+    QueueHandle_t xQueue,
+    const void * const pvItemToQueue,
+    TickType_t xTicksToWait,
+    const BaseType_t xCopyPosition)
 {
-    if (mock_data.event_buff_set_index >= QUEUE_MOCK_LEN)
-    {
-        mock_data.event_buff_set_index = CLEAR; 
-    }
-
-    mock_data.event_buff_index_delta++; 
-    mock_data.event_buff[mock_data.event_buff_set_index++] = event; 
+    return pdTRUE; 
 }
 
 
-// Get next event from the mock queue 
-uint8_t QueueMockGetNextEvent(void)
+QueueHandle_t xQueueCreateMutex( const uint8_t ucQueueType )
 {
-    if (mock_data.event_buff_index_delta == 0)
-    {
-        return ~0; 
-    }
+    QueueHandle_t xNewQueue;
+    const UBaseType_t uxMutexLength = ( UBaseType_t ) 1; 
+    const UBaseType_t uxMutexSize = ( UBaseType_t ) 0;
 
-    if (mock_data.event_buff_get_index >= QUEUE_MOCK_LEN)
-    {
-        mock_data.event_buff_get_index = CLEAR; 
-    }
+    xNewQueue = xQueueGenericCreate( uxMutexLength, uxMutexSize, ucQueueType );
 
-    mock_data.event_buff_index_delta--; 
-    return mock_data.event_buff[mock_data.event_buff_get_index++]; 
+    return xNewQueue; 
+}
+
+
+QueueHandle_t xQueueGenericCreate(
+    const UBaseType_t uxQueueLength,
+    const UBaseType_t uxItemSize,
+    const uint8_t ucQueueType)
+{
+    Queue_t *pxNewQueue = NULL; 
+
+    return pxNewQueue; 
+}
+
+
+BaseType_t xQueueReceive(
+    QueueHandle_t xQueue,
+    void * const pvBuffer,
+    TickType_t xTicksToWait)
+{
+    return pdTRUE; 
 }
 
 //=======================================================================================

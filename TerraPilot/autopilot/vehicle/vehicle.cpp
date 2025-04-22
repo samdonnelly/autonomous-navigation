@@ -220,7 +220,7 @@ void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
             break; 
         
         case MainEvents::RC_DECODE: 
-            control.DataDecode(*this); 
+            control.RCUpdate(*this); 
             break; 
         
         case MainEvents::TELEMETRY_DECODE: 

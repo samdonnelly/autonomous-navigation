@@ -3,37 +3,46 @@
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief "timers.c" mock functions 
+ * @brief 
  * 
  * @version 0.1
- * @date 2024-04-02
+ * @date 2025-03-28
  * 
- * @copyright Copyright (c) 2024
+ * @copyright Copyright (c) 2025
  * 
  */
 
 //=======================================================================================
-// Includes 
+// Include 
 
-#include "FreeRTOS.h" 
-#include "timers.h" 
-#include "portmacro.h" 
-#include "projdefs.h" 
+#include "rtos.h" 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Mock implementations 
+// Mock data 
 
-BaseType_t xTimerGenericCommand(
-    TimerHandle_t xTimer, 
-    const BaseType_t xCommandID, 
-    const TickType_t xOptionalValue, 
-    BaseType_t * const pxHigherPriorityTaskWoken, 
-    const TickType_t xTicksToWait )
+typedef struct tmrTimerControl
 {
-	return pdTRUE;
+    // 
+}
+Timer_t; 
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Mock functions 
+
+TimerHandle_t xTimerCreate( const char * const pcTimerName,
+    const TickType_t xTimerPeriodInTicks,
+    const BaseType_t xAutoReload,
+    void * const pvTimerID,
+    TimerCallbackFunction_t pxCallbackFunction )
+{
+    Timer_t *pxNewTimer = NULL; 
+    return pxNewTimer; 
 }
 
 //=======================================================================================
