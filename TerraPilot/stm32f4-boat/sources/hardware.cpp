@@ -521,6 +521,28 @@ void VehicleHardware::HardwareSetup(void)
 
 
 //=======================================================================================
+// Actuators 
+
+void VehicleHardware::PropulsionSet(
+    uint16_t throttle_1, 
+    uint16_t throttle_2)
+{
+    // 
+}
+
+
+void VehicleHardware::SteeringSet(
+    uint16_t roll, 
+    uint16_t pitch, 
+    uint16_t yaw)
+{
+    // 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Compass 
 
 // void VehicleHardware::CompassRead(void)
@@ -560,11 +582,33 @@ bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 
 
 //=======================================================================================
+// Memory 
+
+// void VehicleHardware::MemoryRead(void)
+// {
+//     // 
+// }
+
+
+// void VehicleHardware::MemoryWrite(void)
+// {
+//     // 
+// }
+
+//=======================================================================================
+
+
+//=======================================================================================
 // RC 
 
 void VehicleHardware::RCRead(void)
 {
     // If data is ready, make sure to set the data_ready.telemetry_ready flag! 
+
+    // There isn't a universal way to check for a transmitter connection loss across all 
+    // receivers and transmitters. The user must make sure the proper failsafes are 
+    // enabled for their receiver and transmitter setup so their vehicle does not travel 
+    // out of reach on it's own if radio control is lost. 
 
     // The RC receiver communicates via UART (IBUS) and incoming data is processed using 
     // DMA and an interrupt. So instead of a direct call to a read function we check if 
@@ -657,23 +701,6 @@ void VehicleHardware::TelemetryWrite(void)
 {
     sik_send_data(hardware.telemetry.data_out, hardware.telemetry.data_out_size); 
 }
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Memory 
-
-// void VehicleHardware::MemoryRead(void)
-// {
-//     // 
-// }
-
-
-// void VehicleHardware::MemoryWrite(void)
-// {
-//     // 
-// }
 
 //=======================================================================================
 

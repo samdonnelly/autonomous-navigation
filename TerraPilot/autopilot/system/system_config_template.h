@@ -62,6 +62,7 @@
 #define VS_MISSION_TIMEOUT 10      // Max count before mission protocol timeout 
 #define VS_MISSION_RESEND 5        // Max tries to resend a mission message 
 #define VS_GPS_TIMEOUT 10          // Max count before GPS device is considered lost 
+#define VS_RC_TIMEOUT 10           // Max count before RC comms are considered lost 
 
 // Data sizes 
 #define VS_TELEMETRY_BUFF 1000   // Telemetry data buffer size (bytes) 

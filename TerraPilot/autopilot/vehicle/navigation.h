@@ -50,7 +50,7 @@ private:   // private members
 
     struct Timers 
     {
-        uint8_t gps; 
+        uint8_t gps_connection; 
     }
     timers; 
 

@@ -31,7 +31,7 @@ class Vehicle;
 
 class VehicleControl 
 {
-private:   // private types 
+public:   // public types 
 
     enum PWMThresholds : uint16_t 
     {
@@ -47,15 +47,6 @@ private:   // private types
         PWM_MAX = 2200          // PWM value must be lower than this to be valid 
     };
 
-public:   // public types     
-
-    struct ChannelFunctions 
-    {
-        uint16_t throttle, roll, pitch, yaw; 
-        uint16_t mode_control, mode; 
-        uint16_t aux3, aux4, aux5, aux6, aux7, aux8, aux9, aux10; 
-    };    
-
     enum RCModes : uint8_t 
     {
         RC_MODE1,   // PWM: 0-1230 
@@ -64,10 +55,37 @@ public:   // public types
         RC_MODE4,   // PWM: 1491-1620 
         RC_MODE5,   // PWM: 1621-1750 
         RC_MODE6    // PWM: 1751+ 
-    };    
+    };
+
+    struct ChannelFunctions 
+    {
+        // Main controls - Default/neutral PWM is 1500 
+        uint16_t throttle, roll, pitch, yaw; 
+
+        // Auxiliary controls - Default/neutral PWM is 1000 
+        uint16_t mode_control, mode; 
+        uint16_t aux3, aux4, aux5, aux6, aux7, aux8, aux9, aux10; 
+    }; 
     
 private:   // private members 
 
+    struct Timers 
+    {
+        uint8_t rc_connection; 
+    }
+    timers; 
+
+    union Status
+    {
+        struct 
+        {
+            uint32_t rc_connected : 1; 
+        }; 
+        uint32_t flags; 
+    }
+    status; 
+
+    // RC 
     ChannelFunctions channels; 
 
 private:   // private methods 
@@ -83,6 +101,7 @@ public:   // public methods
 
     // RC data handling 
     void DataDecode(Vehicle &vehicle); 
+    void RemoteControl(Vehicle &vehicle); 
 }; 
 
 //=======================================================================================

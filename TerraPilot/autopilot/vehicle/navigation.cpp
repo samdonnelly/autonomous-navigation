@@ -86,7 +86,7 @@
 
 VehicleNavigation::VehicleNavigation()
 {
-    timers.gps = RESET; 
+    timers.gps_connection = RESET; 
 
     status.flags = RESET; 
 
@@ -121,7 +121,7 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
         status.gps_lock = vehicle.hardware.GPSGet(location_current); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
-        timers.gps = RESET; 
+        timers.gps_connection = RESET; 
     }
 
     LocationChecks(vehicle); 
@@ -166,7 +166,7 @@ void VehicleNavigation::LocationChecks(Vehicle &vehicle)
     // data has come in after a certain period of time then position lock is manually 
     // removed to prevent the vehicle from operating on old data (since the lack of new 
     // data prevents it from being updated). 
-    if (status.gps_lock && (timers.gps++ >= VS_GPS_TIMEOUT))
+    if (status.gps_lock && (timers.gps_connection++ >= VS_GPS_TIMEOUT))
     {
         status.gps_lock = FLAG_CLEAR; 
     }

@@ -803,30 +803,6 @@ void Boat::MainStateRCModeMap(uint8_t &mode)
             mode = (uint8_t)MainStates::AUTO_STATE; 
             break; 
         
-        // case VehicleControl::RCModes::RC_MODE1: 
-        //     mode = (uint8_t)MainStates::MANUAL_STATE; 
-        //     break; 
-
-        // case VehicleControl::RCModes::RC_MODE2: 
-        //     mode = (uint8_t)MainStates::HOLD_STATE; 
-        //     break; 
-
-        // case VehicleControl::RCModes::RC_MODE3: 
-        //     mode = (uint8_t)MainStates::STEERING_STATE; 
-        //     break; 
-
-        // case VehicleControl::RCModes::RC_MODE4: 
-        //     mode = (uint8_t)MainStates::LOITER_STATE; 
-        //     break; 
-
-        // case VehicleControl::RCModes::RC_MODE5: 
-        //     mode = (uint8_t)MainStates::AUTO_STATE; 
-        //     break; 
-
-        // case VehicleControl::RCModes::RC_MODE6: 
-        //     mode = (uint8_t)MainStates::FOLLOW_STATE; 
-        //     break; 
-        
         default: 
             // Invalid 
             mode = (uint8_t)MainStates::NUM_STATES; 

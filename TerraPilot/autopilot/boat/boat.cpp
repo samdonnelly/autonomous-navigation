@@ -54,3 +54,46 @@ void Boat::VehicleSetup(void)
 }
 
 //=======================================================================================
+
+
+//=======================================================================================
+// Vehicle Control 
+
+// Manual drive output 
+void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
+{
+#if VS_BOAT_K1 
+    
+    // With this setup the steering command has to be mapped to a thruster output. 
+
+    uint16_t 
+    left_thruster = VehicleControl::PWM_NEUTRAL, 
+    right_thruster = VehicleControl::PWM_NEUTRAL; 
+
+    // Map these 
+    main_channels.throttle; 
+    main_channels.roll; 
+
+    hardware.PropulsionSet(left_thruster, right_thruster); 
+
+#elif VS_BOAT_K2 
+
+    // With this setup the inputs can directly be applied to the motor output and the 
+    // unused DOFs set to neutral. 
+    hardware.PropulsionSet(main_channels.throttle, VehicleControl::PWM_NEUTRAL); 
+    hardware.SteeringSet(main_channels.roll, VehicleControl::PWM_NEUTRAL, VehicleControl::PWM_NEUTRAL); 
+
+#endif 
+}
+
+
+// Autonomous drive output 
+void Boat::AutoDrive(int16_t heading_error)
+{
+#if VS_BOAT_K1 
+    // 
+#elif VS_BOAT_K2 
+#endif 
+}
+
+//=======================================================================================

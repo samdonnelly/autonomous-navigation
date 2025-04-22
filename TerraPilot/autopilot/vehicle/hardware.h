@@ -62,6 +62,10 @@ public:   // Public methods
     // Hardware setup 
     void HardwareSetup(void); 
 
+    // Actuators 
+    void PropulsionSet(uint16_t throttle_1, uint16_t throttle_2); 
+    void SteeringSet(uint16_t roll, uint16_t pitch, uint16_t yaw); 
+
     // // Compass 
     // void CompassRead(void); 
 
@@ -71,6 +75,10 @@ public:   // Public methods
 
     // // IMU 
     // void IMU_Read(void); 
+
+    // // Memory 
+    // void MemoryRead(void); 
+    // void MemoryWrite(void); 
 
     // RC 
     // Serial protocol is used for remote control which means the hardware must read and 
@@ -85,10 +93,6 @@ public:   // Public methods
     void TelemetryGet(uint16_t &size, uint8_t *buffer); 
     void TelemetrySet(uint16_t &size, uint8_t *buffer); 
     void TelemetryWrite(void); 
-
-    // // Memory 
-    // void MemoryRead(void); 
-    // void MemoryWrite(void); 
 
     // // Rangefinder 
     // void RangefinderRead(void); 

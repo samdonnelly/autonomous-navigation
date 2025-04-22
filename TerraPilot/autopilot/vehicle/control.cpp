@@ -21,16 +21,15 @@
 
 
 //=======================================================================================
-// Enums 
-//=======================================================================================
-
-
-//=======================================================================================
 // Initialization 
 
 // Constructor 
 VehicleControl::VehicleControl()
 {
+    timers.rc_connection = RESET; 
+
+    status.rc_connected = FLAG_CLEAR; 
+
     channels.throttle = PWM_NEUTRAL; 
     channels.roll = PWM_NEUTRAL; 
     channels.pitch = PWM_NEUTRAL; 
@@ -63,6 +62,9 @@ void VehicleControl::DataDecode(Vehicle &vehicle)
         vehicle.hardware.RCGet(channels); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
+        timers.rc_connection = RESET; 
+        status.rc_connected = FLAG_SET; 
+
         // Only check for a mode command if new data is available. 
         ModeDecode(vehicle); 
     }
@@ -93,34 +95,6 @@ void VehicleControl::ModeDecode(Vehicle &vehicle)
             rc_mode = RC_MODE2; 
         }
 
-        // if ((channels.mode < PWM_MIN) || (channels.mode > PWM_MAX))
-        // {
-        //     return; 
-        // }
-
-        // uint8_t rc_mode = RC_MODE6; 
-
-        // if (channels.mode < PWM_MAX_MODE1)
-        // {
-        //     rc_mode = RC_MODE1; 
-        // }
-        // else if (channels.mode < PWM_MAX_MODE2)
-        // {
-        //     rc_mode = RC_MODE2; 
-        // }
-        // else if (channels.mode < PWM_MAX_MODE3)
-        // {
-        //     rc_mode = RC_MODE3; 
-        // }
-        // else if (channels.mode < PWM_MAX_MODE4)
-        // {
-        //     rc_mode = RC_MODE4; 
-        // }
-        // else if (channels.mode < PWM_MAX_MODE5)
-        // {
-        //     rc_mode = RC_MODE5; 
-        // }
-
         // Map the provided mode to a state index for the vehicle and attempt to update 
         // the vehicle state using that index. 
         vehicle.MainStateRCModeMap(rc_mode); 
@@ -134,11 +108,42 @@ void VehicleControl::ModeDecode(Vehicle &vehicle)
  */
 void VehicleControl::DataChecks(void)
 {
-    // There isn't a clear way to check for transmitter connection loss across all 
-    // devices. The user must make sure the proper failsafes are enabled for their 
-    // receiver and transmitter setup. 
+    // There isn't a universal way to check for a transmitter connection loss across all 
+    // receivers and transmitters. The user must make sure the proper failsafes are 
+    // enabled for their receiver and transmitter setup. 
     
-    // Check for a physical device loss 
+    // Check for a physical device loss (no data coming in). 
+    if (status.rc_connected && (timers.rc_connection++ >= VS_RC_TIMEOUT))
+    {
+        status.rc_connected = FLAG_CLEAR; 
+
+        channels.throttle = PWM_NEUTRAL; 
+        channels.roll = PWM_NEUTRAL; 
+        channels.pitch = PWM_NEUTRAL; 
+        channels.yaw = PWM_NEUTRAL; 
+    }
 }
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Manual control 
+
+// Remote control 
+void VehicleControl::RemoteControl(Vehicle &vehicle)
+{
+    if (status.rc_connected)
+    {
+        vehicle.ManualDrive(channels); 
+    }
+    else 
+    {
+        // Vehicle stop 
+    }
+}
+
+
+// Vehicle stop 
 
 //=======================================================================================
