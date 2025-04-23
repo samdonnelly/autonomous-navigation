@@ -219,7 +219,7 @@ void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
             navigation.LocationUpdate(*this); 
             break; 
         
-        case MainEvents::RC_DECODE: 
+        case MainEvents::RC_UPDATE: 
             control.RCUpdate(*this); 
             break; 
         

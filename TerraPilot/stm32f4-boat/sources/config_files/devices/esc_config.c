@@ -32,4 +32,7 @@ const uint16_t esc1_rev_speed_lim = 1430;
 const uint16_t esc2_fwd_speed_lim = 1730; 
 const uint16_t esc2_rev_speed_lim = 1430; 
 
+const uint16_t esc_fwd_speed_lim = 2000; 
+const uint16_t esc_rev_speed_lim = 1000; 
+
 //=======================================================================================

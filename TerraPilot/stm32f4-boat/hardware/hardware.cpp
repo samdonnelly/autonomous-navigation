@@ -27,12 +27,7 @@
 // Project 
 #include "stm32f4xx_it.h" 
 #include "includes_drivers.h" 
-#include "esc_config.h" 
-#include "lsm303agr_config.h" 
-#include "m8q_config.h" 
-#include "mpu6050_config.h" 
-#include "nrf24l01_config.h" 
-#include "ws2812_config.h" 
+#include "device_config.h" 
 
 //=======================================================================================
 
@@ -71,11 +66,15 @@ public:   // public types
 
 public:   // public members 
 
-    // Telemetry 
-    SerialData<TELEMETRY_MSG_BUFF_SIZE> telemetry; 
+    // Actuators 
+    TIM_TypeDef *esc_timer; 
+    device_number_t left_esc, right_esc; 
 
     // RC 
     SerialData<RC_MSG_BUFF_SIZE> rc; 
+
+    // Telemetry 
+    SerialData<TELEMETRY_MSG_BUFF_SIZE> telemetry; 
 
     // Serial debug 
     USART_TypeDef *user_uart; 
@@ -87,7 +86,6 @@ public:   // public members
 
     // Timers 
     TIM_TypeDef *generic_timer; 
-    TIM_TypeDef *esc_timer; 
 };
 
 static Hardware hardware; 
@@ -106,20 +104,10 @@ void VehicleHardware::HardwareSetup(void)
     // Initialize GPIO ports 
     gpio_port_init(); 
 
-    // Telemetry 
-    hardware.telemetry.uart = USART1; 
-    hardware.telemetry.dma_stream = DMA2_Stream2; 
-    memset((void *)hardware.telemetry.cb, CLEAR, sizeof(hardware.telemetry.cb)); 
-    hardware.telemetry.cb_index.cb_size = TELEMETRY_MSG_BUFF_SIZE; 
-    hardware.telemetry.cb_index.head = CLEAR; 
-    hardware.telemetry.cb_index.tail = CLEAR; 
-    hardware.telemetry.dma_index.data_size = CLEAR; 
-    hardware.telemetry.dma_index.ndt_old = dma_ndt_read(hardware.telemetry.dma_stream); 
-    hardware.telemetry.dma_index.ndt_new = CLEAR; 
-    memset((void *)hardware.telemetry.data_in, CLEAR, sizeof(hardware.telemetry.data_in)); 
-    hardware.telemetry.data_in_index = CLEAR; 
-    memset((void *)hardware.telemetry.data_out, CLEAR, sizeof(hardware.telemetry.data_out)); 
-    hardware.telemetry.data_out_size = CLEAR; 
+    // Actuators 
+    hardware.esc_timer = TIM3; 
+    hardware.right_esc = DEVICE_ONE; 
+    hardware.left_esc = DEVICE_TWO; 
 
     // RC 
     hardware.rc.uart = USART6; 
@@ -136,17 +124,31 @@ void VehicleHardware::HardwareSetup(void)
     memset((void *)hardware.rc.data_out, CLEAR, sizeof(hardware.rc.data_out)); 
     hardware.rc.data_out_size = CLEAR; 
 
-    // Serial debug data 
+    // Telemetry 
+    hardware.telemetry.uart = USART1; 
+    hardware.telemetry.dma_stream = DMA2_Stream2; 
+    memset((void *)hardware.telemetry.cb, CLEAR, sizeof(hardware.telemetry.cb)); 
+    hardware.telemetry.cb_index.cb_size = TELEMETRY_MSG_BUFF_SIZE; 
+    hardware.telemetry.cb_index.head = CLEAR; 
+    hardware.telemetry.cb_index.tail = CLEAR; 
+    hardware.telemetry.dma_index.data_size = CLEAR; 
+    hardware.telemetry.dma_index.ndt_old = dma_ndt_read(hardware.telemetry.dma_stream); 
+    hardware.telemetry.dma_index.ndt_new = CLEAR; 
+    memset((void *)hardware.telemetry.data_in, CLEAR, sizeof(hardware.telemetry.data_in)); 
+    hardware.telemetry.data_in_index = CLEAR; 
+    memset((void *)hardware.telemetry.data_out, CLEAR, sizeof(hardware.telemetry.data_out)); 
+    hardware.telemetry.data_out_size = CLEAR; 
+
+    // Serial debug 
     hardware.user_uart = USART2; 
 
-    // DMA data 
+    // ADC 
     hardware.adc = ADC1; 
     hardware.adc_dma_stream = DMA2_Stream0; 
     memset((void *)hardware.adc_buff, CLEAR, sizeof(hardware.adc_buff)); 
 
     // Timers 
     hardware.generic_timer = TIM9; 
-    hardware.esc_timer = TIM3; 
 
     //==================================================
 
@@ -478,32 +480,32 @@ void VehicleHardware::HardwareSetup(void)
     // timer used for the LEDs because they run at different speeds and the WS2812 driver 
     // turns the timer on and off for sending. 
 
-    // // ESC driver init - right thruster (ESC1) 
-    // esc_init(
-    //     DEVICE_ONE, 
-    //     hardware.esc_timer, 
-    //     TIMER_CH4, 
-    //     GPIOB, 
-    //     PIN_1, 
-    //     TIM_84MHZ_1US_PSC, 
-    //     esc_period, 
-    //     esc1_fwd_speed_lim, 
-    //     esc1_rev_speed_lim); 
+    // ESC driver init - right thruster (ESC1) 
+    esc_init(
+        hardware.right_esc, 
+        hardware.esc_timer, 
+        TIMER_CH4, 
+        GPIOB, 
+        PIN_1, 
+        TIM_84MHZ_1US_PSC, 
+        esc_period, 
+        esc_fwd_speed_lim, 
+        esc_rev_speed_lim); 
 
-    // // ESC driver init - left thruster (ESC2) 
-    // esc_init(
-    //     DEVICE_TWO, 
-    //     hardware.esc_timer, 
-    //     TIMER_CH3, 
-    //     GPIOB, 
-    //     PIN_0, 
-    //     TIM_84MHZ_1US_PSC, 
-    //     esc_period, 
-    //     esc2_fwd_speed_lim, 
-    //     esc2_rev_speed_lim); 
+    // ESC driver init - left thruster (ESC2) 
+    esc_init(
+        hardware.left_esc, 
+        hardware.esc_timer, 
+        TIMER_CH3, 
+        GPIOB, 
+        PIN_0, 
+        TIM_84MHZ_1US_PSC, 
+        esc_period, 
+        esc_fwd_speed_lim, 
+        esc_rev_speed_lim); 
 
-    // // Enable the PWM timer 
-    // tim_enable(hardware.esc_timer); 
+    // Enable the PWM timer 
+    tim_enable(hardware.esc_timer); 
 
     //==================================================
 }
@@ -527,7 +529,8 @@ void VehicleHardware::PropulsionSet(
     uint16_t throttle_1, 
     uint16_t throttle_2)
 {
-    // 
+    esc_pwm_set(hardware.right_esc, throttle_1); 
+    esc_pwm_set(hardware.left_esc, throttle_2); 
 }
 
 

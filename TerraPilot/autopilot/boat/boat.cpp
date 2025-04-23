@@ -57,7 +57,7 @@ void Boat::VehicleSetup(void)
 
 
 //=======================================================================================
-// Vehicle Control 
+// Vehicle Drive 
 
 // Updates to propulsion and steering don't need to be protected because they're changing 
 // continuous PWM values, so there are no outgoing messages to interrupt. 
@@ -67,7 +67,7 @@ void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
 {
 #if VS_BOAT_K1 
     
-    // With this setup the steering command has to be mapped to a thruster output. 
+    // With this setup the steering (roll) command has to be mapped to a thruster output. 
 
     uint16_t 
     left_thruster = main_channels.throttle, 
@@ -77,8 +77,15 @@ void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
     if ((main_channels.throttle != VehicleControl::PWM_NEUTRAL) && 
         (main_channels.roll != VehicleControl::PWM_NEUTRAL))
     {
+        // Both the left and right thuster start with the value provided by the throttle 
+        // input, then depending on the position of the roll input the left or right 
+        // thruster will be linearly scaled back to allow for differential thrust 
+        // steering. For example, a full left turn (roll) input will scale the left 
+        // thruster value to neutral (zero thrust) while the right thuster will have the 
+        // value of the throttle input. 
+
         int16_t rise = (int16_t)VehicleControl::PWM_NEUTRAL - (int16_t)main_channels.throttle; 
-        int16_t run = VehicleControl::PWM_DIR_DIFF_MAX; 
+        int16_t run = VehicleControl::PWM_NEUTRAL - VehicleControl::PWM_LOW; 
         int16_t roll = (int16_t)VehicleControl::PWM_NEUTRAL - (int16_t)main_channels.roll; 
         int16_t thrust_diff = (rise * roll) / run; 
 

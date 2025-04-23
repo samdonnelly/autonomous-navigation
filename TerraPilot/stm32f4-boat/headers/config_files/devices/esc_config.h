@@ -22,7 +22,7 @@ extern "C" {
 //=======================================================================================
 // Includes 
 
-#include "stm32f411xe.h" 
+#include "esc_driver.h" 
 
 //=======================================================================================
 
@@ -46,6 +46,9 @@ extern const uint16_t esc1_fwd_speed_lim;
 extern const uint16_t esc1_rev_speed_lim; 
 extern const uint16_t esc2_fwd_speed_lim; 
 extern const uint16_t esc2_rev_speed_lim; 
+
+extern const uint16_t esc_fwd_speed_lim; 
+extern const uint16_t esc_rev_speed_lim; 
 
 //=======================================================================================
 

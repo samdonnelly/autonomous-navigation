@@ -50,7 +50,7 @@ set(STM32CUBEMX_INCLUDE_DIRECTORIES
 
 # STM32F4 project code 
 set(STM32F4_PROJECT_INCLUDE_DIRECTORIES 
-    ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files/devices
+    ${CMAKE_CURRENT_SOURCE_DIR}/hardware
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/config_files/system
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/core
     ${CMAKE_CURRENT_SOURCE_DIR}/headers/includes
@@ -108,11 +108,8 @@ file(GLOB_RECURSE STM32CUBEMX_SOURCES CONFIGURE_DEPENDS
 
 # STM32F4 project code 
 file(GLOB_RECURSE STM32F4_PROJECT_SOURCES CONFIGURE_DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/hardware.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/devices/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/devices/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/hardware/hardware.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/hardware/device_config.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/system/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/config_files/system/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/core/*.c

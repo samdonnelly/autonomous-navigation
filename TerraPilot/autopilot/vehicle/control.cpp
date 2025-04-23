@@ -132,7 +132,7 @@ void VehicleControl::RemoteControl(Vehicle &vehicle)
 }
 
 
-// Vehicle stop 
+// Stop the vehicle propulsion and steering 
 void VehicleControl::ForceStop(Vehicle &vehicle)
 {
     channels.throttle = PWM_NEUTRAL; 

@@ -167,9 +167,8 @@ void Boat::MainInitState(Boat& data, Event event)
         osTimerStart(data.periodic_timer_250ms.handler, data.periodic_timer_250ms.ticks); 
         osTimerStart(data.periodic_timer_1s.handler, data.periodic_timer_1s.ticks); 
         
-        // Load a waypoint mission if it exists 
+        // Load a waypoint mission if it exists in memory. 
         data.memory.MissionLoad(); 
-        // navigation.LoadMission(); 
     }
     
     data.main_event = (MainEvents)event; 
@@ -204,9 +203,8 @@ void Boat::MainHoldState(Boat& data, Event event)
     {
         data.MainStateEnter((uint8_t)MainStates::HOLD_STATE, data.main_state_flags.flags); 
 
-        // navigation.ThrustersOff(); 
+        data.control.ForceStop(data); 
         // LEDStrobeUpdate(ws2812_led_standby_not_ready); 
-        // radio.MainStandbyStateCmdEnable(FLAG_SET); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -223,7 +221,6 @@ void Boat::MainHoldState(Boat& data, Event event)
         data.MainStateExit(); 
 
         // LEDStrobeOff(); 
-        // radio.MainStandbyStateCmdEnable(FLAG_CLEAR); 
     }
 }
 
@@ -240,21 +237,15 @@ void Boat::MainManualState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::MANUAL_STATE, data.main_state_flags.flags); 
 
         // LEDStrobeUpdate(ws2812_led_manual_strobe); 
-        // radio.MainManualStateCmdEnable(FLAG_SET); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        // case MainEvents::RADIO_CONNECTION: 
-            // data.rc.RadioConnectionCheck(data.radio.ConnectionStatus()); 
-            // break; 
-
-        // case MainEvents::REMOTE_CONTROL: 
-        //     // Check for RC receiver input to control the vehicle and simultaneously 
-        //     // check that there's still an RC radio connection. 
-        //     break; 
+        case MainEvents::RC_CONTROL: 
+            data.control.RemoteControl(data); 
+            break; 
         
         default: 
             data.MainCommonEvents(data.main_event); 
@@ -265,9 +256,8 @@ void Boat::MainManualState(Boat& data, Event event)
     {
         data.MainStateExit(); 
 
-        // rc.ThrustersOff(); 
+        data.control.ForceStop(data); 
         // LEDStrobeOff(); 
-        // radio.MainManualStateCmdEnable(FLAG_CLEAR); 
     }
 }
 
@@ -486,7 +476,6 @@ void Boat::MainAutoState(Boat& data, Event event)
         // navigation.CurrentUpdate(boat); 
         // LEDStrobeUpdate(ws2812_led_auto_strobe); 
         // LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
-        // radio.MainAutoStateCmdEnable(FLAG_SET); 
     }
     
     data.main_event = (MainEvents)event; 
@@ -516,10 +505,9 @@ void Boat::MainAutoState(Boat& data, Event event)
 
         data.telemetry.MAVLinkMissionCurrentDisable(); 
 
-        // navigation.ThrustersOff(); 
+        data.control.ForceStop(data); 
         // LEDStrobeOff(); 
         // LEDUpdate(ws2812_led_off, ws2812_led_off); 
-        // radio.MainAutoStateCmdEnable(FLAG_CLEAR); 
     }
 }
 
@@ -620,7 +608,7 @@ void Boat::MainFaultState(Boat& data, Event event)
         data.main_system_flags.state_entry = FLAG_CLEAR; 
         data.main_state_flags.flags = RESET; 
 
-        // radio.MainFaultStateCmdEnable(FLAG_SET); 
+        data.control.ForceStop(data); 
 
         //==================================================
         // From low power state 
@@ -633,7 +621,6 @@ void Boat::MainFaultState(Boat& data, Event event)
         // LED updates. 
     
         // LEDStrobeUpdate(ws2812_led_low_pwr); 
-        // radio.MainLowPwrStateCmdEnable(FLAG_SET); 
 
         //==================================================
     }
@@ -651,13 +638,10 @@ void Boat::MainFaultState(Boat& data, Event event)
     {
         data.MainStateExit(); 
 
-        // radio.MainFaultStateCmdEnable(FLAG_CLEAR); 
-
         //==================================================
         // From low power state 
 
         // LEDStrobeOff(); 
-        // radio.MainLowPwrStateCmdEnable(FLAG_CLEAR); 
 
         //==================================================
     }
@@ -675,6 +659,8 @@ void Boat::MainResetState(Boat& data, Event event)
     {
         data.main_system_flags.state_entry = FLAG_CLEAR; 
         data.main_state_flags.flags = RESET; 
+
+        data.control.ForceStop(data); 
 
         // Stop the software timers 
         osTimerStop(data.periodic_timer_50ms.handler); 
@@ -803,8 +789,7 @@ void Boat::MainStateRCModeMap(uint8_t &mode)
             mode = (uint8_t)MainStates::AUTO_STATE; 
             break; 
         
-        default: 
-            // Invalid 
+        default:   // Invalid mode number 
             mode = (uint8_t)MainStates::NUM_STATES; 
             break; 
     }

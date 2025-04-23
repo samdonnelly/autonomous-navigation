@@ -32,7 +32,7 @@ void Boat::TimerCallback50ms(void *timer_arg)
 
     // Check for incoming RC (transmitter/receiver) data 
     boat.CommsEventQueue((Event)CommsEvents::RC_READ); 
-    boat.MainEventQueue((Event)MainEvents::RC_DECODE); 
+    boat.MainEventQueue((Event)MainEvents::RC_UPDATE); 
 }
 
 
