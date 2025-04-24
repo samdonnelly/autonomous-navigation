@@ -548,10 +548,16 @@ void VehicleHardware::SteeringSet(
 //=======================================================================================
 // Compass 
 
-// void VehicleHardware::CompassRead(void)
-// {
-//     // 
-// }
+void VehicleHardware::CompassRead(void)
+{
+    // If data is ready, make sure to set the data_ready.compass_ready flag! 
+}
+
+
+void VehicleHardware::CompassGet(void)
+{
+    // 
+}
 
 //=======================================================================================
 

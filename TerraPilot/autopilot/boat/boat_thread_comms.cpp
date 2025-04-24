@@ -67,9 +67,9 @@ void Boat::CommsDispatch(Event event)
         //     // boat.navigation.LocationUpdate(); 
         //     break; 
 
-        // case CommsEvents::COMPASS_READ: 
-        //     boat.hardware.CompassRead(); 
-        //     break; 
+        case CommsEvents::COMPASS_READ: 
+            boat.hardware.CompassRead(); 
+            break; 
 
         case CommsEvents::GPS_READ: 
             boat.hardware.GPSRead(); 

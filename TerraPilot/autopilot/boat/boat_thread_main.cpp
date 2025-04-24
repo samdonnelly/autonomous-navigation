@@ -490,6 +490,10 @@ void Boat::MainAutoState(Boat& data, Event event)
         //     data.navigation.LocationCalc(data); 
         //     break; 
 
+        case MainEvents::COMPASS_HEADING: 
+            data.navigation.HeadingError(data); 
+            break; 
+
         case MainEvents::GPS_DISTANCE: 
             data.navigation.WaypointDistance(data); 
             break; 

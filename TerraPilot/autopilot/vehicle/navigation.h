@@ -105,6 +105,8 @@ public:   // public methods
     VehicleNavigation(); 
 
     // Orientation 
+    void OrientationUpdate(Vehicle &vehicle); 
+    void HeadingError(Vehicle &vehicle); 
 
     // Location 
     void LocationUpdate(Vehicle &vehicle); 

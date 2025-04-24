@@ -98,6 +98,35 @@ VehicleNavigation::VehicleNavigation()
 
 //=======================================================================================
 // Orientation 
+
+/**
+ * @brief Update the vehicle compass data 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
+{
+    if (vehicle.hardware.data_ready.compass_ready == FLAG_SET)
+    {
+        vehicle.hardware.data_ready.compass_ready = FLAG_CLEAR; 
+
+        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
+        vehicle.hardware.CompassGet(); 
+        xSemaphoreGive(vehicle.comms_mutex); 
+    }
+}
+
+
+/**
+ * @brief Find the difference between the vehicle heading and the desired heading 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::HeadingError(Vehicle &vehicle)
+{
+    // 
+}
+
 //=======================================================================================
 
 
@@ -115,8 +144,6 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
     {
         vehicle.hardware.data_ready.gps_ready = FLAG_CLEAR; 
 
-        // Get a copy of the data so we don't have to hold the comms mutex throughout the 
-        // whole decoding process. 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
         status.gps_lock = vehicle.hardware.GPSGet(location_current); 
         xSemaphoreGive(vehicle.comms_mutex); 

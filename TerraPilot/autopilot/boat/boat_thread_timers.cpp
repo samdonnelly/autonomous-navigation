@@ -33,6 +33,12 @@ void Boat::TimerCallback50ms(void *timer_arg)
     // Check for incoming RC (transmitter/receiver) data 
     boat.CommsEventQueue((Event)CommsEvents::RC_READ); 
     boat.MainEventQueue((Event)MainEvents::RC_UPDATE); 
+
+    // State events 
+    if (boat.main_state == MainStates::MANUAL_STATE)
+    {
+        boat.MainEventQueue((Event)MainEvents::RC_CONTROL); 
+    }
 }
 
 
@@ -42,12 +48,15 @@ void Boat::TimerCallback100ms(void *timer_arg)
     // Update the LED strobe 
     // boat.CommsEventQueue((Event)CommsEvents::LED_STROBE); 
 
-    // Update the navigation heading when in the auto state 
-    // if (boat.main_state == MainStates::AUTO_STATE)
-    // {
-        // boat.CommsEventQueue((Event)CommsEvents::NAV_HEADING_UPDATE); 
-        // boat.MainEventQueue((Event)MainEvents::NAV_HEADING_CALC); 
-    // }
+    // Keep the current orientation up to date 
+    boat.CommsEventQueue((Event)CommsEvents::COMPASS_READ); 
+    boat.MainEventQueue((Event)MainEvents::COMPASS_UPDATE); 
+
+    // State events 
+    if (boat.main_state == MainStates::AUTO_STATE)
+    {
+        boat.MainEventQueue((Event)MainEvents::COMPASS_HEADING); 
+    }
 }
 
 
@@ -63,20 +72,14 @@ void Boat::TimerCallback250ms(void *timer_arg)
 void Boat::TimerCallback1s(void *timer_arg)
 {
     // Keep the current location up to date 
-    // boat.CommsEventQueue((Event)CommsEvents::NAV_LOCATION_UPDATE); 
     boat.CommsEventQueue((Event)CommsEvents::GPS_READ); 
     boat.MainEventQueue((Event)MainEvents::GPS_UPDATE); 
 
-    // Queue events based on the state 
+    // State events 
     if (boat.main_state == MainStates::AUTO_STATE)
     {
         boat.MainEventQueue((Event)MainEvents::GPS_DISTANCE); 
     }
-    // else if (boat.main_state == MainStates::MANUAL_STATE)
-    // {
-    //     // Check that the radio is still connected when in manual mode 
-    //     boat.MainEventQueue((Event)MainEvents::RADIO_CONNECTION); 
-    // }
 }
 
 //=======================================================================================

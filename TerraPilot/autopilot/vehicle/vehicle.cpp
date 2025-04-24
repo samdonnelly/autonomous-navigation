@@ -215,6 +215,10 @@ void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
 {
     switch (event)
     {
+        case MainEvents::COMPASS_UPDATE: 
+            navigation.OrientationUpdate(*this); 
+            break; 
+        
         case MainEvents::GPS_UPDATE: 
             navigation.LocationUpdate(*this); 
             break; 
