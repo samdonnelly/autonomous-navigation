@@ -107,8 +107,6 @@ void VehicleTelemetry::MessageDecode(Vehicle &vehicle)
         vehicle.hardware.data_ready.telemetry_ready = FLAG_CLEAR; 
         data_in_index = RESET; 
 
-        // Get a copy of the data so we don't have to hold the comms mutex throughout the 
-        // whole decoding process. 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
         vehicle.hardware.TelemetryGet(data_in_size, data_in_buff); 
         xSemaphoreGive(vehicle.comms_mutex); 
@@ -1381,14 +1379,14 @@ void VehicleTelemetry::MAVLinkNavControllerSendPeriodic(Vehicle &vehicle)
             component_id, 
             channel, 
             &msg, 
-            0,                                      // Current desired roll 
-            0,                                      // Current desired pitch 
-            vehicle.navigation.heading,             // Current desired heading 
-            vehicle.navigation.target_heading,      // Bearing to current waypoint/target 
-            vehicle.navigation.waypoint_distance,   // Distance to active waypoint 
-            0,                                      // Current altitude error 
-            0,                                      // Current airspeed error 
-            0);                                     // Current crosstrack error on x-y plane 
+            0,                                        // Current desired roll 
+            0,                                        // Current desired pitch 
+            vehicle.navigation.HeadingCurrentGet(),   // Current desired heading 
+            vehicle.navigation.HeadingTargetGet(),    // Bearing to current waypoint/target 
+            vehicle.navigation.waypoint_distance,     // Distance to active waypoint 
+            0,                                        // Current altitude error 
+            0,                                        // Current airspeed error 
+            0);                                       // Current crosstrack error on x-y plane 
         MAVLinkMessageFormat(); 
     }
 }
@@ -1436,15 +1434,15 @@ void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle)
             component_id, 
             channel, 
             &msg, 
-            vehicle.auxiliary.time_usec,   // Time since boot 
-            location.latI,                 // Latitude 
-            location.lonI,                 // Longitude 
-            location.altI,                 // Altitude 
-            location.altI,                 // Relative altitude (above home) 
-            0,                             // X velocity 
-            0,                             // Y velocity 
-            0,                             // Z velocity 
-            vehicle.navigation.heading);   // Heading (yaw angle) 
+            vehicle.auxiliary.time_usec,               // Time since boot 
+            location.latI,                             // Latitude 
+            location.lonI,                             // Longitude 
+            location.altI,                             // Altitude 
+            location.altI,                             // Relative altitude (above home) 
+            0,                                         // X velocity 
+            0,                                         // Y velocity 
+            0,                                         // Z velocity 
+            vehicle.navigation.HeadingCurrentGet());   // Heading (yaw angle) 
         MAVLinkMessageFormat(); 
     }
 }

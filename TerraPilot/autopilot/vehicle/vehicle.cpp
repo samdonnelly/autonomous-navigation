@@ -215,7 +215,7 @@ void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
 {
     switch (event)
     {
-        case MainEvents::COMPASS_UPDATE: 
+        case MainEvents::IMU_UPDATE: 
             navigation.OrientationUpdate(*this); 
             break; 
         

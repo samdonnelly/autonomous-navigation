@@ -56,8 +56,6 @@ void VehicleControl::RCUpdate(Vehicle &vehicle)
     {
         vehicle.hardware.data_ready.rc_ready = FLAG_CLEAR; 
 
-        // Get a copy of the data so we don't have to hold the comms mutex throughout the 
-        // whole decoding process. 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
         vehicle.hardware.RCGet(channels); 
         xSemaphoreGive(vehicle.comms_mutex); 

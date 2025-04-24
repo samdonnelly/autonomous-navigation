@@ -33,17 +33,15 @@ class VehicleNavigation
 {
 public:   // public types 
 
-    // Orientation 
-    struct Vector 
-    {
-        int16_t x, y, z; 
-    };
-
-    // Location 
     struct Location 
     {
         int32_t latI, lonI, altI; 
         float lat, lon, alt; 
+    };
+
+    struct Vector 
+    {
+        int16_t x, y, z; 
     };
 
 private:   // private members 
@@ -65,23 +63,24 @@ private:   // private members
     }
     status; 
 
-    // Orientation 
-
     // Location 
-    Location location_current, location_filtered; 
+    Location location_current, location_filtered, location_target; 
+    mavlink_mission_item_int_t mission_target; 
 
     float coordinate_lpf_gain;   // Low pass filter gain for GPS coordinates 
+
+    // Heading 
     int16_t true_north_offset;   // True north offset from magnetic north 
+    int16_t heading, heading_target; 
     
 public:   // public members 
     
     // Orientation 
     Vector accel, gyro, mag; 
     float roll, pitch, yaw; 
-    int16_t heading, target_heading; 
     
     // Location 
-    Location location_target, location_previous; 
+    Location location_previous; 
     GPS_FIX_TYPE fix_type; 
     MAV_FRAME coordinate_frame; 
     uint16_t position_type_mask; 
@@ -91,27 +90,40 @@ public:   // public members
 
 private:   // private methods 
 
-    // Location 
+    // Navigation data handling 
     void LocationChecks(Vehicle &vehicle); 
+    
+    // Mission execution 
+    void TargetUpdate(Vehicle &vehicle); 
+    
+    // Location calculations 
+    void WaypointDistance(Vehicle &vehicle); 
     void CoordinateFilter(Location new_location, Location &filtered_location) const; 
     // int32_t GPSRadius(Location current, Location target); 
-    // int16_t GPSHeading(Location current, Location target); 
-    // int16_t TrueNorthHeading(int16_t heading) const; 
-    // int16_t HeadingError(int16_t current_heading, int16_t target_heading); 
+    float GPSRadius(Location current, Location target); 
+    int16_t GPSHeading(Location current, Location target); 
+
+    // Heading calculations 
+    int16_t TrueNorthHeading(int16_t heading) const; 
+    int16_t HeadingError(int16_t current_heading, int16_t target_heading); 
 
 public:   // public methods 
 
     // Constructor 
     VehicleNavigation(); 
 
-    // Orientation 
-    void OrientationUpdate(Vehicle &vehicle); 
-    void HeadingError(Vehicle &vehicle); 
-
-    // Location 
+    // Navigation data handling 
     void LocationUpdate(Vehicle &vehicle); 
-    void WaypointDistance(Vehicle &vehicle); 
+    void OrientationUpdate(Vehicle &vehicle); 
+    
+    // Mission execution 
+    void TargetAssess(Vehicle &vehicle); 
+    void CourseCorrection(Vehicle &vehicle); 
+
+    // Getters and setter 
     Location LocationCurrentGet(void); 
+    int16_t HeadingCurrentGet(void); 
+    int16_t HeadingTargetGet(void); 
 }; 
 
 //=======================================================================================

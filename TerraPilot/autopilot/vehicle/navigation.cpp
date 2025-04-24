@@ -97,41 +97,7 @@ VehicleNavigation::VehicleNavigation()
 
 
 //=======================================================================================
-// Orientation 
-
-/**
- * @brief Update the vehicle compass data 
- * 
- * @param vehicle : vehicle object 
- */
-void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
-{
-    if (vehicle.hardware.data_ready.compass_ready == FLAG_SET)
-    {
-        vehicle.hardware.data_ready.compass_ready = FLAG_CLEAR; 
-
-        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        vehicle.hardware.CompassGet(); 
-        xSemaphoreGive(vehicle.comms_mutex); 
-    }
-}
-
-
-/**
- * @brief Find the difference between the vehicle heading and the desired heading 
- * 
- * @param vehicle : vehicle object 
- */
-void VehicleNavigation::HeadingError(Vehicle &vehicle)
-{
-    // 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Position 
+// Navigation data handling 
 
 /**
  * @brief Update the vehicle location data 
@@ -201,57 +167,128 @@ void VehicleNavigation::LocationChecks(Vehicle &vehicle)
 
 
 /**
- * @brief Find the distance between the vehicle location and target waypoint 
+ * @brief Update the vehicle orientation data 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
+{
+    if (vehicle.hardware.data_ready.imu_ready == FLAG_SET)
+    {
+        vehicle.hardware.data_ready.imu_ready = FLAG_CLEAR; 
+
+        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
+        vehicle.hardware.IMUGet(); 
+        xSemaphoreGive(vehicle.comms_mutex); 
+    }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Mission execution 
+
+/**
+ * @brief Assess the current mission target 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::TargetAssess(Vehicle &vehicle)
+{
+    // Update the mission target information if it doesn't match the set target 
+    if (mission_target.seq != vehicle.memory.MissionTargetGet())
+    {
+        TargetUpdate(vehicle); 
+    }
+
+    // Execute the mission command 
+    switch (mission_target.command)
+    {
+        case MAV_CMD_NAV_WAYPOINT: 
+            WaypointDistance(vehicle); 
+            break; 
+        
+        default: 
+            // TODO If the command is not supported, do we go to the next item? 
+            break; 
+    }
+}
+
+
+/**
+ * @brief Mission target update 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::TargetUpdate(Vehicle &vehicle)
+{
+    mission_target = vehicle.memory.MissionItemGet(vehicle.memory.MissionTargetGet()); 
+
+    location_target.latI = mission_target.x; 
+    location_target.lonI = mission_target.y; 
+    location_target.alt = mission_target.z; 
+}
+
+
+/**
+ * @brief Adjust the vehicles course/heading 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::CourseCorrection(Vehicle &vehicle)
+{
+    // Find the error between the boat's heading and the coordinate heading 
+    int16_t heading_error = HeadingError(TrueNorthHeading(heading), heading_target); 
+
+    status.gps_lock ? vehicle.AutoDrive(heading_error) : vehicle.control.ForceStop(vehicle); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Location calculations 
+
+/**
+ * @brief Find the distance to the target waypoint 
+ * 
+ * @param vehicle : vehicle object 
  */
 void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
 {
     if (status.gps_lock)
     {
-        // Get the updated location by reading the GPS device coordinates then filtering 
-        // the result. 
+        // Check if the current location is within the acceptance radius of the target 
+        // waypoint. If it is and the mission item specifies to continue onto the next 
+        // mission item, then the mission target is updated. The read coordinates are 
+        // filtered to smooth the data. The coordinate/target heading is also found here 
+        // since it can only change with new coordinate data. 
+        
         CoordinateFilter(location_current, location_filtered); 
+        heading_target = GPSHeading(location_filtered, location_target); 
+        
+        // TODO calculations units (float) don't match supplied units (int) 
+        if (GPSRadius(location_filtered, location_target) < mission_target.param2)
+        {
+            // Send a mission item reached message 
 
-        // MissionIndex target_index = vehicle.memory.MissionTargetGet(); 
-        // MissionItem target_item = vehicle.memory.MissionItemGet(target_index); 
-    
-        // Calculate the distance to the target location and the heading needed to get 
-        // there. 
-        // radius = gps_radius(current, target); 
-        // coordinate_heading = gps_heading(current, target); 
-    
-        // Check if the distance to the target is within the threshold. If so, the 
-        // target is considered "hit" and we can move to the next target. 
-        // if (radius < coordinate_radius)
-        // {
-        //     // Adjust waypoint index 
-        //     if (++waypoint_index >= num_gps_waypoints)
-        //     {
-        //         waypoint_index = CLEAR; 
-        //     }
-    
-        //     // Update the target waypoint 
-        //     SetTargetLocation(waypoints[waypoint_index]); 
-        // }
-
-        // Mission item reached 
+            if (mission_target.autocontinue)
+            {
+                vehicle.memory.MissionTargetSet(++mission_target.seq); 
+                TargetUpdate(vehicle); 
+            }
+        }
     }
-    
 }
 
 
-// Get the current vehicle location 
-VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)
-{
-    return location_current; 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Calculations 
-
-// Coordinate filter 
+/**
+ * @brief Coordinate filter 
+ * 
+ * @param new_location : new coordinates read by the system 
+ * @param filtered_location : previously filtered coordinates 
+ */
 void VehicleNavigation::CoordinateFilter(
     Location new_location, 
     Location &filtered_location) const
@@ -261,140 +298,185 @@ void VehicleNavigation::CoordinateFilter(
 }
 
 
-// // GPS radius calculation 
+/**
+ * @brief GPS radius calculation 
+ * 
+ * @param current : current vehicle location 
+ * @param target : target location 
+ * @return float : surface distance between the current and target location 
+ */
 // int32_t VehicleNavigation::GPSRadius(
-//     Location current, 
-//     Location target)
-// {
-//     double eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, surf_dist; 
+float VehicleNavigation::GPSRadius(
+    Location current, 
+    Location target)
+{
+    float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, surf_dist; 
 
-//     // Convert the coordinates to radians so they're compatible with the math library. 
-//     current.lat *= DEG_TO_RAD; 
-//     current.lon *= DEG_TO_RAD; 
-//     target.lat *= DEG_TO_RAD; 
-//     target.lon *= DEG_TO_RAD; 
+    // Convert the coordinates to radians so they're compatible with the math library. 
+    current.lat *= DEG_TO_RAD; 
+    current.lon *= DEG_TO_RAD; 
+    target.lat *= DEG_TO_RAD; 
+    target.lon *= DEG_TO_RAD; 
 
-//     // Calculate the surface distance (or radius - direction independent) in meters 
-//     // between coordinates. This distance can also be described as the distance between 
-//     // coordinates along their great-circle. This calculation comes from the great-circle 
-//     // navigation equations. Once the distance is found then the returned value is scaled 
-//     // by 10 (units: meters*10) so its integer representation can hold one decimal place 
-//     // of accuracy. Equations are structured to not have repeated calculations. 
-//     eq0 = (target.lon - current.lon); 
-//     eq1 = cos(target.lat); 
-//     eq2 = cos(current.lat); 
-//     eq3 = sin(target.lat); 
-//     eq4 = sin(current.lat); 
-//     eq5 = eq1*sin(eq0); 
-//     eq6 = eq1*cos(eq0); 
-//     eq7 = eq2*eq3 - eq4*eq6; 
+    // Calculate the surface distance (or radius - direction independent) in meters 
+    // between coordinates. This distance can also be described as the distance between 
+    // coordinates along their great-circle. This calculation comes from the great-circle 
+    // navigation equations. Once the distance is found then the returned value is scaled 
+    // by 10 (units: meters*10) so its integer representation can hold one decimal place 
+    // of accuracy. Equations are structured to not have repeated calculations. 
+    eq0 = (target.lon - current.lon); 
+    eq1 = cos(target.lat); 
+    eq2 = cos(current.lat); 
+    eq3 = sin(target.lat); 
+    eq4 = sin(current.lat); 
+    eq5 = eq1*sin(eq0); 
+    eq6 = eq1*cos(eq0); 
+    eq7 = eq2*eq3 - eq4*eq6; 
 
-//     surf_dist = atan2(sqrt((eq7*eq7) + (eq5*eq5)), (eq4*eq3 + eq2*eq6))*EARTH_RADIUS*KM_TO_M; 
+    surf_dist = atan2(sqrt((eq7*eq7) + (eq5*eq5)), (eq4*eq3 + eq2*eq6))*EARTH_RADIUS*KM_TO_M; 
     
-//     return (int32_t)(surf_dist*SCALE_10); 
-// }
+    // return (int32_t)(surf_dist*SCALE_10); 
+    return surf_dist; 
+}
 
 
-// // GPS heading calculation 
-// int16_t VehicleNavigation::GPSHeading(
-//     Location current, 
-//     Location target)
-// {
-//     int16_t heading; 
-//     double eq0, eq1, num, den; 
+/**
+ * @brief GPS heading calculation 
+ * 
+ * @param current : current vehicle location 
+ * @param target : target location 
+ * @return int16_t : heading between the current and target location 
+ */
+int16_t VehicleNavigation::GPSHeading(
+    Location current, 
+    Location target)
+{
+    int16_t heading; 
+    double eq0, eq1, num, den; 
 
-//     // Convert the coordinates to radians so they're compatible with the math library. 
-//     current.lat *= DEG_TO_RAD; 
-//     current.lon *= DEG_TO_RAD; 
-//     target.lat *= DEG_TO_RAD; 
-//     target.lon *= DEG_TO_RAD; 
+    // Convert the coordinates to radians so they're compatible with the math library. 
+    current.lat *= DEG_TO_RAD; 
+    current.lon *= DEG_TO_RAD; 
+    target.lat *= DEG_TO_RAD; 
+    target.lon *= DEG_TO_RAD; 
 
-//     // Calculate the initial heading in radians between coordinates relative to true north. 
-//     // As you move along the path that's the shortest distance between two points on the 
-//     // globe, your heading relative to true north changes which is why this is just the 
-//     // instantaneous heading. This calculation comes from the great-circle navigation 
-//     // equations. Once the heading is found it's converted from radians to degrees and 
-//     // scaled by 10 (units: degrees*10) so its integer representation can hold one decimal 
-//     // place of accuracy. 
-//     eq0 = cos(target.lat); 
-//     eq1 = (target.lon - current.lon); 
-//     num = eq0*sin(eq1); 
-//     den = cos(current.lat)*sin(target.lat) - sin(current.lat)*eq0*cos(eq1); 
+    // Calculate the initial heading in radians between coordinates relative to true north. 
+    // As you move along the path that's the shortest distance between two points on the 
+    // globe, your heading relative to true north changes which is why this is just the 
+    // instantaneous heading. This calculation comes from the great-circle navigation 
+    // equations. Once the heading is found it's converted from radians to degrees and 
+    // scaled by 10 (units: degrees*10) so its integer representation can hold one decimal 
+    // place of accuracy. 
+    eq0 = cos(target.lat); 
+    eq1 = (target.lon - current.lon); 
+    num = eq0*sin(eq1); 
+    den = cos(current.lat)*sin(target.lat) - sin(current.lat)*eq0*cos(eq1); 
 
-//     heading = (int16_t)(atan(num/den)*RAD_TO_DEG*SCALE_10); 
+    heading = (int16_t)(atan(num/den)*RAD_TO_DEG*SCALE_10); 
 
-//     // Correct the calculated heading if needed. atan can produce a heading outside the 
-//     // needed range (0-359.9 degrees) so this correction brings the value back within range. 
-//     if (den < 0)
-//     {
-//         heading += HEADING_DIFF_MAX; 
-//     }
-//     else if (num < 0)
-//     {
-//         heading += HEADING_RANGE; 
-//     }
+    // Correct the calculated heading if needed. atan can produce a heading outside the 
+    // needed range (0-359.9 degrees) so this correction brings the value back within range. 
+    if (den < 0)
+    {
+        heading += HEADING_DIFF_MAX; 
+    }
+    else if (num < 0)
+    {
+        heading += HEADING_RANGE; 
+    }
 
-//     return heading; 
-// }
+    return heading; 
+}
 
-
-// // True north heading 
-// int16_t VehicleNavigation::TrueNorthHeading(int16_t heading) const
-// {
-//     // Use the current heading and true north correction offset to get the true north 
-//     // heading. If the true north heading exceeds acceptable heading bounds (0-359.9deg 
-//     // or 0-3599 scaled), then shift the heading to be back within bounds. This can be 
-//     // done because of the circular nature of the heading (ex. 0 degrees is the same 
-//     // direction as 360 degrees). The returned heading is in degrees*10. 
-
-//     int16_t tn_heading = heading + true_north_offset; 
-
-//     if (true_north_offset >= 0)
-//     {
-//         if (tn_heading >= HEADING_RANGE)
-//         {
-//             tn_heading -= HEADING_RANGE; 
-//         }
-//     }
-//     else 
-//     {
-//         if (tn_heading < 0)
-//         {
-//             tn_heading += HEADING_RANGE; 
-//         }
-//     }
-
-//     return tn_heading; 
-// }
+//=======================================================================================
 
 
-// // Heading error 
-// int16_t VehicleNavigation::HeadingError(
-//     int16_t current_heading, 
-//     int16_t target_heading)
-// {
-//     // Calculate the heading error and correct it when the heading crosses the 0/360 
-//     // degree boundary. For example, if the current heading is 10 degrees and the 
-//     // target heading is 345 degrees, the error will read as 345-10 = 335 degrees. 
-//     // Although not technically wrong, it makes more sense to say the error is -25 
-//     // degrees (-(10 + (360-345))) because that is the smaller angle between the two 
-//     // headings and the negative sign indicates in what direction this smaller error 
-//     // happens. So instead of turning 335 degrees clockwise, you can turn 25 degrees 
-//     // counter clockwise to correct for the error. The inflection point of the error 
-//     // for this correction is 180 degrees (or 1800 in degrees*10). 
+//=======================================================================================
+// Heading calculations 
 
-//     int16_t heading_error = target_heading - current_heading; 
+// True north heading 
+int16_t VehicleNavigation::TrueNorthHeading(int16_t heading) const
+{
+    // Use the current heading and true north correction offset to get the true north 
+    // heading. If the true north heading exceeds acceptable heading bounds (0-359.9deg 
+    // or 0-3599 scaled), then shift the heading to be back within bounds. This can be 
+    // done because of the circular nature of the heading (ex. 0 degrees is the same 
+    // direction as 360 degrees). The returned heading is in degrees*10. 
 
-//     if (heading_error > HEADING_DIFF_MAX)
-//     {
-//         heading_error -= HEADING_RANGE; 
-//     }
-//     else if (heading_error <= -HEADING_DIFF_MAX)
-//     {
-//         heading_error += HEADING_RANGE; 
-//     }
+    int16_t tn_heading = heading + true_north_offset; 
 
-//     return heading_error; 
-// }
+    if (true_north_offset >= 0)
+    {
+        if (tn_heading >= HEADING_RANGE)
+        {
+            tn_heading -= HEADING_RANGE; 
+        }
+    }
+    else 
+    {
+        if (tn_heading < 0)
+        {
+            tn_heading += HEADING_RANGE; 
+        }
+    }
+
+    return tn_heading; 
+}
+
+
+// Heading error 
+int16_t VehicleNavigation::HeadingError(
+    int16_t current_heading, 
+    int16_t target_heading)
+{
+    // Calculate the heading error and correct it when the heading crosses the 0/360 
+    // degree boundary. For example, if the current heading is 10 degrees and the 
+    // target heading is 345 degrees, the error will read as 345-10 = 335 degrees. 
+    // Although not technically wrong, it makes more sense to say the error is -25 
+    // degrees (-(10 + (360-345))) because that is the smaller angle between the two 
+    // headings and the negative sign indicates in what direction this smaller error 
+    // happens. So instead of turning 335 degrees clockwise, you can turn 25 degrees 
+    // counter clockwise to correct for the error. The inflection point of the error 
+    // for this correction is 180 degrees (or 1800 in degrees*10). 
+
+    int16_t heading_error = target_heading - current_heading; 
+
+    if (heading_error > HEADING_DIFF_MAX)
+    {
+        heading_error -= HEADING_RANGE; 
+    }
+    else if (heading_error <= -HEADING_DIFF_MAX)
+    {
+        heading_error += HEADING_RANGE; 
+    }
+
+    return heading_error; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Getters and setters 
+
+// Get the current vehicle location 
+VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)
+{
+    return location_current; 
+}
+
+
+// Get the current vehicle heading 
+int16_t VehicleNavigation::HeadingCurrentGet(void)
+{
+    return heading; 
+}
+
+
+// Get the target vehicle heading 
+int16_t VehicleNavigation::HeadingTargetGet(void)
+{
+    return heading_target; 
+}
 
 //=======================================================================================

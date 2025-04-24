@@ -43,7 +43,7 @@ public:   // Public members
     {
         struct 
         {
-            uint32_t compass_ready   : 1; 
+            uint32_t imu_ready       : 1; 
             uint32_t gps_ready       : 1; 
             uint32_t rc_ready        : 1; 
             uint32_t telemetry_ready : 1; 
@@ -66,17 +66,14 @@ public:   // Public methods
     // Actuators 
     void PropulsionSet(uint16_t throttle_1, uint16_t throttle_2); 
     void SteeringSet(uint16_t roll, uint16_t pitch, uint16_t yaw); 
-
-    // Compass 
-    void CompassRead(void); 
-    void CompassGet(void); 
-
+    
     // GPS 
     void GPSRead(void); 
     bool GPSGet(VehicleNavigation::Location &location); 
-
-    // // IMU 
-    // void IMU_Read(void); 
+    
+    // IMU 
+    void IMURead(void); 
+    void IMUGet(void); 
 
     // // Memory 
     // void MemoryRead(void); 

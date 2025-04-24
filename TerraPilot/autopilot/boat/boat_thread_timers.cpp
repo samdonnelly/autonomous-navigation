@@ -37,7 +37,7 @@ void Boat::TimerCallback50ms(void *timer_arg)
     // State events 
     if (boat.main_state == MainStates::MANUAL_STATE)
     {
-        boat.MainEventQueue((Event)MainEvents::RC_CONTROL); 
+        boat.MainEventQueue((Event)MainEvents::REMOTE_CONTROL); 
     }
 }
 
@@ -49,13 +49,13 @@ void Boat::TimerCallback100ms(void *timer_arg)
     // boat.CommsEventQueue((Event)CommsEvents::LED_STROBE); 
 
     // Keep the current orientation up to date 
-    boat.CommsEventQueue((Event)CommsEvents::COMPASS_READ); 
-    boat.MainEventQueue((Event)MainEvents::COMPASS_UPDATE); 
+    boat.CommsEventQueue((Event)CommsEvents::IMU_READ); 
+    boat.MainEventQueue((Event)MainEvents::IMU_UPDATE); 
 
     // State events 
     if (boat.main_state == MainStates::AUTO_STATE)
     {
-        boat.MainEventQueue((Event)MainEvents::COMPASS_HEADING); 
+        boat.MainEventQueue((Event)MainEvents::COURSE_CORRECT); 
     }
 }
 
@@ -78,7 +78,7 @@ void Boat::TimerCallback1s(void *timer_arg)
     // State events 
     if (boat.main_state == MainStates::AUTO_STATE)
     {
-        boat.MainEventQueue((Event)MainEvents::GPS_DISTANCE); 
+        boat.MainEventQueue((Event)MainEvents::TARGET_ASSESS); 
     }
 }
 

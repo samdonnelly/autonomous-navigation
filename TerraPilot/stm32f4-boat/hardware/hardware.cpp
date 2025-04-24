@@ -546,23 +546,6 @@ void VehicleHardware::SteeringSet(
 
 
 //=======================================================================================
-// Compass 
-
-void VehicleHardware::CompassRead(void)
-{
-    // If data is ready, make sure to set the data_ready.compass_ready flag! 
-}
-
-
-void VehicleHardware::CompassGet(void)
-{
-    // 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
 // GPS 
 
 void VehicleHardware::GPSRead(void)
@@ -582,10 +565,16 @@ bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 //=======================================================================================
 // IMU 
 
-// void VehicleHardware::IMU_Read(void)
-// {
-//     // 
-// }
+void VehicleHardware::IMURead(void)
+{
+    // If data is ready, make sure to set the data_ready.compass_ready flag! 
+}
+
+
+void VehicleHardware::IMUGet(void)
+{
+    // 
+}
 
 //=======================================================================================
 

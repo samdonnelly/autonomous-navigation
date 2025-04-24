@@ -61,22 +61,21 @@ protected:   // Protected members
     enum class MainEvents : uint8_t {
         NO_EVENT, 
         INIT, 
-        COMPASS_UPDATE, 
-        COMPASS_HEADING, 
-        GPS_UPDATE, 
-        GPS_DISTANCE, 
-        RC_UPDATE, 
-        RC_CONTROL, 
-        TELEMETRY_DECODE, 
-        TELEMETRY_ENCODE 
+        IMU_UPDATE,         // Get the new IMU data 
+        GPS_UPDATE,         // Get the new GPS data 
+        RC_UPDATE,          // Get the new RC data 
+        COURSE_CORRECT,     // Adjust the vehicle course/orientation 
+        TARGET_ASSESS,      // Assess the current mission target 
+        REMOTE_CONTROL,     // Manually control the vehicle 
+        TELEMETRY_DECODE,   // Get and decode any new telemetry data 
+        TELEMETRY_ENCODE    // Set and telemetry data to be sent 
     } main_event; 
 
     // Communication thread events 
     enum class CommsEvents : uint8_t {
         NO_EVENT, 
-        COMPASS_READ, 
         GPS_READ, 
-        // IMU_READ, 
+        IMU_READ, 
         // LED_STROBE, 
         // LED_STROBE_OFF, 
         // LED_WRITE, 

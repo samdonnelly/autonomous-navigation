@@ -35,9 +35,13 @@ void Boat::CommsDispatch(Event event)
 
     switch (boat.comms_event)
     {
-        // case CommsEvents::DEBUG_WRITE: 
-        //     boat.hardware.DebugWrite(); 
-        //     break; 
+        case CommsEvents::GPS_READ: 
+            boat.hardware.GPSRead(); 
+            break; 
+
+        case CommsEvents::IMU_READ: 
+            boat.hardware.IMURead(); 
+            break; 
 
         // case CommsEvents::LED_STROBE: 
         //     // boat.leds.Strobe(); 
@@ -49,34 +53,6 @@ void Boat::CommsDispatch(Event event)
 
         // case CommsEvents::LED_WRITE: 
         //     // boat.leds.LEDWrite(); 
-        //     break; 
-
-        // case CommsEvents::RADIO_READ: 
-        //     // boat.radio.CommandRead(boat); 
-        //     break; 
-
-        // case CommsEvents::RADIO_SEND: 
-        //     // boat.radio.CommandSend(); 
-        //     break; 
-
-        // case CommsEvents::NAV_HEADING_UPDATE: 
-        //     // boat.navigation.HeadingUpdate(); 
-        //     break; 
-
-        // case CommsEvents::NAV_LOCATION_UPDATE: 
-        //     // boat.navigation.LocationUpdate(); 
-        //     break; 
-
-        case CommsEvents::COMPASS_READ: 
-            boat.hardware.CompassRead(); 
-            break; 
-
-        case CommsEvents::GPS_READ: 
-            boat.hardware.GPSRead(); 
-            break; 
-
-        // case CommsEvents::IMU_READ: 
-        //     boat.hardware.IMU_Read(); 
         //     break; 
 
         case CommsEvents::RC_READ: 

@@ -243,7 +243,7 @@ void Boat::MainManualState(Boat& data, Event event)
 
     switch (data.main_event)
     {
-        case MainEvents::RC_CONTROL: 
+        case MainEvents::REMOTE_CONTROL: 
             data.control.RemoteControl(data); 
             break; 
         
@@ -490,12 +490,12 @@ void Boat::MainAutoState(Boat& data, Event event)
         //     data.navigation.LocationCalc(data); 
         //     break; 
 
-        case MainEvents::COMPASS_HEADING: 
-            data.navigation.HeadingError(data); 
+        case MainEvents::COURSE_CORRECT: 
+            data.navigation.CourseCorrection(data); 
             break; 
 
-        case MainEvents::GPS_DISTANCE: 
-            data.navigation.WaypointDistance(data); 
+        case MainEvents::TARGET_ASSESS: 
+            data.navigation.TargetAssess(data); 
             break; 
         
         default: 
