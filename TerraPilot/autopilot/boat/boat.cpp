@@ -112,10 +112,16 @@ void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
 }
 
 
-// Autonomous drive output 
+/**
+ * @brief Autonomous drive output 
+ * 
+ * @param heading_error : error between current and desired headings (degrees*10) 
+ */
 void Boat::AutoDrive(int16_t heading_error)
 {
 #if VS_BOAT_K1 
+
+    uint16_t left_thruster, right_thruster; 
     
     // // Update the thruster output based on the heading error 
 
@@ -135,8 +141,7 @@ void Boat::AutoDrive(int16_t heading_error)
     // left_thruster  = THRUSTER_BASE_SPEED + heading_error*ESC_MAX_THROTTLE / 
     //                                         (MAX_HEADING_ERROR + MAX_HEADING_ERROR); 
 
-    // esc_send(DEVICE_ONE, right_thruster); 
-    // esc_send(DEVICE_TWO, left_thruster); 
+    hardware.PropulsionSet(left_thruster, right_thruster); 
     
 #elif VS_BOAT_K2 
 #endif 

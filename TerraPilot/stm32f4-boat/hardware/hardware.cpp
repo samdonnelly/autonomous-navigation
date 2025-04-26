@@ -573,6 +573,13 @@ void VehicleHardware::IMURead(void)
 }
 
 
+/**
+ * @brief Get the most recent IMU data 
+ * 
+ * @param accel : accelerometer data 
+ * @param gyro : gyroscope data 
+ * @param heading : compass/magnetometer heading (degrees*10) 
+ */
 void VehicleHardware::IMUGet(
     VehicleNavigation::Vector<int16_t> accel, 
     VehicleNavigation::Vector<int16_t> gyro, 
