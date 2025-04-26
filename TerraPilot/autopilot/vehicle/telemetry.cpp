@@ -1153,7 +1153,7 @@ void VehicleTelemetry::MAVLinkHomePositionSend(Vehicle &vehicle)
     // The other fields of HOME_POSITION are not currently supported. 
     home_position.latitude = home.x; 
     home_position.longitude = home.y; 
-    home_position.altitude = (int32_t)home.z; 
+    home_position.altitude = (int32_t)(home.z * DEGREE_DATATYPE); 
 
     mavlink_msg_home_position_encode_chan(
         system_id, 

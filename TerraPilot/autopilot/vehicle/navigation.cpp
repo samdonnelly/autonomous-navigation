@@ -73,7 +73,7 @@
 #define SCALE_10 10 
 
 
-#define MISSION_TARGET_INC 1   // Mission target increment 
+#define MISSION_TARGET_INC 1       // Mission target increment 
 
 //=======================================================================================
 
@@ -94,6 +94,7 @@ VehicleNavigation::VehicleNavigation()
     // the code guarantees there will be valid mission data to obtain which is also why 
     // other mission target data doesn't need to be set initially. 
     mission_target.seq = ~RESET; 
+
     coordinate_lpf_gain = 0.5;   // Make parameter? 
 }
 
@@ -266,12 +267,16 @@ void VehicleNavigation::TargetUpdate(Vehicle &vehicle)
     // used is the current mission target which will always be within the mission size. 
     mission_target = vehicle.memory.MissionItemGet(vehicle.memory.MissionTargetGet()); 
 
+    // Mission items provide global coordinates with latitude and longitude being 
+    // integers and altitude being a float. Since location objects store latitude, 
+    // longitude and altitude in both integer and float form, the remaining dimensions 
+    // must be filled in by conversion from another type. 
     location_target.latI = mission_target.x; 
     location_target.lonI = mission_target.y; 
     location_target.alt = mission_target.z; 
-    location_target.altI = (int32_t)(mission_target.z * 10000000); 
-    location_target.lat = (float)mission_target.x / 10000000; 
-    location_target.lon = (float)mission_target.y / 10000000; 
+    location_target.altI = (int32_t)(mission_target.z * DEGREE_DATATYPE); 
+    location_target.lat = (float)mission_target.x / DEGREE_DATATYPE; 
+    location_target.lon = (float)mission_target.y / DEGREE_DATATYPE; 
 }
 
 
@@ -313,7 +318,6 @@ void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
     CoordinateFilter(location_current, location_filtered); 
     heading_target = GPSHeading(location_filtered, location_target); 
     
-    // TODO calculations units (float) don't match supplied units (int) 
     if (GPSRadius(location_filtered, location_target) < mission_target.param2)
     {
         // Send a mission item reached message 

@@ -556,6 +556,8 @@ void VehicleHardware::GPSRead(void)
 
 bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 {
+    // The integer and float portions of the location must both be populated. 
+    
     return false; 
 }
 
