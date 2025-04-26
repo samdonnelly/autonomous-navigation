@@ -46,12 +46,6 @@
 // 	   explicity set, only read from recorded data. 
 // 	 - Do not set the home location flag. 
 
-// We need access to the home location (setter/getter) 
-
-// But what if the system resets mid-mission? Does it then update it's home position to 
-// the spot it reset? 
-// 	- Solved by no explicitly clearing the home location flag in mission load 
-
 // Mission Upload from Mission Planner doesn't have a means to set the home location 
 // flag yet. 
 // 	- It does now! 
@@ -78,6 +72,9 @@
 
 #define SCALE_10 10 
 
+
+#define MISSION_TARGET_INC 1   // Mission target increment 
+
 //=======================================================================================
 
 
@@ -90,6 +87,13 @@ VehicleNavigation::VehicleNavigation()
 
     status.flags = RESET; 
 
+    // The mission target sequence number gets set to its max value so it's guaranteed 
+    // to be updated with mission target information when autonomous navigation starts 
+    // for the first time since that many mission items are not supported. Autonomous 
+    // navigation can't happen without a position lock, and by the time one is obtained, 
+    // the code guarantees there will be valid mission data to obtain which is also why 
+    // other mission target data doesn't need to be set initially. 
+    mission_target.seq = ~RESET; 
     coordinate_lpf_gain = 0.5;   // Make parameter? 
 }
 
@@ -111,7 +115,7 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
         vehicle.hardware.data_ready.gps_ready = FLAG_CLEAR; 
 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        status.gps_lock = vehicle.hardware.GPSGet(location_current); 
+        status.gps_connected = vehicle.hardware.GPSGet(location_current); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
         timers.gps_connection = RESET; 
@@ -134,7 +138,7 @@ void VehicleNavigation::LocationChecks(Vehicle &vehicle)
     // as mission item 0) or a manual home location update command. It's important to 
     // know if Mission Planner has already set the home location so we don't overwrite 
     // it which is done by checking the home location status. 
-    if ((vehicle.memory.MissionHomeLocationStatus() == false) && status.gps_lock)
+    if ((vehicle.memory.MissionHomeLocationStatus() == false) && status.gps_connected)
     {
         vehicle.memory.MissionHomeLocationSet(location_current.latI, 
                                               location_current.lonI, 
@@ -144,12 +148,12 @@ void VehicleNavigation::LocationChecks(Vehicle &vehicle)
     // The filtered location is set to the current location as soon as a GPS connection 
     // becomes available after previously not being available. This prevents the filtered 
     // location needing time to become accurate since it will be {0, 0, 0} on startup. 
-    if (!status.gps_status_change && status.gps_lock)
+    if (!status.gps_status_change && status.gps_connected)
     {
         status.gps_status_change = FLAG_SET; 
         location_filtered = location_current; 
     }
-    else if (status.gps_status_change && !status.gps_lock)
+    else if (status.gps_status_change && !status.gps_connected)
     {
         status.gps_status_change = FLAG_CLEAR; 
     }
@@ -159,9 +163,9 @@ void VehicleNavigation::LocationChecks(Vehicle &vehicle)
     // data has come in after a certain period of time then position lock is manually 
     // removed to prevent the vehicle from operating on old data (since the lack of new 
     // data prevents it from being updated). 
-    if (status.gps_lock && (timers.gps_connection++ >= VS_GPS_TIMEOUT))
+    if (status.gps_connected && (timers.gps_connection++ >= VS_NAV_DEVICE_TIMEOUT))
     {
-        status.gps_lock = FLAG_CLEAR; 
+        status.gps_connected = FLAG_CLEAR; 
     }
 }
 
@@ -178,8 +182,27 @@ void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
         vehicle.hardware.data_ready.imu_ready = FLAG_CLEAR; 
 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        vehicle.hardware.IMUGet(); 
+        vehicle.hardware.IMUGet(accel, gyro, heading); 
         xSemaphoreGive(vehicle.comms_mutex); 
+
+        status.imu_connected = FLAG_SET; 
+    }
+
+    OrientationChecks(vehicle); 
+}
+
+
+/**
+ * @brief Orientation data checks 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::OrientationChecks(Vehicle &vehicle)
+{
+    // Check for a physical device loss (no data coming in). 
+    if (status.imu_connected && (timers.imu_connection++ >= VS_NAV_DEVICE_TIMEOUT))
+    {
+        status.imu_connected = FLAG_CLEAR; 
     }
 }
 
@@ -192,17 +215,32 @@ void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
 /**
  * @brief Assess the current mission target 
  * 
+ * @details When an autonomous mission completes, the mission index will not start over. 
+ *          Instead it will stay at the last index value and perform the action of the 
+ *          most recent command until the mode, mission or mission index changes. This 
+ *          happens due to the mission index not being able to exceed the mission size. 
+ * 
  * @param vehicle : vehicle object 
  */
 void VehicleNavigation::TargetAssess(Vehicle &vehicle)
 {
-    // Update the mission target information if it doesn't match the set target 
+    // If there's no GPS position then abort. Autonomous navigation requires a GPS 
+    // position in order to function correctly. 
+    if (!status.gps_connected)
+    {
+        return; 
+    }
+
+    // Update the mission target information if it doesn't match the set target. The 
+    // target can be updated via telemetry or item completion which is why it must be 
+    // checked. 
     if (mission_target.seq != vehicle.memory.MissionTargetGet())
     {
         TargetUpdate(vehicle); 
     }
 
-    // Execute the mission command 
+    // Execute the mission command. MAVLink supports various mission commands that all 
+    // get stored as mission items. Each command requires a different action. 
     switch (mission_target.command)
     {
         case MAV_CMD_NAV_WAYPOINT: 
@@ -210,7 +248,8 @@ void VehicleNavigation::TargetAssess(Vehicle &vehicle)
             break; 
         
         default: 
-            // TODO If the command is not supported, do we go to the next item? 
+            // If the current mission item is not supported then it must be skipped. 
+            vehicle.memory.MissionTargetSet(mission_target.seq + MISSION_TARGET_INC); 
             break; 
     }
 }
@@ -223,11 +262,16 @@ void VehicleNavigation::TargetAssess(Vehicle &vehicle)
  */
 void VehicleNavigation::TargetUpdate(Vehicle &vehicle)
 {
+    // mission_target doesn't need to be checked to be a valid item becuase the sequence 
+    // used is the current mission target which will always be within the mission size. 
     mission_target = vehicle.memory.MissionItemGet(vehicle.memory.MissionTargetGet()); 
 
     location_target.latI = mission_target.x; 
     location_target.lonI = mission_target.y; 
     location_target.alt = mission_target.z; 
+    location_target.altI = (int32_t)(mission_target.z * 10000000); 
+    location_target.lat = (float)mission_target.x / 10000000; 
+    location_target.lon = (float)mission_target.y / 10000000; 
 }
 
 
@@ -238,10 +282,13 @@ void VehicleNavigation::TargetUpdate(Vehicle &vehicle)
  */
 void VehicleNavigation::CourseCorrection(Vehicle &vehicle)
 {
-    // Find the error between the boat's heading and the coordinate heading 
-    int16_t heading_error = HeadingError(TrueNorthHeading(heading), heading_target); 
-
-    status.gps_lock ? vehicle.AutoDrive(heading_error) : vehicle.control.ForceStop(vehicle); 
+    // If the GPS and IMU are both connected then proceed to find the error between the 
+    // vehicle heading and the target heading and use that to update the vehicle thrust 
+    // and steering. If either the GPS or IMU are not connected then the vehicle is force 
+    // stopped as autonomous navigation would not work otherwise 
+    (status.gps_connected && status.imu_connected) ? 
+        vehicle.AutoDrive(HeadingError(TrueNorthHeading(heading), heading_target)) : 
+        vehicle.control.ForceStop(vehicle); 
 }
 
 //=======================================================================================
@@ -257,27 +304,24 @@ void VehicleNavigation::CourseCorrection(Vehicle &vehicle)
  */
 void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
 {
-    if (status.gps_lock)
+    // Check if the current location is within the acceptance radius of the target 
+    // waypoint. If it is and the mission item specifies to continue onto the next 
+    // mission item, then the mission target is updated. The read coordinates are 
+    // filtered to smooth the data. The coordinate/target heading is also found here 
+    // since it can only change with new coordinate data. 
+    
+    CoordinateFilter(location_current, location_filtered); 
+    heading_target = GPSHeading(location_filtered, location_target); 
+    
+    // TODO calculations units (float) don't match supplied units (int) 
+    if (GPSRadius(location_filtered, location_target) < mission_target.param2)
     {
-        // Check if the current location is within the acceptance radius of the target 
-        // waypoint. If it is and the mission item specifies to continue onto the next 
-        // mission item, then the mission target is updated. The read coordinates are 
-        // filtered to smooth the data. The coordinate/target heading is also found here 
-        // since it can only change with new coordinate data. 
-        
-        CoordinateFilter(location_current, location_filtered); 
-        heading_target = GPSHeading(location_filtered, location_target); 
-        
-        // TODO calculations units (float) don't match supplied units (int) 
-        if (GPSRadius(location_filtered, location_target) < mission_target.param2)
-        {
-            // Send a mission item reached message 
+        // Send a mission item reached message 
+        vehicle.telemetry.MAVLinkMissionItemReachedSet(); 
 
-            if (mission_target.autocontinue)
-            {
-                vehicle.memory.MissionTargetSet(++mission_target.seq); 
-                TargetUpdate(vehicle); 
-            }
+        if (mission_target.autocontinue)
+        {
+            vehicle.memory.MissionTargetSet(mission_target.seq + MISSION_TARGET_INC); 
         }
     }
 }
@@ -286,15 +330,15 @@ void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
 /**
  * @brief Coordinate filter 
  * 
- * @param new_location : new coordinates read by the system 
- * @param filtered_location : previously filtered coordinates 
+ * @param raw : new/raw coordinates read by the system 
+ * @param filtered : previously filtered coordinates 
  */
 void VehicleNavigation::CoordinateFilter(
-    Location new_location, 
-    Location &filtered_location) const
+    Location raw, 
+    Location &filtered) const
 {
-    filtered_location.lat += (new_location.lat - filtered_location.lat)*coordinate_lpf_gain; 
-    filtered_location.lon += (new_location.lon - filtered_location.lon)*coordinate_lpf_gain; 
+    filtered.lat += (raw.lat - filtered.lat)*coordinate_lpf_gain; 
+    filtered.lon += (raw.lon - filtered.lon)*coordinate_lpf_gain; 
 }
 
 
@@ -352,7 +396,7 @@ int16_t VehicleNavigation::GPSHeading(
     Location target)
 {
     int16_t heading; 
-    double eq0, eq1, num, den; 
+    float eq0, eq1, num, den; 
 
     // Convert the coordinates to radians so they're compatible with the math library. 
     current.lat *= DEG_TO_RAD; 
@@ -463,6 +507,34 @@ int16_t VehicleNavigation::HeadingError(
 VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)
 {
     return location_current; 
+}
+
+
+// Get the current accelerometer readings 
+VehicleNavigation::Vector<int16_t> VehicleNavigation::AccelCurrentGet(void)
+{
+    return accel; 
+}
+
+
+// Get the current gyroscope readings 
+VehicleNavigation::Vector<int16_t> VehicleNavigation::GyroCurrentGet(void)
+{
+    return gyro; 
+}
+
+
+// Get the current magnetometer readings 
+VehicleNavigation::Vector<int16_t> VehicleNavigation::MagCurrentGet(void)
+{
+    return mag; 
+}
+
+
+// Get the current orientation (roll, pitch, yaw) 
+VehicleNavigation::Vector<float> VehicleNavigation::OrientationCurrentGet(void)
+{
+    return orient; 
 }
 
 

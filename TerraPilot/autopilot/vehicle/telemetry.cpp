@@ -1178,21 +1178,26 @@ void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(Vehicle &vehicle)
     {
         mavlink.raw_imu_msg_timing.count = RESET; 
 
+        VehicleNavigation::Vector<int16_t> 
+        accel = vehicle.navigation.AccelCurrentGet(), 
+        gyro = vehicle.navigation.GyroCurrentGet(), 
+        mag = vehicle.navigation.MagCurrentGet(); 
+
         mavlink_msg_raw_imu_pack_chan(
             system_id, 
             component_id, 
             channel, 
             &msg, 
             vehicle.auxiliary.time_usec,      // Time since boot 
-            vehicle.navigation.accel.x,       // X accelerometer 
-            vehicle.navigation.accel.y,       // Y accelerometer 
-            vehicle.navigation.accel.z,       // Z accelerometer 
-            vehicle.navigation.gyro.x,        // X gyroscope 
-            vehicle.navigation.gyro.y,        // Y gyroscope 
-            vehicle.navigation.gyro.z,        // Z gyroscope 
-            vehicle.navigation.mag.x,         // X magnetometer 
-            vehicle.navigation.mag.y,         // Y magnetometer 
-            vehicle.navigation.mag.z,         // Z magnetometer 
+            accel.x,                          // X accelerometer 
+            accel.y,                          // Y accelerometer 
+            accel.z,                          // Z accelerometer 
+            gyro.x,                           // X gyroscope 
+            gyro.y,                           // Y gyroscope 
+            gyro.z,                           // Z gyroscope 
+            mag.x,                            // X magnetometer 
+            mag.y,                            // Y magnetometer 
+            mag.z,                            // Z magnetometer 
             0,                                // IMU ID 
             vehicle.auxiliary.temperature);   // Temperature 
         MAVLinkMessageFormat(); 
@@ -1313,18 +1318,21 @@ void VehicleTelemetry::MAVLinkAttitudeSendPeriodic(Vehicle &vehicle)
     {
         mavlink.attitude_msg_timing.count = RESET; 
 
+        VehicleNavigation::Vector<float> orientation = vehicle.navigation.OrientationCurrentGet(); 
+        VehicleNavigation::Vector<int16_t> gyro = vehicle.navigation.GyroCurrentGet(); 
+
         mavlink_msg_attitude_pack_chan(
             system_id, 
             component_id, 
             channel, 
             &msg, 
-            vehicle.auxiliary.time_usec,         // Time since boot 
-            vehicle.navigation.roll,             // Roll angle (rad) 
-            vehicle.navigation.pitch,            // Pitch angle (rad) 
-            vehicle.navigation.yaw,              // Yaw angle (rad) 
-            (float)vehicle.navigation.gyro.x,    // Roll angular speed (rad/s) 
-            (float)vehicle.navigation.gyro.y,    // Pitch angular speed (rad/s) 
-            (float)vehicle.navigation.gyro.z);   // Yaw angular speed (rad/s) 
+            vehicle.auxiliary.time_usec,   // Time since boot 
+            orientation.x,                 // Roll angle (rad) 
+            orientation.y,                 // Pitch angle (rad) 
+            orientation.z,                 // Yaw angle (rad) 
+            (float)gyro.x,                 // Roll angular speed (rad/s) 
+            (float)gyro.y,                 // Pitch angular speed (rad/s) 
+            (float)gyro.z);                // Yaw angular speed (rad/s) 
         MAVLinkMessageFormat(); 
     }
 }

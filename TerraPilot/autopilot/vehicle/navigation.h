@@ -39,9 +39,10 @@ public:   // public types
         float lat, lon, alt; 
     };
 
+    template <typename T>
     struct Vector 
     {
-        int16_t x, y, z; 
+        T x, y, z; 
     };
 
 private:   // private members 
@@ -49,6 +50,7 @@ private:   // private members
     struct Timers 
     {
         uint8_t gps_connection; 
+        uint8_t imu_connection; 
     }
     timers; 
 
@@ -56,8 +58,9 @@ private:   // private members
     {
         struct 
         {
-            uint32_t gps_lock          : 1; 
+            uint32_t gps_connected     : 1; 
             uint32_t gps_status_change : 1; 
+            uint32_t imu_connected     : 1; 
         }; 
         uint32_t flags; 
     }
@@ -69,15 +72,13 @@ private:   // private members
 
     float coordinate_lpf_gain;   // Low pass filter gain for GPS coordinates 
 
-    // Heading 
-    int16_t true_north_offset;   // True north offset from magnetic north 
+    // Orientation 
+    Vector<int16_t> accel, gyro, mag; 
+    Vector<float> orient;               // x = roll, y = pitch, z = yaw 
     int16_t heading, heading_target; 
+    int16_t true_north_offset;          // True north offset from magnetic north 
     
 public:   // public members 
-    
-    // Orientation 
-    Vector accel, gyro, mag; 
-    float roll, pitch, yaw; 
     
     // Location 
     Location location_previous; 
@@ -92,6 +93,7 @@ private:   // private methods
 
     // Navigation data handling 
     void LocationChecks(Vehicle &vehicle); 
+    void OrientationChecks(Vehicle &vehicle); 
     
     // Mission execution 
     void TargetUpdate(Vehicle &vehicle); 
@@ -122,6 +124,10 @@ public:   // public methods
 
     // Getters and setter 
     Location LocationCurrentGet(void); 
+    VehicleNavigation::Vector<int16_t> AccelCurrentGet(void); 
+    VehicleNavigation::Vector<int16_t> GyroCurrentGet(void); 
+    VehicleNavigation::Vector<int16_t> MagCurrentGet(void); 
+    VehicleNavigation::Vector<float> OrientationCurrentGet(void); 
     int16_t HeadingCurrentGet(void); 
     int16_t HeadingTargetGet(void); 
 }; 
