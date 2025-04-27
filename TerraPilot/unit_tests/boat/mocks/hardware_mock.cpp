@@ -79,6 +79,25 @@ bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 //==================================================
 
 //==================================================
+// IMU 
+
+void VehicleHardware::IMURead(void)
+{
+    // If data is ready, make sure to set the data_ready.compass_ready flag! 
+}
+
+
+void VehicleHardware::IMUGet(
+    VehicleNavigation::Vector<int16_t> accel, 
+    VehicleNavigation::Vector<int16_t> gyro, 
+    int16_t heading)
+{
+    // 
+}
+
+//==================================================
+
+//==================================================
 // RC 
 
 void VehicleHardware::RCRead(void)
@@ -166,9 +185,10 @@ void HardwareMock::SteeringSepointCopy(
 
 
 void HardwareMock::ControlSetpointGet(
-    std::array<ControlSetpoints, HW_MOCK_CONTROL_SETPOINTS> &setpoints)
+    std::array<ControlSetpoints, HW_MOCK_MAX_CONTROL_SETPOINTS> &setpoints, 
+    uint8_t size)
 {
-    for (uint8_t i = RESET; i < setpoints.size(); i++)
+    for (uint8_t i = RESET; i < size; i++)
     {
         setpoints[i] = control_setpoints[i]; 
     }

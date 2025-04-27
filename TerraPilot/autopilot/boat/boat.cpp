@@ -21,6 +21,16 @@
 
 
 //=======================================================================================
+// Macros 
+
+#define BOAT_MAX_THRUST 1750U        // Make into a parameter 
+#define BOAT_MAX_HEADING_ERROR 900   // Error for max turn thrust (degrees*10 - up to 1800) 
+#define BOAT_NO_HEADING_ERROR 0 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Global data 
 
 Boat boat; 
@@ -62,7 +72,11 @@ void Boat::VehicleSetup(void)
 // Updates to propulsion and steering don't need to be protected because they're changing 
 // continuous PWM values, so there are no outgoing messages to interrupt. 
 
-// Manual drive output 
+/**
+ * @brief Manual drive output 
+ * 
+ * @param main_channels : RC transmitter/receiver channels 
+ */
 void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
 {
 #if VS_BOAT_K1 
@@ -115,31 +129,42 @@ void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
 /**
  * @brief Autonomous drive output 
  * 
- * @param heading_error : error between current and desired headings (degrees*10) 
+ * @param heading_error : error between current and desired headings (-1799 to 1800 degrees*10) 
  */
 void Boat::AutoDrive(int16_t heading_error)
 {
 #if VS_BOAT_K1 
 
-    uint16_t left_thruster, right_thruster; 
-    
-    // // Update the thruster output based on the heading error 
+    uint16_t 
+    left_thruster = BOAT_MAX_THRUST, 
+    right_thruster = BOAT_MAX_THRUST; 
 
-    // // Cap the error if needed so the throttle calculation works 
-    // if (heading_error > MAX_HEADING_ERROR)
-    // {
-    //     heading_error = MAX_HEADING_ERROR; 
-    // }
-    // else if (heading_error < -MAX_HEADING_ERROR)
-    // {
-    //     heading_error = -MAX_HEADING_ERROR; 
-    // }
+    // If the boat is not pointing in the direction it needs to go then adjust the motor 
+    // ouptut. Otherwise continue straight at the set thrust. 
+    if (heading_error != BOAT_NO_HEADING_ERROR)
+    {
+        int16_t rise = BOAT_MAX_THRUST - VehicleControl::PWM_NEUTRAL; 
+        uint16_t *thruster = nullptr; 
 
-    // // Calculate the thruster command: throttle = (base throttle) + error*slope 
-    // right_thruster = THRUSTER_BASE_SPEED - heading_error*ESC_MAX_THROTTLE / 
-    //                                         (MAX_HEADING_ERROR + MAX_HEADING_ERROR); 
-    // left_thruster  = THRUSTER_BASE_SPEED + heading_error*ESC_MAX_THROTTLE / 
-    //                                         (MAX_HEADING_ERROR + MAX_HEADING_ERROR); 
+        // Check which direction the boat needs to turn 
+        if (heading_error < BOAT_NO_HEADING_ERROR)
+        {
+            heading_error = -heading_error; 
+            thruster = &left_thruster; 
+        }
+        else
+        {
+            thruster = &right_thruster; 
+        }
+
+        // Cap the heading error if it exceeds the set limit 
+        if (heading_error > BOAT_MAX_HEADING_ERROR)
+        {
+            heading_error = BOAT_MAX_HEADING_ERROR; 
+        }
+
+        *thruster -= (uint16_t)((rise * heading_error) / BOAT_MAX_HEADING_ERROR); 
+    }
 
     hardware.PropulsionSet(left_thruster, right_thruster); 
     

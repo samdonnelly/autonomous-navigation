@@ -65,6 +65,13 @@ void Vehicle::Loop(void)
                 ManualDrive(vehicle_mock.channels[i]); 
             }
             break; 
+
+        case VehicleMock::AUTO_DRIVE: 
+            for (uint8_t i = RESET; i < vehicle_mock.headings.size(); i++)
+            {
+                AutoDrive(vehicle_mock.headings[i]); 
+            }
+            break; 
         
         default: 
             break; 
@@ -133,6 +140,16 @@ void VehicleMock::RCChannelSet(
     for (uint8_t i = RESET; i < rc_channels.size(); i++)
     {
         channels[i] = rc_channels[i]; 
+    }
+}
+
+
+void VehicleMock::HeadingErrorsSet(
+    std::array<int16_t, VEHICLE_MOCK_HEADING_ERROR_BUFF> &heading_errors)
+{
+    for (uint8_t i = RESET; i < heading_errors.size(); i++)
+    {
+        headings[i] = heading_errors[i]; 
     }
 }
 

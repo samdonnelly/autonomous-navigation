@@ -27,6 +27,7 @@
 // Macros 
 
 #define VEHICLE_MOCK_CHANNEL_BUFF 25 
+#define VEHICLE_MOCK_HEADING_ERROR_BUFF 19 
 
 //=======================================================================================
 
@@ -40,11 +41,13 @@ public:   // public members
 
     enum TestFunctionIndex : uint8_t
     {
-        MANUAL_DRIVE 
+        MANUAL_DRIVE, 
+        AUTO_DRIVE 
     }
     test_function_index; 
 
     std::array<VehicleControl::ChannelFunctions, VEHICLE_MOCK_CHANNEL_BUFF> channels; 
+    std::array<int16_t, VEHICLE_MOCK_HEADING_ERROR_BUFF> headings; 
 
 public:   // public methods 
 
@@ -54,6 +57,7 @@ public:   // public methods
     void TestFunctionIndexSet(TestFunctionIndex index); 
     void RCChannelSet(
         std::array<VehicleControl::ChannelFunctions, VEHICLE_MOCK_CHANNEL_BUFF> &rc_channels); 
+    void HeadingErrorsSet(std::array<int16_t, VEHICLE_MOCK_HEADING_ERROR_BUFF> &heading_errors); 
 };
 
 extern VehicleMock vehicle_mock; 

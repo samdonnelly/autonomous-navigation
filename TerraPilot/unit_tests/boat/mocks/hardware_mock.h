@@ -26,7 +26,7 @@
 //=======================================================================================
 // Macros 
 
-#define HW_MOCK_CONTROL_SETPOINTS 25 
+#define HW_MOCK_MAX_CONTROL_SETPOINTS 50 
 
 //=======================================================================================
 
@@ -45,7 +45,7 @@ public:
         uint16_t roll, pitch, yaw; 
     }; 
 
-    std::array<ControlSetpoints, HW_MOCK_CONTROL_SETPOINTS> control_setpoints; 
+    std::array<ControlSetpoints, HW_MOCK_MAX_CONTROL_SETPOINTS> control_setpoints; 
     uint8_t throttle_setpoint_index, orientation_setpoint_index; 
 
 public: 
@@ -54,7 +54,9 @@ public:
 
     void ThrottleSepointCopy(uint16_t throttle_1, uint16_t throttle_2); 
     void SteeringSepointCopy(uint16_t roll, uint16_t pitch, uint16_t yaw); 
-    void ControlSetpointGet(std::array<ControlSetpoints, HW_MOCK_CONTROL_SETPOINTS> &setpoints); 
+    void ControlSetpointGet(
+        std::array<ControlSetpoints, HW_MOCK_MAX_CONTROL_SETPOINTS> &setpoints, 
+        uint8_t size); 
 }; 
 
 extern HardwareMock hardware_mock; 

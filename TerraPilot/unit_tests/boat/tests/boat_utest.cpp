@@ -119,7 +119,7 @@ TEST(boat_test, manual_diff_thrust_output)
     }}; 
 
     // Expected output 
-    std::array<HardwareMock::ControlSetpoints, HW_MOCK_CONTROL_SETPOINTS> setpoints = 
+    std::array<HardwareMock::ControlSetpoints, HW_MOCK_MAX_CONTROL_SETPOINTS> setpoints = 
     {{
         { 2000, 1500, 0, 0, 0 },   // 1 
         { 2000, 1750, 0, 0, 0 },   // 2 
@@ -148,6 +148,7 @@ TEST(boat_test, manual_diff_thrust_output)
         { 1500, 1000, 0, 0, 0 }    // 25 
     }}; 
 
+    hardware_mock.HardwareMockInit(); 
     vehicle_mock.TestFunctionIndexSet(VehicleMock::MANUAL_DRIVE); 
     vehicle_mock.RCChannelSet(channels); 
     
@@ -155,13 +156,103 @@ TEST(boat_test, manual_diff_thrust_output)
     boat_utest.Loop(); 
 
     // Check that the data was formatted and written properly 
-    std::array<HardwareMock::ControlSetpoints, HW_MOCK_CONTROL_SETPOINTS> output; 
-    hardware_mock.ControlSetpointGet(output); 
+    std::array<HardwareMock::ControlSetpoints, HW_MOCK_MAX_CONTROL_SETPOINTS> output; 
+    hardware_mock.ControlSetpointGet(output, channels.size()); 
 
-    for (uint8_t i = RESET; i < output.size(); i++)
+    for (uint8_t i = RESET; i < channels.size(); i++)
     {
-        UNSIGNED_LONGS_EQUAL(setpoints[i].throttle_1, output[i].throttle_1); 
-        UNSIGNED_LONGS_EQUAL(setpoints[i].throttle_2, output[i].throttle_2); 
+        // Differences are checked because integer math can lead to rounding. 
+        
+        uint16_t diff_1 = (setpoints[i].throttle_1 < output[i].throttle_1) ? 
+                          (output[i].throttle_1 - setpoints[i].throttle_1) : 
+                          (setpoints[i].throttle_1 - output[i].throttle_1); 
+
+        uint16_t diff_2 = (setpoints[i].throttle_2 < output[i].throttle_2) ? 
+                          (output[i].throttle_2 - setpoints[i].throttle_2) : 
+                          (setpoints[i].throttle_2 - output[i].throttle_2); 
+        
+        UNSIGNED_LONGS_EQUAL(true, diff_1 <= 1); 
+        UNSIGNED_LONGS_EQUAL(true, diff_2 <= 1); 
+    }
+}
+
+
+// Autonomous control - differential thrust output 
+TEST(boat_test, auto_diff_thrust_output)
+{
+    // Input data 
+    std::array<int16_t, VEHICLE_MOCK_HEADING_ERROR_BUFF> heading_errors = 
+    {
+        -900,   // 1 
+        -800,   // 2 
+        -700,   // 3 
+        -600,   // 4 
+        -500,   // 5 
+        -400,   // 6 
+        -300,   // 7 
+        -200,   // 8 
+        -100,   // 9 
+        0,      // 10 
+        100,    // 11 
+        200,    // 12 
+        300,    // 13 
+        400,    // 14 
+        500,    // 15 
+        600,    // 16 
+        700,    // 17 
+        800,    // 18 
+        900     // 19 
+    }; 
+
+    // Expected output - based on max thruster PWM of 1750 and max heading error of 900 
+    std::array<HardwareMock::ControlSetpoints, HW_MOCK_MAX_CONTROL_SETPOINTS> setpoints = 
+    {{
+        { 1500, 1750, 0, 0, 0 },   // 1 
+        { 1527, 1750, 0, 0, 0 },   // 2 
+        { 1555, 1750, 0, 0, 0 },   // 3 
+        { 1583, 1750, 0, 0, 0 },   // 4 
+        { 1611, 1750, 0, 0, 0 },   // 5 
+        { 1638, 1750, 0, 0, 0 },   // 6 
+        { 1666, 1750, 0, 0, 0 },   // 7 
+        { 1694, 1750, 0, 0, 0 },   // 8 
+        { 1722, 1750, 0, 0, 0 },   // 9 
+        { 1750, 1750, 0, 0, 0 },   // 10 
+        { 1750, 1722, 0, 0, 0 },   // 11 
+        { 1750, 1694, 0, 0, 0 },   // 12 
+        { 1750, 1666, 0, 0, 0 },   // 13 
+        { 1750, 1638, 0, 0, 0 },   // 14 
+        { 1750, 1611, 0, 0, 0 },   // 15 
+        { 1750, 1583, 0, 0, 0 },   // 16 
+        { 1750, 1555, 0, 0, 0 },   // 17 
+        { 1750, 1527, 0, 0, 0 },   // 18 
+        { 1750, 1500, 0, 0, 0 }    // 19 
+    }}; 
+
+    hardware_mock.HardwareMockInit(); 
+    vehicle_mock.TestFunctionIndexSet(VehicleMock::AUTO_DRIVE); 
+    vehicle_mock.HeadingErrorsSet(heading_errors); 
+    
+    // Entry point to the vehicle code 
+    boat_utest.Loop(); 
+
+    // Check that the data was formatted and written properly 
+    std::array<HardwareMock::ControlSetpoints, HW_MOCK_MAX_CONTROL_SETPOINTS> output; 
+    hardware_mock.ControlSetpointGet(output, heading_errors.size()); 
+
+    for (uint8_t i = RESET; i < heading_errors.size(); i++)
+    {
+        // Differences are checked because integer math can lead to rounding. 
+
+        uint16_t diff_1 = (setpoints[i].throttle_1 < output[i].throttle_1) ? 
+                          (output[i].throttle_1 - setpoints[i].throttle_1) : 
+                          (setpoints[i].throttle_1 - output[i].throttle_1); 
+
+        uint16_t diff_2 = (setpoints[i].throttle_2 < output[i].throttle_2) ? 
+                          (output[i].throttle_2 - setpoints[i].throttle_2) : 
+                          (setpoints[i].throttle_2 - output[i].throttle_2); 
+        
+        UNSIGNED_LONGS_EQUAL(true, diff_1 <= 1); 
+        UNSIGNED_LONGS_EQUAL(true, diff_2 <= 1); 
     }
 }
 
