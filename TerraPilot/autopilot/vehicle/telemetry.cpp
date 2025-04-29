@@ -1222,9 +1222,10 @@ void VehicleTelemetry::MAVLinkGPSRawIntSendPeriodic(Vehicle &vehicle)
             &msg, 
             vehicle.auxiliary.time_usec,        // Timestamp 
             vehicle.navigation.fix_type,        // GPS fix type 
-            location.latI,                      // Latitude 
-            location.lonI,                      // Longitude 
-            location.altI,                      // Altitude 
+            location.latI,                      // Latitude (degE7) (WGS84) 
+            location.lonI,                      // Longitude (degE7) (WGS84) 
+            // WGS84 altitude. MSL altitude not supported yet. 
+            location.altI,                      // Altitude (mm) (MSL) 
             0xFFFF,                             // GPS HDOP horizontal dilution of position 
             0xFFFF,                             // GPS VDOP vertical dilution of position 
             vehicle.navigation.ground_speed,    // GPS ground speed 
@@ -1443,10 +1444,11 @@ void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle)
             channel, 
             &msg, 
             vehicle.auxiliary.time_usec,               // Time since boot 
-            location.latI,                             // Latitude 
-            location.lonI,                             // Longitude 
-            location.altI,                             // Altitude 
-            location.altI,                             // Relative altitude (above home) 
+            location.latI,                             // Latitude (degE7) (WGS84) 
+            location.lonI,                             // Longitude (degE7) (WGS84) 
+            // WGS84 altitude. MSL altitude not supported yet. 
+            location.altI,                             // Altitude (mm) (MSL) 
+            location.altI,                             // Altitude above home (mm) (WGS84) 
             0,                                         // X velocity 
             0,                                         // Y velocity 
             0,                                         // Z velocity 

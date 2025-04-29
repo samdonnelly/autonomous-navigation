@@ -43,8 +43,8 @@ public:   // public types
 
     struct Location 
     {
-        int32_t latI, lonI, altI; 
-        float lat, lon, alt; 
+        int32_t latI, lonI, altI;   // degE7, mm 
+        float lat, lon, alt;        // deg, m 
     };
 
     template <typename T>
@@ -75,7 +75,7 @@ private:   // private members
     status; 
 
     // Location 
-    Location location_current, location_filtered, location_target; 
+    Location location_current, location_filtered, location_target;   // WGS84 
     mavlink_mission_item_int_t mission_target; 
 
     float coordinate_lpf_gain;   // Low pass filter gain for GPS coordinates 

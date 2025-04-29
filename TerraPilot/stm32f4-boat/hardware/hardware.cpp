@@ -249,17 +249,17 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // I2C 
     
-    // // I2C: GPS, IMU and magnetometer 
-    // i2c_init(
-    //     I2C1, 
-    //     PIN_9, 
-    //     GPIOB, 
-    //     PIN_8, 
-    //     GPIOB, 
-    //     I2C_MODE_SM,
-    //     I2C_APB1_42MHZ,
-    //     I2C_CCR_SM_42_100,
-    //     I2C_TRISE_1000_42);
+    // I2C: GPS, IMU and magnetometer 
+    i2c_init(
+        I2C1, 
+        PIN_9, 
+        GPIOB, 
+        PIN_8, 
+        GPIOB, 
+        I2C_MODE_SM,
+        I2C_APB1_42MHZ,
+        I2C_CCR_SM_42_100,
+        I2C_TRISE_1000_42);
     
     //==================================================
 
@@ -393,20 +393,17 @@ void VehicleHardware::HardwareSetup(void)
     //==================================================
     // GPS 
 
-    // // SAM-M8Q module driver init 
-    // m8q_init(
-    //     I2C1, 
-    //     &m8q_config_msgs[0][0], 
-    //     M8Q_CONFIG_MSG_NUM, 
-    //     M8Q_CONFIG_MSG_MAX_LEN, 
-    //     CLEAR); 
+    // SAM-M8Q module driver init 
+    m8q_init(
+        I2C1, 
+        &m8q_config_msgs[0][0], 
+        M8Q_CONFIG_MSG_NUM, 
+        M8Q_CONFIG_MSG_MAX_LEN, 
+        CLEAR); 
 
-    // // Set up low power and TX ready pins 
-    // m8q_pwr_pin_init(GPIOC, PIN_10); 
-    // m8q_txr_pin_init(GPIOC, PIN_11); 
-
-    // // SAM-M8Q module controller init 
-    // m8q_controller_init(hardware.generic_timer); 
+    // Set up low power and TX ready pins 
+    m8q_pwr_pin_init(GPIOC, PIN_10); 
+    m8q_txr_pin_init(GPIOC, PIN_11); 
 
     //==================================================
 
@@ -525,6 +522,12 @@ void VehicleHardware::HardwareSetup(void)
 //=======================================================================================
 // Actuators 
 
+/**
+ * @brief Set the motor outpur PWM 
+ * 
+ * @param throttle_1 : motor 1 PWM (1000-2000) 
+ * @param throttle_2 : motor 2 PWM (optional) (1000-2000) 
+ */
 void VehicleHardware::PropulsionSet(
     uint16_t throttle_1, 
     uint16_t throttle_2)
@@ -534,6 +537,13 @@ void VehicleHardware::PropulsionSet(
 }
 
 
+/**
+ * @brief Set the steering servo/motor output PWM 
+ * 
+ * @param roll : roll control PWM (1000-2000) 
+ * @param pitch : pitch control PWM (1000-2000) 
+ * @param yaw : yaw control PWM (1000-2000) 
+ */
 void VehicleHardware::SteeringSet(
     uint16_t roll, 
     uint16_t pitch, 
@@ -548,17 +558,51 @@ void VehicleHardware::SteeringSet(
 //=======================================================================================
 // GPS 
 
+/**
+ * @brief Read from a GPS device 
+ * 
+ * @details This gets called periodically from the communications thread. If new GPS 
+ *          data is available then it should be read here and the data_ready.gps_ready 
+ *          flag must be set so the autopilot knows when to get the new data. The 
+ *          autopilot will retreive the data from the getter function below. 
+ */
 void VehicleHardware::GPSRead(void)
 {
     // If data is ready, make sure to set the data_ready.gps_ready flag! 
+
+    if (m8q_get_tx_ready() && (m8q_read_data() == M8Q_OK))
+    {
+        data_ready.gps_ready = FLAG_SET; 
+    }
 }
 
 
+/**
+ * @brief Get the data read from a GPS device 
+ * 
+ * @details Get the new GPS data after it was read from the read function above. The 
+ *          latitude, longitude and altitude must be supplied in both unsigned int and 
+ *          float forms as both are used by the autopilot. The GPS position lock status 
+ *          must also be returned. 
+ *          
+ *          Integer coordinates are expressed in degrees*10^7 to maintain precision. 
+ *          Float coordinates are expressed in degrees with decimal values. 
+ * 
+ * @param location : latitude, longitude and altitude in both unsigned int and float 
+ * @return true/false : GPS position lock status 
+ */
 bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 {
-    // The integer and float portions of the location must both be populated. 
-    
-    return false; 
+    // The integer and float portions of Location must both be populated. 
+
+    location.lat = (float)m8q_get_position_lat(); 
+    location.lon = (float)m8q_get_position_lon(); 
+    location.alt = m8q_get_position_altref(); 
+    location.latI = m8q_get_position_latI(); 
+    location.lonI = m8q_get_position_lonI(); 
+    location.altI = m8q_get_position_altrefI(); 
+
+    return m8q_get_position_navstat_lock(); 
 }
 
 //=======================================================================================
