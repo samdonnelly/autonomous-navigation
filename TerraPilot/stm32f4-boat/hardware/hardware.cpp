@@ -421,17 +421,17 @@ void VehicleHardware::HardwareSetup(void)
     //     MPU6050_AFS_SEL_4,
     //     MPU6050_FS_SEL_500); 
 
-    // // LSM303AGR module driver init 
-    // lsm303agr_m_init(
-    //     I2C1, 
-    //     lsm303agr_config_dir_offsets, 
-    //     lsm303agr_lpf_gain, 
-    //     LSM303AGR_M_ODR_10, 
-    //     LSM303AGR_M_MODE_CONT, 
-    //     LSM303AGR_CFG_DISABLE, 
-    //     LSM303AGR_CFG_DISABLE, 
-    //     LSM303AGR_CFG_DISABLE, 
-    //     LSM303AGR_CFG_DISABLE); 
+    // LSM303AGR module driver init 
+    lsm303agr_m_init(
+        I2C1, 
+        lsm303agr_config_dir_offsets, 
+        lsm303agr_lpf_gain, 
+        LSM303AGR_M_ODR_10, 
+        LSM303AGR_M_MODE_CONT, 
+        LSM303AGR_CFG_DISABLE, 
+        LSM303AGR_CFG_DISABLE, 
+        LSM303AGR_CFG_DISABLE, 
+        LSM303AGR_CFG_DISABLE); 
 
     //==================================================
 
@@ -614,6 +614,11 @@ bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 void VehicleHardware::IMURead(void)
 {
     // If data is ready, make sure to set the data_ready.compass_ready flag! 
+
+    if (lsm303agr_m_update() == LSM303AGR_OK)
+    {
+        data_ready.imu_ready = FLAG_SET; 
+    } 
 }
 
 
@@ -629,7 +634,7 @@ void VehicleHardware::IMUGet(
     VehicleNavigation::Vector<int16_t> gyro, 
     int16_t heading)
 {
-    // 
+    heading = lsm303agr_m_get_heading(); 
 }
 
 //=======================================================================================

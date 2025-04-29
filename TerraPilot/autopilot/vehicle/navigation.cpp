@@ -84,6 +84,7 @@
 VehicleNavigation::VehicleNavigation()
 {
     timers.gps_connection = RESET; 
+    timers.imu_connection = RESET; 
 
     status.flags = RESET; 
 
@@ -96,6 +97,7 @@ VehicleNavigation::VehicleNavigation()
     mission_target.seq = ~RESET; 
 
     coordinate_lpf_gain = 0.5;   // Make parameter? 
+    true_north_offset = 130;     // Offset between true and magnetic north (degrees*10) 
 }
 
 //=======================================================================================

@@ -77,7 +77,6 @@ private:   // private members
     // Location 
     Location location_current, location_filtered, location_target;   // WGS84 
     mavlink_mission_item_int_t mission_target; 
-
     float coordinate_lpf_gain;   // Low pass filter gain for GPS coordinates 
 
     // Orientation 
@@ -89,7 +88,6 @@ private:   // private members
 public:   // public members 
     
     // Location 
-    Location location_previous; 
     GPS_FIX_TYPE fix_type; 
     MAV_FRAME coordinate_frame; 
     uint16_t position_type_mask; 
@@ -109,7 +107,6 @@ private:   // private methods
     // Location calculations 
     void WaypointDistance(Vehicle &vehicle); 
     void CoordinateFilter(Location new_location, Location &filtered_location) const; 
-    // int32_t GPSRadius(Location current, Location target); 
     float GPSRadius(Location current, Location target); 
     int16_t GPSHeading(Location current, Location target); 
 
