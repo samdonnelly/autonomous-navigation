@@ -7,31 +7,11 @@
 TerraPilot/.vscode/
 build/
 TerraPilot/build/
-TerraPilot/stm32f4-boat/build/
 *.code-workspace
 
 # Hidden files 
 .DS_Store 
 __pycache__/
-
-#==================================================
-
-
-#==================================================
-# TerraPilot 
-#==================================================
-
-
-#==================================================
-# stm32f4-boat
-
-# Application files 
-TerraPilot/stm32f4-boat/superseded/sources/system_data/gps_coordinates.cpp 
-
-# System configuration 
-# TerraPilot/autopilot/system/system_config.h 
-TerraPilot/stm32f4-boat/hardware/system_config.h
-TerraPilot/stm32f4-boat/hardware/hardware_config.h
 
 #==================================================
 
@@ -49,29 +29,27 @@ simulation/simulation.py
 
 
 #==================================================
-# Unit tests 
+# TerraPilot 
 
+# Unit tests 
 # Vehicle 
 TerraPilot/unit_tests/vehicle/your_tests
 TerraPilot/unit_tests/vehicle/test-lib
 TerraPilot/unit_tests/vehicle/test-obj
 TerraPilot/unit_tests/vehicle/*.exe
 TerraPilot/unit_tests/vehicle/*.exe.stackdump
-
 # Boat 
 TerraPilot/unit_tests/boat/your_tests
 TerraPilot/unit_tests/boat/test-lib
 TerraPilot/unit_tests/boat/test-obj
 TerraPilot/unit_tests/boat/*.exe
 TerraPilot/unit_tests/boat/*.exe.stackdump
-
 # Ground station 
 TerraPilot/unit_tests/ground_station/your_tests
 TerraPilot/unit_tests/ground_station/test-lib
 TerraPilot/unit_tests/ground_station/test-obj
 TerraPilot/unit_tests/ground_station/*.exe
 TerraPilot/unit_tests/ground_station/*.exe.stackdump
-
 # Radio module 
 TerraPilot/unit_tests/modules/your_tests
 TerraPilot/unit_tests/modules/test-lib
@@ -79,4 +57,9 @@ TerraPilot/unit_tests/modules/test-obj
 TerraPilot/unit_tests/modules/*.exe
 TerraPilot/unit_tests/modules/*.exe.stackdump
 
+#==================================================
+
+
+#==================================================
+# TerraPlanner 
 #==================================================
