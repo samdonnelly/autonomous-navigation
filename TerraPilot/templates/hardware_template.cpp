@@ -272,7 +272,7 @@ void VehicleHardware::TelemetryRead(void)
  * 
  * @see TelemetryRead 
  * 
- * @param size : size of data read 
+ * @param size : buffer to store the size of data read 
  * @param buffer : buffer to store new data 
  */
 void VehicleHardware::TelemetryGet(uint16_t &size, uint8_t *buffer)

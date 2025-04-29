@@ -182,14 +182,6 @@ void VehicleMemory::MissionLoad(void)
     // change the home position in the event of a reset. The home position flag will be 
     // cleared on startup which will prompt the system to obtain an updated home 
     // position for the current session. 
-
-    //==================================================
-    // Test 
-    
-    // Force the home location to be set for testing in the absence of GPS. 
-    MissionHomeLocationSet(506132550, -1151204500, 0); 
-    
-    //==================================================
 }
 
 

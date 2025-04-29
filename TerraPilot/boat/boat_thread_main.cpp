@@ -23,7 +23,15 @@
 //=======================================================================================
 // Dispatch 
 
-// Event loop dispatch function for the main thread 
+/**
+ * @brief Event loop dispatch function for the main thread 
+ * 
+ * @details This function will be called whenever there's a main event queued up. Main 
+ *          events get queued by periodic timers. In the main thread, events are executed 
+ *          based on the state the vehicle is in. 
+ * 
+ * @param event : event number 
+ */
 void Boat::MainDispatch(Event event)
 {
     MainStates state = boat.main_state; 
@@ -652,7 +660,18 @@ void Boat::MainResetState(Boat& data, Event event)
 //=======================================================================================
 // Helper functions 
 
-// Main thread state selection 
+/**
+ * @brief Main thread state selection 
+ * 
+ * @details Select a new vehicle state based on a state number. This function is used by 
+ *          the telemetry and control modules to update the vehicle state. If the state 
+ *          number matches the current state or is invalid then no action will be taken. 
+ *          Even if a state number is new and valid, it will only result in a state 
+ *          change if the state allows it (see state table). States listed below are 
+ *          specific to the boat. 
+ * 
+ * @param state : state number 
+ */
 void Boat::MainStateSelect(uint8_t state)
 {
     uint8_t state_select = FLAG_SET; 
@@ -734,7 +753,18 @@ void Boat::MainStateSelect(uint8_t state)
 }
 
 
-// Main thread state mapping to RC mode input 
+/**
+ * @brief Main thread state mapping to RC mode input 
+ * 
+ * @details This function is used by the control module to turn a mode input into a valid 
+ *          state number for the boat. Modes are based on a PWM range read by the RC 
+ *          receiver so they don't match state numbers on their own. After the state 
+ *          number is mapped then MainStateSelect can be called to update the state. 
+ * 
+ * @see MainStateSelect 
+ * 
+ * @param mode : mode number 
+ */
 void Boat::MainStateRCModeMap(uint8_t &mode)
 {
     switch (mode)

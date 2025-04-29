@@ -421,19 +421,13 @@ int16_t VehicleNavigation::TrueNorthHeading(int16_t magnetic_heading) const
 
     int16_t tn_heading = magnetic_heading + true_north_offset; 
 
-    if (true_north_offset >= 0)
+    if ((true_north_offset >= 0) && (tn_heading >= HEADING_RANGE))
     {
-        if (tn_heading >= HEADING_RANGE)
-        {
-            tn_heading -= HEADING_RANGE; 
-        }
+        tn_heading -= HEADING_RANGE; 
     }
-    else 
+    else if (tn_heading < 0)
     {
-        if (tn_heading < 0)
-        {
-            tn_heading += HEADING_RANGE; 
-        }
+        tn_heading += HEADING_RANGE; 
     }
 
     return tn_heading; 
