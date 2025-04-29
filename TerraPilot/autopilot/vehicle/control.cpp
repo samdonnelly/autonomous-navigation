@@ -28,7 +28,7 @@ VehicleControl::VehicleControl()
 {
     timers.rc_connection = RESET; 
 
-    status.rc_connected = FLAG_CLEAR; 
+    status.flags = RESET; 
 
     channels.throttle = PWM_NEUTRAL; 
     channels.roll = PWM_NEUTRAL; 
@@ -123,14 +123,22 @@ void VehicleControl::RCDataChecks(void)
 //=======================================================================================
 // Manual control 
 
-// Remote control 
+/**
+ * @brief Remote control 
+ * 
+ * @param vehicle : vehicle object 
+ */
 void VehicleControl::RemoteControl(Vehicle &vehicle)
 {
     status.rc_connected ? vehicle.ManualDrive(channels) : ForceStop(vehicle); 
 }
 
 
-// Stop the vehicle propulsion and steering 
+/**
+ * @brief Stop the vehicle propulsion and steering 
+ * 
+ * @param vehicle : vehicle object 
+ */
 void VehicleControl::ForceStop(Vehicle &vehicle)
 {
     channels.throttle = PWM_NEUTRAL; 

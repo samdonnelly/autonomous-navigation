@@ -1,5 +1,5 @@
 /**
- * @file vehicle_hardware.cpp
+ * @file hardware.cpp
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
@@ -96,6 +96,13 @@ static Hardware hardware;
 //=======================================================================================
 // Initialization 
 
+/**
+ * @brief Vehicle hardware setup code 
+ * 
+ * @details This function is called before the autopilot scheduler starts and it provides 
+ *          an opportunity for devices and peripherals to be initialized for the chosen 
+ *          hardware. 
+ */
 void VehicleHardware::HardwareSetup(void)
 {
     //==================================================
@@ -373,7 +380,7 @@ void VehicleHardware::HardwareSetup(void)
     // Enable DMA streams 
     dma_stream_enable(hardware.telemetry.dma_stream);   // UART1 - Sik radio 
     dma_stream_enable(hardware.rc.dma_stream);          // UART6 - RC receiver 
-    // dma_stream_enable(hardware.adc_dma_stream);              // ADC1 - Voltages 
+    // dma_stream_enable(hardware.adc_dma_stream);         // ADC1 - Voltages 
 
     //==================================================
 
@@ -386,7 +393,7 @@ void VehicleHardware::HardwareSetup(void)
     // Enable the interrupt handlers 
     nvic_config(USART1_IRQn, EXTI_PRIORITY_0);   // UART1 - SiK radio 
     nvic_config(USART6_IRQn, EXTI_PRIORITY_1);   // UART6 - RC receiver 
-    // nvic_config(ADC_IRQn, EXTI_PRIORITY_2);      // ADC1? 
+    // nvic_config(ADC_IRQn, EXTI_PRIORITY_2);      // ADC1 - voltages 
 
     //==================================================
 
@@ -525,6 +532,11 @@ void VehicleHardware::HardwareSetup(void)
 /**
  * @brief Set the motor outpur PWM 
  * 
+ * @details This function is called from the autopilots main thread to set the propulsion 
+ *          motor(s) PWM output during travelling modes. Two motor outputs are provided 
+ *          for vehicles that use differential thrust but only throttle_1 will be used 
+ *          when a vehicle is configured for one propulsion ouptut. 
+ * 
  * @param throttle_1 : motor 1 PWM (1000-2000) 
  * @param throttle_2 : motor 2 PWM (optional) (1000-2000) 
  */
@@ -539,6 +551,9 @@ void VehicleHardware::PropulsionSet(
 
 /**
  * @brief Set the steering servo/motor output PWM 
+ * 
+ * @details This function is called from the autopilots main thread to set the steering 
+ *          motor(s) PWM output during travelling modes. 
  * 
  * @param roll : roll control PWM (1000-2000) 
  * @param pitch : pitch control PWM (1000-2000) 
@@ -561,15 +576,16 @@ void VehicleHardware::SteeringSet(
 /**
  * @brief Read from a GPS device 
  * 
- * @details This gets called periodically from the communications thread. If new GPS 
- *          data is available then it should be read here and the data_ready.gps_ready 
- *          flag must be set so the autopilot knows when to get the new data. The 
- *          autopilot will retreive the data from the getter function below. 
+ * @details This function is called periodically from the autopilots communication thread 
+ *          to read new data from aGPSU device. Data is read here but not retreived by 
+ *          the autopilot. Instead, the data_ready.gps_ready flag should be set if new 
+ *          data is available and the autopilot will call GPSGet to collect the data 
+ *          during the main thread. 
+ * 
+ * @see GPSGet 
  */
 void VehicleHardware::GPSRead(void)
 {
-    // If data is ready, make sure to set the data_ready.gps_ready flag! 
-
     if (m8q_get_tx_ready() && (m8q_read_data() == M8Q_OK))
     {
         data_ready.gps_ready = FLAG_SET; 
@@ -580,21 +596,25 @@ void VehicleHardware::GPSRead(void)
 /**
  * @brief Get the data read from a GPS device 
  * 
- * @details Get the new GPS data after it was read from the read function above. The 
- *          latitude, longitude and altitude must be supplied in both unsigned int and 
- *          float forms as both are used by the autopilot. The GPS position lock status 
- *          must also be returned. 
+ * @details This function is called from the autopilots main thread to collect new data 
+ *          read from a GPS device if it's available. Data is copied here but not read. 
+ *          This function is only called if the data_ready.gps_ready flag is set in the 
+ *          GPSRead function. 
+ *          
+ *          The latitude, longitude and altitude must be supplied in both unsigned int 
+ *          and float forms as both are used by the autopilot. The GPS position lock 
+ *          status must also be returned. 
  *          
  *          Integer coordinates are expressed in degrees*10^7 to maintain precision. 
  *          Float coordinates are expressed in degrees with decimal values. 
+ * 
+ * @see GPSRead 
  * 
  * @param location : latitude, longitude and altitude in both unsigned int and float 
  * @return true/false : GPS position lock status 
  */
 bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 {
-    // The integer and float portions of Location must both be populated. 
-
     location.lat = (float)m8q_get_position_lat(); 
     location.lon = (float)m8q_get_position_lon(); 
     location.alt = m8q_get_position_altref(); 
@@ -611,10 +631,19 @@ bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 //=======================================================================================
 // IMU 
 
+/**
+ * @brief Read from IMU device(s) 
+ * 
+ * @details This function is called periodically from the autopilots communication thread 
+ *          to read new data from an IMU device. Data is read here but not retreived by 
+ *          the autopilot. Instead, the data_ready.imu_ready flag should be set if new 
+ *          data is available and the autopilot will call IMUGet to collect the data 
+ *          during the main thread. 
+ * 
+ * @see IMUGet 
+ */
 void VehicleHardware::IMURead(void)
 {
-    // If data is ready, make sure to set the data_ready.compass_ready flag! 
-
     if (lsm303agr_m_update() == LSM303AGR_OK)
     {
         data_ready.imu_ready = FLAG_SET; 
@@ -625,14 +654,21 @@ void VehicleHardware::IMURead(void)
 /**
  * @brief Get the most recent IMU data 
  * 
+ * @details This function is called from the autopilots main thread to collect new data 
+ *          read from an IMU device if it's available. Data is copied here but not read. 
+ *          This function is only called if the data_ready.imu_ready flag is set in the 
+ *          IMURead function. 
+ * 
+ * @see IMURead 
+ * 
  * @param accel : accelerometer data 
  * @param gyro : gyroscope data 
  * @param heading : compass/magnetometer heading (degrees*10) 
  */
 void VehicleHardware::IMUGet(
-    VehicleNavigation::Vector<int16_t> accel, 
-    VehicleNavigation::Vector<int16_t> gyro, 
-    int16_t heading)
+    VehicleNavigation::Vector<int16_t> &accel, 
+    VehicleNavigation::Vector<int16_t> &gyro, 
+    int16_t &heading)
 {
     heading = lsm303agr_m_get_heading(); 
 }
@@ -643,16 +679,22 @@ void VehicleHardware::IMUGet(
 //=======================================================================================
 // Memory 
 
-// void VehicleHardware::MemoryRead(void)
-// {
-//     // 
-// }
+/**
+ * @brief Read from a memory storage device 
+ */
+void VehicleHardware::MemoryRead(void)
+{
+    // 
+}
 
 
-// void VehicleHardware::MemoryWrite(void)
-// {
-//     // 
-// }
+/**
+ * @brief Write to a memory storage device 
+ */
+void VehicleHardware::MemoryWrite(void)
+{
+    // 
+}
 
 //=======================================================================================
 
@@ -660,10 +702,19 @@ void VehicleHardware::IMUGet(
 //=======================================================================================
 // RC 
 
+/**
+ * @brief Read from an RC receiver 
+ * 
+ * @details This function is called periodically from the autopilots communication thread 
+ *          to read new data from an RC receiver. Data is read here but not retreived by 
+ *          the autopilot. Instead, the data_ready.rc_ready flag should be set if new 
+ *          data is available and the autopilot will call RCGet to collect the data 
+ *          during the main thread. 
+ * 
+ * @see RCGet 
+ */
 void VehicleHardware::RCRead(void)
 {
-    // If data is ready, make sure to set the data_ready.telemetry_ready flag! 
-
     // There isn't a universal way to check for a transmitter connection loss across all 
     // receivers and transmitters. The user must make sure the proper failsafes are 
     // enabled for their receiver and transmitter setup so their vehicle does not travel 
@@ -685,6 +736,18 @@ void VehicleHardware::RCRead(void)
 }
 
 
+/**
+ * @brief Get data read from an RC receiver 
+ * 
+ * @details This function is called from the autopilots main thread to collect new data 
+ *          read from an RC receiver if it's available. Data is copied here but not read. 
+ *          This function is only called if the data_ready.rc_ready flag is set in the 
+ *          RCRead function. 
+ * 
+ * @see RCRead 
+ * 
+ * @param channels : RC channels to populate 
+ */
 void VehicleHardware::RCGet(VehicleControl::ChannelFunctions &channels)
 {
     // Assign packet channel data to their function within the autopilot. Each user can 
@@ -715,10 +778,19 @@ void VehicleHardware::RCGet(VehicleControl::ChannelFunctions &channels)
 //=======================================================================================
 // Telemetry 
 
+/**
+ * @brief Read from a telemetry device 
+ * 
+ * @details This function is called periodically from the autopilots communication thread 
+ *          to read new data from a telemetry device. Data is read here but not retreived 
+ *          by the autopilot. Instead, the data_ready.telemetry_ready flag should be set 
+ *          if new data is available and the autopilot will call TelemetryGet to collect 
+ *          the data during the main thread. 
+ * 
+ * @see TelemetryGet 
+ */
 void VehicleHardware::TelemetryRead(void)
 {
-    // If data is ready, make sure to set the data_ready.telemetry_ready flag! 
-
     // The telemetry radio communicates via UART and incoming data is processed using DMA 
     // and an interrupt. So instead of a direct call to a read function we check if the 
     // interrupt was run to set the data ready flag. 
@@ -741,6 +813,19 @@ void VehicleHardware::TelemetryRead(void)
 }
 
 
+/**
+ * @brief Get data read from a telemetry device 
+ * 
+ * @details This function is called from the autopilots main thread to collect new data 
+ *          read from a telemetry device if it's available. Data is copied here but not 
+ *          read. This function is only called if the data_ready.telemetry_ready flag is 
+ *          set in the TelemetryRead function. 
+ * 
+ * @see TelemetryRead 
+ * 
+ * @param size : size of data read 
+ * @param buffer : buffer to store new data 
+ */
 void VehicleHardware::TelemetryGet(uint16_t &size, uint8_t *buffer)
 {
     size = hardware.telemetry.dma_index.data_size; 
@@ -748,6 +833,19 @@ void VehicleHardware::TelemetryGet(uint16_t &size, uint8_t *buffer)
 }
 
 
+/**
+ * @brief Set data to write to a telemtry device 
+ * 
+ * @details This function is called from the autopilots main thread to set data to write 
+ *          to a telemetry device if there's new data to be sent. Data is copied here but 
+ *          not written. If this function is called then TelemetryWrite will be executed 
+ *          shortly afterwards. 
+ * 
+ * @see TelemetryWrite 
+ * 
+ * @param size : size of data to write 
+ * @param buffer : buffer containing the data to write 
+ */
 void VehicleHardware::TelemetrySet(uint16_t &size, uint8_t *buffer)
 {
     hardware.telemetry.data_out_size = size; 
@@ -755,20 +853,18 @@ void VehicleHardware::TelemetrySet(uint16_t &size, uint8_t *buffer)
 }
 
 
+/**
+ * @brief Write to a telemetry device 
+ * 
+ * @details This function is called after the TelemetrySet function from the autopilots 
+ *          communications thread to write data to a telemetry device. Data is written 
+ *          here but not set. 
+ * 
+ * @see TelemetrySet 
+ */
 void VehicleHardware::TelemetryWrite(void)
 {
     sik_send_data(hardware.telemetry.data_out, hardware.telemetry.data_out_size); 
 }
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Rangefinder 
-
-// void VehicleHardware::RangefinderRead(void)
-// {
-//     // 
-// }
 
 //=======================================================================================

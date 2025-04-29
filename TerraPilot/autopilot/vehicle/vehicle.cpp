@@ -54,15 +54,15 @@ void Vehicle::Setup(void)
     {
         (osThreadAttr_t)                                  // attr 
         {
-            "Mainthread",                  // name 
-            CLEAR_SETTING,                 // attr_bits 
-            nullptr,                       // cb_mem 
-            CLEAR_SETTING,                 // cb_size 
-            nullptr,                       // stack_mem 
-            MAIN_STACK_SIZE,               // stack_size 
-            (osPriority_t)osPriorityLow,   // priority 
-            CLEAR_SETTING,                 // tz_module 
-            CLEAR_SETTING                  // reserved 
+            "Mainthread",                                 // name 
+            CLEAR_SETTING,                                // attr_bits 
+            nullptr,                                      // cb_mem 
+            CLEAR_SETTING,                                // cb_size 
+            nullptr,                                      // stack_mem 
+            MAIN_STACK_SIZE,                              // stack_size 
+            (osPriority_t)osPriorityLow,                  // priority 
+            CLEAR_SETTING,                                // tz_module 
+            CLEAR_SETTING                                 // reserved 
         }, 
         CLEAR_EVENT,                                      // event 
         xQueueCreate(MAIN_QUEUE_LEN, sizeof(uint32_t)),   // ThreadEventQueue 
@@ -72,15 +72,15 @@ void Vehicle::Setup(void)
     {
         (osThreadAttr_t)                                   // attr 
         {
-            "CommsThread",                    // name 
-            CLEAR_SETTING,                    // attr_bits 
-            nullptr,                          // cb_mem 
-            CLEAR_SETTING,                    // cb_size 
-            nullptr,                          // stack_mem 
-            COMMS_STACK_SIZE,                 // stack_size 
-            (osPriority_t)osPriorityNormal,   // priority 
-            CLEAR_SETTING,                    // tz_module 
-            CLEAR_SETTING                     // reserved 
+            "CommsThread",                                 // name 
+            CLEAR_SETTING,                                 // attr_bits 
+            nullptr,                                       // cb_mem 
+            CLEAR_SETTING,                                 // cb_size 
+            nullptr,                                       // stack_mem 
+            COMMS_STACK_SIZE,                              // stack_size 
+            (osPriority_t)osPriorityNormal,                // priority 
+            CLEAR_SETTING,                                 // tz_module 
+            CLEAR_SETTING                                  // reserved 
         }, 
         CLEAR_EVENT,                                       // event 
         xQueueCreate(COMMS_QUEUE_LEN, sizeof(uint32_t)),   // ThreadEventQueue 
@@ -89,16 +89,16 @@ void Vehicle::Setup(void)
 
     periodic_timer_50ms = (TimerThreadData)
     {
-        nullptr,                      // Handler 
-        nullptr,                      // Callback 
-        osTimerPeriodic,              // Timer type 
-        PERIODIC_TIMER_50MS_PERIOD,   // Ticks 
-        (osTimerAttr_t)               // Attributes 
+        nullptr,                       // Handler 
+        nullptr,                       // Callback 
+        osTimerPeriodic,               // Timer type 
+        PERIODIC_TIMER_50MS_PERIOD,    // Ticks 
+        (osTimerAttr_t)                // Attributes 
         {
-            "50ms",          // Name 
-            CLEAR_SETTING,   // Attribute bits - reserved 
-            NULL,            // Memory for control block 
-            CLEAR_SETTING    // Control block memory size 
+            "50ms",                    // Name 
+            CLEAR_SETTING,             // Attribute bits - reserved 
+            NULL,                      // Memory for control block 
+            CLEAR_SETTING              // Control block memory size 
         }
     };
     periodic_timer_100ms = (TimerThreadData)
@@ -109,10 +109,10 @@ void Vehicle::Setup(void)
         PERIODIC_TIMER_100MS_PERIOD,   // Ticks 
         (osTimerAttr_t)                // Attributes 
         {
-            "100ms",         // Name 
-            CLEAR_SETTING,   // Attribute bits - reserved 
-            NULL,            // Memory for control block 
-            CLEAR_SETTING    // Control block memory size 
+            "100ms",                   // Name 
+            CLEAR_SETTING,             // Attribute bits - reserved 
+            NULL,                      // Memory for control block 
+            CLEAR_SETTING              // Control block memory size 
         }
     };
     periodic_timer_250ms = (TimerThreadData)
@@ -123,24 +123,24 @@ void Vehicle::Setup(void)
         PERIODIC_TIMER_250MS_PERIOD,   // Ticks 
         (osTimerAttr_t)                // Attributes 
         {
-            "250ms",         // Name 
-            CLEAR_SETTING,   // Attribute bits - reserved 
-            NULL,            // Memory for control block 
-            CLEAR_SETTING    // Control block memory size 
+            "250ms",                   // Name 
+            CLEAR_SETTING,             // Attribute bits - reserved 
+            NULL,                      // Memory for control block 
+            CLEAR_SETTING              // Control block memory size 
         }
     };
     periodic_timer_1s = (TimerThreadData)
     {
-        nullptr,                    // Handler 
-        nullptr,                    // Callback 
-        osTimerPeriodic,            // Timer type 
-        PERIODIC_TIMER_1S_PERIOD,   // Ticks 
-        (osTimerAttr_t)             // Attributes 
+        nullptr,                       // Handler 
+        nullptr,                       // Callback 
+        osTimerPeriodic,               // Timer type 
+        PERIODIC_TIMER_1S_PERIOD,      // Ticks 
+        (osTimerAttr_t)                // Attributes 
         {
-            "1s",            // Name 
-            CLEAR_SETTING,   // Attribute bits - reserved 
-            NULL,            // Memory for control block 
-            CLEAR_SETTING    // Control block memory size 
+            "1s",                      // Name 
+            CLEAR_SETTING,             // Attribute bits - reserved 
+            NULL,                      // Memory for control block 
+            CLEAR_SETTING              // Control block memory size 
         }
     }; 
     
@@ -152,7 +152,6 @@ void Vehicle::Setup(void)
     // Create the threads 
     osThreadNew(eventLoop, (void *)&main_event_info, &main_event_info.attr); 
     osThreadNew(eventLoop, (void *)&comms_event_info, &comms_event_info.attr); 
-    // Check that the thread creation worked 
 
     periodic_timer_50ms.handler = osTimerNew(
         periodic_timer_50ms.callback, 

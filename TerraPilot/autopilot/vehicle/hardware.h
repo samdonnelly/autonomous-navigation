@@ -74,13 +74,13 @@ public:   // Public methods
     // IMU 
     void IMURead(void); 
     void IMUGet(
-        VehicleNavigation::Vector<int16_t> accel, 
-        VehicleNavigation::Vector<int16_t> gyro, 
-        int16_t heading); 
+        VehicleNavigation::Vector<int16_t> &accel, 
+        VehicleNavigation::Vector<int16_t> &gyro, 
+        int16_t &heading); 
 
-    // // Memory 
-    // void MemoryRead(void); 
-    // void MemoryWrite(void); 
+    // Memory 
+    void MemoryRead(void); 
+    void MemoryWrite(void); 
 
     // RC 
     // Serial protocol is used for remote control which means the hardware must read and 
@@ -95,9 +95,6 @@ public:   // Public methods
     void TelemetryGet(uint16_t &size, uint8_t *buffer); 
     void TelemetrySet(uint16_t &size, uint8_t *buffer); 
     void TelemetryWrite(void); 
-
-    // // Rangefinder 
-    // void RangefinderRead(void); 
 }; 
 
 //=======================================================================================

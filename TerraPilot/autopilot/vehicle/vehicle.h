@@ -68,7 +68,7 @@ protected:   // Protected members
         TARGET_ASSESS,      // Assess the current mission target 
         REMOTE_CONTROL,     // Manually control the vehicle 
         TELEMETRY_DECODE,   // Get and decode any new telemetry data 
-        TELEMETRY_ENCODE    // Set and telemetry data to be sent 
+        TELEMETRY_ENCODE    // Set telemetry data to be sent 
     } main_event; 
 
     // Communication thread events 
@@ -76,15 +76,9 @@ protected:   // Protected members
         NO_EVENT, 
         GPS_READ, 
         IMU_READ, 
-        // LED_STROBE, 
-        // LED_STROBE_OFF, 
-        // LED_WRITE, 
         RC_READ, 
         TELEMETRY_READ, 
-        TELEMETRY_WRITE, 
-        // MEMORY_READ, 
-        // MEMORY_WRITE, 
-        // RANGEFINDER_READ 
+        TELEMETRY_WRITE 
     } comms_event; 
 
     // System flags 

@@ -81,7 +81,7 @@ private:   // private members
 
     // Orientation 
     Vector<int16_t> accel, gyro, mag; 
-    Vector<float> orient;               // x = roll, y = pitch, z = yaw 
+    Vector<float> orient;               // x = roll, y = pitch, z = yaw (degrees) 
     int16_t heading, heading_target;    // 0-3599 (degrees*10) 
     int16_t true_north_offset;          // True north offset from magnetic north (degrees*10) 
     

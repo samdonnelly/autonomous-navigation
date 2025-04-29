@@ -28,8 +28,6 @@ void Boat::CommsDispatch(Event event)
 {
     boat.comms_event = (CommsEvents)event; 
 
-    // Disable interrupts? If so is a hardware interface required? 
-
     // General communication thread mutex grab 
     xSemaphoreTake(boat.comms_mutex, portMAX_DELAY); 
 
@@ -43,18 +41,6 @@ void Boat::CommsDispatch(Event event)
             boat.hardware.IMURead(); 
             break; 
 
-        // case CommsEvents::LED_STROBE: 
-        //     // boat.leds.Strobe(); 
-        //     break; 
-
-        // case CommsEvents::LED_STROBE_OFF: 
-        //     // boat.leds.StrobeOff(); 
-        //     break; 
-
-        // case CommsEvents::LED_WRITE: 
-        //     // boat.leds.LEDWrite(); 
-        //     break; 
-
         case CommsEvents::RC_READ: 
             boat.hardware.RCRead(); 
             break; 
@@ -67,18 +53,6 @@ void Boat::CommsDispatch(Event event)
             boat.hardware.TelemetryWrite(); 
             osSemaphoreRelease(boat.telemetry_out_semaphore); 
             break; 
-
-        // case CommsEvents::MEMORY_READ: 
-        //     boat.hardware.MemoryRead(); 
-        //     break; 
-
-        // case CommsEvents::MEMORY_WRITE: 
-        //     boat.hardware.MemoryWrite(); 
-        //     break; 
-
-        // case CommsEvents::RANGEFINDER_READ: 
-        //     boat.hardware.RangefinderRead(); 
-        //     break; 
 
         default: 
             boat.comms_event = CommsEvents::NO_EVENT; 

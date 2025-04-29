@@ -21,19 +21,9 @@
 
 
 //=======================================================================================
-// Notes 
+// Macros 
 
-// Mission storage 
-// - Two mission files, one to store the current mission the another to record a new 
-//   mission when it arrives. If a new mission upload is accepted then the system 
-//   switches to using the file with the new mission. An index that indicates which file 
-//   to use is stored in another file so that it can be kept track of between power 
-//   cycles. 
-// - A settings files which stores: 
-//   - The aforementioned mission file index 
-//   - Mission ID (opaque ID) - increments on new mission upload 
-//   - Home location (so it can't be wiped by a mission upload) 
-//     - On this note, make sure to write this as the first item in a mission file. 
+#define HOME_RADIUS 3   // meters 
 
 //=======================================================================================
 
@@ -65,11 +55,11 @@ static ParameterValues params;
 
 const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters = 
 {{
-    {"CRUISE_SPEED", &params.cruise_speed, MAV_PARAM_TYPE_REAL32},    // 1 
-    {"FRAME_CLASS",  &params.frame_class, MAV_PARAM_TYPE_REAL32},     // 2 
-    {"TURN_RADIUS",  &params.turn_radius, MAV_PARAM_TYPE_REAL32},     // 3 
-    {"LOIT_TYPE",    &params.loit_type, MAV_PARAM_TYPE_REAL32},       // 4 
-    {"LOIT_RADIUS",  &params.loit_radius, MAV_PARAM_TYPE_REAL32}      // 5 
+    {"CRUISE_SPEED", &params.cruise_speed, MAV_PARAM_TYPE_REAL32},   // 1 
+    {"FRAME_CLASS",  &params.frame_class, MAV_PARAM_TYPE_REAL32},    // 2 
+    {"TURN_RADIUS",  &params.turn_radius, MAV_PARAM_TYPE_REAL32},    // 3 
+    {"LOIT_TYPE",    &params.loit_type, MAV_PARAM_TYPE_REAL32},      // 4 
+    {"LOIT_RADIUS",  &params.loit_radius, MAV_PARAM_TYPE_REAL32}     // 5 
 }};
 
 //=======================================================================================
@@ -115,14 +105,24 @@ VehicleMemory::VehicleMemory()
 //=======================================================================================
 // Parameters 
 
-// Check if an index is within the parameter size 
+/**
+ * @brief Check if an index is within the parameter size 
+ * 
+ * @param param_index : index of parameter within 'parameters' 
+ * @return true/false : status of the check - true if within range 
+ */
 bool VehicleMemory::ParameterIndexCheck(uint8_t param_index)
 {
     return (param_index < parameters.size()); 
 }
 
 
-// Look up a parameter using the ID/name 
+/**
+ * @brief Look up a parameter using the ID/name 
+ * 
+ * @param param_id : name/key/ID of parameter used to search for a parameter 
+ * @return ParamIndex : index of specified parameter - index == parameters.size() if invalid 
+ */
 ParamIndex VehicleMemory::ParameterLookUp(const char *param_id)
 {
     ParamIndex param_index = RESET; 
@@ -140,9 +140,15 @@ ParamIndex VehicleMemory::ParameterLookUp(const char *param_id)
 }
 
 
-// Set the parameter that matches the ID/name 
+/**
+ * @brief Set the parameter that matches the ID/name 
+ * 
+ * @param param_id : name/key/ID of parameter used to search for a parameter 
+ * @param value : number to set parameter to if ID is valid 
+ * @return ParamIndex : index of specified parameter - index == parameters.size() if invalid 
+ */
 ParamIndex VehicleMemory::ParameterSet(
-    char *param_id, 
+    const char *param_id, 
     float &value)
 {
     ParamIndex param_index = ParameterLookUp(param_id); 
@@ -165,7 +171,9 @@ ParamIndex VehicleMemory::ParameterSet(
 //=======================================================================================
 // Mission 
 
-// Load a stored mission if it exists 
+/**
+ * @brief Load a stored mission if it exists 
+ */
 void VehicleMemory::MissionLoad(void)
 {
     // Do not set the home location flag. Retrieving the home position from memory 

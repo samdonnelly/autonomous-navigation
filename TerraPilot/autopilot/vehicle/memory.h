@@ -26,11 +26,10 @@
 //=======================================================================================
 // Macros 
 
-#define NUM_PARAMETERS 5 
-#define MAX_MISSION_SIZE 10 
-#define HOME_OFFSET 1 
-#define HOME_INDEX 0 
-#define HOME_RADIUS 3         // meters 
+#define NUM_PARAMETERS 5      // Number of parameters in the system 
+#define MAX_MISSION_SIZE 10   // Max number of mission items 
+#define HOME_OFFSET 1         // First mission item that isn't the home location 
+#define HOME_INDEX 0          // Mission item index for the home location 
 
 //=======================================================================================
 
@@ -93,7 +92,7 @@ public:   // public methods
     // Parameters 
     bool ParameterIndexCheck(uint8_t index); 
     ParamIndex ParameterLookUp(const char *param_id); 
-    ParamIndex ParameterSet(char *param_id, float &value); 
+    ParamIndex ParameterSet(const char *param_id, float &value); 
 
     // Mission 
     void MissionLoad(void); 

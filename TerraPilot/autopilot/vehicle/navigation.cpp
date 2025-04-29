@@ -21,43 +21,6 @@
 
 
 //=======================================================================================
-// Notes 
-
-// Home location access points: 
-// - Vehicle updates based on first obtained GPS position 
-// 	 - Check first to see if the home location has been set. Don't want to overwrite it 
-//     if it's already been set. 
-// 	 - If it has not been set then set the home location and set the home location flag. 
-// - Mission Planner does a mission upload (home location at mission index 0) 
-// 	 - Home location has been set 
-// 	 - Set the home location flag 
-// 	 - Mission Planner won't upload a mission without the home position set locally in 
-//     the application. It then 
-// 	   proceeds to send the home location as mission item 0. 
-// - Mission Planner manually updates the home position 
-// 	 - Home location has been set 
-// 	 - Set the home location flag 
-// - The vehicle loads a mission (home position at index 0) from memory 
-// 	 - This can happen on startup and when the system needs to reset (without powering 
-//     down) 
-// 	 - Home location has not been set, only read from historical data 
-// 	 - In this case, we don't want to use the loaded home position as the home location 
-//     because it has not been 
-// 	   explicity set, only read from recorded data. 
-// 	 - Do not set the home location flag. 
-
-// Mission Upload from Mission Planner doesn't have a means to set the home location 
-// flag yet. 
-// 	- It does now! 
-
-// The filtered location won't be initialized to the first obtained GPS position now that 
-// the home location flag is now in the memory module and accessed elsewhere. 
-// 	- Fixed by adding a dedicated flag to monitor GPS status changes. 
-
-//=======================================================================================
-
-
-//=======================================================================================
 // Macros 
 
 // Size and range 
@@ -355,7 +318,6 @@ void VehicleNavigation::CoordinateFilter(
  * @param target : target location 
  * @return float : surface distance between the current and target location 
  */
-// int32_t VehicleNavigation::GPSRadius(
 float VehicleNavigation::GPSRadius(
     Location current, 
     Location target)
@@ -385,7 +347,6 @@ float VehicleNavigation::GPSRadius(
 
     surf_dist = atan2(sqrt((eq7*eq7) + (eq5*eq5)), (eq4*eq3 + eq2*eq6))*EARTH_RADIUS*KM_TO_M; 
     
-    // return (int32_t)(surf_dist*SCALE_10); 
     return surf_dist; 
 }
 
@@ -520,35 +481,55 @@ int16_t VehicleNavigation::HeadingError(
 //=======================================================================================
 // Getters and setters 
 
-// Get the current vehicle location 
+/**
+ * @brief Get the current vehicle location 
+ * 
+ * @return VehicleNavigation::Location : current location data 
+ */
 VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)
 {
     return location_current; 
 }
 
 
-// Get the current accelerometer readings 
+/**
+ * @brief Get the current accelerometer readings 
+ * 
+ * @return VehicleNavigation::Vector<int16_t> : accelerometer axis data 
+ */
 VehicleNavigation::Vector<int16_t> VehicleNavigation::AccelCurrentGet(void)
 {
     return accel; 
 }
 
 
-// Get the current gyroscope readings 
+/**
+ * @brief Get the current gyroscope readings 
+ * 
+ * @return VehicleNavigation::Vector<int16_t> : gyroscope axis data 
+ */
 VehicleNavigation::Vector<int16_t> VehicleNavigation::GyroCurrentGet(void)
 {
     return gyro; 
 }
 
 
-// Get the current magnetometer readings 
+/**
+ * @brief Get the current magnetometer readings 
+ * 
+ * @return VehicleNavigation::Vector<int16_t> : magnetometer axis data 
+ */
 VehicleNavigation::Vector<int16_t> VehicleNavigation::MagCurrentGet(void)
 {
     return mag; 
 }
 
 
-// Get the current orientation (roll, pitch, yaw) 
+/**
+ * @brief Get the current orientation (roll, pitch, yaw) 
+ * 
+ * @return VehicleNavigation::Vector<float> : vehicle orientation (degrees) 
+ */
 VehicleNavigation::Vector<float> VehicleNavigation::OrientationCurrentGet(void)
 {
     return orient; 
@@ -566,7 +547,11 @@ int16_t VehicleNavigation::HeadingCurrentGet(void)
 }
 
 
-// Get the target vehicle heading 
+/**
+ * @brief Get the target vehicle heading 
+ * 
+ * @return int16_t : target heading (0-3599 degrees*10) 
+ */
 int16_t VehicleNavigation::HeadingTargetGet(void)
 {
     return heading_target; 

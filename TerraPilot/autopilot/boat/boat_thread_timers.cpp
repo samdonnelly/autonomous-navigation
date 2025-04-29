@@ -45,9 +45,6 @@ void Boat::TimerCallback50ms(void *timer_arg)
 // 100ms timer 
 void Boat::TimerCallback100ms(void *timer_arg)
 {
-    // Update the LED strobe 
-    // boat.CommsEventQueue((Event)CommsEvents::LED_STROBE); 
-
     // Keep the current orientation up to date 
     boat.CommsEventQueue((Event)CommsEvents::IMU_READ); 
     boat.MainEventQueue((Event)MainEvents::IMU_UPDATE); 

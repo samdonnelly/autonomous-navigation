@@ -204,7 +204,6 @@ void Boat::MainHoldState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::HOLD_STATE, data.main_state_flags.flags); 
 
         data.control.ForceStop(data); 
-        // LEDStrobeUpdate(ws2812_led_standby_not_ready); 
     }
 
     data.main_event = (MainEvents)event; 
@@ -219,8 +218,6 @@ void Boat::MainHoldState(Boat& data, Event event)
     if (data.main_system_flags.state_exit)
     {
         data.MainStateExit(); 
-
-        // LEDStrobeOff(); 
     }
 }
 
@@ -235,8 +232,6 @@ void Boat::MainManualState(Boat& data, Event event)
     if (data.main_system_flags.state_entry)
     {
         data.MainStateEnter((uint8_t)MainStates::MANUAL_STATE, data.main_state_flags.flags); 
-
-        // LEDStrobeUpdate(ws2812_led_manual_strobe); 
     }
     
     data.main_event = (MainEvents)event; 
@@ -257,7 +252,6 @@ void Boat::MainManualState(Boat& data, Event event)
         data.MainStateExit(); 
 
         data.control.ForceStop(data); 
-        // LEDStrobeOff(); 
     }
 }
 
@@ -472,24 +466,12 @@ void Boat::MainAutoState(Boat& data, Event event)
         // The MAVLink MISSION_CURRENT message should be broadcast when in auto mode so 
         // the GCS knows what the vehicle is targeting. 
         data.telemetry.MAVLinkMissionCurrentEnable(); 
-
-        // navigation.CurrentUpdate(boat); 
-        // LEDStrobeUpdate(ws2812_led_auto_strobe); 
-        // LEDUpdate(ws2812_led_auto_star, ws2812_led_auto_port); 
     }
     
     data.main_event = (MainEvents)event; 
 
     switch (data.main_event)
     {
-        // case MainEvents::NAV_HEADING_CALC: 
-        //     data.navigation.HeadingCalc(data); 
-        //     break; 
-        
-        // case MainEvents::NAV_LOCATION_CALC: 
-        //     data.navigation.LocationCalc(data); 
-        //     break; 
-
         case MainEvents::COURSE_CORRECT: 
             data.navigation.CourseCorrection(data); 
             break; 
@@ -508,10 +490,7 @@ void Boat::MainAutoState(Boat& data, Event event)
         data.MainStateExit(); 
 
         data.telemetry.MAVLinkMissionCurrentDisable(); 
-
         data.control.ForceStop(data); 
-        // LEDStrobeOff(); 
-        // LEDUpdate(ws2812_led_off, ws2812_led_off); 
     }
 }
 
@@ -613,20 +592,6 @@ void Boat::MainFaultState(Boat& data, Event event)
         data.main_state_flags.flags = RESET; 
 
         data.control.ForceStop(data); 
-
-        //==================================================
-        // From low power state 
-
-        // Stop the software timers 
-        // xTimerStop(data.periodic_timer_100ms.handler, 0); 
-        // xTimerStop(data.periodic_timer_1s.handler, 0); 
-
-        // If all the software timers are stopped then there will be no radio checks or 
-        // LED updates. 
-    
-        // LEDStrobeUpdate(ws2812_led_low_pwr); 
-
-        //==================================================
     }
 
     data.main_event = (MainEvents)event; 
@@ -641,13 +606,6 @@ void Boat::MainFaultState(Boat& data, Event event)
     if (data.main_system_flags.state_exit)
     {
         data.MainStateExit(); 
-
-        //==================================================
-        // From low power state 
-
-        // LEDStrobeOff(); 
-
-        //==================================================
     }
 }
 
