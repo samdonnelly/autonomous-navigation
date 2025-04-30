@@ -322,7 +322,7 @@ float VehicleNavigation::GPSRadius(
     Location current, 
     Location target)
 {
-    float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, surf_dist; 
+    float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7; 
 
     // Convert the coordinates to radians so they're compatible with the math library. 
     current.lat *= DEG_TO_RAD; 
@@ -344,10 +344,8 @@ float VehicleNavigation::GPSRadius(
     eq5 = eq1*sin(eq0); 
     eq6 = eq1*cos(eq0); 
     eq7 = eq2*eq3 - eq4*eq6; 
-
-    surf_dist = atan2(sqrt((eq7*eq7) + (eq5*eq5)), (eq4*eq3 + eq2*eq6))*EARTH_RADIUS*KM_TO_M; 
     
-    return surf_dist; 
+    return atan2(sqrt((eq7*eq7) + (eq5*eq5)), (eq4*eq3 + eq2*eq6))*EARTH_RADIUS*KM_TO_M; 
 }
 
 
