@@ -14,7 +14,28 @@
 # Library 
 from PyQt6.QtCore import QSize, Qt 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton 
+
 import sys   # For command line arguments 
+from random import choice 
+
+#================================================================================
+
+
+#================================================================================
+# Data 
+
+window_titles = \
+[
+    'My App', 
+    'My App', 
+    'Still My App', 
+    'Still My App', 
+    'What on earth', 
+    'What on earth', 
+    'This is surprising', 
+    'This is surprising', 
+    'Something went wrong' 
+]
 
 #================================================================================
 
@@ -26,22 +47,30 @@ class MainWindow(QMainWindow):
     def __init__(self): 
         super().__init__() 
 
+        self.n_times_clicked = 0 
+
         self.setWindowTitle("Vehicle Data Visualization") 
 
-        button = QPushButton("Push!") 
-        button.setCheckable(True) 
-        button.clicked.connect(self.the_button_was_clicked) 
-        button.clicked.connect(self.the_button_was_toggled) 
+        self.button = QPushButton("Push!") 
+        self.button.clicked.connect(self.the_button_was_clicked) 
+
+        self.windowTitleChanged.connect(self.the_window_title_changed) 
 
         self.setFixedSize(QSize(400, 300)) 
 
-        self.setCentralWidget(button) 
+        self.setCentralWidget(self.button) 
 
     def the_button_was_clicked(self): 
         print("Clicked!") 
+        new_window_title = choice(window_titles) 
+        print("Setting title: %s" % new_window_title) 
+        self.setWindowTitle(new_window_title) 
 
-    def the_button_was_toggled(self, checked): 
-        print("Checked?", checked) 
+    def the_window_title_changed(self, window_title): 
+        print("Window title changed: %s" % window_title) 
+
+        if window_title == 'Something went wrong': 
+            self.button.setDisabled(True) 
 
 #================================================================================
 
