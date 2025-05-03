@@ -27,12 +27,8 @@ from random import choice
 window_titles = \
 [
     'My App', 
-    'My App', 
-    'Still My App', 
     'Still My App', 
     'What on earth', 
-    'What on earth', 
-    'This is surprising', 
     'This is surprising', 
     'Something went wrong' 
 ]
