@@ -169,6 +169,10 @@ void Boat::AutoDrive(int16_t heading_error)
     hardware.PropulsionSet(left_thruster, right_thruster); 
     
 #elif VS_BOAT_K2 
+
+    // In this configuration the boat can be set to the target speed and the heading 
+    // error only applies to the sterring output. 
+    
 #endif 
 }
 
