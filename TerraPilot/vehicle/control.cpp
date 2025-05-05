@@ -30,7 +30,7 @@ VehicleControl::VehicleControl()
 
     status.flags = RESET; 
 
-    channels.throttle = PWM_NEUTRAL; 
+    channels.throttle = VS_MOTOR_PWM_OFF; 
     channels.roll = PWM_NEUTRAL; 
     channels.pitch = PWM_NEUTRAL; 
     channels.yaw = PWM_NEUTRAL; 
@@ -141,7 +141,7 @@ void VehicleControl::RemoteControl(Vehicle &vehicle)
  */
 void VehicleControl::ForceStop(Vehicle &vehicle)
 {
-    channels.throttle = PWM_NEUTRAL; 
+    channels.throttle = VS_MOTOR_PWM_OFF; 
     channels.roll = PWM_NEUTRAL; 
     channels.pitch = PWM_NEUTRAL; 
     channels.yaw = PWM_NEUTRAL; 

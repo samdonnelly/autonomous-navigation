@@ -46,14 +46,17 @@
 #define VS_RC_TIMEOUT 10           // Max count before RC comms are considered lost 
 
 // Data sizes 
-#define VS_TELEMETRY_BUFF 1000   // Telemetry data buffer size (bytes) 
+#define VS_TELEMETRY_BUFF 1000     // Telemetry data buffer size (bytes) 
+
+// Propulsion and steering 
+#define VS_MOTOR_PWM_OFF 1500      // PWM to turn motor(s) off - can vary between motors/ESCs 
 
 // The vehicle specific settings below only have an affect when the corresponding vehicle 
 // type (VT) is selected. 
 
 // Boat 
-#define VS_BOAT_K1 0   // Kinematics 1 - Differential thruster - 2 propellers 
-#define VS_BOAT_K2 0   // Kinematics 2 - Rudder - 1 propeller + 1 rudder 
+#define VS_BOAT_K1 0               // Kinematics 1 - Differential thruster - 2 propellers 
+#define VS_BOAT_K2 0               // Kinematics 2 - Rudder - 1 propeller + 1 rudder 
 
 //=======================================================================================
 

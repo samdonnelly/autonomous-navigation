@@ -105,11 +105,11 @@ void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
 
         if (main_channels.roll < VehicleControl::PWM_NEUTRAL)
         {
-            left_thruster += (uint16_t)thrust_diff; 
+            right_thruster += (uint16_t)thrust_diff; 
         }
         else 
         {
-            right_thruster += (uint16_t)(-thrust_diff); 
+            left_thruster += (uint16_t)(-thrust_diff); 
         }
     }
 
