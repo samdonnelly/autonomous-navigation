@@ -111,6 +111,7 @@ private:   // private methods
     int16_t GPSHeading(Location current, Location target); 
 
     // Heading calculations 
+    int16_t MagneticHeading(Vector<int16_t> &magnetometer); 
     int16_t TrueNorthHeading(int16_t magnetic_heading) const; 
     int16_t HeadingError(int16_t current_heading, int16_t target_heading); 
 
@@ -129,10 +130,10 @@ public:   // public methods
 
     // Getters and setter 
     Location LocationCurrentGet(void); 
-    VehicleNavigation::Vector<int16_t> AccelCurrentGet(void); 
-    VehicleNavigation::Vector<int16_t> GyroCurrentGet(void); 
-    VehicleNavigation::Vector<int16_t> MagCurrentGet(void); 
-    VehicleNavigation::Vector<float> OrientationCurrentGet(void); 
+    Vector<int16_t> AccelCurrentGet(void); 
+    Vector<int16_t> GyroCurrentGet(void); 
+    Vector<int16_t> MagCurrentGet(void); 
+    Vector<float> OrientationCurrentGet(void); 
     int16_t HeadingCurrentGet(void); 
     int16_t HeadingTargetGet(void); 
 }; 

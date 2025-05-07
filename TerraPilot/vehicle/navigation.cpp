@@ -404,6 +404,30 @@ int16_t VehicleNavigation::GPSHeading(
 // Heading calculations 
 
 /**
+ * @brief Magnetic North Heading 
+ * 
+ * @param magnetometer : magnetometer axis data 
+ * @return int16_t : heading (degrees*10) 
+ */
+int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &magnetometer)
+{
+    // https://cdn-shop.adafruit.com/datasheets/AN203_Compass_Heading_Using_Magnetometers.pdf 
+
+    int16_t mag_heading = RESET; 
+
+    if (magnetometer.y == 0)
+    {
+        mag_heading = (magnetometer.x >= 0) ? 0 : 1800; 
+    }
+    else 
+    {
+        // atan(x/y)*180/pi 
+        mag_heading = (magnetometer.y > 0) ? 90 : 270; 
+    }
+}
+
+
+/**
  * @brief True north heading 
  * 
  * @param magnetic_heading : magnetometer heading (degrees*10) 
