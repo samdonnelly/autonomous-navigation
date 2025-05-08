@@ -411,8 +411,6 @@ int16_t VehicleNavigation::GPSHeading(
  */
 int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &magnetometer)
 {
-    // https://cdn-shop.adafruit.com/datasheets/AN203_Compass_Heading_Using_Magnetometers.pdf 
-
     int16_t mag_heading = RESET; 
 
     if (magnetometer.y == 0)
@@ -421,9 +419,14 @@ int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &magnetometer)
     }
     else 
     {
-        // atan(x/y)*180/pi 
-        float atan_calc = atan2f(magnetometer.x, magnetometer.y) * RAD_TO_DEG; 
-        mag_heading = (magnetometer.y > 0) ? (90.0 - atan_calc): (270.0 - atan_calc); 
+        // The source that provides the below formula says atan(x/y) but the atan2f 
+        // documentation does y/x (i.e arg 0 / arg 1). We write x first to get x/y 
+        // because we don't want a divide by 0 if x happens to be 0. To be confirmed. 
+
+        // float atan_calc = atan2f(magnetometer.y, magnetometer.x) * RAD_TO_DEG; 
+        // float mag_heading_f = (magnetometer.y > 0) ? (90.0 - atan_calc): (270.0 - atan_calc); 
+        // mag_heading = (int16_t)(mag_heading_f * SCALE_10); 
+        mag_heading = (int16_t)((180.0 - atan2f(magnetometer.x, magnetometer.y)*RAD_TO_DEG)*SCALE_10); 
     }
 }
 
