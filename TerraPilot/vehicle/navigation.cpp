@@ -422,7 +422,8 @@ int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &magnetometer)
     else 
     {
         // atan(x/y)*180/pi 
-        mag_heading = (magnetometer.y > 0) ? 90 : 270; 
+        float atan_calc = atan2f(magnetometer.x, magnetometer.y) * RAD_TO_DEG; 
+        mag_heading = (magnetometer.y > 0) ? (90.0 - atan_calc): (270.0 - atan_calc); 
     }
 }
 
