@@ -136,8 +136,8 @@ TEST_GROUP(vehicle_navigation_test)
 //=======================================================================================
 // Tests 
 
-// Test 0 
-TEST(vehicle_navigation_test, test0)
+// Heading: magnetic north 
+TEST(vehicle_navigation_test, heading_magnetic_north)
 {
     // 
 }
