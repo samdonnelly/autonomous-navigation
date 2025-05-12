@@ -84,19 +84,20 @@ public:
     
     ~Craft() {}
 
-    void TelemetryReadySet(void)
+    void NavDataReadySet(void)
     {
-        hardware.data_ready.telemetry_ready = FLAG_SET; 
+        hardware.data_ready.gps_ready = FLAG_SET; 
+        hardware.data_ready.imu_ready = FLAG_SET; 
     }
 
-    void TelemetryDecode(void)
+    void NavLocationUpdate(void)
     {
-        telemetry.MessageDecode(*this); 
+        navigation.LocationUpdate(*this); 
     }
 
-    void TelemetryEncode(void)
+    void NavOrientationUpdate(void)
     {
-        telemetry.MessageEncode(*this); 
+        navigation.OrientationUpdate(*this); 
     }
 }; 
 
