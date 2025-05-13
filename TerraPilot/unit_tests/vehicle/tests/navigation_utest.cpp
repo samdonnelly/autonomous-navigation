@@ -99,6 +99,16 @@ public:
     {
         navigation.OrientationUpdate(*this); 
     }
+
+    void NavTargetAssess(void)
+    {
+        navigation.TargetAssess(*this); 
+    }
+
+    void NavCourseCorrection(void)
+    {
+        navigation.CourseCorrection(*this); 
+    }
 }; 
 
 static Craft craft; 
