@@ -79,6 +79,25 @@ bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 //==================================================
 
 //==================================================
+// IMU 
+
+void VehicleHardware::IMURead(void)
+{
+    // 
+}
+
+
+void VehicleHardware::IMUGet(
+    VehicleNavigation::Vector<int16_t> &accel, 
+    VehicleNavigation::Vector<int16_t> &gyro, 
+    int16_t &heading)
+{
+    // 
+}
+
+//==================================================
+
+//==================================================
 // RC 
 
 void VehicleHardware::RCRead(void)
