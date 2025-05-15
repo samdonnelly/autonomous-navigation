@@ -7,7 +7,7 @@
 # 
 # Notes: 
 # - Reference: https://www.pythonguis.com/pyqt6-tutorial/ 
-#   - Place: PyQt6 Signals, Slots & Events - Connecting widgets together directly 
+#   - Place: PyQt6 Signals, Slots & Events - Events 
 #
 # Date: 2025-04-04 
 #================================================================================
@@ -27,16 +27,6 @@ from random import choice
 
 #================================================================================
 # Data 
-
-window_titles = \
-[
-    'My App', 
-    'Still My App', 
-    'What on earth', 
-    'This is surprising', 
-    'Something went wrong' 
-]
-
 #================================================================================
 
 
