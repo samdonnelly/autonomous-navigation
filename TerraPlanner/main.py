@@ -4,6 +4,10 @@
 # Author: Sam Donnelly (samueldonnelly11@gmail.com)
 # 
 # Description: GUI entry point 
+# 
+# Notes: 
+# - Reference: https://www.pythonguis.com/pyqt6-tutorial/ 
+#   - Place: PyQt6 Signals, Slots & Events - Connecting widgets together directly 
 #
 # Date: 2025-04-04 
 #================================================================================
@@ -13,7 +17,7 @@
 
 # Library 
 from PyQt6.QtCore import QSize, Qt 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton 
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QVBoxLayout, QWidget 
 
 import sys   # For command line arguments 
 from random import choice 
@@ -43,30 +47,22 @@ class MainWindow(QMainWindow):
     def __init__(self): 
         super().__init__() 
 
-        self.n_times_clicked = 0 
-
         self.setWindowTitle("Vehicle Data Visualization") 
 
-        self.button = QPushButton("Push!") 
-        self.button.clicked.connect(self.the_button_was_clicked) 
+        self.label = QLabel() 
 
-        self.windowTitleChanged.connect(self.the_window_title_changed) 
+        self.input = QLineEdit() 
+        self.input.textChanged.connect(self.label.setText) 
 
-        self.setFixedSize(QSize(400, 300)) 
+        layout = QVBoxLayout() 
+        layout.addWidget(self.input) 
+        layout.addWidget(self.label) 
 
-        self.setCentralWidget(self.button) 
+        container = QWidget() 
+        container.setLayout(layout) 
 
-    def the_button_was_clicked(self): 
-        print("Clicked!") 
-        new_window_title = choice(window_titles) 
-        print("Setting title: %s" % new_window_title) 
-        self.setWindowTitle(new_window_title) 
-
-    def the_window_title_changed(self, window_title): 
-        print("Window title changed: %s" % window_title) 
-
-        if window_title == 'Something went wrong': 
-            self.button.setDisabled(True) 
+        # Set the central widget of the window 
+        self.setCentralWidget(container) 
 
 #================================================================================
 
@@ -80,7 +76,6 @@ class MainWindow(QMainWindow):
 app = QApplication(sys.argv) 
 
 # Create a Qt widget (window) 
-# window = QWidget() 
 window = MainWindow() 
 window.show() 
 
