@@ -7,7 +7,7 @@
 # 
 # Notes: 
 # - Reference: https://www.pythonguis.com/pyqt6-tutorial/ 
-#   - Place: PyQt6 Signals, Slots & Events - Events 
+#   - Place: PyQt6 Signals, Slots & Events - Mouse events 
 #
 # Date: 2025-04-04 
 #================================================================================
@@ -16,11 +16,10 @@
 # Includes 
 
 # Library 
-from PyQt6.QtCore import QSize, Qt 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QVBoxLayout, QWidget 
+from PyQt6.QtCore import Qt 
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QTextEdit 
 
 import sys   # For command line arguments 
-from random import choice 
 
 #================================================================================
 
@@ -36,23 +35,22 @@ from random import choice
 class MainWindow(QMainWindow): 
     def __init__(self): 
         super().__init__() 
+        self.setMouseTracking(True) 
+        self.label = QLabel("Click in this Window") 
+        self.label.setMouseTracking(True) 
+        self.setCentralWidget(self.label) 
 
-        self.setWindowTitle("Vehicle Data Visualization") 
-
-        self.label = QLabel() 
-
-        self.input = QLineEdit() 
-        self.input.textChanged.connect(self.label.setText) 
-
-        layout = QVBoxLayout() 
-        layout.addWidget(self.input) 
-        layout.addWidget(self.label) 
-
-        container = QWidget() 
-        container.setLayout(layout) 
-
-        # Set the central widget of the window 
-        self.setCentralWidget(container) 
+    def mouseMoveEvent(self, e): 
+        self.label.setText("mouseMoveEvent") 
+        
+    def mousePressEvent(self, e): 
+        self.label.setText("mousePressEvent") 
+        
+    def mouseReleaseEvent(self, e): 
+        self.label.setText("mouseReleaseEvent") 
+        
+    def mouseDoubleClickEvent(self, e): 
+        self.label.setText("mouseDoubleClickEvent") 
 
 #================================================================================
 
