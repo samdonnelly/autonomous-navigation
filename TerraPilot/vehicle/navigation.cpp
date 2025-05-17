@@ -148,7 +148,7 @@ void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
         vehicle.hardware.data_ready.imu_ready = FLAG_CLEAR; 
 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        vehicle.hardware.IMUGet(accel, gyro, heading); 
+        vehicle.hardware.IMUGet(accel, gyro, mag, heading); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
         status.imu_connected = FLAG_SET; 
@@ -426,8 +426,10 @@ int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &magnetometer)
         // float atan_calc = atan2f(magnetometer.y, magnetometer.x) * RAD_TO_DEG; 
         // float mag_heading_f = (magnetometer.y > 0) ? (90.0 - atan_calc): (270.0 - atan_calc); 
         // mag_heading = (int16_t)(mag_heading_f * SCALE_10); 
-        mag_heading = (int16_t)((180.0 - atan2f(magnetometer.x, magnetometer.y)*RAD_TO_DEG)*SCALE_10); 
+        mag_heading = (int16_t)((180.0f - atan2f(magnetometer.x, magnetometer.y)*RAD_TO_DEG)*SCALE_10); 
     }
+
+    return mag_heading; 
 }
 
 
