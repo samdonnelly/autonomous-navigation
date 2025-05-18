@@ -152,6 +152,7 @@ void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
         xSemaphoreGive(vehicle.comms_mutex); 
 
         status.imu_connected = FLAG_SET; 
+        timers.imu_connection = RESET; 
     }
 
     OrientationChecks(vehicle); 
