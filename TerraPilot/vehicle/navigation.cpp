@@ -59,7 +59,7 @@ VehicleNavigation::VehicleNavigation()
     // other mission target data doesn't need to be set initially. 
     mission_target.seq = ~RESET; 
 
-    coordinate_lpf_gain = 0.5;   // Make parameter? 
+    coordinate_lpf_gain = 0.5;   // GPS coordinate low pass filter gain 
     true_north_offset = 130;     // Offset between true and magnetic north (degrees*10) 
 }
 
