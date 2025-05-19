@@ -27,6 +27,7 @@
 #define EARTH_RADIUS 6371        // Average radius of the Earth (km) 
 #define HEADING_DIFF_MAX 1800    // Maximum heading difference (+/- 180 degrees * 10) 
 #define HEADING_RANGE 3600       // Full heading range (360 degrees * 10) 
+#define WAYPOINT_RADIUS 3.0f     // Waypoint acceptance radius 
 
 // Unit conversions 
 #define PI 3.141592f             // PI 
@@ -284,7 +285,8 @@ void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
     CoordinateFilter(location_current, location_filtered); 
     heading_target = GPSHeading(location_filtered, location_target); 
     
-    if (GPSRadius(location_filtered, location_target) < mission_target.param2)
+    // if (GPSRadius(location_filtered, location_target) < mission_target.param2)
+    if (GPSRadius(location_filtered, location_target) < WAYPOINT_RADIUS)
     {
         // Send a mission item reached message 
         vehicle.telemetry.MAVLinkMissionItemReachedSet(); 
