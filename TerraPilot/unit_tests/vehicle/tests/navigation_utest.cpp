@@ -150,7 +150,14 @@ TEST_GROUP(vehicle_navigation_test)
 // Heading: magnetic north 
 TEST(vehicle_navigation_test, heading_magnetic_north)
 {
-    // 
+    // Makes sure the GPS and IMU connection flags are set so navigation calculations 
+    // will be performed by the code. 
+    craft.NavDataReadySet(); 
+
+    craft.NavLocationUpdate(); 
+    craft.NavOrientationUpdate(); 
+
+    craft.NavCourseCorrection(); 
 }
 
 //=======================================================================================

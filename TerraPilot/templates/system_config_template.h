@@ -51,6 +51,9 @@
 // Propulsion and steering 
 #define VS_MOTOR_PWM_OFF 1500      // PWM to turn motor(s) off - can vary between motors/ESCs 
 
+// Mission 
+#define VS_WAYPOINT_RADIUS 5.0f    // Vehicle acceptance distance to waypoint 
+
 // The vehicle specific settings below only have an affect when the corresponding vehicle 
 // type (VT) is selected. 
 

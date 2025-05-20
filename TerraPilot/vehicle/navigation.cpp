@@ -25,9 +25,9 @@
 
 // Size and range 
 #define EARTH_RADIUS 6371        // Average radius of the Earth (km) 
-#define HEADING_DIFF_MAX 1800    // Maximum heading difference (+/- 180 degrees * 10) 
-#define HEADING_RANGE 3600       // Full heading range (360 degrees * 10) 
-#define WAYPOINT_RADIUS 3.0f     // Waypoint acceptance radius 
+// #define HEADING_NORTH 0          // Heading reading when facing North (0 deg*10) 
+// #define HEADING_DIFF_MAX 1800    // Maximum heading difference (+/- 180 deg*10) 
+// #define HEADING_RANGE 3600       // Full heading range (360 deg*10) 
 
 // Unit conversions 
 #define PI 3.141592f             // PI 
@@ -285,8 +285,7 @@ void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
     CoordinateFilter(location_current, location_filtered); 
     heading_target = GPSHeading(location_filtered, location_target); 
     
-    // if (GPSRadius(location_filtered, location_target) < mission_target.param2)
-    if (GPSRadius(location_filtered, location_target) < WAYPOINT_RADIUS)
+    if (GPSRadius(location_filtered, location_target) < VS_WAYPOINT_RADIUS)
     {
         // Send a mission item reached message 
         vehicle.telemetry.MAVLinkMissionItemReachedSet(); 
@@ -390,7 +389,7 @@ int16_t VehicleNavigation::GPSHeading(
     // needed range (0-359.9 degrees) so this correction brings the value back within range. 
     if (den < 0)
     {
-        gps_heading += HEADING_DIFF_MAX; 
+        gps_heading += HEADING_SOUTH; 
     }
     else if (num < 0)
     {
@@ -414,11 +413,11 @@ int16_t VehicleNavigation::GPSHeading(
  */
 int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &magnetometer)
 {
-    int16_t mag_heading = RESET; 
+    int16_t mag_heading; 
 
     if (magnetometer.y == 0)
     {
-        mag_heading = (magnetometer.x >= 0) ? 0 : 1800; 
+        mag_heading = (magnetometer.x >= 0) ? HEADING_NORTH : HEADING_SOUTH; 
     }
     else 
     {
@@ -488,11 +487,11 @@ int16_t VehicleNavigation::HeadingError(
 
     int16_t heading_error = target_heading - current_heading; 
 
-    if (heading_error > HEADING_DIFF_MAX)
+    if (heading_error > HEADING_SOUTH)
     {
         heading_error -= HEADING_RANGE; 
     }
-    else if (heading_error <= -HEADING_DIFF_MAX)
+    else if (heading_error <= -HEADING_SOUTH)
     {
         heading_error += HEADING_RANGE; 
     }

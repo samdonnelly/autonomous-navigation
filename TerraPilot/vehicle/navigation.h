@@ -39,6 +39,15 @@ class Vehicle;
 
 class VehicleNavigation 
 {
+private:   // private types 
+
+    enum HeadingDirections : int16_t 
+    {
+        HEADING_NORTH = 0,      // Heading reading when facing North (0 deg*10) 
+        HEADING_SOUTH = 1800,   // Maximum heading difference (+/- 180 deg*10) 
+        HEADING_RANGE = 3600    // Full heading range (360 deg*10) 
+    }; 
+
 public:   // public types 
 
     struct Location 
