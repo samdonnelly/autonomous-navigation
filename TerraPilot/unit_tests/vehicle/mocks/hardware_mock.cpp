@@ -86,6 +86,7 @@ void VehicleHardware::IMURead(void)
     // 
 }
 
+#include <iostream> 
 
 void VehicleHardware::IMUGet(
     VehicleNavigation::Vector<int16_t> &accel, 
@@ -93,7 +94,11 @@ void VehicleHardware::IMUGet(
     VehicleNavigation::Vector<int16_t> &mag, 
     int16_t &heading)
 {
-    // 
+    mag.x = hardware_mock.magnetometer.x; 
+    mag.y = hardware_mock.magnetometer.y; 
+    mag.z = hardware_mock.magnetometer.z; 
+
+    // std::cout << mag.x << ", " << mag.y << ", " << mag.z << std::endl; 
 }
 
 //==================================================
@@ -153,10 +158,32 @@ void VehicleHardware::TelemetryWrite(void)
 
 void HardwareMock::HardwareMockInit(void)
 {
+    // IMU 
+    magnetometer.z = RESET; 
+    magnetometer.y = RESET; 
+    magnetometer.z = RESET; 
+
+    // Telemetry 
     telemetry_out_size = RESET; 
     TelmetryInReset(); 
 }
 
+
+//==================================================
+// IMU 
+
+void HardwareMock::IMUSetAxisData(VehicleNavigation::Vector<int16_t> mag_axis)
+{
+    magnetometer.x = mag_axis.x; 
+    magnetometer.y = mag_axis.y; 
+    magnetometer.z = mag_axis.z; 
+}
+
+//==================================================
+
+
+//==================================================
+// Telemetry 
 
 void HardwareMock::TelemetryInAppend(uint16_t size, uint8_t *buffer)
 {
@@ -176,5 +203,7 @@ uint16_t HardwareMock::TelemetryOutGetSize(void)
 {
     return telemetry_out_size; 
 }
+
+//==================================================
 
 //=======================================================================================

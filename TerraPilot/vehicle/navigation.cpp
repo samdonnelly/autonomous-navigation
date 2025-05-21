@@ -25,9 +25,6 @@
 
 // Size and range 
 #define EARTH_RADIUS 6371        // Average radius of the Earth (km) 
-// #define HEADING_NORTH 0          // Heading reading when facing North (0 deg*10) 
-// #define HEADING_DIFF_MAX 1800    // Maximum heading difference (+/- 180 deg*10) 
-// #define HEADING_RANGE 3600       // Full heading range (360 deg*10) 
 
 // Unit conversions 
 #define PI 3.141592f             // PI 
@@ -46,6 +43,11 @@
 // Initialization 
 
 VehicleNavigation::VehicleNavigation()
+    : waypoint_distance(RESET), 
+      coordinate_lpf_gain(0.5),   // GPS coordinate low pass filter gain 
+      heading(RESET), 
+      heading_target(RESET), 
+      true_north_offset(RESET) 
 {
     timers.gps_connection = RESET; 
     timers.imu_connection = RESET; 
@@ -59,9 +61,6 @@ VehicleNavigation::VehicleNavigation()
     // the code guarantees there will be valid mission data to obtain which is also why 
     // other mission target data doesn't need to be set initially. 
     mission_target.seq = ~RESET; 
-
-    coordinate_lpf_gain = 0.5;   // GPS coordinate low pass filter gain 
-    true_north_offset = 130;     // Offset between true and magnetic north (degrees*10) 
 }
 
 //=======================================================================================
@@ -259,7 +258,8 @@ void VehicleNavigation::CourseCorrection(Vehicle &vehicle)
     // and steering. If either the GPS or IMU are not connected then the vehicle is force 
     // stopped as autonomous navigation would not work otherwise 
     (status.gps_connected && status.imu_connected) ? 
-        vehicle.AutoDrive(HeadingError(TrueNorthHeading(heading), heading_target)) : 
+        // vehicle.AutoDrive(HeadingError(TrueNorthHeading(heading), heading_target)) : 
+        vehicle.AutoDrive(HeadingError(TrueNorthHeading(MagneticHeading(mag)), heading_target)) : 
         vehicle.control.ForceStop(vehicle); 
 }
 
@@ -417,6 +417,7 @@ int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &magnetometer)
 
     if (magnetometer.y == 0)
     {
+        // If the Y-axis is zero then the vehicle is facing magnetic North or South. 
         mag_heading = (magnetometer.x >= 0) ? HEADING_NORTH : HEADING_SOUTH; 
     }
     else 
@@ -483,7 +484,7 @@ int16_t VehicleNavigation::HeadingError(
     // headings and the negative sign indicates in what direction this smaller error 
     // happens. So instead of turning 335 degrees clockwise, you can turn 25 degrees 
     // counter clockwise to correct for the error. The inflection point of the error 
-    // for this correction is 180 degrees (or 1800 in degrees*10). 
+    // for this correction is 180 degrees (South) (or 1800 in degrees*10). 
 
     int16_t heading_error = target_heading - current_heading; 
 
@@ -579,6 +580,28 @@ int16_t VehicleNavigation::HeadingCurrentGet(void)
 int16_t VehicleNavigation::HeadingTargetGet(void)
 {
     return heading_target; 
+}
+
+
+/**
+ * @brief Set the true North offset 
+ * 
+ * @param tn_offset : true North offset value 
+ */
+void VehicleNavigation::TrueNorthOffsetSet(int16_t tn_offset)
+{
+    true_north_offset = tn_offset; 
+}
+
+
+/**
+ * @brief Get the distance to the target waypoint 
+ * 
+ * @return uint16_t : waypoint distance 
+ */
+uint16_t VehicleNavigation::WaypointDistanceGet(void)
+{
+    return waypoint_distance; 
 }
 
 //=======================================================================================

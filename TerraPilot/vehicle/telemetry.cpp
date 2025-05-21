@@ -409,7 +409,8 @@ void VehicleTelemetry::MAVLinkParamSetReceive(Vehicle &vehicle)
         return; 
     }
 
-    parameter_index = vehicle.memory.ParameterSet(mavlink.param_set_msg_gcs.param_id, 
+    parameter_index = vehicle.memory.ParameterSet(vehicle, 
+                                                  mavlink.param_set_msg_gcs.param_id, 
                                                   mavlink.param_set_msg_gcs.param_value); 
 
     status.param_read = FLAG_SET; 
@@ -1388,14 +1389,14 @@ void VehicleTelemetry::MAVLinkNavControllerSendPeriodic(Vehicle &vehicle)
             component_id, 
             channel, 
             &msg, 
-            0,                                        // Current desired roll 
-            0,                                        // Current desired pitch 
-            vehicle.navigation.HeadingCurrentGet(),   // Current desired heading 
-            vehicle.navigation.HeadingTargetGet(),    // Bearing to current waypoint/target 
-            vehicle.navigation.waypoint_distance,     // Distance to active waypoint 
-            0,                                        // Current altitude error 
-            0,                                        // Current airspeed error 
-            0);                                       // Current crosstrack error on x-y plane 
+            0,                                          // Current desired roll 
+            0,                                          // Current desired pitch 
+            vehicle.navigation.HeadingCurrentGet(),     // Current desired heading 
+            vehicle.navigation.HeadingTargetGet(),      // Bearing to current waypoint/target 
+            vehicle.navigation.WaypointDistanceGet(),   // Distance to active waypoint 
+            0,                                          // Current altitude error 
+            0,                                          // Current airspeed error 
+            0);                                         // Current crosstrack error on x-y plane 
         MAVLinkMessageFormat(); 
     }
 }

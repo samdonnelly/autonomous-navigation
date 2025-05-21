@@ -21,33 +21,29 @@
 
 
 //=======================================================================================
-// Macros 
+// Parameters 
 
-#define HOME_RADIUS 3   // meters 
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Structs 
-
-struct ParameterValues 
+class Parameters 
 {
-    float 
-    cruise_speed,   // Target cruise speed in auto mode (m/s) 
-    frame_class,    // Frame class: Boat 
-    turn_radius,    // Turn radius of vehicle (meters) 
-    loit_type,      // Loiter type: Forward or reverse to target point 
-    loit_radius;    // Loiter radius (meters) 
+public:   // public types 
+
+    enum ParameterIndex : uint8_t 
+    {
+        TN_OFFSET,   // True North offset 
+        WP_RADIUS    // Waypoint radius 
+    };
+
+    struct ParameterValue 
+    {
+        float 
+        tn_offset,   // True North offset - offset between true and magnetic North (+/- degrees*10) 
+        wp_radius;   // Waypoint radius - acceptance distance to waypoint 
+    }
+    values;
 }; 
 
-static ParameterValues params; 
+static Parameters params; 
 
-//=======================================================================================
-
-
-//=======================================================================================
-// Parameters 
 
 // The following parameters are available across the vehicle system but cannot be 
 // modified outside of this file. Only parameter values can be changed and it's done 
@@ -55,11 +51,8 @@ static ParameterValues params;
 
 const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters = 
 {{
-    {"CRUISE_SPEED", &params.cruise_speed, MAV_PARAM_TYPE_REAL32},   // 1 
-    {"FRAME_CLASS",  &params.frame_class, MAV_PARAM_TYPE_REAL32},    // 2 
-    {"TURN_RADIUS",  &params.turn_radius, MAV_PARAM_TYPE_REAL32},    // 3 
-    {"LOIT_TYPE",    &params.loit_type, MAV_PARAM_TYPE_REAL32},      // 4 
-    {"LOIT_RADIUS",  &params.loit_radius, MAV_PARAM_TYPE_REAL32}     // 5 
+    {"TN_OFFSET", &params.values.tn_offset, MAV_PARAM_TYPE_REAL32, params.TN_OFFSET},   // 1 
+    {"WP_RADIUS", &params.values.wp_radius, MAV_PARAM_TYPE_REAL32, params.WP_RADIUS}    // 2 
 }};
 
 //=======================================================================================
@@ -80,7 +73,7 @@ VehicleMemory::VehicleMemory()
     mission.items[HOME_INDEX] = 
     {
         .param1 = RESET,                              // Hold - home location will hold indefinitely 
-        .param2 = HOME_RADIUS,                        // Waypoint acceptance radius 
+        .param2 = VS_WAYPOINT_RADIUS,                 // Waypoint acceptance radius 
         .param3 = RESET,                              // Waypoint pass radius - pass through 
         .param4 = RESET,                              // Yaw angle at waypoint 
         .x = RESET,                                   // Home latitude - set by system or GCS 
@@ -104,6 +97,19 @@ VehicleMemory::VehicleMemory()
 
 //=======================================================================================
 // Parameters 
+
+/**
+ * @brief Load stored parameters if they exist 
+ */
+void VehicleMemory::ParameterLoad(Vehicle &vehicle)
+{
+    // As each parameter is read, perform a parameter set so values get updated thoughout 
+    // the code. 
+
+    // The below code is temporary until parameters are fully implemented. 
+    vehicle.navigation.TrueNorthOffsetSet(VS_TN_OFFSET); 
+}
+
 
 /**
  * @brief Check if an index is within the parameter size 
@@ -148,6 +154,7 @@ ParamIndex VehicleMemory::ParameterLookUp(const char *param_id)
  * @return ParamIndex : index of specified parameter - index == parameters.size() if invalid 
  */
 ParamIndex VehicleMemory::ParameterSet(
+    Vehicle &vehicle, 
     const char *param_id, 
     float &value)
 {
@@ -160,9 +167,35 @@ ParamIndex VehicleMemory::ParameterSet(
         // received from the GCS. 
 
         *parameters[param_index].value = value; 
+        ParameterSetUpdate(vehicle, parameters[param_index].index); 
     }
 
     return param_index; 
+}
+
+
+/**
+ * @brief Update parameter values within the autopilot as needed 
+ * 
+ * @param vehicle : vehicle object 
+ * @param param_index : index of parameter to update 
+ */
+void VehicleMemory::ParameterSetUpdate(
+    Vehicle &vehicle, 
+    ParamIndex param_index)
+{
+    switch (param_index)
+    {
+        case Parameters::TN_OFFSET: 
+            vehicle.navigation.TrueNorthOffsetSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
+        case Parameters::WP_RADIUS: 
+            break; 
+        
+        default: 
+            break; 
+    }
 }
 
 //=======================================================================================

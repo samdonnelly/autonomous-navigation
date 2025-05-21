@@ -1,25 +1,19 @@
 /**
- * @file vehicle_config_template.h
+ * @file system_config.h
  * 
  * @author Sam Donnelly (samueldonnelly11@gmail.com)
  * 
- * @brief Vehicle configuration template 
- * 
- * @details This is the template file for configuring the autopilot for your vehicle. 
- *          This file should not be included in the build of your project. Instead a 
- *          copy should be made in the specific project, included in the build and 
- *          modified from there. Values here that are non-zero are the recommended 
- *          starting point. 
+ * @brief System configuration - vehicle unit tests 
  * 
  * @version 0.1
- * @date 2025-02-24
+ * @date 2025-05-21
  * 
  * @copyright Copyright (c) 2025
  * 
  */
 
-#ifndef _SYSTEM_CONFIG_TEMPLATE_H_ 
-#define _SYSTEM_CONFIG_TEMPLATE_H_ 
+#ifndef _SYSTEM_CONFIG_VEHICLE_UTEST_H_ 
+#define _SYSTEM_CONFIG_VEHICLE_UTEST_H_ 
 
 //=======================================================================================
 // Vehicle Type (VT) 
@@ -68,4 +62,4 @@
 
 //=======================================================================================
 
-#endif   // _SYSTEM_CONFIG_TEMPLATE_H_ 
+#endif   // _SYSTEM_CONFIG_VEHICLE_UTEST_H_ 

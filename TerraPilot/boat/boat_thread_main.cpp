@@ -175,7 +175,8 @@ void Boat::MainInitState(Boat& data, Event event)
         osTimerStart(data.periodic_timer_250ms.handler, data.periodic_timer_250ms.ticks); 
         osTimerStart(data.periodic_timer_1s.handler, data.periodic_timer_1s.ticks); 
         
-        // Load a waypoint mission if it exists in memory. 
+        // Load parameters and a waypoint mission if they exists in memory. 
+        data.memory.ParameterLoad(data); 
         data.memory.MissionLoad(); 
     }
     

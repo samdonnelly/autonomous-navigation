@@ -30,14 +30,14 @@ SRC_FILES +=
 SRC_DIRS += 
 
 # System code 
-SRC_FILES += ./../../autopilot/system/rtos.cpp
+SRC_FILES += ./../../system/rtos.cpp
 
 # Vehicle code
-SRC_FILES += ./../../autopilot/vehicle/control.cpp
-SRC_FILES += ./../../autopilot/vehicle/memory.cpp
-SRC_FILES += ./../../autopilot/vehicle/navigation.cpp
-SRC_FILES += ./../../autopilot/vehicle/telemetry.cpp
-SRC_FILES += ./../../autopilot/vehicle/vehicle.cpp
+SRC_FILES += ./../../vehicle/control.cpp
+SRC_FILES += ./../../vehicle/memory.cpp
+SRC_FILES += ./../../vehicle/navigation.cpp
+SRC_FILES += ./../../vehicle/telemetry.cpp
+SRC_FILES += ./../../vehicle/vehicle.cpp
 
 # --------------------------------------------------------------------
 
@@ -84,8 +84,8 @@ CPPUTEST_USE_EXTENSIONS = Y
 INCLUDE_DIRS += $(CPPUTEST_HOME)/include
 
 # Production code 
-INCLUDE_DIRS += ./../../autopilot/vehicle
-INCLUDE_DIRS += ./../../autopilot/system
+INCLUDE_DIRS += ./../../vehicle
+INCLUDE_DIRS += ./../../system
 
 # # Library 
 INCLUDE_DIRS += ./../../../../mavlink/c_library_v2

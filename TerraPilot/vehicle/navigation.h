@@ -44,7 +44,7 @@ private:   // private types
     enum HeadingDirections : int16_t 
     {
         HEADING_NORTH = 0,      // Heading reading when facing North (0 deg*10) 
-        HEADING_SOUTH = 1800,   // Maximum heading difference (+/- 180 deg*10) 
+        HEADING_SOUTH = 1800,   // Heading reading when facing South (180 deg*10) 
         HEADING_RANGE = 3600    // Full heading range (360 deg*10) 
     }; 
 
@@ -86,7 +86,8 @@ private:   // private members
     // Location 
     Location location_current, location_filtered, location_target;   // WGS84 
     mavlink_mission_item_int_t mission_target; 
-    float coordinate_lpf_gain;   // Low pass filter gain for GPS coordinates 
+    uint16_t waypoint_distance;         // Distance to target waypoint 
+    float coordinate_lpf_gain;          // Low pass filter gain for GPS coordinates 
 
     // Orientation 
     Vector<int16_t> accel, gyro, mag; 
@@ -100,7 +101,6 @@ public:   // public members
     GPS_FIX_TYPE fix_type; 
     MAV_FRAME coordinate_frame; 
     uint16_t position_type_mask; 
-    uint16_t waypoint_distance; 
     uint16_t ground_speed; 
     uint16_t num_satellite; 
 
@@ -145,6 +145,8 @@ public:   // public methods
     Vector<float> OrientationCurrentGet(void); 
     int16_t HeadingCurrentGet(void); 
     int16_t HeadingTargetGet(void); 
+    void TrueNorthOffsetSet(int16_t tn_offset); 
+    uint16_t WaypointDistanceGet(void); 
 }; 
 
 //=======================================================================================

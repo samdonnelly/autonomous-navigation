@@ -40,6 +40,7 @@ class Vehicle
 public:   // Friends 
 
     friend class VehicleControl; 
+    friend class VehicleMemory; 
     friend class VehicleNavigation; 
     friend class VehicleTelemetry; 
 

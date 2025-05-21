@@ -30,6 +30,9 @@ class HardwareMock
 {
 public: 
 
+    // IMU 
+    VehicleNavigation::Vector<int16_t> magnetometer; 
+
     // Telemetry 
     uint8_t telemetry_in_buff[VS_TELEMETRY_BUFF]; 
     uint16_t telemetry_in_size; 
@@ -38,6 +41,9 @@ public:
 public: 
 
     void HardwareMockInit(void); 
+
+    // IMU 
+    void IMUSetAxisData(VehicleNavigation::Vector<int16_t> mag_axis); 
 
     // Telemetry 
     void TelemetryInAppend(uint16_t size, uint8_t *buffer); 

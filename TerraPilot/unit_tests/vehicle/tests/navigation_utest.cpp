@@ -41,6 +41,9 @@ extern "C"
 
 //=======================================================================================
 // Macros 
+
+#define NAV_TEST_NUM_DIRS 12 
+
 //=======================================================================================
 
 
@@ -49,7 +52,11 @@ extern "C"
 
 class Craft : public Vehicle 
 {
-private: 
+public:   // public members 
+
+    int16_t heading_diff; 
+
+private:   // private methods 
 
     void VehicleSetup(void) override
     {
@@ -73,10 +80,10 @@ private:
 
     void AutoDrive(int16_t heading_error) override
     {
-        // 
+        heading_diff = heading_error; 
     }
 
-public: 
+public:   // public methods 
 
     // Constructor/Destructor 
     Craft() 
@@ -109,9 +116,49 @@ public:
     {
         navigation.CourseCorrection(*this); 
     }
+
+    void NavTrueNorthOffsetSet(int16_t tn_offset)
+    {
+        navigation.TrueNorthOffsetSet(tn_offset); 
+    }
 }; 
 
 static Craft craft; 
+
+
+static const std::array<VehicleNavigation::Vector<int16_t>, NAV_TEST_NUM_DIRS> mag_axis = 
+{{
+    // x, y, z 
+    {  5,  0, 0 },   // 1 - North 
+    {  4,  3, 0 },   // 2 
+    {  3,  4, 0 },   // 3 
+    {  0,  5, 0 },   // 4 - East 
+    { -3,  4, 0 },   // 5 
+    { -4,  3, 0 },   // 6 
+    { -5,  0, 0 },   // 7 - South 
+    { -4, -3, 0 },   // 8 
+    { -3, -4, 0 },   // 9 
+    {  0, -5, 0 },   // 10 - West 
+    {  3, -4, 0 },   // 11 
+    {  4, -3, 0 }    // 12 
+}};
+
+
+static const std::array<int16_t, NAV_TEST_NUM_DIRS> heading_errors = 
+{
+    0,       // 1 - North 
+    -368,    // 2 
+    -531,    // 3 
+    -900,    // 4 - East 
+    -1268,   // 5 
+    -1431,   // 6 
+    1800,    // 7 - South 
+    1431,    // 8 
+    1268,    // 9 
+    900,     // 10 - West 
+    531,     // 11 
+    368,     // 12 
+};
 
 //=======================================================================================
 
@@ -126,7 +173,7 @@ TEST_GROUP(vehicle_navigation_test)
     // Constructor 
     void setup()
     {
-        // 
+        hardware_mock.HardwareMockInit(); 
     }
 
     // Destructor 
@@ -147,17 +194,42 @@ TEST_GROUP(vehicle_navigation_test)
 //=======================================================================================
 // Tests 
 
-// Heading: magnetic north 
+// Heading: magnetic North 
 TEST(vehicle_navigation_test, heading_magnetic_north)
 {
-    // Makes sure the GPS and IMU connection flags are set so navigation calculations 
-    // will be performed by the code. 
-    craft.NavDataReadySet(); 
+    // This test checks the heading error output for various magnetometer readings and 
+    // no true north offset correction. 
 
-    craft.NavLocationUpdate(); 
-    craft.NavOrientationUpdate(); 
+    // Test data 
+    int16_t tn_offset = 0; 
 
-    craft.NavCourseCorrection(); 
+    // Set parameters needed for the heading calculations 
+    craft.NavTrueNorthOffsetSet(tn_offset); 
+
+    // Perform the heading calculation and check the results 
+    for (uint8_t i = RESET; i < NAV_TEST_NUM_DIRS; i++)
+    {
+        // Update the magnetometer data the autopilot gets 
+        hardware_mock.IMUSetAxisData(mag_axis[i]); 
+
+        // Makes sure the GPS and IMU connection flags are set so navigation calculations 
+        // will be performed by the code. 
+        craft.NavDataReadySet(); 
+
+        // Run the update functions so GPS and IMU devices are recorded as connected. 
+        craft.NavLocationUpdate(); 
+        craft.NavOrientationUpdate(); 
+
+        // Perform the heading calculations 
+        craft.NavCourseCorrection(); 
+    }
+}
+
+
+// Heading: true North 
+TEST(vehicle_navigation_test, heading_true_north)
+{
+    // Test different true North offsets 
 }
 
 //=======================================================================================

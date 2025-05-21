@@ -26,7 +26,7 @@
 //=======================================================================================
 // Macros 
 
-#define NUM_PARAMETERS 5      // Number of parameters in the system 
+#define NUM_PARAMETERS 2      // Number of parameters in the system 
 #define MAX_MISSION_SIZE 10   // Max number of mission items 
 #define HOME_OFFSET 1         // First mission item that isn't the home location 
 #define HOME_INDEX 0          // Mission item index for the home location 
@@ -47,6 +47,9 @@ typedef uint16_t MissionIndex, MissionSize;
 //=======================================================================================
 // Classes 
 
+class Vehicle; 
+
+
 class VehicleMemory 
 {
 public:   // public types 
@@ -57,6 +60,7 @@ public:   // public types
         const char *name;            // Name/Key/ID of parameter - used to match/identify 
         float *value;                // Value of parameter that gets used in the system 
         const MAV_PARAM_TYPE type;   // Parameter datatype - See AUTOPILOT_VERSION.capabilities 
+        const ParamIndex index;      // Index of parameter in list - used to call setters 
     };
     
     // Mission 
@@ -84,15 +88,21 @@ private:   // private members
     // Mission 
     MissionInfo mission; 
 
+private:   // private methods 
+
+    // Parameters 
+    void ParameterSetUpdate(Vehicle &vehicle, ParamIndex param_index); 
+
 public:   // public methods 
 
     // Constructor 
     VehicleMemory(); 
 
     // Parameters 
+    void ParameterLoad(Vehicle &vehicle); 
     bool ParameterIndexCheck(uint8_t index); 
     ParamIndex ParameterLookUp(const char *param_id); 
-    ParamIndex ParameterSet(const char *param_id, float &value); 
+    ParamIndex ParameterSet(Vehicle &vehicle, const char *param_id, float &value); 
 
     // Mission 
     void MissionLoad(void); 
