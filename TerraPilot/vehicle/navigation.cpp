@@ -420,16 +420,9 @@ int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &magnetometer)
         // If the Y-axis is zero then the vehicle is facing magnetic North or South. 
         mag_heading = (magnetometer.x >= 0) ? HEADING_NORTH : HEADING_SOUTH; 
     }
-    else 
+    else
     {
-        // The source that provides the below formula says atan(x/y) but the atan2f 
-        // documentation does y/x (i.e arg 0 / arg 1). We write x first to get x/y 
-        // because we don't want a divide by 0 if x happens to be 0. To be confirmed. 
-
-        // float atan_calc = atan2f(magnetometer.y, magnetometer.x) * RAD_TO_DEG; 
-        // float mag_heading_f = (magnetometer.y > 0) ? (90.0 - atan_calc): (270.0 - atan_calc); 
-        // mag_heading = (int16_t)(mag_heading_f * SCALE_10); 
-        mag_heading = (int16_t)((180.0f - atan2f(magnetometer.x, magnetometer.y)*RAD_TO_DEG)*SCALE_10); 
+        mag_heading = (int16_t)(atan2f(magnetometer.y, magnetometer.x)*RAD_TO_DEG*SCALE_10); 
     }
 
     return mag_heading; 

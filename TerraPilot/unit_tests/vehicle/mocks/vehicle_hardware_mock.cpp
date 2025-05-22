@@ -15,7 +15,7 @@
 //=======================================================================================
 // Includes 
 
-#include "hardware_mock.h" 
+#include "vehicle_hardware_mock.h" 
 
 //=======================================================================================
 
@@ -86,7 +86,6 @@ void VehicleHardware::IMURead(void)
     // 
 }
 
-#include <iostream> 
 
 void VehicleHardware::IMUGet(
     VehicleNavigation::Vector<int16_t> &accel, 
@@ -97,8 +96,6 @@ void VehicleHardware::IMUGet(
     mag.x = hardware_mock.magnetometer.x; 
     mag.y = hardware_mock.magnetometer.y; 
     mag.z = hardware_mock.magnetometer.z; 
-
-    // std::cout << mag.x << ", " << mag.y << ", " << mag.z << std::endl; 
 }
 
 //==================================================
