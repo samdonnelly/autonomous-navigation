@@ -30,6 +30,9 @@ class HardwareMock
 {
 public: 
 
+    // GPS 
+    VehicleNavigation::Location gps; 
+
     // IMU 
     VehicleNavigation::Vector<int16_t> magnetometer; 
 
@@ -41,6 +44,9 @@ public:
 public: 
 
     void HardwareMockInit(void); 
+
+    // GPS 
+    void GPSSetLocation(VehicleNavigation::Location current_location); 
 
     // IMU 
     void IMUSetAxisData(VehicleNavigation::Vector<int16_t> mag_axis); 

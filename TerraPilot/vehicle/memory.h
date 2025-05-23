@@ -27,7 +27,7 @@
 // Macros 
 
 #define NUM_PARAMETERS 2      // Number of parameters in the system 
-#define MAX_MISSION_SIZE 10   // Max number of mission items 
+#define MAX_MISSION_SIZE 20   // Max number of mission items 
 #define HOME_OFFSET 1         // First mission item that isn't the home location 
 #define HOME_INDEX 0          // Mission item index for the home location 
 

@@ -93,9 +93,7 @@ void VehicleHardware::IMUGet(
     VehicleNavigation::Vector<int16_t> &mag, 
     int16_t &heading)
 {
-    mag.x = hardware_mock.magnetometer.x; 
-    mag.y = hardware_mock.magnetometer.y; 
-    mag.z = hardware_mock.magnetometer.z; 
+    mag = hardware_mock.magnetometer; 
 }
 
 //==================================================
@@ -155,6 +153,14 @@ void VehicleHardware::TelemetryWrite(void)
 
 void HardwareMock::HardwareMockInit(void)
 {
+    // GPS 
+    gps.lat = RESET; 
+    gps.latI = RESET; 
+    gps.lon = RESET; 
+    gps.lonI = RESET; 
+    gps.alt = RESET; 
+    gps.altI = RESET; 
+
     // IMU 
     magnetometer.z = RESET; 
     magnetometer.y = RESET; 
@@ -167,13 +173,22 @@ void HardwareMock::HardwareMockInit(void)
 
 
 //==================================================
+// GPS 
+
+void HardwareMock::GPSSetLocation(VehicleNavigation::Location current_location)
+{
+    gps = current_location; 
+}
+
+//==================================================
+
+
+//==================================================
 // IMU 
 
 void HardwareMock::IMUSetAxisData(VehicleNavigation::Vector<int16_t> mag_axis)
 {
-    magnetometer.x = mag_axis.x; 
-    magnetometer.y = mag_axis.y; 
-    magnetometer.z = mag_axis.z; 
+    magnetometer = mag_axis; 
 }
 
 //==================================================

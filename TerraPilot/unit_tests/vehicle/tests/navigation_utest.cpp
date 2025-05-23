@@ -42,13 +42,16 @@ extern "C"
 //=======================================================================================
 // Macros 
 
-#define NAV_TEST_NUM_DIRS 12 
+#define NAV_TEST_HEADING_NUM_DIRS 12 
+#define NAV_TEST_HEADING_NUM_TARGETS 5 
+#define NAV_TEST_HEADING_NUM_OFFSETS 3 
+#define NAV_TEST_HEADING_NUM_CASES NAV_TEST_HEADING_NUM_TARGETS * NAV_TEST_HEADING_NUM_OFFSETS 
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Test data 
+// Test vehicle 
 
 class Craft : public Vehicle 
 {
@@ -121,44 +124,122 @@ public:   // public methods
     {
         navigation.TrueNorthOffsetSet(tn_offset); 
     }
+
+    void NavMissionItemSet(MissionItem mission_item)
+    {
+        memory.MissionItemSet(mission_item); 
+    }
+
+    void NavMissionTargetSet(uint16_t sequence)
+    {
+        memory.MissionTargetSet(sequence); 
+    }
+
+    void NavMissionSizeSet(uint16_t size)
+    {
+        memory.MissionSizeSet(size); 
+    }
 }; 
 
 static Craft craft; 
 
+//=======================================================================================
 
-static const std::array<VehicleNavigation::Vector<int16_t>, NAV_TEST_NUM_DIRS> mag_axis = 
+
+//=======================================================================================
+// Test data 
+
+static const VehicleNavigation::Location current_location = 
+{
+    .latI = RESET, 
+    .lonI = RESET, 
+    .altI = RESET, 
+    .lat = 50.611971, 
+    .lon = -115.123529, 
+    .alt = RESET 
+};
+
+//==================================================
+// Heading calculations 
+
+static const std::array<VehicleNavigation::Vector<int16_t>, NAV_TEST_HEADING_NUM_DIRS> mag_axis = 
 {{
-    // x, y, z 
-    {  5,  0, 0 },   // 1 - North 
-    {  4,  3, 0 },   // 2 
-    {  3,  4, 0 },   // 3 
-    {  0,  5, 0 },   // 4 - East 
-    { -3,  4, 0 },   // 5 
-    { -4,  3, 0 },   // 6 
-    { -5,  0, 0 },   // 7 - South 
-    { -4, -3, 0 },   // 8 
-    { -3, -4, 0 },   // 9 
-    {  0, -5, 0 },   // 10 - West 
-    {  3, -4, 0 },   // 11 
-    {  4, -3, 0 }    // 12 
+    // x,  y,  z 
+    {  5,  0,  0 },   // 1 - North 
+    {  4,  3,  0 },   // 2 
+    {  3,  4,  0 },   // 3 
+    {  0,  5,  0 },   // 4 - East 
+    { -3,  4,  0 },   // 5 
+    { -4,  3,  0 },   // 6 
+    { -5,  0,  0 },   // 7 - South 
+    { -4, -3,  0 },   // 8 
+    { -3, -4,  0 },   // 9 
+    {  0, -5,  0 },   // 10 - West 
+    {  3, -4,  0 },   // 11 
+    {  4, -3,  0 }    // 12 
 }};
 
 
-static const std::array<int16_t, NAV_TEST_NUM_DIRS> heading_errors = 
+static const std::array<VehicleNavigation::Location, NAV_TEST_HEADING_NUM_TARGETS> heading_targets = 
+{{
+    // These are based on the 'current_location' 
+    // latI, lonI, altI, lat, lon, alt 
+    { 506149710, -1151235290, 0, 0, 0, 0 },   // 1 --> Target heading == 0 deg heading 
+    { 506149710, -1151231150, 0, 0, 0, 0 },   // 2 --> Target heading == 5 deg heading 
+    { 506149710, -1151235290, 0, 0, 0, 0 },   // 3 --> Target heading == 350 deg heading 
+    { 506149710, -1151235290, 0, 0, 0, 0 },   // 4 --> Target heading == 175 deg heading 
+    { 506149710, -1151235290, 0, 0, 0, 0 }    // 5 --> Target heading == 190 deg heading 
+}};
+
+
+static const std::array<int16_t, NAV_TEST_HEADING_NUM_OFFSETS> tn_offsets = 
 {
-    0,       // 1 - North 
-    -368,    // 2 
-    -531,    // 3 
-    -900,    // 4 - East 
-    -1268,   // 5 
-    -1431,   // 6 
-    1800,    // 7 - South 
-    1431,    // 8 
-    1268,    // 9 
-    900,     // 10 - West 
-    531,     // 11 
-    368,     // 12 
+    0,     // 1 
+    135,   // 2 
+    -400   // 3 
 };
+
+
+// 0 
+// 368 
+// 531 
+// 900 
+// 1268 
+// 1431 
+// 1800 
+// -1431 
+// -1268 
+// -900 
+// -531 
+// -368 
+
+
+static const std::array<std::array<int16_t, NAV_TEST_HEADING_NUM_CASES>, NAV_TEST_HEADING_NUM_CASES> heading_errors = 
+{{
+    //    N,    NE,    EN,     E,    ES,    SE,     S,    SW,    WS,     W,    WN,    NW 
+    // Target heading 1 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 },   // TN offset 1 
+    {  -135,  -503,  -666, -1035, -1403, -1566,  1665,  1296,  1133,   765,   396,   233 },   // TN offset 2 
+    {   400,    32,  -131,  -500,  -868, -1031, -1400, -1769,  1668,  1300,   931,   768 },   // TN offset 3 
+    // Target heading 2 
+    {     5,  -363,  -526,  -895, -1263, -1426, -1795,  1436,  1273,   905,   536,   373 },   // TN offset 1 
+    {  -130,  -498,  -661, -1030, -1398, -1561,  1670,  1301,  1138,   770,   401,   238 },   // TN offset 2 
+    {   405,    37,  -126,  -495,  -863, -1026, -1395, -1764,  1673,  1305,   936,   773 },   // TN offset 3 
+    // Target heading 3 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 },   // TN offset 1 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 },   // TN offset 2 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 },   // TN offset 3 
+    // Target heading 4 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 },   // TN offset 1 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 },   // TN offset 2 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 },   // TN offset 3 
+    // Target heading 5 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 },   // TN offset 1 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 },   // TN offset 2 
+    {     0,  -368,  -531,  -900, -1268, -1431,  1800,  1431,  1268,   900,   531,   368 }    // TN offset 3 
+}};
+
+//==================================================
 
 //=======================================================================================
 
@@ -194,43 +275,75 @@ TEST_GROUP(vehicle_navigation_test)
 //=======================================================================================
 // Tests 
 
-// Heading: magnetic North 
-TEST(vehicle_navigation_test, heading_magnetic_north)
+// Heading calculation 
+TEST(vehicle_navigation_test, heading_calculation)
 {
     // This test checks the heading error output for various magnetometer readings and 
     // no true north offset correction. 
 
-    // Test data 
-    int16_t tn_offset = 0; 
-
-    // Set parameters needed for the heading calculations 
-    craft.NavTrueNorthOffsetSet(tn_offset); 
-
-    // Perform the heading calculation and check the results 
-    for (uint8_t i = RESET; i < NAV_TEST_NUM_DIRS; i++)
+    uint8_t case_index = RESET; 
+    MissionItem mission_item = 
     {
-        // Update the magnetometer data the autopilot gets 
-        hardware_mock.IMUSetAxisData(mag_axis[i]); 
+        .param1 = RESET, 
+        .param2 = RESET, 
+        .param3 = RESET, 
+        .param4 = RESET, 
+        .x = RESET, 
+        .y = RESET, 
+        .z = RESET, 
+        .seq = HOME_INDEX, 
+        .command = MAV_CMD_NAV_WAYPOINT, 
+        .target_system = RESET, 
+        .target_component = RESET, 
+        .frame = RESET, 
+        .current = RESET, 
+        .autocontinue = false, 
+        .mission_type = MAV_MISSION_TYPE_MISSION 
+    }; 
 
-        // Makes sure the GPS and IMU connection flags are set so navigation calculations 
-        // will be performed by the code. 
-        craft.NavDataReadySet(); 
+    hardware_mock.GPSSetLocation(current_location); 
+    craft.NavMissionSizeSet(MAX_MISSION_SIZE); 
 
-        // Run the update functions so GPS and IMU devices are recorded as connected. 
-        craft.NavLocationUpdate(); 
-        craft.NavOrientationUpdate(); 
+    // for (uint8_t i = RESET; i < NAV_TEST_HEADING_NUM_TARGETS; i++)
+    for (uint8_t i = 0; i < 1; i++)
+    {
+        // Select a target heading 
+        mission_item.x = heading_targets[i].latI; 
+        mission_item.y = heading_targets[i].lonI; 
+        craft.NavMissionItemSet(mission_item); 
+        craft.NavMissionTargetSet(mission_item.seq++); 
 
-        // Perform the heading calculations 
-        craft.NavCourseCorrection(); 
-        LONGS_EQUAL(heading_errors[i], craft.heading_diff); 
+        for (uint8_t j = RESET; j < NAV_TEST_HEADING_NUM_OFFSETS; j++)
+        {
+            // Select a ture north offset 
+            craft.NavTrueNorthOffsetSet(tn_offsets[j]); 
+    
+            // Perform the heading calculation and check the results 
+            for (uint8_t k = RESET; k < NAV_TEST_HEADING_NUM_DIRS; k++)
+            {
+                // Update the magnetometer data the autopilot gets 
+                hardware_mock.IMUSetAxisData(mag_axis[k]); 
+    
+                // Makes sure the GPS and IMU connection flags are set so navigation calculations 
+                // will be performed by the code. 
+                craft.NavDataReadySet(); 
+    
+                // Run the update functions so GPS and IMU devices are recorded as connected. 
+                craft.NavLocationUpdate(); 
+                craft.NavOrientationUpdate(); 
+
+                craft.NavTargetAssess(); 
+    
+                // Perform the heading calculations 
+                craft.NavCourseCorrection(); 
+                LONGS_EQUAL(heading_errors[case_index][k], craft.heading_diff); 
+            }
+
+            case_index++; 
+        }
+
+        // craft.NavMissionTargetSet(++mission_item.seq); 
     }
-}
-
-
-// Heading: true North 
-TEST(vehicle_navigation_test, heading_true_north)
-{
-    // Test different true North offsets 
 }
 
 //=======================================================================================

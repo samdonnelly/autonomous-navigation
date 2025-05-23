@@ -17,6 +17,8 @@
 
 #include "vehicle.h" 
 
+#include <iostream> 
+
 //=======================================================================================
 
 
@@ -88,6 +90,8 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
     }
 
     LocationChecks(vehicle); 
+
+    // std::cout << "LocationUpdate" << std::endl; 
 }
 
 
@@ -156,6 +160,8 @@ void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
     }
 
     OrientationChecks(vehicle); 
+
+    // std::cout << "OrientationUpdate" << std::endl; 
 }
 
 
@@ -219,6 +225,8 @@ void VehicleNavigation::TargetAssess(Vehicle &vehicle)
             vehicle.memory.MissionTargetSet(mission_target.seq + MISSION_TARGET_INC); 
             break; 
     }
+
+    // std::cout << "TargetAssess" << std::endl; 
 }
 
 
@@ -243,6 +251,8 @@ void VehicleNavigation::TargetUpdate(Vehicle &vehicle)
     location_target.altI = (int32_t)(mission_target.z * DEGREE_DATATYPE); 
     location_target.lat = (float)mission_target.x / DEGREE_DATATYPE; 
     location_target.lon = (float)mission_target.y / DEGREE_DATATYPE; 
+
+    // std::cout << "TargetUpdate" << std::endl; 
 }
 
 
@@ -282,10 +292,12 @@ void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
     // filtered to smooth the data. The coordinate/target heading is also found here 
     // since it can only change with new coordinate data. 
     
-    CoordinateFilter(location_current, location_filtered); 
-    heading_target = GPSHeading(location_filtered, location_target); 
+    // CoordinateFilter(location_current, location_filtered); 
+    // heading_target = GPSHeading(location_filtered, location_target); 
+    heading_target = GPSHeading(location_current, location_target); 
     
-    if (GPSRadius(location_filtered, location_target) < VS_WAYPOINT_RADIUS)
+    // if (GPSRadius(location_filtered, location_target) < VS_WAYPOINT_RADIUS)
+    if (GPSRadius(location_current, location_target) < VS_WAYPOINT_RADIUS)
     {
         // Send a mission item reached message 
         vehicle.telemetry.MAVLinkMissionItemReachedSet(); 
@@ -295,6 +307,8 @@ void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
             vehicle.memory.MissionTargetSet(mission_target.seq + MISSION_TARGET_INC); 
         }
     }
+
+    // std::cout << "WaypointDistance" << std::endl; 
 }
 
 
@@ -427,7 +441,7 @@ int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &mag_axis)
     // Adjust the heading range. The magnetic heading is calculated within the range 
     // -180 to 180 degrees and the true North offset adjustment maintains this range. 
     // However, it's easier to find the heading error when the heading is in the range 
-    // 0 to 359.9 degrees since the trget heading is calculated within this range. 
+    // 0 to 359.9 degrees since the target heading is calculated within this range. 
     if (heading < HEADING_NORTH)
     {
         heading += HEADING_RANGE; 
