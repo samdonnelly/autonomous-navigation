@@ -222,6 +222,7 @@ TEST(vehicle_navigation_test, heading_magnetic_north)
 
         // Perform the heading calculations 
         craft.NavCourseCorrection(); 
+        LONGS_EQUAL(heading_errors[i], craft.heading_diff); 
     }
 }
 

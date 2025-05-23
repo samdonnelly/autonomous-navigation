@@ -259,7 +259,7 @@ void VehicleNavigation::CourseCorrection(Vehicle &vehicle)
     // stopped as autonomous navigation would not work otherwise 
     (status.gps_connected && status.imu_connected) ? 
         // vehicle.AutoDrive(HeadingError(TrueNorthHeading(heading), heading_target)) : 
-        vehicle.AutoDrive(HeadingError(TrueNorthHeading(MagneticHeading(mag)), heading_target)) : 
+        vehicle.AutoDrive(MagneticHeading(mag)) : 
         vehicle.control.ForceStop(vehicle); 
 }
 
@@ -411,21 +411,53 @@ int16_t VehicleNavigation::GPSHeading(
  * @param magnetometer : magnetometer axis data 
  * @return int16_t : heading (degrees*10) 
  */
-int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &magnetometer)
+int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &mag_axis)
 {
-    int16_t mag_heading; 
+    // Find the magnetic heading based on the magnetometer X and Y axis data. atan2f 
+    // looks at the value and sign of X and Y to determine the correct output so axis 
+    // values don't have to be checked for potential errors (ex. divide by zero). 
+    int16_t mag_heading = (int16_t)(atan2f((float)mag_axis.y, (float)mag_axis.x)*RAD_TO_DEG*SCALE_10); 
 
-    if (magnetometer.y == 0)
+    // Find the true North heading by adding the true North heading offset to the 
+    // magnetic heading. After this is done, the bounds are checked to make sure the 
+    // offset didn't put the heading value outside its acceptable range. 
+    heading = mag_heading + true_north_offset; 
+    HeadingRangeCheck(heading); 
+
+    // Adjust the heading range. The magnetic heading is calculated within the range 
+    // -180 to 180 degrees and the true North offset adjustment maintains this range. 
+    // However, it's easier to find the heading error when the heading is in the range 
+    // 0 to 359.9 degrees since the trget heading is calculated within this range. 
+    if (heading < HEADING_NORTH)
     {
-        // If the Y-axis is zero then the vehicle is facing magnetic North or South. 
-        mag_heading = (magnetometer.x >= 0) ? HEADING_NORTH : HEADING_SOUTH; 
-    }
-    else
-    {
-        mag_heading = (int16_t)(atan2f(magnetometer.y, magnetometer.x)*RAD_TO_DEG*SCALE_10); 
+        heading += HEADING_RANGE; 
     }
 
-    return mag_heading; 
+    // Find the error between the target heading and the current true North heading. 
+    // The target heading is based on true North and is found using current and target 
+    // GPS coordinates. 
+    int16_t heading_error = heading_target - heading; 
+    HeadingRangeCheck(heading_error); 
+
+    return heading_error; 
+}
+
+
+/**
+ * @brief Keep the heading within a valid range 
+ * 
+ * @param heading_value : heading value to check 
+ */
+void VehicleNavigation::HeadingRangeCheck(int16_t &heading_value)
+{
+    if (heading_value > HEADING_SOUTH)
+    {
+        heading_value -= HEADING_RANGE; 
+    }
+    else if (heading_value <= -HEADING_SOUTH)
+    {
+        heading_value += HEADING_RANGE; 
+    }
 }
 
 
