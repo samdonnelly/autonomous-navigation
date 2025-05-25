@@ -17,8 +17,6 @@
 
 #include "vehicle.h" 
 
-#include <iostream> 
-
 //=======================================================================================
 
 
@@ -90,8 +88,6 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
     }
 
     LocationChecks(vehicle); 
-
-    // std::cout << "LocationUpdate" << std::endl; 
 }
 
 
@@ -160,8 +156,6 @@ void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
     }
 
     OrientationChecks(vehicle); 
-
-    // std::cout << "OrientationUpdate" << std::endl; 
 }
 
 
@@ -225,8 +219,6 @@ void VehicleNavigation::TargetAssess(Vehicle &vehicle)
             vehicle.memory.MissionTargetSet(mission_target.seq + MISSION_TARGET_INC); 
             break; 
     }
-
-    // std::cout << "TargetAssess" << std::endl; 
 }
 
 
@@ -251,8 +243,6 @@ void VehicleNavigation::TargetUpdate(Vehicle &vehicle)
     location_target.altI = (int32_t)(mission_target.z * DEGREE_DATATYPE); 
     location_target.lat = (float)mission_target.x / DEGREE_DATATYPE; 
     location_target.lon = (float)mission_target.y / DEGREE_DATATYPE; 
-
-    // std::cout << "TargetUpdate" << std::endl; 
 }
 
 
@@ -307,8 +297,6 @@ void VehicleNavigation::WaypointDistance(Vehicle &vehicle)
             vehicle.memory.MissionTargetSet(mission_target.seq + MISSION_TARGET_INC); 
         }
     }
-
-    // std::cout << "WaypointDistance" << std::endl; 
 }
 
 

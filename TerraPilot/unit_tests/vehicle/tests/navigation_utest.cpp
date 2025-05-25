@@ -154,8 +154,8 @@ static const VehicleNavigation::Location current_location =
     .latI = RESET, 
     .lonI = RESET, 
     .altI = RESET, 
-    .lat = 50.611971, 
-    .lon = -115.123529, 
+    .lat = 50.6119710, 
+    .lon = -115.1235290, 
     .alt = RESET 
 };
 
@@ -222,7 +222,7 @@ static const std::array<std::array<int16_t, NAV_TEST_HEADING_NUM_CASES>, NAV_TES
     {  -135,  -503,  -666, -1035, -1403, -1566,  1665,  1296,  1133,   765,   396,   233 },   // TN offset 2 
     {   400,    32,  -131,  -500,  -868, -1031, -1400, -1769,  1668,  1300,   931,   768 },   // TN offset 3 
     // Target heading 2 
-    {     5,  -363,  -526,  -895, -1263, -1426, -1795,  1436,  1273,   905,   536,   373 },   // TN offset 1 
+    {    50,  -363,  -526,  -895, -1263, -1426, -1795,  1436,  1273,   905,   536,   373 },   // TN offset 1 
     {  -130,  -498,  -661, -1030, -1398, -1561,  1670,  1301,  1138,   770,   401,   238 },   // TN offset 2 
     {   405,    37,  -126,  -495,  -863, -1026, -1395, -1764,  1673,  1305,   936,   773 },   // TN offset 3 
     // Target heading 3 
@@ -299,7 +299,7 @@ TEST(vehicle_navigation_test, heading_calculation)
         .current = RESET, 
         .autocontinue = false, 
         .mission_type = MAV_MISSION_TYPE_MISSION 
-    }; 
+    };
 
     hardware_mock.GPSSetLocation(current_location); 
     craft.NavMissionSizeSet(MAX_MISSION_SIZE); 
@@ -311,7 +311,6 @@ TEST(vehicle_navigation_test, heading_calculation)
         mission_item.x = heading_targets[i].latI; 
         mission_item.y = heading_targets[i].lonI; 
         craft.NavMissionItemSet(mission_item); 
-        craft.NavMissionTargetSet(mission_item.seq++); 
 
         for (uint8_t j = RESET; j < NAV_TEST_HEADING_NUM_OFFSETS; j++)
         {
@@ -342,7 +341,7 @@ TEST(vehicle_navigation_test, heading_calculation)
             case_index++; 
         }
 
-        // craft.NavMissionTargetSet(++mission_item.seq); 
+        craft.NavMissionTargetSet(++mission_item.seq); 
     }
 }
 

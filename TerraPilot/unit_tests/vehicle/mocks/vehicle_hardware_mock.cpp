@@ -73,6 +73,7 @@ void VehicleHardware::GPSRead(void)
 
 bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
 {
+    location = hardware_mock.gps; 
     return true; 
 }
 

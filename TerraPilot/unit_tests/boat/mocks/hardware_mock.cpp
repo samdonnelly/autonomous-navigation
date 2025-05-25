@@ -88,9 +88,10 @@ void VehicleHardware::IMURead(void)
 
 
 void VehicleHardware::IMUGet(
-    VehicleNavigation::Vector<int16_t> accel, 
-    VehicleNavigation::Vector<int16_t> gyro, 
-    int16_t heading)
+    VehicleNavigation::Vector<int16_t> &accel, 
+    VehicleNavigation::Vector<int16_t> &gyro, 
+    VehicleNavigation::Vector<int16_t> &mag, 
+    int16_t &heading)
 {
     // 
 }
