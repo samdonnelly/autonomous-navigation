@@ -27,7 +27,7 @@
 #define EARTH_RADIUS 6371        // Average radius of the Earth (km) 
 
 // Unit conversions 
-#define PI 3.141592f             // PI 
+#define PI 3.1415927f            // PI 
 #define RAD_TO_DEG 180.0f / PI   // Radians to degrees 
 #define DEG_TO_RAD PI / 180.0f   // Degrees to radians 
 #define KM_TO_M 1000             // Kilometers to meters 
@@ -258,8 +258,7 @@ void VehicleNavigation::CourseCorrection(Vehicle &vehicle)
     // and steering. If either the GPS or IMU are not connected then the vehicle is force 
     // stopped as autonomous navigation would not work otherwise 
     (status.gps_connected && status.imu_connected) ? 
-        // vehicle.AutoDrive(HeadingError(TrueNorthHeading(heading), heading_target)) : 
-        vehicle.AutoDrive(MagneticHeading(mag)) : 
+        vehicle.AutoDrive(HeadingError(mag)) : 
         vehicle.control.ForceStop(vehicle); 
 }
 
@@ -413,7 +412,7 @@ int16_t VehicleNavigation::GPSHeading(
  * @param magnetometer : magnetometer axis data 
  * @return int16_t : heading (degrees*10) 
  */
-int16_t VehicleNavigation::MagneticHeading(Vector<int16_t> &mag_axis)
+int16_t VehicleNavigation::HeadingError(Vector<int16_t> &mag_axis)
 {
     // Find the magnetic heading based on the magnetometer X and Y axis data. atan2f 
     // looks at the value and sign of X and Y to determine the correct output so axis 
@@ -463,69 +462,69 @@ void VehicleNavigation::HeadingRangeCheck(int16_t &heading_value)
 }
 
 
-/**
- * @brief True north heading 
- * 
- * @param magnetic_heading : magnetometer heading (degrees*10) 
- * @return int16_t : true north heading (degrees*10) 
- */
-int16_t VehicleNavigation::TrueNorthHeading(int16_t magnetic_heading) const
-{
-    // Use the current heading and true north correction offset to get the true north 
-    // heading. If the true north heading exceeds acceptable heading bounds (0-359.9deg 
-    // or 0-3599 scaled), then shift the heading to be back within bounds. This can be 
-    // done because of the circular nature of the heading (ex. 0 degrees is the same 
-    // direction as 360 degrees). The returned heading is in degrees*10. 
+// /**
+//  * @brief True north heading 
+//  * 
+//  * @param magnetic_heading : magnetometer heading (degrees*10) 
+//  * @return int16_t : true north heading (degrees*10) 
+//  */
+// int16_t VehicleNavigation::TrueNorthHeading(int16_t magnetic_heading) const
+// {
+//     // Use the current heading and true north correction offset to get the true north 
+//     // heading. If the true north heading exceeds acceptable heading bounds (0-359.9deg 
+//     // or 0-3599 scaled), then shift the heading to be back within bounds. This can be 
+//     // done because of the circular nature of the heading (ex. 0 degrees is the same 
+//     // direction as 360 degrees). The returned heading is in degrees*10. 
 
-    int16_t tn_heading = magnetic_heading + true_north_offset; 
+//     int16_t tn_heading = magnetic_heading + true_north_offset; 
 
-    if ((true_north_offset >= 0) && (tn_heading >= HEADING_RANGE))
-    {
-        tn_heading -= HEADING_RANGE; 
-    }
-    else if (tn_heading < 0)
-    {
-        tn_heading += HEADING_RANGE; 
-    }
+//     if ((true_north_offset >= 0) && (tn_heading >= HEADING_RANGE))
+//     {
+//         tn_heading -= HEADING_RANGE; 
+//     }
+//     else if (tn_heading < 0)
+//     {
+//         tn_heading += HEADING_RANGE; 
+//     }
 
-    return tn_heading; 
-}
+//     return tn_heading; 
+// }
 
 
-/**
- * @brief Heading error 
- * 
- * @param current_heading : current true north heading (degrees*10) 
- * @param target_heading : desired true north heading (degrees*10) 
- * @return int16_t : difference between current and desired true north headings (degrees*10) 
- */
-int16_t VehicleNavigation::HeadingError(
-    int16_t current_heading, 
-    int16_t target_heading)
-{
-    // Calculate the heading error and correct it when the heading crosses the 0/360 
-    // degree boundary. For example, if the current heading is 10 degrees and the 
-    // target heading is 345 degrees, the error will read as 345-10 = 335 degrees. 
-    // Although not technically wrong, it makes more sense to say the error is -25 
-    // degrees (-(10 + (360-345))) because that is the smaller angle between the two 
-    // headings and the negative sign indicates in what direction this smaller error 
-    // happens. So instead of turning 335 degrees clockwise, you can turn 25 degrees 
-    // counter clockwise to correct for the error. The inflection point of the error 
-    // for this correction is 180 degrees (South) (or 1800 in degrees*10). 
+// /**
+//  * @brief Heading error 
+//  * 
+//  * @param current_heading : current true north heading (degrees*10) 
+//  * @param target_heading : desired true north heading (degrees*10) 
+//  * @return int16_t : difference between current and desired true north headings (degrees*10) 
+//  */
+// int16_t VehicleNavigation::HeadingError(
+//     int16_t current_heading, 
+//     int16_t target_heading)
+// {
+//     // Calculate the heading error and correct it when the heading crosses the 0/360 
+//     // degree boundary. For example, if the current heading is 10 degrees and the 
+//     // target heading is 345 degrees, the error will read as 345-10 = 335 degrees. 
+//     // Although not technically wrong, it makes more sense to say the error is -25 
+//     // degrees (-(10 + (360-345))) because that is the smaller angle between the two 
+//     // headings and the negative sign indicates in what direction this smaller error 
+//     // happens. So instead of turning 335 degrees clockwise, you can turn 25 degrees 
+//     // counter clockwise to correct for the error. The inflection point of the error 
+//     // for this correction is 180 degrees (South) (or 1800 in degrees*10). 
 
-    int16_t heading_error = target_heading - current_heading; 
+//     int16_t heading_error = target_heading - current_heading; 
 
-    if (heading_error > HEADING_SOUTH)
-    {
-        heading_error -= HEADING_RANGE; 
-    }
-    else if (heading_error <= -HEADING_SOUTH)
-    {
-        heading_error += HEADING_RANGE; 
-    }
+//     if (heading_error > HEADING_SOUTH)
+//     {
+//         heading_error -= HEADING_RANGE; 
+//     }
+//     else if (heading_error <= -HEADING_SOUTH)
+//     {
+//         heading_error += HEADING_RANGE; 
+//     }
 
-    return heading_error; 
-}
+//     return heading_error; 
+// }
 
 //=======================================================================================
 

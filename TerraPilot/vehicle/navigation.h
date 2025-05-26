@@ -120,10 +120,10 @@ private:   // private methods
     int16_t GPSHeading(Location current, Location target); 
 
     // Heading calculations 
-    int16_t MagneticHeading(Vector<int16_t> &mag_axis); 
+    int16_t HeadingError(Vector<int16_t> &mag_axis); 
     void HeadingRangeCheck(int16_t &heading_value); 
-    int16_t TrueNorthHeading(int16_t magnetic_heading) const; 
-    int16_t HeadingError(int16_t current_heading, int16_t target_heading); 
+    // int16_t TrueNorthHeading(int16_t magnetic_heading) const; 
+    // int16_t HeadingError(int16_t current_heading, int16_t target_heading); 
 
 public:   // public methods 
 
