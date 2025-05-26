@@ -304,8 +304,7 @@ TEST(vehicle_navigation_test, heading_calculation)
     hardware_mock.GPSSetLocation(current_location); 
     craft.NavMissionSizeSet(MAX_MISSION_SIZE); 
 
-    // for (uint8_t i = RESET; i < NAV_TEST_HEADING_NUM_TARGETS; i++)
-    for (uint8_t i = 0; i < 1; i++)
+    for (uint8_t i = RESET; i < NAV_TEST_HEADING_NUM_TARGETS; i++)
     {
         // Select a target heading 
         mission_item.x = heading_targets[i].latI; 
