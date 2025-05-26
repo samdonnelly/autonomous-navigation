@@ -86,7 +86,7 @@ private:   // private members
     // Location 
     Location location_current, location_filtered, location_target;   // WGS84 
     mavlink_mission_item_int_t mission_target; 
-    uint16_t waypoint_distance;         // Distance to target waypoint 
+    float waypoint_distance;            // Distance to target waypoint 
     float coordinate_lpf_gain;          // Low pass filter gain for GPS coordinates 
 
     // Orientation 
@@ -114,16 +114,12 @@ private:   // private methods
     void TargetUpdate(Vehicle &vehicle); 
     
     // Location calculations 
-    void WaypointDistance(Vehicle &vehicle); 
-    void CoordinateFilter(Location new_location, Location &filtered_location) const; 
-    float GPSRadius(Location current, Location target); 
-    int16_t GPSHeading(Location current, Location target); 
+    void TargetWaypoint(Vehicle &vehicle); 
+    void WaypointError(void); 
 
     // Heading calculations 
     int16_t HeadingError(Vector<int16_t> &mag_axis); 
     void HeadingRangeCheck(int16_t &heading_value); 
-    // int16_t TrueNorthHeading(int16_t magnetic_heading) const; 
-    // int16_t HeadingError(int16_t current_heading, int16_t target_heading); 
 
 public:   // public methods 
 
