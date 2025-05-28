@@ -29,8 +29,17 @@ public:   // public types
 
     enum ParameterIndex : uint8_t 
     {
-        TN_OFFSET,   // True North offset 
-        WP_RADIUS    // Waypoint radius 
+        COMPASS_TN,     // True North offset (declination angle) 
+        COMPASS_HIX,    // Hard iron offset on the X axis (milligauss) 
+        COMPASS_HIY,    // Hard iron offset on the Y axis (milligauss) 
+        COMPASS_HIZ,    // Hard iron offset on the Z axis (milligauss) 
+        COMPASS_SIDX,   // Soft iron diagonal X axis component 
+        COMPASS_SIDY,   // Soft iron diagonal Y axis component 
+        COMPASS_SIDZ,   // Soft iron diagonal Z axis component 
+        COMPASS_SIOX,   // Soft iron off-diagonal X axis component 
+        COMPASS_SIOY,   // Soft iron off-diagonal Y axis component 
+        COMPASS_SIOZ,   // Soft iron off-diagonal Z axis component 
+        WP_RADIUS       // Waypoint radius 
     };
 
     struct ParameterValue 
@@ -51,8 +60,8 @@ static Parameters params;
 
 const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters = 
 {{
-    {"TN_OFFSET", &params.values.tn_offset, MAV_PARAM_TYPE_REAL32, params.TN_OFFSET},   // 1 
-    {"WP_RADIUS", &params.values.wp_radius, MAV_PARAM_TYPE_REAL32, params.WP_RADIUS}    // 2 
+    {"COMPASS_TN", &params.values.tn_offset, MAV_PARAM_TYPE_REAL32, params.COMPASS_TN},   // 1 
+    {"WP_RADIUS", &params.values.wp_radius, MAV_PARAM_TYPE_REAL32, params.WP_RADIUS}      // 2 
 }};
 
 //=======================================================================================
@@ -186,7 +195,7 @@ void VehicleMemory::ParameterSetUpdate(
 {
     switch (param_index)
     {
-        case Parameters::TN_OFFSET: 
+        case Parameters::COMPASS_TN: 
             vehicle.navigation.TrueNorthOffsetSet((int16_t)(*parameters[param_index].value)); 
             break; 
 
