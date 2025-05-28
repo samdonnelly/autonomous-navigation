@@ -148,7 +148,7 @@ void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
         vehicle.hardware.data_ready.imu_ready = FLAG_CLEAR; 
 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        vehicle.hardware.IMUGet(accel, gyro, mag, heading); 
+        vehicle.hardware.IMUGet(accel, gyro, mag_raw); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
         status.imu_connected = FLAG_SET; 
@@ -258,7 +258,7 @@ void VehicleNavigation::CourseCorrection(Vehicle &vehicle)
     // and steering. If either the GPS or IMU are not connected then the vehicle is force 
     // stopped as autonomous navigation would not work otherwise 
     (status.gps_connected && status.imu_connected) ? 
-        vehicle.AutoDrive(HeadingError(mag)) : 
+        vehicle.AutoDrive(HeadingError()) : 
         vehicle.control.ForceStop(vehicle); 
 }
 
@@ -289,7 +289,7 @@ void VehicleNavigation::TargetWaypoint(Vehicle &vehicle)
     
     // Check if the waypoint had been hit by comparing the distance to the waypoint 
     // with the waypoint acceptance distance. 
-    if (waypoint_distance < VS_WAYPOINT_RADIUS)
+    if (waypoint_distance < waypoint_radius)
     {
         // Send a mission item reached message 
         vehicle.telemetry.MAVLinkMissionItemReachedSet(); 
@@ -366,17 +366,34 @@ void VehicleNavigation::WaypointError(void)
 // Heading calculations 
 
 /**
- * @brief Magnetic North Heading 
+ * @brief Error between current and target heading (relative to true North) 
  * 
- * @param magnetometer : magnetometer axis data 
- * @return int16_t : heading (degrees*10) 
+ * @return int16_t : heading error (degrees*10) 
  */
-int16_t VehicleNavigation::HeadingError(Vector<int16_t> &mag_axis)
+int16_t VehicleNavigation::HeadingError(void)
 {
+    Vector<int16_t> mag_off; 
+    int16_t mag_heading, heading_error; 
+
+    // Correct the magnetometer axis readings with calibration values. First the hard-
+    // iron offsets are subtracted from the raw axis readings, then soft-iron scale 
+    // values are applied using a matrix multiplication. These correction values are 
+    // parameters that can be updated. 
+
+    // Hard-iron offsets 
+    mag_off.x = mag_raw.x - mag_hi.x; 
+    mag_off.y = mag_raw.y - mag_hi.y; 
+    mag_off.z = mag_raw.z - mag_hi.z; 
+
+    // Soft-iron offsets 
+    mag_cal.x = (mag_sid.x*mag_off.x) + (mag_sio.x*mag_off.y) + (mag_sio.y*mag_off.z); 
+    mag_cal.y = (mag_sio.x*mag_off.x) + (mag_sid.y*mag_off.y) + (mag_sio.z*mag_off.z); 
+    mag_cal.z = (mag_sio.y*mag_off.x) + (mag_sio.z*mag_off.y) + (mag_sid.z*mag_off.z); 
+
     // Find the magnetic heading based on the magnetometer X and Y axis data. atan2f 
     // looks at the value and sign of X and Y to determine the correct output so axis 
     // values don't have to be checked for potential errors (ex. divide by zero). 
-    int16_t mag_heading = (int16_t)(atan2f((float)mag_axis.y, (float)mag_axis.x)*RAD_TO_DEG*SCALE_10); 
+    mag_heading = (int16_t)(atan2f((float)mag_cal.y, (float)mag_cal.x)*RAD_TO_DEG*SCALE_10); 
 
     // Find the true North heading by adding the true North heading offset to the 
     // magnetic heading. After this is done, the bounds are checked to make sure the 
@@ -396,7 +413,7 @@ int16_t VehicleNavigation::HeadingError(Vector<int16_t> &mag_axis)
     // Find the error between the target heading and the current true North heading. 
     // The target heading is based on true North and is found using current and target 
     // GPS coordinates. 
-    int16_t heading_error = heading_target - heading; 
+    heading_error = heading_target - heading; 
     HeadingRangeCheck(heading_error); 
 
     return heading_error; 
@@ -424,7 +441,7 @@ void VehicleNavigation::HeadingRangeCheck(int16_t &heading_value)
 
 
 //=======================================================================================
-// Getters and setters 
+// Getters 
 
 /**
  * @brief Get the current vehicle location 
@@ -466,7 +483,7 @@ VehicleNavigation::Vector<int16_t> VehicleNavigation::GyroCurrentGet(void)
  */
 VehicleNavigation::Vector<int16_t> VehicleNavigation::MagCurrentGet(void)
 {
-    return mag; 
+    return mag_cal; 
 }
 
 
@@ -504,17 +521,6 @@ int16_t VehicleNavigation::HeadingTargetGet(void)
 
 
 /**
- * @brief Set the true North offset 
- * 
- * @param tn_offset : true North offset value 
- */
-void VehicleNavigation::TrueNorthOffsetSet(int16_t tn_offset)
-{
-    true_north_offset = tn_offset; 
-}
-
-
-/**
  * @brief Get the distance to the target waypoint 
  * 
  * @return uint16_t : waypoint distance (meters*10) 
@@ -522,6 +528,132 @@ void VehicleNavigation::TrueNorthOffsetSet(int16_t tn_offset)
 uint16_t VehicleNavigation::WaypointDistanceGet(void)
 {
     return (uint16_t)(waypoint_distance*SCALE_10); 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Setters 
+
+/**
+ * @brief Set the true North offset 
+ * 
+ * @param compass_tn : true North offset value 
+ */
+void VehicleNavigation::TrueNorthOffsetSet(int16_t compass_tn)
+{
+    true_north_offset = compass_tn; 
+}
+
+
+/**
+ * @brief Set the magnetometer X-axis hard-iron offset 
+ * 
+ * @param compass_hix : X-axis hard-iron offset value (milligauss)
+ */
+void VehicleNavigation::MagHardIronXSet(int16_t compass_hix)
+{
+    mag_hi.x = compass_hix; 
+}
+
+
+/**
+ * @brief Set the magnetometer Y-axis hard-iron offset 
+ * 
+ * @param compass_hiy : Y-axis hard-iron offset value (milligauss)
+ */
+void VehicleNavigation::MagHardIronYSet(int16_t compass_hiy)
+{
+    mag_hi.y = compass_hiy; 
+}
+
+
+/**
+ * @brief Set the magnetometer Z-axis hard-iron offset 
+ * 
+ * @param compass_hiz : Z-axis hard-iron offset value (milligauss)
+ */
+void VehicleNavigation::MagHardIronZSet(int16_t compass_hiz)
+{
+    mag_hi.z = compass_hiz; 
+}
+
+
+/**
+ * @brief Set the magnetometer X-axis soft-iron diagonal scale value 
+ * 
+ * @param compass_sidx : X-axis soft-iron diagonal scale value 
+ */
+void VehicleNavigation::MagSoftIronDiagonalXSet(int16_t compass_sidx)
+{
+    mag_sid.x = compass_sidx; 
+}
+
+
+/**
+ * @brief Set the magnetometer Y-axis soft-iron diagonal scale value 
+ * 
+ * @param compass_sidy : Y-axis soft-iron diagonal scale value 
+ */
+void VehicleNavigation::MagSoftIronDiagonalYSet(int16_t compass_sidy)
+{
+    mag_sid.y = compass_sidy; 
+}
+
+
+/**
+ * @brief Set the magnetometer Z-axis soft-iron diagonal scale value 
+ * 
+ * @param compass_sidz : Z-axis soft-iron diagonal scale value 
+ */
+void VehicleNavigation::MagSoftIronDiagonalZSet(int16_t compass_sidz)
+{
+    mag_sid.z = compass_sidz; 
+}
+
+
+/**
+ * @brief Set the magnetometer X-axis soft-iron off-diagonal scale value 
+ * 
+ * @param compass_siox : X-axis soft-iron off-diagonal scale value 
+ */
+void VehicleNavigation::MagSoftIronOffDiagonalXSet(int16_t compass_siox)
+{
+    mag_sio.x = compass_siox; 
+}
+
+
+/**
+ * @brief Set the magnetometer Y-axis soft-iron off-diagonal scale value 
+ * 
+ * @param compass_sioy : Y-axis soft-iron off-diagonal scale value 
+ */
+void VehicleNavigation::MagSoftIronOffDiagonalYSet(int16_t compass_sioy)
+{
+    mag_sio.y = compass_sioy; 
+}
+
+
+/**
+ * @brief Set the magnetometer Z-axis soft-iron off-diagonal scale value 
+ * 
+ * @param compass_sioz : Z-axis soft-iron off-diagonal scale value 
+ */
+void VehicleNavigation::MagSoftIronOffDiagonalZSet(int16_t compass_sioz)
+{
+    mag_sio.z = compass_sioz; 
+}
+
+
+/**
+ * @brief Set the waypoint acceptance radius 
+ * 
+ * @param wp_radius : waypoint acceptance radius (meters) 
+ */
+void VehicleNavigation::WaypointRadiusSet(float wp_radius)
+{
+    waypoint_radius = wp_radius; 
 }
 
 //=======================================================================================

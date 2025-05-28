@@ -76,8 +76,7 @@ public:   // Public methods
     void IMUGet(
         VehicleNavigation::Vector<int16_t> &accel, 
         VehicleNavigation::Vector<int16_t> &gyro, 
-        VehicleNavigation::Vector<int16_t> &mag, 
-        int16_t &heading); 
+        VehicleNavigation::Vector<int16_t> &mag); 
 
     // Memory 
     void MemoryRead(void); 

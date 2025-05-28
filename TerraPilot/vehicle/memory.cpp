@@ -29,6 +29,7 @@ public:   // public types
 
     enum ParameterIndex : uint8_t 
     {
+        // Compass 
         COMPASS_TN,     // True North offset (declination angle) 
         COMPASS_HIX,    // Hard iron offset on the X axis (milligauss) 
         COMPASS_HIY,    // Hard iron offset on the Y axis (milligauss) 
@@ -39,14 +40,26 @@ public:   // public types
         COMPASS_SIOX,   // Soft iron off-diagonal X axis component 
         COMPASS_SIOY,   // Soft iron off-diagonal Y axis component 
         COMPASS_SIOZ,   // Soft iron off-diagonal Z axis component 
+        // Waypoints 
         WP_RADIUS       // Waypoint radius 
     };
 
     struct ParameterValue 
     {
         float 
-        tn_offset,   // True North offset - offset between true and magnetic North (+/- degrees*10) 
-        wp_radius;   // Waypoint radius - acceptance distance to waypoint 
+        // Compass 
+        compass_tn,     // True North offset (declination angle) (+/- degrees*10) 
+        compass_hix,    // Hard iron offset on the X axis (milligauss) 
+        compass_hiy,    // Hard iron offset on the Y axis (milligauss) 
+        compass_hiz,    // Hard iron offset on the Z axis (milligauss) 
+        compass_sidx,   // Soft iron diagonal X axis component 
+        compass_sidy,   // Soft iron diagonal Y axis component 
+        compass_sidz,   // Soft iron diagonal Z axis component 
+        compass_siox,   // Soft iron off-diagonal X axis component 
+        compass_sioy,   // Soft iron off-diagonal Y axis component 
+        compass_sioz,   // Soft iron off-diagonal Z axis component 
+        // Waypoints 
+        wp_radius;      // Waypoint radius (meters) 
     }
     values;
 }; 
@@ -60,8 +73,19 @@ static Parameters params;
 
 const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters = 
 {{
-    {"COMPASS_TN", &params.values.tn_offset, MAV_PARAM_TYPE_REAL32, params.COMPASS_TN},   // 1 
-    {"WP_RADIUS", &params.values.wp_radius, MAV_PARAM_TYPE_REAL32, params.WP_RADIUS}      // 2 
+    // Compass 
+    {"COMPASS_TN",   &params.values.compass_tn,   MAV_PARAM_TYPE_REAL32, params.COMPASS_TN},     // 1 
+    {"COMPASS_HIX",  &params.values.compass_hix,  MAV_PARAM_TYPE_REAL32, params.COMPASS_HIX},    // 2 
+    {"COMPASS_HIY",  &params.values.compass_hiy,  MAV_PARAM_TYPE_REAL32, params.COMPASS_HIY},    // 3 
+    {"COMPASS_HIZ",  &params.values.compass_hiz,  MAV_PARAM_TYPE_REAL32, params.COMPASS_HIZ},    // 4 
+    {"COMPASS_SIDX", &params.values.compass_sidx, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIDX},   // 5 
+    {"COMPASS_SIDY", &params.values.compass_sidy, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIDY},   // 6 
+    {"COMPASS_SIDZ", &params.values.compass_sidz, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIDZ},   // 7 
+    {"COMPASS_SIOX", &params.values.compass_siox, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOX},   // 8 
+    {"COMPASS_SIOY", &params.values.compass_sioy, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOY},   // 9 
+    {"COMPASS_SIOZ", &params.values.compass_sioz, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOZ},   // 10 
+    // Waypoints 
+    {"WP_RADIUS",    &params.values.wp_radius,    MAV_PARAM_TYPE_REAL32, params.WP_RADIUS}       // 11 
 }};
 
 //=======================================================================================
@@ -99,6 +123,15 @@ VehicleMemory::VehicleMemory()
     };
 
     status.flags = RESET; 
+
+    // Initialize parameter values as needed 
+    params.values.compass_sidx = 1.0f;   // Soft-iron diagonal scale values can't be... 
+    params.values.compass_sidy = 1.0f;   // set to zero because that would force the... 
+    params.values.compass_sidz = 1.0f;   // magnetometer axis readings to zero as well. 
+    
+    // The below code is temporary until parameters are fully implemented. 
+    params.values.compass_tn = VS_TN_OFFSET; 
+    params.values.wp_radius = VS_WAYPOINT_RADIUS; 
 }
 
 //=======================================================================================
@@ -112,11 +145,21 @@ VehicleMemory::VehicleMemory()
  */
 void VehicleMemory::ParameterLoad(Vehicle &vehicle)
 {
-    // As each parameter is read, perform a parameter set so values get updated thoughout 
-    // the code. 
+    // Once parameters are fully implemented, intialize this to zero and have it set 
+    // once all parameters have been read. 
+    static uint8_t parameters_read = FLAG_SET; 
 
-    // The below code is temporary until parameters are fully implemented. 
-    vehicle.navigation.TrueNorthOffsetSet(VS_TN_OFFSET); 
+    // As each parameter is read, perform a parameter set so values get updated 
+    // throughout the code. 
+
+    // Once all parameters have been read, set their values throughout the code. 
+    if (parameters_read)
+    {
+        for (uint8_t i = RESET; i < NUM_PARAMETERS; i++)
+        {
+            ParameterSet(vehicle, parameters[i].name, *parameters[i].value); 
+        }
+    }
 }
 
 
@@ -199,7 +242,44 @@ void VehicleMemory::ParameterSetUpdate(
             vehicle.navigation.TrueNorthOffsetSet((int16_t)(*parameters[param_index].value)); 
             break; 
 
+        case Parameters::COMPASS_HIX: 
+            vehicle.navigation.MagHardIronXSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
+        case Parameters::COMPASS_HIY: 
+            vehicle.navigation.MagHardIronYSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
+        case Parameters::COMPASS_HIZ: 
+            vehicle.navigation.MagHardIronZSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
+        case Parameters::COMPASS_SIDX: 
+            vehicle.navigation.MagSoftIronDiagonalXSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
+        case Parameters::COMPASS_SIDY: 
+            vehicle.navigation.MagSoftIronDiagonalYSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
+        case Parameters::COMPASS_SIDZ: 
+            vehicle.navigation.MagSoftIronDiagonalZSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
+        case Parameters::COMPASS_SIOX: 
+            vehicle.navigation.MagSoftIronOffDiagonalXSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
+        case Parameters::COMPASS_SIOY: 
+            vehicle.navigation.MagSoftIronOffDiagonalYSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
+        case Parameters::COMPASS_SIOZ: 
+            vehicle.navigation.MagSoftIronOffDiagonalZSet((int16_t)(*parameters[param_index].value)); 
+            break; 
+
         case Parameters::WP_RADIUS: 
+            vehicle.navigation.WaypointRadiusSet(*parameters[param_index].value); 
             break; 
         
         default: 

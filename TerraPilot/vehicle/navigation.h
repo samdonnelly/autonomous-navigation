@@ -86,14 +86,15 @@ private:   // private members
     // Location 
     Location location_current, location_filtered, location_target;   // WGS84 
     mavlink_mission_item_int_t mission_target; 
-    float waypoint_distance;            // Distance to target waypoint 
-    float coordinate_lpf_gain;          // Low pass filter gain for GPS coordinates 
+    float waypoint_distance, waypoint_radius;                        // Distance to target waypoint & waypoint acceptance 
+    float coordinate_lpf_gain;                                       // Low pass filter gain for GPS coordinates 
 
     // Orientation 
-    Vector<int16_t> accel, gyro, mag; 
-    Vector<float> orient;               // x = roll, y = pitch, z = yaw (degrees) 
-    int16_t heading, heading_target;    // 0-3599 (degrees*10) 
-    int16_t true_north_offset;          // True north offset from magnetic north (degrees*10) 
+    Vector<int16_t> accel, gyro; 
+    Vector<int16_t> mag_raw, mag_cal, mag_hi, mag_sid, mag_sio;   // Magnetometer data 
+    Vector<float> orient;                                         // x = roll, y = pitch, z = yaw (degrees) 
+    int16_t heading, heading_target;                              // 0-3599 (degrees*10) 
+    int16_t true_north_offset;                                    // True north offset (degrees*10) 
     
 public:   // public members 
     
@@ -118,7 +119,7 @@ private:   // private methods
     void WaypointError(void); 
 
     // Heading calculations 
-    int16_t HeadingError(Vector<int16_t> &mag_axis); 
+    int16_t HeadingError(void); 
     void HeadingRangeCheck(int16_t &heading_value); 
 
 public:   // public methods 
@@ -134,7 +135,7 @@ public:   // public methods
     void TargetAssess(Vehicle &vehicle); 
     void CourseCorrection(Vehicle &vehicle); 
 
-    // Getters and setter 
+    // Getters 
     Location LocationCurrentGet(void); 
     Vector<int16_t> AccelCurrentGet(void); 
     Vector<int16_t> GyroCurrentGet(void); 
@@ -142,8 +143,20 @@ public:   // public methods
     Vector<float> OrientationCurrentGet(void); 
     int16_t HeadingCurrentGet(void); 
     int16_t HeadingTargetGet(void); 
-    void TrueNorthOffsetSet(int16_t tn_offset); 
     uint16_t WaypointDistanceGet(void); 
+    
+    // Setters 
+    void TrueNorthOffsetSet(int16_t compass_tn); 
+    void MagHardIronXSet(int16_t compass_hix); 
+    void MagHardIronYSet(int16_t compass_hiy); 
+    void MagHardIronZSet(int16_t compass_hiz); 
+    void MagSoftIronDiagonalXSet(int16_t compass_sidx); 
+    void MagSoftIronDiagonalYSet(int16_t compass_sidy); 
+    void MagSoftIronDiagonalZSet(int16_t compass_sidz); 
+    void MagSoftIronOffDiagonalXSet(int16_t compass_siox); 
+    void MagSoftIronOffDiagonalYSet(int16_t compass_sioy); 
+    void MagSoftIronOffDiagonalZSet(int16_t compass_sioz); 
+    void WaypointRadiusSet(float wp_radius); 
 }; 
 
 //=======================================================================================
