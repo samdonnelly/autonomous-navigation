@@ -161,17 +161,22 @@ void VehicleHardware::IMURead(void)
  *          read from an IMU device if it's available. Data is copied here but not read. 
  *          This function is only called if the data_ready.imu_ready flag is set in the 
  *          IMURead function. 
+ *          
+ *          Magnetometers should have their positive X-axis in the vehicles forward 
+ *          direction and their positive y-axis pointing to the right to ensure heading 
+ *          is calculated properly. If the magnetometer axes don't align with this then 
+ *          just invert the sign of the axis reading. 
  * 
  * @see IMURead 
  * 
  * @param accel : accelerometer data 
  * @param gyro : gyroscope data 
- * @param heading : compass/magnetometer heading (degrees*10) 
+ * @param mag : magnetometer axis data (milligauss) 
  */
 void VehicleHardware::IMUGet(
     VehicleNavigation::Vector<int16_t> &accel, 
     VehicleNavigation::Vector<int16_t> &gyro, 
-    int16_t &heading)
+    VehicleNavigation::Vector<int16_t> &mag)
 {
     // 
 }
