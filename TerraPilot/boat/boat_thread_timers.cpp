@@ -54,6 +54,13 @@ void Boat::TimerCallback100ms(void *timer_arg)
     {
         boat.MainEventQueue((Event)MainEvents::COURSE_CORRECT); 
     }
+
+#if VH_DEBUG_OUTPUT 
+
+    // Output data for debugging related purposes 
+    boat.CommsEventQueue((Event)CommsEvents::DEBUG_WRITE); 
+    
+#endif   // VH_DEBUG_OUTPUT 
 }
 
 

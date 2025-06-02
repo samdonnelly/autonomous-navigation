@@ -75,6 +75,7 @@ protected:   // Protected members
     // Communication thread events 
     enum class CommsEvents : uint8_t {
         NO_EVENT, 
+        DEBUG_WRITE, 
         GPS_READ, 
         IMU_READ, 
         RC_READ, 

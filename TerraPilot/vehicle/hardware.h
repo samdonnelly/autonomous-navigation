@@ -66,6 +66,9 @@ public:   // Public methods
     // Actuators 
     void PropulsionSet(uint16_t throttle_1, uint16_t throttle_2); 
     void SteeringSet(uint16_t roll, uint16_t pitch, uint16_t yaw); 
+
+    // Debug 
+    void DebugWrite(void); 
     
     // GPS 
     void GPSRead(void); 

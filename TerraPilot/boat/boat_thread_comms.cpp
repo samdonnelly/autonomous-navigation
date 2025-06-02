@@ -33,6 +33,10 @@ void Boat::CommsDispatch(Event event)
 
     switch (boat.comms_event)
     {
+        case CommsEvents::DEBUG_WRITE: 
+            boat.hardware.DebugWrite(); 
+            break; 
+        
         case CommsEvents::GPS_READ: 
             boat.hardware.GPSRead(); 
             break; 

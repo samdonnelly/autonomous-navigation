@@ -87,6 +87,26 @@ void VehicleHardware::SteeringSet(
 
 
 //=======================================================================================
+// Debug 
+
+/**
+ * @brief Write data to a serial connection 
+ * 
+ * @details This function is used when the user needs to temporarily send data to an 
+ *          external device for things such as debugging or IMU calibration through 
+ *          3rd party software. VH_DEBUG_OUTPUT must be enabled in the system config 
+ *          for this function to be called. This function will be called regardless of 
+ *          vehicle state. 
+ */
+void VehicleHardware::DebugWrite(void)
+{
+    // 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
 // GPS 
 
 /**
@@ -165,7 +185,8 @@ void VehicleHardware::IMURead(void)
  *          Magnetometers should have their positive X-axis in the vehicles forward 
  *          direction and their positive y-axis pointing to the right to ensure heading 
  *          is calculated properly. If the magnetometer axes don't align with this then 
- *          just invert the sign of the axis reading. 
+ *          just invert the sign of the axis reading. However, if the sign on the axis is 
+ *          inverted, be sure to also do calibration with inverted signs. 
  * 
  * @see IMURead 
  * 
