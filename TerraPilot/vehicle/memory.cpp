@@ -243,39 +243,39 @@ void VehicleMemory::ParameterSetUpdate(
             break; 
 
         case Parameters::COMPASS_HIX: 
-            vehicle.navigation.MagHardIronXSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.MagHardIronXSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::COMPASS_HIY: 
-            vehicle.navigation.MagHardIronYSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.MagHardIronYSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::COMPASS_HIZ: 
-            vehicle.navigation.MagHardIronZSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.MagHardIronZSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::COMPASS_SIDX: 
-            vehicle.navigation.MagSoftIronDiagonalXSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.MagSoftIronDiagonalXSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::COMPASS_SIDY: 
-            vehicle.navigation.MagSoftIronDiagonalYSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.MagSoftIronDiagonalYSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::COMPASS_SIDZ: 
-            vehicle.navigation.MagSoftIronDiagonalZSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.MagSoftIronDiagonalZSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::COMPASS_SIOX: 
-            vehicle.navigation.MagSoftIronOffDiagonalXSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.MagSoftIronOffDiagonalXSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::COMPASS_SIOY: 
-            vehicle.navigation.MagSoftIronOffDiagonalYSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.MagSoftIronOffDiagonalYSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::COMPASS_SIOZ: 
-            vehicle.navigation.MagSoftIronOffDiagonalZSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.MagSoftIronOffDiagonalZSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::WP_RADIUS: 

@@ -90,11 +90,11 @@ private:   // private members
     float coordinate_lpf_gain;                                       // Low pass filter gain for GPS coordinates 
 
     // Orientation 
-    Vector<int16_t> accel, gyro; 
-    Vector<int16_t> mag_raw, mag_cal, mag_hi, mag_sid, mag_sio;   // Magnetometer data 
-    Vector<float> orient;                                         // x = roll, y = pitch, z = yaw (degrees) 
-    int16_t heading, heading_target;                              // 0-3599 (degrees*10) 
-    int16_t true_north_offset;                                    // True north offset (degrees*10) 
+    Vector<int16_t> accel_raw, gyro_raw, mag_raw;                    // Accelerometer, gyroscope and magnetometer raw data 
+    Vector<float> orient;                                            // x = roll, y = pitch, z = yaw (degrees) 
+    Vector<float> mag_cal, mag_hi, mag_sid, mag_sio;                 // Magnetometer correction 
+    int16_t true_north_offset;                                       // True north offset (degrees*10) 
+    int16_t heading, heading_target;                                 // 0-3599 (degrees*10) 
     
 public:   // public members 
     
@@ -147,15 +147,15 @@ public:   // public methods
     
     // Setters 
     void TrueNorthOffsetSet(int16_t compass_tn); 
-    void MagHardIronXSet(int16_t compass_hix); 
-    void MagHardIronYSet(int16_t compass_hiy); 
-    void MagHardIronZSet(int16_t compass_hiz); 
-    void MagSoftIronDiagonalXSet(int16_t compass_sidx); 
-    void MagSoftIronDiagonalYSet(int16_t compass_sidy); 
-    void MagSoftIronDiagonalZSet(int16_t compass_sidz); 
-    void MagSoftIronOffDiagonalXSet(int16_t compass_siox); 
-    void MagSoftIronOffDiagonalYSet(int16_t compass_sioy); 
-    void MagSoftIronOffDiagonalZSet(int16_t compass_sioz); 
+    void MagHardIronXSet(float compass_hix); 
+    void MagHardIronYSet(float compass_hiy); 
+    void MagHardIronZSet(float compass_hiz); 
+    void MagSoftIronDiagonalXSet(float compass_sidx); 
+    void MagSoftIronDiagonalYSet(float compass_sidy); 
+    void MagSoftIronDiagonalZSet(float compass_sidz); 
+    void MagSoftIronOffDiagonalXSet(float compass_siox); 
+    void MagSoftIronOffDiagonalYSet(float compass_sioy); 
+    void MagSoftIronOffDiagonalZSet(float compass_sioz); 
     void WaypointRadiusSet(float wp_radius); 
 }; 
 
