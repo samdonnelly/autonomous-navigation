@@ -183,10 +183,11 @@ void VehicleHardware::IMURead(void)
  *          IMURead function. 
  *          
  *          Magnetometers should have their positive X-axis in the vehicles forward 
- *          direction and their positive y-axis pointing to the right to ensure heading 
- *          is calculated properly. If the magnetometer axes don't align with this then 
- *          just invert the sign of the axis reading. However, if the sign on the axis is 
- *          inverted, be sure to also do calibration with inverted signs. 
+ *          direction, their positive y-axis pointing to the right and the positive 
+ *          z-axis pointing down (following the right hand rule) to ensure heading is 
+ *          calculated properly. If the magnetometer axes don't align with this then 
+ *          just invert the sign of the axis reading. However, if the sign on the axis 
+ *          is inverted, be sure to also do calibration with the same sign. 
  * 
  * @see IMURead 
  * 
