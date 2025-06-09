@@ -60,6 +60,18 @@
 #define VS_TN_OFFSET 0             // Offset between true and magnetic North (degrees*10) 
 #define VS_WAYPOINT_RADIUS 5.0f    // Vehicle acceptance distance to waypoint 
 
+#define VS_COMPASS_HIX 0.0f        // Compass X-axis hard-iron offset 
+#define VS_COMPASS_HIY 0.0f        // Compass Y-axis hard-iron offset 
+#define VS_COMPASS_HIZ 0.0f        // Compass Z-axis hard-iron offset 
+
+#define VS_COMPASS_SIDX 1.0f       // Compass X-axis soft-iron diagonal correction 
+#define VS_COMPASS_SIDY 1.0f       // Compass Y-axis soft-iron diagonal correction 
+#define VS_COMPASS_SIDZ 1.0f       // Compass Z-axis soft-iron diagonal correction 
+
+#define VS_COMPASS_SIOX 0.0f       // Compass X-axis soft-iron off-diagonal correction 
+#define VS_COMPASS_SIOY 0.0f       // Compass Y-axis soft-iron off-diagonal correction 
+#define VS_COMPASS_SIOZ 0.0f       // Compass Z-axis soft-iron off-diagonal correction 
+
 //==================================================
 
 // The vehicle specific settings below only have an affect when the corresponding vehicle 

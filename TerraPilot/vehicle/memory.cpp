@@ -123,11 +123,6 @@ VehicleMemory::VehicleMemory()
     };
 
     status.flags = RESET; 
-
-    // Initialize parameter values as needed 
-    // params.values.compass_sidx = 1.0f;   // Soft-iron diagonal scale values can't be... 
-    // params.values.compass_sidy = 1.0f;   // set to zero because that would force the... 
-    // params.values.compass_sidz = 1.0f;   // magnetometer axis readings to zero as well. 
     
     //==================================================
     // The below code is temporary until parameters are fully implemented. 
@@ -135,17 +130,17 @@ VehicleMemory::VehicleMemory()
     params.values.compass_tn = VS_TN_OFFSET; 
     params.values.wp_radius = VS_WAYPOINT_RADIUS; 
 
-    params.values.compass_hix = 19.7f; 
-    params.values.compass_hiy = 60.1f; 
-    params.values.compass_hiz = 264.5f; 
+    params.values.compass_hix = VS_COMPASS_HIX; 
+    params.values.compass_hiy = VS_COMPASS_HIY; 
+    params.values.compass_hiz = VS_COMPASS_HIZ; 
 
-    params.values.compass_sidx = 0.960f; 
-    params.values.compass_sidy = 1.024f; 
-    params.values.compass_sidz = 1.019f; 
+    params.values.compass_sidx = VS_COMPASS_SIDX; 
+    params.values.compass_sidy = VS_COMPASS_SIDY; 
+    params.values.compass_sidz = VS_COMPASS_SIDZ; 
 
-    params.values.compass_siox = -0.014f; 
-    params.values.compass_sioy = 0.004f; 
-    params.values.compass_sioz = -0.023f; 
+    params.values.compass_siox = VS_COMPASS_SIOX; 
+    params.values.compass_sioy = VS_COMPASS_SIOY; 
+    params.values.compass_sioz = VS_COMPASS_SIOZ; 
     
     //==================================================
 }
