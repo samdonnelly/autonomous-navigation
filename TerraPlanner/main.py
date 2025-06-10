@@ -12,14 +12,14 @@
 #================================================================================
 # Includes 
 
-# import sys
-# import json
-# from PyQt6.QtWidgets import (
-#     QApplication, QMainWindow, QWidget, QVBoxLayout,
-#     QHBoxLayout, QFrame, QPushButton, QFileDialog, QMessageBox
-# )
-# from PyQt6.QtWebEngineWidgets import QWebEngineView
-# from PyQt6.QtCore import Qt
+import sys
+import json
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout,
+    QHBoxLayout, QFrame, QPushButton, QFileDialog, QMessageBox, QLabel, QGridLayout
+)
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtCore import Qt, QUrl
 
 #================================================================================
 
@@ -156,16 +156,6 @@
 
 #================================================================================
 # Code to be tested 
-
-import sys
-import json
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QHBoxLayout, QFrame, QPushButton, QFileDialog, QMessageBox, QLabel, QGridLayout
-)
-from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtCore import Qt, QUrl
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
