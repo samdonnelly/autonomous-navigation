@@ -144,17 +144,7 @@ from PyQt6.QtCore import Qt, QUrl
 #         </html>
 #         """
 
-
-# if __name__ == '__main__':
-#     app = QApplication(sys.argv)
-#     window = MainWindow()
-#     window.show()
-#     sys.exit(app.exec())
-
-#================================================================================
-
-
-#================================================================================
+#==================================================
 # Code to be tested 
 
 class MainWindow(QMainWindow):
@@ -329,6 +319,8 @@ class MainWindow(QMainWindow):
             </body>
         </html>
         """
+
+#==================================================
 
 
 if __name__ == '__main__':
