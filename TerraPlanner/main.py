@@ -152,7 +152,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Vehicle Data Visualizer")
         self.setMinimumSize(1000, 600)
-        self.coordinates = [
+        self.coordinates = \
+        [
             [51.14256236, -114.04202439]   # Default 
         ]
         self.vehicle_data = []
