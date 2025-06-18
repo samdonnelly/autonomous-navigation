@@ -30,7 +30,7 @@ from PyQt6.QtCore import Qt, QUrl
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Vehicle Data Visualizer")
+        self.setWindowTitle("TerraPlanner")
         self.setMinimumSize(1000, 600)
         self.coordinates = \
         [
