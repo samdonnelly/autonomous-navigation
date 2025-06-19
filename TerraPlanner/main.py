@@ -159,15 +159,15 @@ class MainWindow(QMainWindow):
                     "One or more pieces of data in the vehicle data file are invalid. Please check formatting."
                 )
 
+    def update_map(self):
+        html = self.generate_map_html()
+        self.map_view.setHtml(html)
+
     def display_vehicle_data(self, index):
         if 0 <= index < len(self.vehicle_data):
             keys = list(self.vehicle_labels.keys())
             for i, key in enumerate(keys):
                 self.vehicle_labels[key].setText(str(self.vehicle_data[index][i]))
-
-    def update_map(self):
-        html = self.generate_map_html()
-        self.map_view.setHtml(html)
 
     def generate_map_html(self):
         coords_js = json.dumps(self.coordinates)
