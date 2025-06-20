@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
         upload_path_button.clicked.connect(self.load_path_file)
         header_layout.addWidget(upload_path_button)
 
-        upload_vehicle_button = QPushButton("Upload Vehicle Data")
+        upload_vehicle_button = QPushButton("Upload Vehicle Data File")
         upload_vehicle_button.clicked.connect(self.load_vehicle_file)
         header_layout.addWidget(upload_vehicle_button)
 
