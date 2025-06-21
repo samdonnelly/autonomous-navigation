@@ -77,7 +77,8 @@ class MainWindow(QMainWindow):
         self.bottom_right_section.setFrameShape(QFrame.Shape.StyledPanel)
         self.bottom_right_section.setMinimumHeight(250)
         self.vehicle_info_layout = QGridLayout()
-        self.vehicle_labels = {
+        self.vehicle_labels = \
+        {
             "Latitude": QLabel(),
             "Longitude": QLabel(),
             "Distance to Target": QLabel(),
