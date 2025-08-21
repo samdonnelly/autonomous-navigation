@@ -312,7 +312,7 @@ void VehicleNavigation::WaypointError(void)
     float num, den; 
 
     // Convert the coordinates to radians so they're compatible with the math library. 
-    current_lat= location_current.lat * DEG_TO_RAD; 
+    current_lat = location_current.lat * DEG_TO_RAD; 
     current_lon = location_current.lon * DEG_TO_RAD; 
     target_lat = location_target.lat * DEG_TO_RAD; 
     target_lon = location_target.lon * DEG_TO_RAD; 
@@ -392,7 +392,10 @@ int16_t VehicleNavigation::HeadingError(void)
 
     // Find the magnetic heading based on the magnetometer X and Y axis data. atan2f 
     // looks at the value and sign of X and Y to determine the correct output so axis 
-    // values don't have to be checked for potential errors (ex. divide by zero). 
+    // values don't have to be checked for potential errors (ex. divide by zero). If 
+    // the magnetometer data was provided in the correct orientation then the calculated 
+    // heading will increase from 0 in the clockwise direction starting from North which 
+    // follows the NED frame orientation. 
     mag_heading = (int16_t)(atan2f(mag_cal.y, mag_cal.x)*RAD_TO_DEG*SCALE_10); 
 
     // Find the true North heading by adding the true North heading offset to the 
