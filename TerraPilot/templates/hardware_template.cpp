@@ -186,25 +186,29 @@ void VehicleHardware::IMURead(void)
  *          their positive y-axis pointing to the left and the positive z-axis pointing 
  *          up (NWU orientation following right hand rule) to ensure orientation is 
  *          calculated properly. If the accelerometer, gyroscope or magnetometer axes 
- *          don't align with this then just invert the sign of the axis reading. However, 
- *          if the sign on the axis is inverted, be sure to also do calibration with the 
- *          same sign. 
+ *          don't align with this then just invert the sign of the axis reading. If signs 
+ *          are inverted, make sure calibration values accommodate this. 
  *          
- *          Note that only the gyroscope units matter and they should be in deg/second. 
- *          Accelerometer and magnetometer data gets normalized so only the direction of 
- *          the data vector matters. However, typical dimensions of these are g's for 
- *          the accelerometer and mG or uT for the magnetometer. 
+ *          Magnetometer readings can be supplied as calibrated or uncalibrated values. 
+ *          If not pre-calibrated, make sure to enable calibration correction and set 
+ *          the magnetometer calibration parameters (hard and soft iron offsets). See 
+ *          VS_MAG_CAL in the system configuration file. 
+ *          
+ *          Note that the accelerometer and gyroscope units matter but the magnetometer 
+ *          units don't. Acceleration should be provided in g's and angular rate should 
+ *          be provided in deg/s. Calculations that use magnetic fiels only care about 
+ *          the magnitude between axes. However, typical magnetometer units are mG or uT. 
  * 
  * @see IMURead 
  * 
- * @param accel : accelerometer data 
- * @param gyro : gyroscope data (deg/s) 
- * @param mag : magnetometer axis data 
+ * @param accel : 3-axis accelerometer data (g's)
+ * @param gyro : 3-axis gyroscope data (deg/s) 
+ * @param mag : 3-axis magnetometer axis data (typically mG or uT) 
  */
 void VehicleHardware::IMUGet(
-    VehicleNavigation::Vector<int16_t> &accel, 
-    VehicleNavigation::Vector<int16_t> &gyro, 
-    VehicleNavigation::Vector<int16_t> &mag)
+    VehicleNavigation::Vector<float> &accel, 
+    VehicleNavigation::Vector<float> &gyro, 
+    VehicleNavigation::Vector<float> &mag)
 {
     // 
 }

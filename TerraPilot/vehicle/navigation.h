@@ -80,9 +80,9 @@ public:
 
     // Getters 
     Location LocationCurrentGet(void); 
-    Vector<int16_t> AccelCurrentGet(void); 
-    Vector<int16_t> GyroCurrentGet(void); 
-    Vector<int16_t> MagCurrentGet(void); 
+    Vector<float> AccelCurrentGet(void); 
+    Vector<float> GyroCurrentGet(void); 
+    Vector<float> MagCurrentGet(void); 
     Vector<float> OrientationCurrentGet(void); 
     int16_t HeadingCurrentGet(void); 
     int16_t HeadingTargetGet(void); 
@@ -136,9 +136,9 @@ private:
     float coordinate_lpf_gain;                                       // Low pass filter gain for GPS coordinates 
 
     // Orientation 
-    Vector<int16_t> accel_raw, gyro_raw, mag_raw;                    // Accelerometer, gyroscope and magnetometer data 
+    Vector<float> accel, gyro, mag;                                  // Accelerometer, gyroscope and magnetometer data 
     Vector<float> orient;                                            // x = roll, y = pitch, z = yaw (degrees) 
-    Vector<float> mag_cal, mag_hi, mag_sid, mag_sio;                 // Magnetometer correction 
+    Vector<float> mag_hi, mag_sid, mag_sio;                          // Magnetometer correction 
     int16_t true_north_offset;                                       // True north offset (degrees*10) 
     int16_t heading, heading_target;                                 // 0-3599 (degrees*10) 
 

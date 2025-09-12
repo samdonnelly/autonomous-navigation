@@ -77,9 +77,9 @@ public:   // Public methods
     // IMU 
     void IMURead(void); 
     void IMUGet(
-        VehicleNavigation::Vector<int16_t> &accel, 
-        VehicleNavigation::Vector<int16_t> &gyro, 
-        VehicleNavigation::Vector<int16_t> &mag); 
+        VehicleNavigation::Vector<float> &accel, 
+        VehicleNavigation::Vector<float> &gyro, 
+        VehicleNavigation::Vector<float> &mag); 
 
     // Memory 
     void MemoryRead(void); 

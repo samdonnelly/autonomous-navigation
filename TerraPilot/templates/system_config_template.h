@@ -54,6 +54,9 @@
 // Propulsion and steering 
 #define VS_MOTOR_PWM_OFF 1500      // PWM to turn motor(s) off - can vary between motors/ESCs 
 
+// Navigation 
+#define VS_MAG_CAL 0               // Include magnetometer calibration correction 
+
 //==================================================
 // To be made into parameters 
 

@@ -80,13 +80,15 @@ void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
         vehicle.hardware.data_ready.imu_ready = FLAG_CLEAR; 
 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        vehicle.hardware.IMUGet(accel_raw, gyro_raw, mag_raw); 
+        vehicle.hardware.IMUGet(accel, gyro, mag); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
         status.imu_connected = FLAG_SET; 
         timers.imu_connection = RESET;
 
+#if VS_MAG_CAL
         MagnetometerCorrection();
+#endif
         OrientationCalcs();
     }
 
@@ -282,15 +284,15 @@ void VehicleNavigation::MagnetometerCorrection(void)
     // Hard-iron offsets 
     Vector<float> mag_off = 
     {
-        .x = static_cast<float>(mag_raw.x) - mag_hi.x,
-        .y = static_cast<float>(mag_raw.y) - mag_hi.y,
-        .z = static_cast<float>(mag_raw.z) - mag_hi.z
+        .x = mag.x - mag_hi.x,
+        .y = mag.y - mag_hi.y,
+        .z = mag.z - mag_hi.z
     };
 
     // Soft-iron offsets 
-    mag_cal.x = (mag_sid.x*mag_off.x) + (mag_sio.x*mag_off.y) + (mag_sio.y*mag_off.z); 
-    mag_cal.y = (mag_sio.x*mag_off.x) + (mag_sid.y*mag_off.y) + (mag_sio.z*mag_off.z); 
-    mag_cal.z = (mag_sio.y*mag_off.x) + (mag_sio.z*mag_off.y) + (mag_sid.z*mag_off.z); 
+    mag.x = (mag_sid.x*mag_off.x) + (mag_sio.x*mag_off.y) + (mag_sio.y*mag_off.z); 
+    mag.y = (mag_sio.x*mag_off.x) + (mag_sid.y*mag_off.y) + (mag_sio.z*mag_off.z); 
+    mag.z = (mag_sio.y*mag_off.x) + (mag_sio.z*mag_off.y) + (mag_sid.z*mag_off.z); 
 }
 
 
@@ -322,7 +324,7 @@ int16_t VehicleNavigation::HeadingError(void)
     // the magnetometer data was provided in the correct orientation then the calculated 
     // heading will increase from 0 in the clockwise direction starting from North which 
     // follows the NED frame orientation. 
-    mag_heading = (int16_t)(atan2f(mag_cal.y, mag_cal.x)*rad_to_deg*scale_10); 
+    mag_heading = (int16_t)(atan2f(mag.y, mag.x)*rad_to_deg*scale_10); 
 
     // Find the true North heading by adding the true North heading offset to the 
     // magnetic heading. After this is done, the bounds are checked to make sure the 
@@ -483,34 +485,33 @@ VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)
 /**
  * @brief Get the current accelerometer readings 
  * 
- * @return VehicleNavigation::Vector<int16_t> : accelerometer axis data 
+ * @return VehicleNavigation::Vector<float> : accelerometer axis data 
  */
-VehicleNavigation::Vector<int16_t> VehicleNavigation::AccelCurrentGet(void)
+VehicleNavigation::Vector<float> VehicleNavigation::AccelCurrentGet(void)
 {
-    return accel_raw; 
+    return accel;
 }
 
 
 /**
  * @brief Get the current gyroscope readings 
  * 
- * @return VehicleNavigation::Vector<int16_t> : gyroscope axis data 
+ * @return VehicleNavigation::Vector<float> : gyroscope axis data 
  */
-VehicleNavigation::Vector<int16_t> VehicleNavigation::GyroCurrentGet(void)
+VehicleNavigation::Vector<float> VehicleNavigation::GyroCurrentGet(void)
 {
-    return gyro_raw; 
+    return gyro;
 }
 
 
 /**
  * @brief Get the current magnetometer readings 
  * 
- * @return VehicleNavigation::Vector<int16_t> : magnetometer axis data 
+ * @return VehicleNavigation::Vector<float> : magnetometer axis data 
  */
-VehicleNavigation::Vector<int16_t> VehicleNavigation::MagCurrentGet(void)
+VehicleNavigation::Vector<float> VehicleNavigation::MagCurrentGet(void)
 {
-    Vector<int16_t> mag = { (int16_t)mag_cal.x, (int16_t)mag_cal.y, (int16_t)mag_cal.z }; 
-    return mag; 
+    return mag;
 }
 
 
