@@ -21,20 +21,19 @@
 
 
 //=======================================================================================
-// Macros 
+// Constants 
 
 // Size and range 
-#define EARTH_RADIUS 6371        // Average radius of the Earth (km) 
+constexpr float earth_radius = 6371.0f;   // Average radius of the Earth (km) 
 
 // Unit conversions 
-#define PI 3.1415927f            // PI 
-#define RAD_TO_DEG 180.0f / PI   // Radians to degrees 
-#define DEG_TO_RAD PI / 180.0f   // Degrees to radians 
-#define KM_TO_M 1000             // Kilometers to meters 
-#define SCALE_10 10.0f           // Scaling to remove 1 decimal place 
+constexpr float rad_to_deg = 180.0f / 3.1415927f;   // Radians to degrees 
+constexpr float deg_to_rad = 3.1415927f / 180.0f;   // Degrees to radians 
+constexpr float km_to_m = 1000.0f;                  // Kilometers to meters 
+constexpr float scale_10 = 10.0f;                   // Scaling to remove 1 decimal place 
 
 // Other 
-#define MISSION_TARGET_INC 1     // Mission target increment 
+constexpr uint16_t mission_target_increment = 1;
 
 //=======================================================================================
 
@@ -68,6 +67,47 @@ VehicleNavigation::VehicleNavigation()
 
 //=======================================================================================
 // Navigation data handling 
+
+/**
+ * @brief Update the vehicle orientation data 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
+{
+    if (vehicle.hardware.data_ready.imu_ready == FLAG_SET)
+    {
+        vehicle.hardware.data_ready.imu_ready = FLAG_CLEAR; 
+
+        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
+        vehicle.hardware.IMUGet(accel_raw, gyro_raw, mag_raw); 
+        xSemaphoreGive(vehicle.comms_mutex); 
+
+        status.imu_connected = FLAG_SET; 
+        timers.imu_connection = RESET;
+
+        MagnetometerCorrection();
+        OrientationCalcs();
+    }
+
+    OrientationChecks(vehicle); 
+}
+
+
+/**
+ * @brief Orientation data checks 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::OrientationChecks(Vehicle &vehicle)
+{
+    // Check for a physical device loss (no data coming in). 
+    if (status.imu_connected && (timers.imu_connection++ >= VS_NAV_DEVICE_TIMEOUT))
+    {
+        status.imu_connected = FLAG_CLEAR; 
+    }
+}
+
 
 /**
  * @brief Update the vehicle location data 
@@ -135,44 +175,6 @@ void VehicleNavigation::LocationChecks(Vehicle &vehicle)
     }
 }
 
-
-/**
- * @brief Update the vehicle orientation data 
- * 
- * @param vehicle : vehicle object 
- */
-void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
-{
-    if (vehicle.hardware.data_ready.imu_ready == FLAG_SET)
-    {
-        vehicle.hardware.data_ready.imu_ready = FLAG_CLEAR; 
-
-        xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        vehicle.hardware.IMUGet(accel_raw, gyro_raw, mag_raw); 
-        xSemaphoreGive(vehicle.comms_mutex); 
-
-        status.imu_connected = FLAG_SET; 
-        timers.imu_connection = RESET; 
-    }
-
-    OrientationChecks(vehicle); 
-}
-
-
-/**
- * @brief Orientation data checks 
- * 
- * @param vehicle : vehicle object 
- */
-void VehicleNavigation::OrientationChecks(Vehicle &vehicle)
-{
-    // Check for a physical device loss (no data coming in). 
-    if (status.imu_connected && (timers.imu_connection++ >= VS_NAV_DEVICE_TIMEOUT))
-    {
-        status.imu_connected = FLAG_CLEAR; 
-    }
-}
-
 //=======================================================================================
 
 
@@ -216,7 +218,7 @@ void VehicleNavigation::TargetAssess(Vehicle &vehicle)
         
         default: 
             // If the current mission item is not supported then it must be skipped. 
-            vehicle.memory.MissionTargetSet(mission_target.seq + MISSION_TARGET_INC); 
+            vehicle.memory.MissionTargetSet(mission_target.seq + mission_target_increment); 
             break; 
     }
 }
@@ -239,10 +241,10 @@ void VehicleNavigation::TargetUpdate(Vehicle &vehicle)
     // must be filled in by conversion from another type. 
     location_target.latI = mission_target.x; 
     location_target.lonI = mission_target.y; 
-    location_target.alt = mission_target.z; 
-    location_target.altI = (int32_t)(mission_target.z * DEGREE_DATATYPE); 
-    location_target.lat = (float)mission_target.x / DEGREE_DATATYPE; 
-    location_target.lon = (float)mission_target.y / DEGREE_DATATYPE; 
+    location_target.altI = static_cast<int32_t>(mission_target.z * coordinate_scalar);
+    location_target.lat = static_cast<float>(mission_target.x) / coordinate_scalar; 
+    location_target.lon = static_cast<float>(mission_target.y) / coordinate_scalar; 
+    location_target.alt = mission_target.z;
 }
 
 
@@ -256,114 +258,54 @@ void VehicleNavigation::CourseCorrection(Vehicle &vehicle)
     // If the GPS and IMU are both connected then proceed to find the error between the 
     // vehicle heading and the target heading and use that to update the vehicle thrust 
     // and steering. If either the GPS or IMU are not connected then the vehicle is force 
-    // stopped as autonomous navigation would not work otherwise 
-    (status.gps_connected && status.imu_connected) ? 
-        vehicle.AutoDrive(HeadingError()) : 
-        vehicle.control.ForceStop(vehicle); 
+    // stopped as autonomous navigation would not work otherwise. 
+    (status.gps_connected && status.imu_connected) ? vehicle.AutoDrive(HeadingError()) : 
+                                                     vehicle.control.ForceStop(vehicle); 
 }
 
 //=======================================================================================
 
 
 //=======================================================================================
-// Location calculations 
+// Orientation calculations 
 
 /**
- * @brief Find the position relative to the target waypoint 
+ * @brief Correct the magnetometer data with the calibration values 
+ */
+void VehicleNavigation::MagnetometerCorrection(void)
+{
+    // Correct the magnetometer axis readings with calibration values. First the hard-
+    // iron offsets are subtracted from the raw axis readings, then soft-iron scale 
+    // values are applied using a matrix multiplication. These correction values are 
+    // parameters that can be updated. 
+
+    // Hard-iron offsets 
+    Vector<float> mag_off = 
+    {
+        .x = static_cast<float>(mag_raw.x) - mag_hi.x,
+        .y = static_cast<float>(mag_raw.y) - mag_hi.y,
+        .z = static_cast<float>(mag_raw.z) - mag_hi.z
+    };
+
+    // Soft-iron offsets 
+    mag_cal.x = (mag_sid.x*mag_off.x) + (mag_sio.x*mag_off.y) + (mag_sio.y*mag_off.z); 
+    mag_cal.y = (mag_sio.x*mag_off.x) + (mag_sid.y*mag_off.y) + (mag_sio.z*mag_off.z); 
+    mag_cal.z = (mag_sio.y*mag_off.x) + (mag_sio.z*mag_off.y) + (mag_sid.z*mag_off.z); 
+}
+
+
+/**
+ * @brief Determine the vehicle orientation 
  * 
- * @param vehicle : vehicle object 
+ * @details Uses the new IMU data and a Madgwick filter to determine the orientation and 
+ *          acceleration of the vehicle in the Earth frame. Orientation is used for 
+ *          vehicle stability and acceleration is used for position estimation. 
  */
-void VehicleNavigation::TargetWaypoint(Vehicle &vehicle)
+void VehicleNavigation::OrientationCalcs(void)
 {
-    // Check if the current location is within the acceptance radius of the target 
-    // waypoint. If it is and the mission item specifies to continue onto the next 
-    // mission item, then the mission target is updated. The read coordinates are 
-    // filtered to smooth the data. The coordinate/target heading is also found here 
-    // since it can only change with new coordinate data. 
-
-    // location_filtered.lat += (location_current.lat - location_filtered.lat)*coordinate_lpf_gain; 
-    // location_filtered.lon += (location_current.lon - location_filtered.lon)*coordinate_lpf_gain; 
-
-    // Update the GPS position information before checking if the waypoint is hit. 
-    WaypointError(); 
-    
-    // Check if the waypoint had been hit by comparing the distance to the waypoint 
-    // with the waypoint acceptance distance. 
-    if (waypoint_distance < waypoint_radius)
-    {
-        // Send a mission item reached message 
-        vehicle.telemetry.MAVLinkMissionItemReachedSet(); 
-
-        if (mission_target.autocontinue)
-        {
-            vehicle.memory.MissionTargetSet(mission_target.seq + MISSION_TARGET_INC); 
-        }
-    }
+    // 
 }
 
-
-/**
- * @brief Find the distance and heading to the target waypoint 
- */
-void VehicleNavigation::WaypointError(void)
-{
-    float current_lat, current_lon, target_lat, target_lon; 
-    float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8; 
-    float num, den; 
-
-    // Convert the coordinates to radians so they're compatible with the math library. 
-    current_lat = location_current.lat * DEG_TO_RAD; 
-    current_lon = location_current.lon * DEG_TO_RAD; 
-    target_lat = location_target.lat * DEG_TO_RAD; 
-    target_lon = location_target.lon * DEG_TO_RAD; 
-
-    // Break the calculations down into smaller chunks to make it more readable. This 
-    // also prevents from the same calculations from being done twice. 
-    eq0 = target_lon - current_lon; 
-    eq1 = cos(target_lat); 
-    eq2 = cos(current_lat); 
-    eq3 = sin(target_lat); 
-    eq4 = sin(current_lat); 
-    eq5 = eq1*sin(eq0); 
-    eq6 = eq1*cos(eq0); 
-    eq7 = eq2*eq3; 
-    eq8 = eq7 - eq4*eq6; 
-    
-    // Calculate the initial heading in radians between coordinates relative to true 
-    // North. As you move along the path that's the shortest distance between two points 
-    // on the globe, your heading relative to true North changes which is why this is 
-    // just the instantaneous heading. This calculation comes from the great-circle 
-    // navigation equations. Once the heading is found it's converted from radians to 
-    // degrees and scaled by 10 (units: degrees*10) so its integer representation can 
-    // hold one decimal place of accuracy. 
-    num = eq1*sin(eq0); 
-    den = eq7 - eq4*eq1*cos(eq0); 
-    heading_target = (int16_t)(atan(num/den)*RAD_TO_DEG*SCALE_10); 
-    
-    // Correct the calculated heading if needed. atan can produce a heading outside the 
-    // needed range (0-359.9 degrees) so this correction brings the value back within 
-    // range. 
-    if (den < 0)
-    {
-        heading_target += HEADING_SOUTH; 
-    }
-    else if (num < 0)
-    {
-        heading_target += HEADING_RANGE; 
-    }
-
-    // Calculate the surface distance (or radius - direction independent) in meters 
-    // between the current and target coordinates. This distance can also be described as 
-    // the distance between coordinates along their great-circle. This calculation comes 
-    // from the great-circle navigation equations. 
-    waypoint_distance = atan2(sqrt((eq8*eq8) + (eq5*eq5)), (eq4*eq3 + eq2*eq6))*EARTH_RADIUS*KM_TO_M; 
-}
-
-//=======================================================================================
-
-
-//=======================================================================================
-// Heading calculations 
 
 /**
  * @brief Error between current and target heading (relative to true North) 
@@ -372,23 +314,7 @@ void VehicleNavigation::WaypointError(void)
  */
 int16_t VehicleNavigation::HeadingError(void)
 {
-    Vector<float> mag_off; 
     int16_t mag_heading, heading_error; 
-
-    // Correct the magnetometer axis readings with calibration values. First the hard-
-    // iron offsets are subtracted from the raw axis readings, then soft-iron scale 
-    // values are applied using a matrix multiplication. These correction values are 
-    // parameters that can be updated. 
-
-    // Hard-iron offsets 
-    mag_off.x = (float)mag_raw.x - mag_hi.x; 
-    mag_off.y = (float)mag_raw.y - mag_hi.y; 
-    mag_off.z = (float)mag_raw.z - mag_hi.z; 
-
-    // Soft-iron offsets 
-    mag_cal.x = (mag_sid.x*mag_off.x) + (mag_sio.x*mag_off.y) + (mag_sio.y*mag_off.z); 
-    mag_cal.y = (mag_sio.x*mag_off.x) + (mag_sid.y*mag_off.y) + (mag_sio.z*mag_off.z); 
-    mag_cal.z = (mag_sio.y*mag_off.x) + (mag_sio.z*mag_off.y) + (mag_sid.z*mag_off.z); 
 
     // Find the magnetic heading based on the magnetometer X and Y axis data. atan2f 
     // looks at the value and sign of X and Y to determine the correct output so axis 
@@ -396,7 +322,7 @@ int16_t VehicleNavigation::HeadingError(void)
     // the magnetometer data was provided in the correct orientation then the calculated 
     // heading will increase from 0 in the clockwise direction starting from North which 
     // follows the NED frame orientation. 
-    mag_heading = (int16_t)(atan2f(mag_cal.y, mag_cal.x)*RAD_TO_DEG*SCALE_10); 
+    mag_heading = (int16_t)(atan2f(mag_cal.y, mag_cal.x)*rad_to_deg*scale_10); 
 
     // Find the true North heading by adding the true North heading offset to the 
     // magnetic heading. After this is done, the bounds are checked to make sure the 
@@ -438,6 +364,103 @@ void VehicleNavigation::HeadingRangeCheck(int16_t &heading_value)
     {
         heading_value += HEADING_RANGE; 
     }
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Position calculations 
+
+/**
+ * @brief Find the position relative to the target waypoint 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleNavigation::TargetWaypoint(Vehicle &vehicle)
+{
+    // Check if the current location is within the acceptance radius of the target 
+    // waypoint. If it is and the mission item specifies to continue onto the next 
+    // mission item, then the mission target is updated. The read coordinates are 
+    // filtered to smooth the data. The coordinate/target heading is also found here 
+    // since it can only change with new coordinate data. 
+
+    // location_filtered.lat += (location_current.lat - location_filtered.lat)*coordinate_lpf_gain; 
+    // location_filtered.lon += (location_current.lon - location_filtered.lon)*coordinate_lpf_gain; 
+
+    // Update the GPS position information before checking if the waypoint is hit. 
+    WaypointError(); 
+    
+    // Check if the waypoint had been hit by comparing the distance to the waypoint 
+    // with the waypoint acceptance distance. 
+    if (waypoint_distance < waypoint_radius)
+    {
+        // Send a mission item reached message 
+        vehicle.telemetry.MAVLinkMissionItemReachedSet(); 
+
+        if (mission_target.autocontinue)
+        {
+            vehicle.memory.MissionTargetSet(mission_target.seq + mission_target_increment); 
+        }
+    }
+}
+
+
+/**
+ * @brief Find the distance and heading to the target waypoint 
+ */
+void VehicleNavigation::WaypointError(void)
+{
+    float current_lat, current_lon, target_lat, target_lon; 
+    float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8; 
+    float num, den; 
+
+    // Convert the coordinates to radians so they're compatible with the math library. 
+    current_lat = location_current.lat * deg_to_rad; 
+    current_lon = location_current.lon * deg_to_rad; 
+    target_lat = location_target.lat * deg_to_rad; 
+    target_lon = location_target.lon * deg_to_rad; 
+
+    // Break the calculations down into smaller chunks to make it more readable. This 
+    // also prevents from the same calculations from being done twice. 
+    eq0 = target_lon - current_lon; 
+    eq1 = cos(target_lat); 
+    eq2 = cos(current_lat); 
+    eq3 = sin(target_lat); 
+    eq4 = sin(current_lat); 
+    eq5 = eq1*sin(eq0); 
+    eq6 = eq1*cos(eq0); 
+    eq7 = eq2*eq3; 
+    eq8 = eq7 - eq4*eq6; 
+    
+    // Calculate the initial heading in radians between coordinates relative to true 
+    // North. As you move along the path that's the shortest distance between two points 
+    // on the globe, your heading relative to true North changes which is why this is 
+    // just the instantaneous heading. This calculation comes from the great-circle 
+    // navigation equations. Once the heading is found it's converted from radians to 
+    // degrees and scaled by 10 (units: degrees*10) so its integer representation can 
+    // hold one decimal place of accuracy. 
+    num = eq1*sin(eq0); 
+    den = eq7 - eq4*eq1*cos(eq0); 
+    heading_target = (int16_t)(atan(num/den)*rad_to_deg*scale_10); 
+    
+    // Correct the calculated heading if needed. atan can produce a heading outside the 
+    // needed range (0-359.9 degrees) so this correction brings the value back within 
+    // range. 
+    if (den < 0)
+    {
+        heading_target += HEADING_SOUTH; 
+    }
+    else if (num < 0)
+    {
+        heading_target += HEADING_RANGE; 
+    }
+
+    // Calculate the surface distance (or radius - direction independent) in meters 
+    // between the current and target coordinates. This distance can also be described as 
+    // the distance between coordinates along their great-circle. This calculation comes 
+    // from the great-circle navigation equations. 
+    waypoint_distance = atan2(sqrt((eq8*eq8) + (eq5*eq5)), (eq4*eq3 + eq2*eq6))*earth_radius*km_to_m; 
 }
 
 //=======================================================================================
@@ -531,7 +554,7 @@ int16_t VehicleNavigation::HeadingTargetGet(void)
  */
 uint16_t VehicleNavigation::WaypointDistanceGet(void)
 {
-    return (uint16_t)(waypoint_distance*SCALE_10); 
+    return (uint16_t)(waypoint_distance*scale_10); 
 }
 
 //=======================================================================================
