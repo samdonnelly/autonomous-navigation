@@ -129,18 +129,22 @@ private:
     }
     status; 
 
+    // Orientation 
+    Vector<float> accel, gyro, mag;                      // Body frame accelerometer, gyroscope and magnetometer data 
+    Vector<float> orient;                                // x = roll, y = pitch, z = yaw (radians) from NED frame 
+    Vector<float> accel_ned;                             // Acceleration in the NED frame 
+    Vector<float> mag_hi, mag_sid, mag_sio;              // Magnetometer calibration correction 
+    int16_t true_north_offset;                           // Magnetic declination (degrees*10) 
+    int16_t heading, heading_target;                     // 0-3599 (degrees*10) 
+    float q0, q1, q2, q3;	                             // Madgwick quaternion of sensor frame relative to Earth frame 
+    float beta, dt;                                      // Madgwick parameters - correction weight and sample period (s) 
+    float r11, r12, r13, r21, r22, r23, r31, r32, r33;   // Madgwick quaternion rotation matrix elements 
+
     // Location 
     Location location_current, location_filtered, location_target;   // WGS84 
     mavlink_mission_item_int_t mission_target; 
     float waypoint_distance, waypoint_radius;                        // Distance to target waypoint & waypoint acceptance 
     float coordinate_lpf_gain;                                       // Low pass filter gain for GPS coordinates 
-
-    // Orientation 
-    Vector<float> accel, gyro, mag;                                  // Accelerometer, gyroscope and magnetometer data 
-    Vector<float> orient;                                            // x = roll, y = pitch, z = yaw (degrees) 
-    Vector<float> mag_hi, mag_sid, mag_sio;                          // Magnetometer correction 
-    int16_t true_north_offset;                                       // True north offset (degrees*10) 
-    int16_t heading, heading_target;                                 // 0-3599 (degrees*10) 
 
     // Navigation data handling 
     void OrientationChecks(Vehicle &vehicle);
@@ -152,12 +156,17 @@ private:
     // Orientation calculations 
     void MagnetometerCorrection(void);
     void OrientationCalcs(void);
-    int16_t HeadingError(void); 
-    void HeadingRangeCheck(int16_t &heading_value);
+    void MadgwickCalcs(void);
+    void OrientationNED(void);
+    void AccelNED(void);
+    int16_t HeadingError(void);
     
     // Position calculations 
     void TargetWaypoint(Vehicle &vehicle); 
-    void WaypointError(void); 
+    void WaypointError(void);
+
+    // Helper functions 
+    float invSqrt(const float &x) const;
 }; 
 
 //=======================================================================================

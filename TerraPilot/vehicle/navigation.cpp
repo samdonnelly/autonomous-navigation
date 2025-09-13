@@ -23,17 +23,23 @@
 //=======================================================================================
 // Constants 
 
-// Size and range 
-constexpr float earth_radius = 6371.0f;   // Average radius of the Earth (km) 
+// Real world data 
+static constexpr float earth_radius = 6371.0f;   // Average radius of the Earth (km) 
+static constexpr float gravity = 9.81;           // Gravity (m/s^2) 
 
 // Unit conversions 
-constexpr float rad_to_deg = 180.0f / 3.1415927f;   // Radians to degrees 
-constexpr float deg_to_rad = 3.1415927f / 180.0f;   // Degrees to radians 
-constexpr float km_to_m = 1000.0f;                  // Kilometers to meters 
-constexpr float scale_10 = 10.0f;                   // Scaling to remove 1 decimal place 
+static constexpr float rad_to_deg = 180.0f / 3.1415927f;   // Radians to degrees 
+static constexpr float deg_to_rad = 3.1415927f / 180.0f;   // Degrees to radians 
+static constexpr float km_to_m = 1000.0f;                  // Kilometers to meters 
+static constexpr float scale_10 = 10.0f;                   // Scaling to remove 1 decimal place 
+
+// Directions 
+static constexpr float heading_north = 0.0f;               // Heading when facing North 
+static constexpr float heading_south = 180.0f;             // Heading when facing South 
+static constexpr float heading_full_range = 360.0f;        // Range of heading 
 
 // Other 
-constexpr uint16_t mission_target_increment = 1;
+static constexpr uint16_t mission_target_increment = 1;
 
 //=======================================================================================
 
@@ -298,14 +304,222 @@ void VehicleNavigation::MagnetometerCorrection(void)
 
 /**
  * @brief Determine the vehicle orientation 
+ */
+void VehicleNavigation::OrientationCalcs(void)
+{
+    // Execute a Madgwick filter with the new IMU data to find the quaternion rotation 
+    // matrix. This allows for the orientation and acceleration in the NED frame to be 
+    // determined. 
+    MadgwickCalcs();
+
+    // Find the roll, pitch and yaw in the NED frame relative to magnetic North. 
+    OrientationNED();
+
+    // Find the acceleration and its uncertainty in the NED frame relative to true North. 
+    AccelNED();
+}
+
+
+/**
+ * @brief Determine the vehicle orientation using a Madgwick filter 
  * 
  * @details Uses the new IMU data and a Madgwick filter to determine the orientation and 
  *          acceleration of the vehicle in the Earth frame. Orientation is used for 
  *          vehicle stability and acceleration is used for position estimation. 
  */
-void VehicleNavigation::OrientationCalcs(void)
+void VehicleNavigation::MadgwickCalcs(void)
 {
-    // 
+    // Madgwick filter calculation variables 
+    float gx, gy, gz, ax, ay, az, mx, my, mz;
+    float recipNorm;
+	float s0, s1, s2, s3;
+	float qDot1, qDot2, qDot3, qDot4;
+	float hx, hy;
+	float _2q0mx, _2q0my, _2q0mz, _2q1mx, 
+          _2bx, _2bz, _4bx, _4bz, 
+          _2q0, _2q1, _2q2, _2q3, 
+          _2q0q2, _2q2q3, q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;
+
+    constexpr float _0_0f = 0.0f, _0_5f = 0.5f, _1_0f = 1.0f, _2_0f = 2.0f, _4_0f = 4.0f; 
+
+	// Convert gyroscope degrees/sec to radians/sec
+	gx = gyro.x * deg_to_rad;
+	gy = gyro.y * deg_to_rad;
+	gz = gyro.z * deg_to_rad;
+
+	// Rate of change of quaternion from gyroscope
+	qDot1 = _0_5f * (-q1 * gx - q2 * gy - q3 * gz);
+	qDot2 = _0_5f * (q0 * gx + q2 * gz - q3 * gy);
+	qDot3 = _0_5f * (q0 * gy - q1 * gz + q3 * gx);
+	qDot4 = _0_5f * (q0 * gz + q1 * gy - q2 * gx);
+
+	// Compute feedback only if accelerometer and magnetometer measurements are valid 
+    // (avoids NaN in normalisation). 
+	if (!((accel.x == _0_0f) && (accel.y == _0_0f) && (accel.z == _0_0f)) || 
+        !((mag.x == _0_0f) && (mag.y == _0_0f) && (mag.z == _0_0f)))
+    {
+		// Normalise accelerometer measurement
+		recipNorm = invSqrt(accel.x * accel.x + 
+                            accel.y * accel.y + 
+                            accel.z * accel.z);
+		ax = accel.x * recipNorm;
+		ay = accel.y * recipNorm;
+		az = accel.z * recipNorm;
+
+		// Normalise magnetometer measurement
+		recipNorm = invSqrt(mag.x * mag.x + 
+                            mag.y * mag.y + 
+                            mag.z * mag.z);
+		mx = mag.x * recipNorm;
+		my = mag.y * recipNorm;
+		mz = mag.z * recipNorm;
+
+		// Auxiliary variables to avoid repeated arithmetic
+		_2q0mx = _2_0f * q0 * mx;
+		_2q0my = _2_0f * q0 * my;
+		_2q0mz = _2_0f * q0 * mz;
+		_2q1mx = _2_0f * q1 * mx;
+		_2q0 = _2_0f * q0;
+		_2q1 = _2_0f * q1;
+		_2q2 = _2_0f * q2;
+		_2q3 = _2_0f * q3;
+		_2q0q2 = _2_0f * q0 * q2;
+		_2q2q3 = _2_0f * q2 * q3;
+		q0q0 = q0 * q0;
+		q0q1 = q0 * q1;
+		q0q2 = q0 * q2;
+		q0q3 = q0 * q3;
+		q1q1 = q1 * q1;
+		q1q2 = q1 * q2;
+		q1q3 = q1 * q3;
+		q2q2 = q2 * q2;
+		q2q3 = q2 * q3;
+		q3q3 = q3 * q3;
+
+		// Reference direction of Earth's magnetic field
+		hx = mx * q0q0 - _2q0my * q3 + _2q0mz * q2 + mx * q1q1 + _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+		hy = _2q0mx * q3 + my * q0q0 - _2q0mz * q1 + _2q1mx * q2 - my * q1q1 + my * q2q2 + _2q2 * mz * q3 - my * q3q3;
+		_2bx = sqrtf(hx * hx + hy * hy);
+		_2bz = -_2q0mx * q2 + _2q0my * q1 + mz * q0q0 + _2q1mx * q3 - mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+		_4bx = _2_0f * _2bx;
+		_4bz = _2_0f * _2bz;
+
+        // Gradient decent algorithm corrective step
+		s0 = -_2q2 * (_2_0f * q1q3 - _2q0q2 - ax) + _2q1 * (_2_0f * q0q1 + _2q2q3 - ay) - 
+             _2bz * q2 * (_2bx * (_0_5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + 
+             (-_2bx * q3 + _2bz * q1) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + 
+             _2bx * q2 * (_2bx * (q0q2 + q1q3) + _2bz * (_0_5f - q1q1 - q2q2) - mz);
+		
+        s1 = _2q3 * (_2_0f * q1q3 - _2q0q2 - ax) + _2q0 * (_2_0f * q0q1 + _2q2q3 - ay) - 
+             _4_0f * q1 * (_1_0f - _2_0f * q1q1 - _2_0f * q2q2 - az) + _2bz * q3 * 
+             (_2bx * (_0_5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + 
+             (_2bx * q2 + _2bz * q0) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + 
+             (_2bx * q3 - _4bz * q1) * (_2bx * (q0q2 + q1q3) + _2bz * (_0_5f - q1q1 - q2q2) - mz);
+		
+        s2 = -_2q0 * (_2_0f * q1q3 - _2q0q2 - ax) + _2q3 * (_2_0f * q0q1 + _2q2q3 - ay) - 
+             _4_0f * q2 * (_1_0f - _2_0f * q1q1 - _2_0f * q2q2 - az) + (-_4bx * q2 - _2bz * q0) * 
+             (_2bx * (_0_5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (_2bx * q1 + _2bz * q3) * 
+             (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + (_2bx * q0 - _4bz * q2) * 
+             (_2bx * (q0q2 + q1q3) + _2bz * (_0_5f - q1q1 - q2q2) - mz);
+		
+        s3 = _2q1 * (_2_0f * q1q3 - _2q0q2 - ax) + _2q2 * (_2_0f * q0q1 + _2q2q3 - ay) + 
+             (-_4bx * q3 + _2bz * q1) * (_2bx * (_0_5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + 
+             (-_2bx * q0 + _2bz * q2) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + _2bx * 
+             q1 * (_2bx * (q0q2 + q1q3) + _2bz * (_0_5f - q1q1 - q2q2) - mz);
+		
+        // Normalise step magnitude
+        recipNorm = invSqrt(s0 * s0 + s1 * s1 + s2 * s2 + s3 * s3);
+        s0 *= recipNorm;
+		s1 *= recipNorm;
+		s2 *= recipNorm;
+		s3 *= recipNorm;
+
+		// Apply feedback step
+		qDot1 -= beta * s0;
+		qDot2 -= beta * s1;
+		qDot3 -= beta * s2;
+		qDot4 -= beta * s3;
+	}
+
+	// Integrate rate of change of quaternion to yield quaternion
+	q0 += qDot1 * dt;
+	q1 += qDot2 * dt;
+	q2 += qDot3 * dt;
+	q3 += qDot4 * dt;
+
+	// Normalise quaternion
+	recipNorm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+	q0 *= recipNorm;
+	q1 *= recipNorm;
+	q2 *= recipNorm;
+	q3 *= recipNorm;
+
+	// Find the elements of the rotation matrix from body to NWU frame 
+	r11 = _0_5f - q2*q2 - q3*q3;
+	r12 = q1*q2 - q0*q3;
+	r13 = q1*q3 + q0*q2;
+	r21 = q1*q2 + q0*q3;
+	r22 = _0_5f - q1*q1 - q3*q3;
+	r23 = q2*q3 - q0*q1;
+	r31 = q1*q3 - q0*q2;
+	r32 = q0*q1 + q2*q3;
+	r33 = _0_5f - q1*q1 - q2*q2;
+}
+
+
+/**
+ * @brief Find the vehicle orientation in the NED frame 
+ */
+void VehicleNavigation::OrientationNED(void)
+{
+    constexpr float _2_0f = 2.0f;
+
+    // Calculate roll, pitch and yaw (radians) in the NED frame relative to magnetic 
+    // North. 
+	orient.x = atan2f(r32, r33);     // Roll 
+	orient.y = -asinf(-_2_0f*r31);   // Pitch 
+	orient.z = -atan2f(r21, r11);    // Yaw 
+
+    // Adjust the yaw angle to be relative to true North. Roll and pitch are unaffected 
+    // by this offset. 
+    orient.z += true_north_offset;
+
+    if (orient.z < heading_north)
+    {
+        orient.z += heading_full_range;
+    }
+    else if (orient.z >= heading_full_range)
+    {
+        orient.z -= heading_full_range;
+    }
+}
+
+
+/**
+ * @brief Find the acceleration of the vehicle in the NED frame 
+ */
+void VehicleNavigation::AccelNED(void)
+{
+    constexpr float _2_0f = 2.0f;
+
+    // Determine the acceleration (g's) in the NED frame relative to magnetic North 
+    accel_ned.x = _2_0f*(r11*accel.x + r12*accel.y + r13*accel.z);
+	accel_ned.y = -_2_0f*(r21*accel.x + r22*accel.y + r23*accel.z);
+	accel_ned.z = -(_2_0f*(r31*accel.x + r32*accel.y + r33*accel.z) - gravity);
+
+    // Rotate the NED acceleration into the true North NED frame using a 2D rotation 
+    // matrix about the vertical axis. 
+    const float
+    eqo = true_north_offset*deg_to_rad,
+    eq1 = cosf(eqo),
+    eq2 = sinf(eqo),
+    eq3 = accel_ned.x*eq1,
+    eq4 = accel_ned.y*eq2,
+    eq5 = accel_ned.x*eq2,
+    eq6 = accel_ned.y*eq1;
+
+    accel_ned.x = eq3 - eq4;
+    accel_ned.y = eq5 + eq6;
 }
 
 
@@ -316,56 +530,21 @@ void VehicleNavigation::OrientationCalcs(void)
  */
 int16_t VehicleNavigation::HeadingError(void)
 {
-    int16_t mag_heading, heading_error; 
-
-    // Find the magnetic heading based on the magnetometer X and Y axis data. atan2f 
-    // looks at the value and sign of X and Y to determine the correct output so axis 
-    // values don't have to be checked for potential errors (ex. divide by zero). If 
-    // the magnetometer data was provided in the correct orientation then the calculated 
-    // heading will increase from 0 in the clockwise direction starting from North which 
-    // follows the NED frame orientation. 
-    mag_heading = (int16_t)(atan2f(mag.y, mag.x)*rad_to_deg*scale_10); 
-
-    // Find the true North heading by adding the true North heading offset to the 
-    // magnetic heading. After this is done, the bounds are checked to make sure the 
-    // offset didn't put the heading value outside its acceptable range. 
-    heading = mag_heading + true_north_offset; 
-    HeadingRangeCheck(heading); 
-
-    // Adjust the heading range. The magnetic heading is calculated within the range 
-    // -180 to 180 degrees and the true North offset adjustment maintains this range. 
-    // However, it's easier to find the heading error when the heading is in the range 
-    // 0 to 359.9 degrees since the target heading is calculated within this range. 
-    if (heading < HEADING_NORTH)
-    {
-        heading += HEADING_RANGE; 
-    }
-
     // Find the error between the target heading and the current true North heading. 
     // The target heading is based on true North and is found using current and target 
     // GPS coordinates. 
-    heading_error = heading_target - heading; 
-    HeadingRangeCheck(heading_error); 
+    int16_t heading_error = heading_target - heading;
+
+    if (heading_error > HEADING_SOUTH)
+    {
+        heading_error -= HEADING_RANGE; 
+    }
+    else if (heading_error <= -HEADING_SOUTH)
+    {
+        heading_error += HEADING_RANGE; 
+    }
 
     return heading_error; 
-}
-
-
-/**
- * @brief Keep the heading within a valid range 
- * 
- * @param heading_value : heading value to check 
- */
-void VehicleNavigation::HeadingRangeCheck(int16_t &heading_value)
-{
-    if (heading_value > HEADING_SOUTH)
-    {
-        heading_value -= HEADING_RANGE; 
-    }
-    else if (heading_value <= -HEADING_SOUTH)
-    {
-        heading_value += HEADING_RANGE; 
-    }
 }
 
 //=======================================================================================
@@ -682,6 +861,27 @@ void VehicleNavigation::MagSoftIronOffDiagonalZSet(float compass_sioz)
 void VehicleNavigation::WaypointRadiusSet(float wp_radius)
 {
     waypoint_radius = wp_radius; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Helper functions 
+
+// Inverse square root 
+float VehicleNavigation::invSqrt(const float &x) const
+{
+	float halfx = 0.5f * x;
+	float y = x;
+	long i = *(long*)&y;
+
+	i = 0x5f3759df - (i >> 1);
+	y = *(float*)&i;
+	y *= (1.5f - (halfx * y * y));
+	y *= (1.5f - (halfx * y * y));
+
+	return y;
 }
 
 //=======================================================================================
