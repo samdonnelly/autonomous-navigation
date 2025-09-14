@@ -317,6 +317,7 @@ void VehicleNavigation::OrientationCalcs(void)
 
     // Find the acceleration and its uncertainty in the NED frame relative to true North. 
     AccelNED();
+    AccelUncertaintyNED();
 }
 
 
@@ -520,6 +521,15 @@ void VehicleNavigation::AccelNED(void)
 
     accel_ned.x = eq3 - eq4;
     accel_ned.y = eq5 + eq6;
+}
+
+
+/**
+ * @brief Find the accelerometer uncertainty in the NED frame 
+ */
+void VehicleNavigation::AccelUncertaintyNED(void)
+{
+    // 
 }
 
 

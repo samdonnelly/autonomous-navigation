@@ -159,6 +159,7 @@ private:
     void MadgwickCalcs(void);
     void OrientationNED(void);
     void AccelNED(void);
+    void AccelUncertaintyNED(void);
     int16_t HeadingError(void);
     
     // Position calculations 
