@@ -131,14 +131,15 @@ private:
 
     // Orientation 
     Vector<float> accel, gyro, mag;                      // Body frame accelerometer, gyroscope and magnetometer data 
-    Vector<float> orient;                                // x = roll, y = pitch, z = yaw (radians) from NED frame 
-    Vector<float> accel_ned;                             // Acceleration in the NED frame 
     Vector<float> mag_hi, mag_sid, mag_sio;              // Magnetometer calibration correction 
-    int16_t true_north_offset;                           // Magnetic declination (degrees*10) 
-    int16_t heading, heading_target;                     // 0-3599 (degrees*10) 
+    Vector<float> accel_uncertainty;                     // Acceleration uncertainty in sensor frame 
+    float true_north_offset;                             // Magnetic declination (degrees*10) 
     float q0, q1, q2, q3;	                             // Madgwick quaternion of sensor frame relative to Earth frame 
     float beta, dt;                                      // Madgwick parameters - correction weight and sample period (s) 
     float r11, r12, r13, r21, r22, r23, r31, r32, r33;   // Madgwick quaternion rotation matrix elements 
+    Vector<float> orient;                                // x = roll, y = pitch, z = yaw (radians) from NED frame 
+    Vector<float> accel_ned, accel_ned_uncertainty;      // Acceleration and its uncertainty in the NED frame 
+    float heading, heading_target;                       // 0-3599 (degrees*10) 
 
     // Location 
     Location location_current, location_filtered, location_target;   // WGS84 
@@ -160,6 +161,8 @@ private:
     void OrientationNED(void);
     void AccelNED(void);
     void AccelUncertaintyNED(void);
+    void TrueNorthEarthAccel(Vector<float> &accel);
+    void BodyToEarthAccel(Vector<float> &a_xyz, Vector<float> &a_ned);
     int16_t HeadingError(void);
     
     // Position calculations 

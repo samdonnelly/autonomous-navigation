@@ -508,19 +508,8 @@ void VehicleNavigation::AccelNED(void)
 	accel_ned.y = -_2_0f*(r21*accel.x + r22*accel.y + r23*accel.z);
 	accel_ned.z = -(_2_0f*(r31*accel.x + r32*accel.y + r33*accel.z) - gravity);
 
-    // Rotate the NED acceleration into the true North NED frame using a 2D rotation 
-    // matrix about the vertical axis. 
-    const float
-    eqo = true_north_offset*deg_to_rad,
-    eq1 = cosf(eqo),
-    eq2 = sinf(eqo),
-    eq3 = accel_ned.x*eq1,
-    eq4 = accel_ned.y*eq2,
-    eq5 = accel_ned.x*eq2,
-    eq6 = accel_ned.y*eq1;
-
-    accel_ned.x = eq3 - eq4;
-    accel_ned.y = eq5 + eq6;
+    // Rotate the NED acceleration into the true North NED frame 
+    TrueNorthEarthAccel(accel_ned);
 }
 
 
@@ -529,7 +518,47 @@ void VehicleNavigation::AccelNED(void)
  */
 void VehicleNavigation::AccelUncertaintyNED(void)
 {
-    // 
+    constexpr float _2_0f = 2.0f;
+
+    // Determine the acceleration (g's) in the NED frame relative to magnetic North 
+    accel_ned_uncertainty.x = _2_0f*(r11*accel.x + r12*accel.y + r13*accel.z);
+	accel_ned_uncertainty.y = -_2_0f*(r21*accel.x + r22*accel.y + r23*accel.z);
+	accel_ned_uncertainty.z = -(_2_0f*(r31*accel.x + r32*accel.y + r33*accel.z));
+
+    // Rotate the NED acceleration into the true North NED frame 
+    TrueNorthEarthAccel(accel_ned_uncertainty);
+}
+
+
+// Body frame to Earth frame rotation using Madgwick quaternion 
+void VehicleNavigation::BodyToEarthAccel(
+    Vector<float> &a_xyz,
+    Vector<float> &a_ned)
+{
+    // TODO account for gravity 
+    constexpr float _2_0f = 2.0f;
+    a_ned.x = _2_0f*(r11*a_xyz.x + r12*a_xyz.y + r13*a_xyz.z);
+	a_ned.y = -_2_0f*(r21*a_xyz.x + r22*a_xyz.y + r23*a_xyz.z);
+	a_ned.z = -(_2_0f*(r31*a_xyz.x + r32*a_xyz.y + r33*a_xyz.z));
+}
+
+
+// True North Earth frame acceleration 
+void VehicleNavigation::TrueNorthEarthAccel(Vector<float> &acceleration)
+{
+    // Rotate the NED acceleration into the true North NED frame using a 2D rotation 
+    // matrix about the vertical axis. 
+    const float
+    eqo = true_north_offset*deg_to_rad,
+    eq1 = cosf(eqo),
+    eq2 = sinf(eqo),
+    eq3 = acceleration.x*eq1,
+    eq4 = acceleration.y*eq2,
+    eq5 = acceleration.x*eq2,
+    eq6 = acceleration.y*eq1;
+
+    acceleration.x = eq3 - eq4;
+    accel.y = eq5 + eq6;
 }
 
 
