@@ -47,6 +47,12 @@ public:
         float lat, lon, alt;        // deg, m 
     };
 
+    // Velocity 
+    struct Velocity
+    {
+        float sog, cog, vvel;   // Speed over ground, course over ground, vertical velocity 
+    };
+
     template <typename T>
     struct Vector 
     {
@@ -84,12 +90,11 @@ public:
     Vector<float> GyroCurrentGet(void); 
     Vector<float> MagCurrentGet(void); 
     Vector<float> OrientationCurrentGet(void); 
-    int16_t HeadingCurrentGet(void); 
-    int16_t HeadingTargetGet(void); 
-    uint16_t WaypointDistanceGet(void); 
+    float HeadingTargetGet(void); 
+    float WaypointDistanceGet(void); 
     
     // Setters 
-    void TrueNorthOffsetSet(int16_t compass_tn); 
+    void TrueNorthOffsetSet(float compass_tn); 
     void MagHardIronXSet(float compass_hix); 
     void MagHardIronYSet(float compass_hiy); 
     void MagHardIronZSet(float compass_hiz); 
@@ -102,13 +107,6 @@ public:
     void WaypointRadiusSet(float wp_radius); 
 
 private:
-
-    enum HeadingDirections : int16_t 
-    {
-        HEADING_NORTH = 0,      // Heading reading when facing North (0 deg*10) 
-        HEADING_SOUTH = 1800,   // Heading reading when facing South (180 deg*10) 
-        HEADING_RANGE = 3600    // Full heading range (360 deg*10) 
-    };
 
     struct Timers 
     {
@@ -130,22 +128,27 @@ private:
     status; 
 
     // Orientation 
-    Vector<float> accel, gyro, mag;                      // Body frame accelerometer, gyroscope and magnetometer data 
-    Vector<float> mag_hi, mag_sid, mag_sio;              // Magnetometer calibration correction 
+    Vector<float> accel, gyro, mag;                      // Body frame accelerometer, gyroscope and magnetometer sensor data 
     Vector<float> accel_uncertainty;                     // Acceleration uncertainty in sensor frame 
-    float true_north_offset;                             // Magnetic declination (degrees*10) 
+    Vector<float> mag_hi, mag_sid, mag_sio;              // Magnetometer calibration correction 
+    float true_north_offset;                             // Magnetic declination (degrees) 
     float q0, q1, q2, q3;	                             // Madgwick quaternion of sensor frame relative to Earth frame 
-    float beta, dt;                                      // Madgwick parameters - correction weight and sample period (s) 
+    float m_beta, m_dt;                                  // Madgwick parameters - correction weight and sample period (s) 
     float r11, r12, r13, r21, r22, r23, r31, r32, r33;   // Madgwick quaternion rotation matrix elements 
     Vector<float> orient;                                // x = roll, y = pitch, z = yaw (radians) from NED frame 
     Vector<float> accel_ned, accel_ned_uncertainty;      // Acceleration and its uncertainty in the NED frame 
-    float heading, heading_target;                       // 0-3599 (degrees*10) 
+    float heading_target;                                // Desired heading to waypoint (0-359.9 degrees) 
 
     // Location 
-    Location location_current, location_filtered, location_target;   // WGS84 
-    mavlink_mission_item_int_t mission_target; 
-    float waypoint_distance, waypoint_radius;                        // Distance to target waypoint & waypoint acceptance 
-    float coordinate_lpf_gain;                                       // Low pass filter gain for GPS coordinates 
+    mavlink_mission_item_int_t mission_target;                        // Mission target information 
+    Location location_gps, location_gps_uncertainty;                  // Measure GPS location and uncertainty 
+    Velocity velocity_gps, velocity_gps_uncertainty;                  // Measure GPS velocity and uncertainty 
+    float k_dt;                                                       // Kalman filter prediction/sample interval (s) 
+    Vector<float> k_vel, k_pos;                                       // Kalman filter local velocity and position 
+    Vector<float> s2_v, s2_p;                                         // Variance in Kalman filter velocity and position 
+    Velocity velocity_filtered;                                       // Vehicle velocity 
+    Location location_filtered, location_previous, location_target;   // Vehicle location information (WGS84) 
+    float waypoint_distance, waypoint_radius;                         // Distance to target waypoint & waypoint acceptance 
 
     // Navigation data handling 
     void OrientationChecks(Vehicle &vehicle);
@@ -155,17 +158,19 @@ private:
     void TargetUpdate(Vehicle &vehicle); 
 
     // Orientation calculations 
-    void MagnetometerCorrection(void);
     void OrientationCalcs(void);
-    void MadgwickCalcs(void);
-    void OrientationNED(void);
+    void MagnetometerCorrection(void);
+    void MadgwickFilter(void);
+    void AttitudeNED(void);
     void AccelNED(void);
-    void AccelUncertaintyNED(void);
+    void AccelUncertaintyEarth(void);
     void TrueNorthEarthAccel(Vector<float> &accel);
     void BodyToEarthAccel(Vector<float> &a_xyz, Vector<float> &a_ned);
-    int16_t HeadingError(void);
+    float HeadingError(void);
     
     // Position calculations 
+    void KalmanPosePredict(void);
+    void KalmanPoseUpdate(void);
     void TargetWaypoint(Vehicle &vehicle); 
     void WaypointError(void);
 

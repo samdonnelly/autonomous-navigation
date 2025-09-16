@@ -1320,7 +1320,7 @@ void VehicleTelemetry::MAVLinkAttitudeSendPeriodic(Vehicle &vehicle)
     {
         mavlink.attitude_msg_timing.count = RESET; 
 
-        VehicleNavigation::Vector<float> orientation = vehicle.navigation.OrientationCurrentGet(); 
+        VehicleNavigation::Vector<float> orient = vehicle.navigation.OrientationCurrentGet(); 
         VehicleNavigation::Vector<float> gyro = vehicle.navigation.GyroCurrentGet(); 
 
         mavlink_msg_attitude_pack_chan(
@@ -1329,9 +1329,9 @@ void VehicleTelemetry::MAVLinkAttitudeSendPeriodic(Vehicle &vehicle)
             channel, 
             &msg, 
             vehicle.auxiliary.time_usec,   // Time since boot 
-            orientation.x,                 // Roll angle (rad) 
-            orientation.y,                 // Pitch angle (rad) 
-            orientation.z,                 // Yaw angle (rad) 
+            orient.x,                      // Roll angle (rad) 
+            orient.y,                      // Pitch angle (rad) 
+            orient.z,                      // Yaw angle (rad) 
             gyro.x,                        // Roll angular speed (rad/s) 
             gyro.y,                        // Pitch angular speed (rad/s) 
             gyro.z);                       // Yaw angular speed (rad/s) 
@@ -1382,18 +1382,22 @@ void VehicleTelemetry::MAVLinkNavControllerSendPeriodic(Vehicle &vehicle)
        (++mavlink.nav_controller_output_msg_timing.count >= 
           mavlink.nav_controller_output_msg_timing.count_lim))
     {
-        mavlink.nav_controller_output_msg_timing.count = RESET; 
+        mavlink.nav_controller_output_msg_timing.count = RESET;
+
+        VehicleNavigation::Vector<float> orient = vehicle.navigation.OrientationCurrentGet();
+        float waypoint_heading = vehicle.navigation.HeadingTargetGet();
+        float waypoint_distance = vehicle.navigation.WaypointDistanceGet();
 
         mavlink_msg_nav_controller_output_pack_chan(
             system_id, 
             component_id, 
             channel, 
             &msg, 
-            0,                                          // Current desired roll 
-            0,                                          // Current desired pitch 
-            vehicle.navigation.HeadingCurrentGet(),     // Current desired heading 
-            vehicle.navigation.HeadingTargetGet(),      // Bearing to current waypoint/target 
-            vehicle.navigation.WaypointDistanceGet(),   // Distance to active waypoint 
+            orient.x,                                   // Current desired roll 
+            orient.y,                                   // Current desired pitch 
+            static_cast<int16_t>(orient.z),             // Current desired heading 
+            static_cast<int16_t>(waypoint_heading),     // Bearing to current waypoint/target 
+            static_cast<uint16_t>(waypoint_distance),   // Distance to active waypoint 
             0,                                          // Current altitude error 
             0,                                          // Current airspeed error 
             0);                                         // Current crosstrack error on x-y plane 
@@ -1438,6 +1442,7 @@ void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle)
         mavlink.global_pos_int_msg_timing.count = RESET; 
 
         VehicleNavigation::Location location = vehicle.navigation.LocationCurrentGet(); 
+        VehicleNavigation::Vector<float> orient = vehicle.navigation.OrientationCurrentGet();
 
         mavlink_msg_global_position_int_pack_chan(
             system_id, 
@@ -1453,7 +1458,7 @@ void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle)
             0,                                         // X velocity 
             0,                                         // Y velocity 
             0,                                         // Z velocity 
-            vehicle.navigation.HeadingCurrentGet());   // Heading (yaw angle) 
+            static_cast<uint16_t>(orient.z));          // Heading (yaw angle) 
         MAVLinkMessageFormat(); 
     }
 }

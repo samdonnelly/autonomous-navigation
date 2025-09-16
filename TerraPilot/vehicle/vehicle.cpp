@@ -234,8 +234,7 @@ void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
             telemetry.MessageEncode(*this); 
             break; 
         
-        default: 
-            event = MainEvents::NO_EVENT; 
+        default:
             break; 
     }
 }

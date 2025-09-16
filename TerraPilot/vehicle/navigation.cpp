@@ -40,6 +40,7 @@ static constexpr float heading_full_range = 360.0f;        // Range of heading
 
 // Other 
 static constexpr uint16_t mission_target_increment = 1;
+static constexpr float _0_0f = 0.0f, _1_0f = 1.0f;
 
 //=======================================================================================
 
@@ -48,17 +49,27 @@ static constexpr uint16_t mission_target_increment = 1;
 // Initialization 
 
 VehicleNavigation::VehicleNavigation()
-    : waypoint_distance(RESET), 
-      coordinate_lpf_gain(0.5),   // GPS coordinate low pass filter gain 
-      true_north_offset(RESET), 
-      heading(RESET), 
-      heading_target(RESET) 
+    : timers(),
+      status(),
+      accel(), gyro(), mag(),
+      accel_uncertainty(),
+      mag_hi(), mag_sid(), mag_sio(),
+      true_north_offset(_0_0f),
+      q0(_1_0f), q1(_0_0f), q2(_0_0f), q3(_0_0f),
+      m_beta(_0_0f), m_dt(_0_0f),
+      r11(_0_0f), r12(_0_0f), r13(_0_0f), r21(_0_0f), r22(_0_0f), r23(_0_0f), r31(_0_0f), r32(_0_0f), r33(_0_0f),
+      orient(),
+      accel_ned(), accel_ned_uncertainty(),
+      heading_target(_0_0f),
+      location_gps(), location_gps_uncertainty(),
+      velocity_gps(), velocity_gps_uncertainty(),
+      k_dt(_0_0f),
+      k_vel(), k_pos(),
+      s2_v(), s2_p(),
+      velocity_filtered(),
+      location_filtered(), location_previous(), location_target(),
+      waypoint_distance(_0_0f), waypoint_radius(_0_0f)
 {
-    timers.gps_connection = RESET; 
-    timers.imu_connection = RESET; 
-
-    status.flags = RESET; 
-
     // The mission target sequence number gets set to its max value so it's guaranteed 
     // to be updated with mission target information when autonomous navigation starts 
     // for the first time since that many mission items are not supported. Autonomous 
@@ -92,9 +103,6 @@ void VehicleNavigation::OrientationUpdate(Vehicle &vehicle)
         status.imu_connected = FLAG_SET; 
         timers.imu_connection = RESET;
 
-#if VS_MAG_CAL
-        MagnetometerCorrection();
-#endif
         OrientationCalcs();
     }
 
@@ -129,10 +137,12 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
         vehicle.hardware.data_ready.gps_ready = FLAG_CLEAR; 
 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        status.gps_connected = vehicle.hardware.GPSGet(location_current); 
+        status.gps_connected = vehicle.hardware.GPSGet(location_gps); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
-        timers.gps_connection = RESET; 
+        timers.gps_connection = RESET;
+
+        KalmanPoseUpdate();
     }
 
     LocationChecks(vehicle); 
@@ -154,9 +164,9 @@ void VehicleNavigation::LocationChecks(Vehicle &vehicle)
     // it which is done by checking the home location status. 
     if ((vehicle.memory.MissionHomeLocationStatus() == false) && status.gps_connected)
     {
-        vehicle.memory.MissionHomeLocationSet(location_current.latI, 
-                                              location_current.lonI, 
-                                              location_current.alt); 
+        vehicle.memory.MissionHomeLocationSet(location_gps.latI, 
+                                              location_gps.lonI, 
+                                              location_gps.alt); 
     }
 
     // The filtered location is set to the current location as soon as a GPS connection 
@@ -165,7 +175,7 @@ void VehicleNavigation::LocationChecks(Vehicle &vehicle)
     if (!status.gps_status_change && status.gps_connected)
     {
         status.gps_status_change = FLAG_SET; 
-        location_filtered = location_current; 
+        location_filtered = location_gps; 
     }
     else if (status.gps_status_change && !status.gps_connected)
     {
@@ -278,6 +288,33 @@ void VehicleNavigation::CourseCorrection(Vehicle &vehicle)
 // Orientation calculations 
 
 /**
+ * @brief Determine the vehicle orientation 
+ */
+void VehicleNavigation::OrientationCalcs(void)
+{
+#if VS_MAG_CAL
+    // Correct the magnetometer axis readings with calibration values. 
+    MagnetometerCorrection();
+#endif
+
+    // Execute a Madgwick filter with the new IMU data to find the quaternion rotation 
+    // matrix. This allows for the orientation and acceleration in the NED frame to be 
+    // determined. 
+    MadgwickFilter();
+
+    // Find the roll, pitch and yaw in the NED frame relative to magnetic North. 
+    AttitudeNED();
+
+    // Find the acceleration and its uncertainty in the Earth frame relative to true North. 
+    AccelNED();
+    AccelUncertaintyEarth();
+
+    // Run the prediction step of the Kalman filter to estimate vehicle position. 
+    KalmanPosePredict();
+}
+
+
+/**
  * @brief Correct the magnetometer data with the calibration values 
  */
 void VehicleNavigation::MagnetometerCorrection(void)
@@ -303,32 +340,13 @@ void VehicleNavigation::MagnetometerCorrection(void)
 
 
 /**
- * @brief Determine the vehicle orientation 
- */
-void VehicleNavigation::OrientationCalcs(void)
-{
-    // Execute a Madgwick filter with the new IMU data to find the quaternion rotation 
-    // matrix. This allows for the orientation and acceleration in the NED frame to be 
-    // determined. 
-    MadgwickCalcs();
-
-    // Find the roll, pitch and yaw in the NED frame relative to magnetic North. 
-    OrientationNED();
-
-    // Find the acceleration and its uncertainty in the NED frame relative to true North. 
-    AccelNED();
-    AccelUncertaintyNED();
-}
-
-
-/**
  * @brief Determine the vehicle orientation using a Madgwick filter 
  * 
  * @details Uses the new IMU data and a Madgwick filter to determine the orientation and 
  *          acceleration of the vehicle in the Earth frame. Orientation is used for 
  *          vehicle stability and acceleration is used for position estimation. 
  */
-void VehicleNavigation::MadgwickCalcs(void)
+void VehicleNavigation::MadgwickFilter(void)
 {
     // Madgwick filter calculation variables 
     float gx, gy, gz, ax, ay, az, mx, my, mz;
@@ -341,7 +359,7 @@ void VehicleNavigation::MadgwickCalcs(void)
           _2q0, _2q1, _2q2, _2q3, 
           _2q0q2, _2q2q3, q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;
 
-    constexpr float _0_0f = 0.0f, _0_5f = 0.5f, _1_0f = 1.0f, _2_0f = 2.0f, _4_0f = 4.0f; 
+    constexpr float _0_5f = 0.5f, _2_0f = 2.0f, _4_0f = 4.0f; 
 
 	// Convert gyroscope degrees/sec to radians/sec
 	gx = gyro.x * deg_to_rad;
@@ -436,17 +454,17 @@ void VehicleNavigation::MadgwickCalcs(void)
 		s3 *= recipNorm;
 
 		// Apply feedback step
-		qDot1 -= beta * s0;
-		qDot2 -= beta * s1;
-		qDot3 -= beta * s2;
-		qDot4 -= beta * s3;
+		qDot1 -= m_beta * s0;
+		qDot2 -= m_beta * s1;
+		qDot3 -= m_beta * s2;
+		qDot4 -= m_beta * s3;
 	}
 
 	// Integrate rate of change of quaternion to yield quaternion
-	q0 += qDot1 * dt;
-	q1 += qDot2 * dt;
-	q2 += qDot3 * dt;
-	q3 += qDot4 * dt;
+	q0 += qDot1 * m_dt;
+	q1 += qDot2 * m_dt;
+	q2 += qDot3 * m_dt;
+	q3 += qDot4 * m_dt;
 
 	// Normalise quaternion
 	recipNorm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
@@ -471,7 +489,7 @@ void VehicleNavigation::MadgwickCalcs(void)
 /**
  * @brief Find the vehicle orientation in the NED frame 
  */
-void VehicleNavigation::OrientationNED(void)
+void VehicleNavigation::AttitudeNED(void)
 {
     constexpr float _2_0f = 2.0f;
 
@@ -501,53 +519,69 @@ void VehicleNavigation::OrientationNED(void)
  */
 void VehicleNavigation::AccelNED(void)
 {
-    constexpr float _2_0f = 2.0f;
-
-    // Determine the acceleration (g's) in the NED frame relative to magnetic North 
-    accel_ned.x = _2_0f*(r11*accel.x + r12*accel.y + r13*accel.z);
-	accel_ned.y = -_2_0f*(r21*accel.x + r22*accel.y + r23*accel.z);
-	accel_ned.z = -(_2_0f*(r31*accel.x + r32*accel.y + r33*accel.z) - gravity);
-
-    // Rotate the NED acceleration into the true North NED frame 
+    // Determine the acceleration (g's) in the NED frame relative to magnetic North and 
+    // eliminate gravity from the vertical direction. Then adjust for magnetic 
+    // declination so that it becomes relative to true North. 
+    BodyToEarthAccel(accel, accel_ned);
+    accel_ned.y = -accel_ned.y;
+    accel_ned.z = -(accel_ned.z - gravity);
     TrueNorthEarthAccel(accel_ned);
 }
 
 
 /**
- * @brief Find the accelerometer uncertainty in the NED frame 
+ * @brief Find the accelerometer uncertainty in the Earth frame 
  */
-void VehicleNavigation::AccelUncertaintyNED(void)
+void VehicleNavigation::AccelUncertaintyEarth(void)
 {
-    constexpr float _2_0f = 2.0f;
-
-    // Determine the acceleration (g's) in the NED frame relative to magnetic North 
-    accel_ned_uncertainty.x = _2_0f*(r11*accel.x + r12*accel.y + r13*accel.z);
-	accel_ned_uncertainty.y = -_2_0f*(r21*accel.x + r22*accel.y + r23*accel.z);
-	accel_ned_uncertainty.z = -(_2_0f*(r31*accel.x + r32*accel.y + r33*accel.z));
-
-    // Rotate the NED acceleration into the true North NED frame 
+    // Determine the acceleration uncertainty (g's) in the Earth frame relative to 
+    // magnetic North. Adjust for magnetic declination so that it becomes relative to 
+    // true North then make sure each value is positive so it can be used to predict 
+    // position estimation weights (Kalman filter). 
+    BodyToEarthAccel(accel_uncertainty, accel_ned_uncertainty);
     TrueNorthEarthAccel(accel_ned_uncertainty);
+
+    if (accel_ned_uncertainty.x < _0_0f)
+    {
+        accel_ned_uncertainty.x = -accel_ned_uncertainty.x;
+    }
+    if (accel_ned_uncertainty.y < _0_0f)
+    {
+        accel_ned_uncertainty.y = -accel_ned_uncertainty.y;
+    }
+    if (accel_ned_uncertainty.z < _0_0f)
+    {
+        accel_ned_uncertainty.z = -accel_ned_uncertainty.z;
+    }
 }
 
 
-// Body frame to Earth frame rotation using Madgwick quaternion 
+/**
+ * @brief Body frame to Earth frame rotation using Madgwick quaternion 
+ * 
+ * @param a_xyz : body/sensor frame acceleration data (g's) 
+ * @param a_ned : calculated Earth frame acceleration (g's) 
+ */
 void VehicleNavigation::BodyToEarthAccel(
     Vector<float> &a_xyz,
     Vector<float> &a_ned)
 {
-    // TODO account for gravity 
     constexpr float _2_0f = 2.0f;
     a_ned.x = _2_0f*(r11*a_xyz.x + r12*a_xyz.y + r13*a_xyz.z);
-	a_ned.y = -_2_0f*(r21*a_xyz.x + r22*a_xyz.y + r23*a_xyz.z);
-	a_ned.z = -(_2_0f*(r31*a_xyz.x + r32*a_xyz.y + r33*a_xyz.z));
+	a_ned.y = _2_0f*(r21*a_xyz.x + r22*a_xyz.y + r23*a_xyz.z);
+	a_ned.z = _2_0f*(r31*a_xyz.x + r32*a_xyz.y + r33*a_xyz.z);
 }
 
 
-// True North Earth frame acceleration 
+/**
+ * @brief True North Earth frame acceleration 
+ * 
+ * @param acceleration : acceleration (g's) vector to rotate 
+ */
 void VehicleNavigation::TrueNorthEarthAccel(Vector<float> &acceleration)
 {
-    // Rotate the NED acceleration into the true North NED frame using a 2D rotation 
-    // matrix about the vertical axis. 
+    // Rotate the Earth frame acceleration relative to magnetic North using a 2D rotation 
+    // matrix so that it's relative to true North (magnetic declination correction). 
     const float
     eqo = true_north_offset*deg_to_rad,
     eq1 = cosf(eqo),
@@ -558,29 +592,29 @@ void VehicleNavigation::TrueNorthEarthAccel(Vector<float> &acceleration)
     eq6 = acceleration.y*eq1;
 
     acceleration.x = eq3 - eq4;
-    accel.y = eq5 + eq6;
+    acceleration.y = eq5 + eq6;
 }
 
 
 /**
  * @brief Error between current and target heading (relative to true North) 
  * 
- * @return int16_t : heading error (degrees*10) 
+ * @return float : heading error (degrees) 
  */
-int16_t VehicleNavigation::HeadingError(void)
+float VehicleNavigation::HeadingError(void)
 {
     // Find the error between the target heading and the current true North heading. 
     // The target heading is based on true North and is found using current and target 
     // GPS coordinates. 
-    int16_t heading_error = heading_target - heading;
+    float heading_error = heading_target - orient.z;
 
-    if (heading_error > HEADING_SOUTH)
+    if (heading_error > heading_south)
     {
-        heading_error -= HEADING_RANGE; 
+        heading_error -= heading_full_range; 
     }
-    else if (heading_error <= -HEADING_SOUTH)
+    else if (heading_error <= -heading_south)
     {
-        heading_error += HEADING_RANGE; 
+        heading_error += heading_full_range; 
     }
 
     return heading_error; 
@@ -593,6 +627,103 @@ int16_t VehicleNavigation::HeadingError(void)
 // Position calculations 
 
 /**
+ * @brief Pose estimation Kalman filter prediction step 
+ */
+void VehicleNavigation::KalmanPosePredict(void)
+{
+    const float dt_2 = k_dt*k_dt;
+    const float accel_const = 0.5f*dt_2;
+    constexpr float coordinate_const = earth_radius*km_to_m*deg_to_rad;
+
+    // Predict the new state by finding the local change in position and velocity (no 
+    // global reference) using the new NED frame acceleration data. 
+    const Vector<float> accel_ned_si = 
+    {
+        .x = accel_ned.x*gravity,   // North 
+        .y = accel_ned.y*gravity,   // East 
+        .z = accel_ned.z*gravity    // Down 
+    };
+    k_vel.x = k_vel.x + k_dt*accel_ned_si.x;
+    k_pos.x = k_pos.x + k_vel.x*k_dt + accel_const*accel_ned_si.x;
+    k_vel.y = k_vel.y + k_dt*accel_ned_si.y;
+    k_pos.y = k_pos.y + k_vel.y*k_dt + accel_const*accel_ned_si.y;
+    k_vel.z = k_vel.z + k_dt*accel_ned_si.z;
+    k_pos.z = k_pos.z + k_vel.z*k_dt + accel_const*accel_ned_si.z;
+    
+    // Convert the local changes to a new global position using the last known position 
+    // as reference. 
+    location_filtered.lat = location_previous.lat + k_pos.x / coordinate_const;
+    location_filtered.lon = location_previous.lon + k_pos.y / (coordinate_const*cosf(location_filtered.lat*deg_to_rad));
+    location_filtered.alt = location_previous.alt + k_pos.z;
+
+    // Convert the local changes in velocity to a more usable form. 
+    velocity_filtered.sog = sqrtf(k_vel.x*k_vel.x + k_vel.y*k_vel.y);
+    velocity_filtered.vvel = k_vel.z;
+
+    // Predict the new uncertainty. This must be done each prediction step to account for 
+    // error accumulation. 
+    const Vector<float> accel_ned_uncertainty_si = 
+    {
+        .x = accel_ned_uncertainty.x*gravity,
+        .y = accel_ned_uncertainty.y*gravity,
+        .z = accel_ned_uncertainty.z*gravity
+    };
+    s2_v.x = s2_v.x + k_dt*accel_ned_uncertainty_si.x;
+    s2_p.x = s2_p.x + s2_v.x*k_dt + accel_const*accel_ned_uncertainty_si.x;
+    s2_v.y = s2_v.y + k_dt*accel_ned_uncertainty_si.y;
+    s2_p.y = s2_p.y + s2_v.y*k_dt + accel_const*accel_ned_uncertainty_si.y;
+    s2_v.z = s2_v.z + k_dt*accel_ned_uncertainty_si.z;
+    s2_p.z = s2_p.z + s2_v.z*k_dt + accel_const*accel_ned_uncertainty_si.z;
+}
+
+
+/**
+ * @brief Pose estimation Kalman filter update step 
+ */
+void VehicleNavigation::KalmanPoseUpdate(void)
+{
+    const float cog = velocity_gps.cog*deg_to_rad;
+
+    // Find the Kalman gains for position and velocity in each NED axis. 
+    const float
+    K_N11 = s2_p.x / (s2_p.x + location_gps_uncertainty.lat),
+    K_N22 = s2_v.x / (s2_v.x + velocity_gps_uncertainty.sog),
+    K_E11 = s2_p.y / (s2_p.y + location_gps_uncertainty.lon),
+    K_E22 = s2_v.y / (s2_v.y + velocity_gps_uncertainty.sog),
+    K_D11 = s2_p.z / (s2_p.z + location_gps_uncertainty.alt),
+    K_D22 = s2_v.z / (s2_v.z + velocity_gps_uncertainty.vvel);
+
+    // Update the uncertainty of the estimation. 
+    s2_p.x = (_1_0f - K_N11)*s2_p.x;
+    s2_v.x = (_1_0f - K_N22)*s2_v.x;
+    s2_p.y = (_1_0f - K_E11)*s2_p.y;
+    s2_v.y = (_1_0f - K_E22)*s2_v.y;
+    s2_p.z = (_1_0f - K_D11)*s2_p.z;
+    s2_v.z = (_1_0f - K_D22)*s2_v.z;
+
+    // Update the state position 
+    location_filtered.lat = location_filtered.lat + (location_gps.lat - location_filtered.lat)*K_N11;
+    location_filtered.lon = location_filtered.lon + (location_gps.lon - location_filtered.lon)*K_E11;
+    location_filtered.alt = location_filtered.alt + (location_gps.alt - location_filtered.alt)*K_D11;
+    
+    // Update the state velocity. The local velocity for each axis is updated so velocity 
+    // can continue to be estimated during the prediction step. The determined velocity 
+    // is then converted to its global format for the user to fetch. 
+    k_vel.x = k_vel.x + (velocity_gps.sog*cosf(cog) - k_vel.x)*K_N22;
+    k_vel.y = k_vel.y + (velocity_gps.sog*sinf(cog) - k_vel.y)*K_E22;
+    k_vel.z = k_vel.z + (velocity_gps.vvel - k_vel.z)*K_D22;
+    velocity_filtered.sog = sqrtf(k_vel.x*k_vel.x + k_vel.y*k_vel.y);
+    velocity_filtered.vvel = k_vel.z;
+
+    // Save the global position so the prediction step can add local position estimates 
+    // to it to estimate global position. Reset the local position estimates as the 
+    // distance from last known position is now zero. 
+    location_previous = location_filtered;
+    k_pos = { _0_0f, _0_0f, _0_0f };
+}
+
+
+/**
  * @brief Find the position relative to the target waypoint 
  * 
  * @param vehicle : vehicle object 
@@ -601,12 +732,7 @@ void VehicleNavigation::TargetWaypoint(Vehicle &vehicle)
 {
     // Check if the current location is within the acceptance radius of the target 
     // waypoint. If it is and the mission item specifies to continue onto the next 
-    // mission item, then the mission target is updated. The read coordinates are 
-    // filtered to smooth the data. The coordinate/target heading is also found here 
-    // since it can only change with new coordinate data. 
-
-    // location_filtered.lat += (location_current.lat - location_filtered.lat)*coordinate_lpf_gain; 
-    // location_filtered.lon += (location_current.lon - location_filtered.lon)*coordinate_lpf_gain; 
+    // mission item, then the mission target is updated. 
 
     // Update the GPS position information before checking if the waypoint is hit. 
     WaypointError(); 
@@ -636,8 +762,8 @@ void VehicleNavigation::WaypointError(void)
     float num, den; 
 
     // Convert the coordinates to radians so they're compatible with the math library. 
-    current_lat = location_current.lat * deg_to_rad; 
-    current_lon = location_current.lon * deg_to_rad; 
+    current_lat = location_filtered.lat * deg_to_rad; 
+    current_lon = location_filtered.lon * deg_to_rad; 
     target_lat = location_target.lat * deg_to_rad; 
     target_lon = location_target.lon * deg_to_rad; 
 
@@ -662,18 +788,18 @@ void VehicleNavigation::WaypointError(void)
     // hold one decimal place of accuracy. 
     num = eq1*sin(eq0); 
     den = eq7 - eq4*eq1*cos(eq0); 
-    heading_target = (int16_t)(atan(num/den)*rad_to_deg*scale_10); 
+    heading_target = atan(num/den)*rad_to_deg; 
     
     // Correct the calculated heading if needed. atan can produce a heading outside the 
     // needed range (0-359.9 degrees) so this correction brings the value back within 
     // range. 
     if (den < 0)
     {
-        heading_target += HEADING_SOUTH; 
+        heading_target += heading_south; 
     }
     else if (num < 0)
     {
-        heading_target += HEADING_RANGE; 
+        heading_target += heading_full_range; 
     }
 
     // Calculate the surface distance (or radius - direction independent) in meters 
@@ -696,7 +822,7 @@ void VehicleNavigation::WaypointError(void)
  */
 VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)
 {
-    return location_current; 
+    return location_filtered; 
 }
 
 
@@ -745,22 +871,11 @@ VehicleNavigation::Vector<float> VehicleNavigation::OrientationCurrentGet(void)
 
 
 /**
- * @brief Get the current vehicle heading 
- * 
- * @return int16_t : current vehicle heading (degrees*10) 
- */
-int16_t VehicleNavigation::HeadingCurrentGet(void)
-{
-    return heading; 
-}
-
-
-/**
  * @brief Get the target vehicle heading 
  * 
- * @return int16_t : target heading (0-3599 degrees*10) 
+ * @return float : target heading (0-359.9 degrees) 
  */
-int16_t VehicleNavigation::HeadingTargetGet(void)
+float VehicleNavigation::HeadingTargetGet(void)
 {
     return heading_target; 
 }
@@ -769,11 +884,11 @@ int16_t VehicleNavigation::HeadingTargetGet(void)
 /**
  * @brief Get the distance to the target waypoint 
  * 
- * @return uint16_t : waypoint distance (meters*10) 
+ * @return uint16_t : waypoint distance (meters) 
  */
-uint16_t VehicleNavigation::WaypointDistanceGet(void)
+float VehicleNavigation::WaypointDistanceGet(void)
 {
-    return (uint16_t)(waypoint_distance*scale_10); 
+    return waypoint_distance; 
 }
 
 //=======================================================================================
@@ -783,11 +898,11 @@ uint16_t VehicleNavigation::WaypointDistanceGet(void)
 // Setters 
 
 /**
- * @brief Set the true North offset 
+ * @brief Set the true North offset (magnetic declination) 
  * 
- * @param compass_tn : true North offset value 
+ * @param compass_tn : Magnetic declination (degrees) 
  */
-void VehicleNavigation::TrueNorthOffsetSet(int16_t compass_tn)
+void VehicleNavigation::TrueNorthOffsetSet(float compass_tn)
 {
     true_north_offset = compass_tn; 
 }

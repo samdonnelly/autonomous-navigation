@@ -180,7 +180,7 @@ void Boat::MainInitState(Boat& data, Event event)
         data.memory.MissionLoad(); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
 
     switch (data.main_event)
     {
@@ -215,12 +215,13 @@ void Boat::MainHoldState(Boat& data, Event event)
         data.control.ForceStop(data); 
     }
 
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -243,7 +244,8 @@ void Boat::MainManualState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::MANUAL_STATE, data.main_state_flags.flags); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
@@ -252,7 +254,7 @@ void Boat::MainManualState(Boat& data, Event event)
             break; 
         
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -277,12 +279,13 @@ void Boat::MainAcroState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::ACRO_STATE, data.main_state_flags.flags); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -305,12 +308,13 @@ void Boat::MainSteeringState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::STEERING_STATE, data.main_state_flags.flags); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -333,12 +337,13 @@ void Boat::MainLoiterState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::LOITER_STATE, data.main_state_flags.flags); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -361,12 +366,13 @@ void Boat::MainFollowState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::FOLLOW_STATE, data.main_state_flags.flags); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -389,12 +395,13 @@ void Boat::MainSimpleState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::SIMPLE_STATE, data.main_state_flags.flags); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -417,12 +424,13 @@ void Boat::MainDockState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::DOCK_STATE, data.main_state_flags.flags); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -445,12 +453,13 @@ void Boat::MainCircleState(Boat& data, Event event)
         data.MainStateEnter((uint8_t)MainStates::CIRCLE_STATE, data.main_state_flags.flags); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -477,7 +486,8 @@ void Boat::MainAutoState(Boat& data, Event event)
         data.telemetry.MAVLinkMissionCurrentEnable(); 
     }
     
-    data.main_event = (MainEvents)event; 
+    data.main_event = (MainEvents)event;
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
@@ -490,7 +500,7 @@ void Boat::MainAutoState(Boat& data, Event event)
             break; 
         
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -517,11 +527,12 @@ void Boat::MainRTLState(Boat& data, Event event)
     }
     
     data.main_event = (MainEvents)event; 
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -545,11 +556,12 @@ void Boat::MainSmartRTLState(Boat& data, Event event)
     }
     
     data.main_event = (MainEvents)event; 
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -573,11 +585,12 @@ void Boat::MainGuidedState(Boat& data, Event event)
     }
     
     data.main_event = (MainEvents)event; 
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
     
@@ -604,11 +617,12 @@ void Boat::MainFaultState(Boat& data, Event event)
     }
 
     data.main_event = (MainEvents)event; 
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
         default: 
-            data.MainCommonEvents(data.main_event); 
+            data.main_event = MainEvents::NO_EVENT;
             break; 
     }
 
@@ -641,6 +655,7 @@ void Boat::MainResetState(Boat& data, Event event)
     }
 
     data.main_event = (MainEvents)event; 
+    data.MainCommonEvents(data.main_event);
 
     switch (data.main_event)
     {
