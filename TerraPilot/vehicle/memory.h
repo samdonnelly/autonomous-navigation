@@ -26,7 +26,8 @@
 //=======================================================================================
 // Macros 
 
-#define NUM_PARAMETERS 11     // Number of parameters in the system 
+constexpr uint8_t num_parameters = 15;   // Number of parameters in the system 
+
 #define MAX_MISSION_SIZE 20   // Max number of mission items 
 #define HOME_OFFSET 1         // First mission item that isn't the home location 
 #define HOME_INDEX 0          // Mission item index for the home location 
@@ -127,7 +128,7 @@ public:   // public methods
 //=======================================================================================
 // Other data 
 
-extern const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters; 
+extern const std::array<VehicleMemory::ParamInfo, num_parameters> parameters; 
 
 //=======================================================================================
 

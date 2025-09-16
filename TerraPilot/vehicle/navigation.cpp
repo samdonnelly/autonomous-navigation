@@ -31,7 +31,6 @@ static constexpr float gravity = 9.81;           // Gravity (m/s^2)
 static constexpr float rad_to_deg = 180.0f / 3.1415927f;   // Radians to degrees 
 static constexpr float deg_to_rad = 3.1415927f / 180.0f;   // Degrees to radians 
 static constexpr float km_to_m = 1000.0f;                  // Kilometers to meters 
-static constexpr float scale_10 = 10.0f;                   // Scaling to remove 1 decimal place 
 
 // Directions 
 static constexpr float heading_north = 0.0f;               // Heading when facing North 
@@ -40,7 +39,7 @@ static constexpr float heading_full_range = 360.0f;        // Range of heading
 
 // Other 
 static constexpr uint16_t mission_target_increment = 1;
-static constexpr float _0_0f = 0.0f, _1_0f = 1.0f;
+static constexpr float _0_0f = 0.0f, _1_0f = 1.0f, _2_0f = 2.0f;
 
 //=======================================================================================
 
@@ -56,14 +55,14 @@ VehicleNavigation::VehicleNavigation()
       mag_hi(), mag_sid(), mag_sio(),
       true_north_offset(_0_0f),
       q0(_1_0f), q1(_0_0f), q2(_0_0f), q3(_0_0f),
-      m_beta(_0_0f), m_dt(_0_0f),
+      m_beta(_0_0f), m_dt(vs_madgwick_dt),
       r11(_0_0f), r12(_0_0f), r13(_0_0f), r21(_0_0f), r22(_0_0f), r23(_0_0f), r31(_0_0f), r32(_0_0f), r33(_0_0f),
       orient(),
       accel_ned(), accel_ned_uncertainty(),
       heading_target(_0_0f),
       location_gps(), location_gps_uncertainty(),
       velocity_gps(), velocity_gps_uncertainty(),
-      k_dt(_0_0f),
+      k_dt(vs_kalman_dt),
       k_vel(), k_pos(),
       s2_v(), s2_p(),
       velocity_filtered(),
@@ -137,7 +136,10 @@ void VehicleNavigation::LocationUpdate(Vehicle &vehicle)
         vehicle.hardware.data_ready.gps_ready = FLAG_CLEAR; 
 
         xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY); 
-        status.gps_connected = vehicle.hardware.GPSGet(location_gps); 
+        status.gps_connected = vehicle.hardware.GPSGet(location_gps,
+                                                       location_gps_uncertainty,
+                                                       velocity_gps,
+                                                       velocity_gps_uncertainty); 
         xSemaphoreGive(vehicle.comms_mutex); 
 
         timers.gps_connection = RESET;
@@ -175,7 +177,8 @@ void VehicleNavigation::LocationChecks(Vehicle &vehicle)
     if (!status.gps_status_change && status.gps_connected)
     {
         status.gps_status_change = FLAG_SET; 
-        location_filtered = location_gps; 
+        location_filtered = location_gps;
+        location_previous = location_gps;
     }
     else if (status.gps_status_change && !status.gps_connected)
     {
@@ -359,7 +362,7 @@ void VehicleNavigation::MadgwickFilter(void)
           _2q0, _2q1, _2q2, _2q3, 
           _2q0q2, _2q2q3, q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;
 
-    constexpr float _0_5f = 0.5f, _2_0f = 2.0f, _4_0f = 4.0f; 
+    constexpr float _0_5f = 0.5f, _4_0f = 4.0f; 
 
 	// Convert gyroscope degrees/sec to radians/sec
 	gx = gyro.x * deg_to_rad;
@@ -374,7 +377,7 @@ void VehicleNavigation::MadgwickFilter(void)
 
 	// Compute feedback only if accelerometer and magnetometer measurements are valid 
     // (avoids NaN in normalisation). 
-	if (!((accel.x == _0_0f) && (accel.y == _0_0f) && (accel.z == _0_0f)) || 
+	if (!((accel.x == _0_0f) && (accel.y == _0_0f) && (accel.z == _0_0f)) && 
         !((mag.x == _0_0f) && (mag.y == _0_0f) && (mag.z == _0_0f)))
     {
 		// Normalise accelerometer measurement
@@ -467,7 +470,7 @@ void VehicleNavigation::MadgwickFilter(void)
 	q3 += qDot4 * m_dt;
 
 	// Normalise quaternion
-	recipNorm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+	recipNorm = invSqrt(q0*q0 + q1*q1 + q2*q2 + q3*q3);
 	q0 *= recipNorm;
 	q1 *= recipNorm;
 	q2 *= recipNorm;
@@ -491,8 +494,6 @@ void VehicleNavigation::MadgwickFilter(void)
  */
 void VehicleNavigation::AttitudeNED(void)
 {
-    constexpr float _2_0f = 2.0f;
-
     // Calculate roll, pitch and yaw (radians) in the NED frame relative to magnetic 
     // North. 
 	orient.x = atan2f(r32, r33);     // Roll 
@@ -564,9 +565,8 @@ void VehicleNavigation::AccelUncertaintyEarth(void)
  */
 void VehicleNavigation::BodyToEarthAccel(
     Vector<float> &a_xyz,
-    Vector<float> &a_ned)
+    Vector<float> &a_ned) const
 {
-    constexpr float _2_0f = 2.0f;
     a_ned.x = _2_0f*(r11*a_xyz.x + r12*a_xyz.y + r13*a_xyz.z);
 	a_ned.y = _2_0f*(r21*a_xyz.x + r22*a_xyz.y + r23*a_xyz.z);
 	a_ned.z = _2_0f*(r31*a_xyz.x + r32*a_xyz.y + r33*a_xyz.z);
@@ -578,7 +578,7 @@ void VehicleNavigation::BodyToEarthAccel(
  * 
  * @param acceleration : acceleration (g's) vector to rotate 
  */
-void VehicleNavigation::TrueNorthEarthAccel(Vector<float> &acceleration)
+void VehicleNavigation::TrueNorthEarthAccel(Vector<float> &acceleration) const
 {
     // Rotate the Earth frame acceleration relative to magnetic North using a 2D rotation 
     // matrix so that it's relative to true North (magnetic declination correction). 
@@ -816,62 +816,62 @@ void VehicleNavigation::WaypointError(void)
 // Getters 
 
 /**
- * @brief Get the current vehicle location 
+ * @brief Get the vehicle location 
  * 
- * @return VehicleNavigation::Location : current location data 
+ * @return VehicleNavigation::Location : location data 
  */
-VehicleNavigation::Location VehicleNavigation::LocationCurrentGet(void)
+VehicleNavigation::Location VehicleNavigation::LocationGet(void)
 {
     return location_filtered; 
 }
 
 
 /**
- * @brief Get the current accelerometer readings 
+ * @brief Get the accelerometer readings 
  * 
  * @return VehicleNavigation::Vector<float> : accelerometer axis data 
  */
-VehicleNavigation::Vector<float> VehicleNavigation::AccelCurrentGet(void)
+VehicleNavigation::Vector<float> VehicleNavigation::AccelGet(void)
 {
     return accel;
 }
 
 
 /**
- * @brief Get the current gyroscope readings 
+ * @brief Get the gyroscope readings 
  * 
  * @return VehicleNavigation::Vector<float> : gyroscope axis data 
  */
-VehicleNavigation::Vector<float> VehicleNavigation::GyroCurrentGet(void)
+VehicleNavigation::Vector<float> VehicleNavigation::GyroGet(void)
 {
     return gyro;
 }
 
 
 /**
- * @brief Get the current magnetometer readings 
+ * @brief Get the magnetometer readings 
  * 
  * @return VehicleNavigation::Vector<float> : magnetometer axis data 
  */
-VehicleNavigation::Vector<float> VehicleNavigation::MagCurrentGet(void)
+VehicleNavigation::Vector<float> VehicleNavigation::MagGet(void)
 {
     return mag;
 }
 
 
 /**
- * @brief Get the current orientation (roll, pitch, yaw) 
+ * @brief Get the orientation (roll, pitch, yaw) 
  * 
  * @return VehicleNavigation::Vector<float> : vehicle orientation (degrees) 
  */
-VehicleNavigation::Vector<float> VehicleNavigation::OrientationCurrentGet(void)
+VehicleNavigation::Vector<float> VehicleNavigation::OrientationGet(void)
 {
     return orient; 
 }
 
 
 /**
- * @brief Get the target vehicle heading 
+ * @brief Get the target heading 
  * 
  * @return float : target heading (0-359.9 degrees) 
  */
@@ -898,13 +898,35 @@ float VehicleNavigation::WaypointDistanceGet(void)
 // Setters 
 
 /**
- * @brief Set the true North offset (magnetic declination) 
+ * @brief Set the accelerometer uncertainty for the X-axis 
  * 
- * @param compass_tn : Magnetic declination (degrees) 
+ * @param accel_sx : X-axis hard-iron offset value (milligauss)
  */
-void VehicleNavigation::TrueNorthOffsetSet(float compass_tn)
+void VehicleNavigation::AccelUncertaintyXSet(float accel_sx)
 {
-    true_north_offset = compass_tn; 
+    accel_uncertainty.x = accel_sx; 
+}
+
+
+/**
+ * @brief Set the accelerometer uncertainty for the Y-axis 
+ * 
+ * @param accel_sy : Y-axis hard-iron offset value (milligauss)
+ */
+void VehicleNavigation::AccelUncertaintyYSet(float accel_sy)
+{
+    accel_uncertainty.y = accel_sy; 
+}
+
+
+/**
+ * @brief Set the accelerometer uncertainty for the Z-axis 
+ * 
+ * @param accel_sz : Z-axis hard-iron offset value (milligauss)
+ */
+void VehicleNavigation::AccelUncertaintyZSet(float accel_sz)
+{
+    accel_uncertainty.z = accel_sz; 
 }
 
 
@@ -1004,6 +1026,28 @@ void VehicleNavigation::MagSoftIronOffDiagonalYSet(float compass_sioy)
 void VehicleNavigation::MagSoftIronOffDiagonalZSet(float compass_sioz)
 {
     mag_sio.z = compass_sioz; 
+}
+
+
+/**
+ * @brief Set the true North offset (magnetic declination) 
+ * 
+ * @param compass_tn : Magnetic declination (degrees) 
+ */
+void VehicleNavigation::TrueNorthOffsetSet(float compass_tn)
+{
+    true_north_offset = compass_tn; 
+}
+
+
+/**
+ * @brief Set the Madgwick filter weighted correction factor (beta) 
+ * 
+ * @param madgwick_b : Madgwick filter correction (beta) 
+ */
+void VehicleNavigation::MadgwickBetaSet(float madgwick_b)
+{
+    m_beta = madgwick_b;
 }
 
 

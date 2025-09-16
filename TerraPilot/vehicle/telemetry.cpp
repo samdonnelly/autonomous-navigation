@@ -25,7 +25,7 @@
 
 // Periodic message send timing data. The send period is dependent on the 
 // TELEMETRY_ENCODE event being queued in the corresponding timer thread listed below. 
-#define TELEMETRY_SEND_PERIOD S_TO_MS * PERIODIC_TIMER_250MS_PERIOD / configTICK_RATE_HZ 
+#define TELEMETRY_SEND_PERIOD s_to_ms * PERIODIC_TIMER_250MS_PERIOD / configTICK_RATE_HZ 
 
 #define HB_SEND_FREQ 1   // HEARTBEAT message send frequency 
 #define PV_SEND_FREQ 4   // PARAMETER_VALUE value message send frequency 
@@ -64,9 +64,9 @@ VehicleTelemetry::VehicleTelemetry(uint8_t vehicle_type)
         .mavlink_version = RESET   // Gets overwritten by MAVLink 
     };
 
-    uint8_t hb_lim = S_TO_MS / (HB_SEND_FREQ * TELEMETRY_SEND_PERIOD); 
-    uint8_t pv_lim = S_TO_MS / (PV_SEND_FREQ * TELEMETRY_SEND_PERIOD); 
-    uint8_t mc_lim = S_TO_MS / (MC_SEND_FREQ * TELEMETRY_SEND_PERIOD); 
+    uint8_t hb_lim = s_to_ms / (HB_SEND_FREQ * TELEMETRY_SEND_PERIOD); 
+    uint8_t pv_lim = s_to_ms / (PV_SEND_FREQ * TELEMETRY_SEND_PERIOD); 
+    uint8_t mc_lim = s_to_ms / (MC_SEND_FREQ * TELEMETRY_SEND_PERIOD); 
 
     // Outgoing message timing 
     mavlink.heartbeat_msg_timing                  = { RESET, hb_lim, FLAG_SET }; 
@@ -937,7 +937,7 @@ void VehicleTelemetry::MAVLinkCommandDoSetHomeReceive(Vehicle &vehicle)
     // the home position unless the vehicle is already reporting a valid GPS position. 
     if (mavlink.command_int_msg_gcs.param1)
     {
-        home = vehicle.navigation.LocationCurrentGet(); 
+        home = vehicle.navigation.LocationGet(); 
     }
     else 
     {
@@ -1040,7 +1040,7 @@ void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
     // timer counter limit is the same calculation for each requested message so it's 
     // done once here and assigned to the requested message. Note that the periodic 
     // interrupt period should be equipped to handle whatever the requested rate is. 
-    uint8_t timer_limit = (uint8_t)(S_TO_MS / 
+    uint8_t timer_limit = (uint8_t)(s_to_ms / 
         (mavlink.request_data_stream_msg_gcs.req_message_rate * TELEMETRY_SEND_PERIOD)); 
     uint8_t enable = mavlink.request_data_stream_msg_gcs.start_stop; 
 
@@ -1180,9 +1180,9 @@ void VehicleTelemetry::MAVLinkRawIMUSendPeriodic(Vehicle &vehicle)
         mavlink.raw_imu_msg_timing.count = RESET; 
 
         VehicleNavigation::Vector<float> 
-        accel = vehicle.navigation.AccelCurrentGet(), 
-        gyro = vehicle.navigation.GyroCurrentGet(), 
-        mag = vehicle.navigation.MagCurrentGet(); 
+        accel = vehicle.navigation.AccelGet(), 
+        gyro = vehicle.navigation.GyroGet(), 
+        mag = vehicle.navigation.MagGet(); 
 
         mavlink_msg_raw_imu_pack_chan(
             system_id, 
@@ -1214,7 +1214,7 @@ void VehicleTelemetry::MAVLinkGPSRawIntSendPeriodic(Vehicle &vehicle)
     {
         mavlink.gps_raw_int_msg_timing.count = RESET; 
 
-        VehicleNavigation::Location location = vehicle.navigation.LocationCurrentGet(); 
+        VehicleNavigation::Location location = vehicle.navigation.LocationGet(); 
 
         mavlink_msg_gps_raw_int_pack_chan(
             system_id, 
@@ -1320,8 +1320,8 @@ void VehicleTelemetry::MAVLinkAttitudeSendPeriodic(Vehicle &vehicle)
     {
         mavlink.attitude_msg_timing.count = RESET; 
 
-        VehicleNavigation::Vector<float> orient = vehicle.navigation.OrientationCurrentGet(); 
-        VehicleNavigation::Vector<float> gyro = vehicle.navigation.GyroCurrentGet(); 
+        VehicleNavigation::Vector<float> orient = vehicle.navigation.OrientationGet(); 
+        VehicleNavigation::Vector<float> gyro = vehicle.navigation.GyroGet(); 
 
         mavlink_msg_attitude_pack_chan(
             system_id, 
@@ -1349,7 +1349,7 @@ void VehicleTelemetry::MAVLinkPositionTargetGlobalIntSendPeriodic(Vehicle &vehic
     {
         mavlink.position_target_global_int_msg_timing.count = RESET; 
 
-        VehicleNavigation::Location location = vehicle.navigation.LocationCurrentGet(); 
+        VehicleNavigation::Location location = vehicle.navigation.LocationGet(); 
 
         mavlink_msg_position_target_global_int_pack_chan(
             system_id, 
@@ -1384,7 +1384,7 @@ void VehicleTelemetry::MAVLinkNavControllerSendPeriodic(Vehicle &vehicle)
     {
         mavlink.nav_controller_output_msg_timing.count = RESET;
 
-        VehicleNavigation::Vector<float> orient = vehicle.navigation.OrientationCurrentGet();
+        VehicleNavigation::Vector<float> orient = vehicle.navigation.OrientationGet();
         float waypoint_heading = vehicle.navigation.HeadingTargetGet();
         float waypoint_distance = vehicle.navigation.WaypointDistanceGet();
 
@@ -1441,8 +1441,8 @@ void VehicleTelemetry::MAVLinkGlobalPositionIntSendPeriodic(Vehicle &vehicle)
     {
         mavlink.global_pos_int_msg_timing.count = RESET; 
 
-        VehicleNavigation::Location location = vehicle.navigation.LocationCurrentGet(); 
-        VehicleNavigation::Vector<float> orient = vehicle.navigation.OrientationCurrentGet();
+        VehicleNavigation::Location location = vehicle.navigation.LocationGet(); 
+        VehicleNavigation::Vector<float> orient = vehicle.navigation.OrientationGet();
 
         mavlink_msg_global_position_int_pack_chan(
             system_id, 

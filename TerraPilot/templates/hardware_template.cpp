@@ -143,10 +143,17 @@ void VehicleHardware::GPSRead(void)
  * 
  * @see GPSRead 
  * 
- * @param location : latitude, longitude and altitude in both unsigned int and float 
+ * @param location : buffer to store latitude, longitude and altitude from the GPS 
+ * @param location_uncertainty : buffer to store location uncertainty from the GPS measurement 
+ * @param velocity : buffer to store speed over ground, course over ground and vertical velocity from the GPS 
+ * @param velocity_uncertainty : buffer to store velocity uncertainty from the GPS measurement 
  * @return true/false : GPS position lock status 
  */
-bool VehicleHardware::GPSGet(VehicleNavigation::Location &location)
+bool VehicleHardware::GPSGet(
+    VehicleNavigation::Location &location,
+    VehicleNavigation::Location &location_uncertainty,
+    VehicleNavigation::Velocity &velocity,
+    VehicleNavigation::Velocity &velocity_uncertainty)
 {
     // 
 }

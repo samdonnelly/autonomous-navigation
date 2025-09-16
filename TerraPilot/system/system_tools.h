@@ -37,7 +37,8 @@
 #define RESET 0 
 
 // Units 
-#define S_TO_MS 1000    // Seconds to milliseconds 
+constexpr uint16_t s_to_ms = 1000;   // Seconds to milliseconds 
+constexpr float kph_to_mps = 3.6f;   // Kilometers/hour to meters/second 
 
 //=======================================================================================
 

@@ -85,26 +85,30 @@ public:
     void CourseCorrection(Vehicle &vehicle); 
 
     // Getters 
-    Location LocationCurrentGet(void); 
-    Vector<float> AccelCurrentGet(void); 
-    Vector<float> GyroCurrentGet(void); 
-    Vector<float> MagCurrentGet(void); 
-    Vector<float> OrientationCurrentGet(void); 
+    Location LocationGet(void); 
+    Vector<float> AccelGet(void); 
+    Vector<float> GyroGet(void); 
+    Vector<float> MagGet(void); 
+    Vector<float> OrientationGet(void); 
     float HeadingTargetGet(void); 
     float WaypointDistanceGet(void); 
     
     // Setters 
-    void TrueNorthOffsetSet(float compass_tn); 
-    void MagHardIronXSet(float compass_hix); 
-    void MagHardIronYSet(float compass_hiy); 
-    void MagHardIronZSet(float compass_hiz); 
-    void MagSoftIronDiagonalXSet(float compass_sidx); 
-    void MagSoftIronDiagonalYSet(float compass_sidy); 
-    void MagSoftIronDiagonalZSet(float compass_sidz); 
-    void MagSoftIronOffDiagonalXSet(float compass_siox); 
-    void MagSoftIronOffDiagonalYSet(float compass_sioy); 
-    void MagSoftIronOffDiagonalZSet(float compass_sioz); 
-    void WaypointRadiusSet(float wp_radius); 
+    void AccelUncertaintyXSet(float accel_sx);
+    void AccelUncertaintyYSet(float accel_sy);
+    void AccelUncertaintyZSet(float accel_sz);
+    void MagHardIronXSet(float compass_hix);
+    void MagHardIronYSet(float compass_hiy);
+    void MagHardIronZSet(float compass_hiz);
+    void MagSoftIronDiagonalXSet(float compass_sidx);
+    void MagSoftIronDiagonalYSet(float compass_sidy);
+    void MagSoftIronDiagonalZSet(float compass_sidz);
+    void MagSoftIronOffDiagonalXSet(float compass_siox);
+    void MagSoftIronOffDiagonalYSet(float compass_sioy);
+    void MagSoftIronOffDiagonalZSet(float compass_sioz);
+    void TrueNorthOffsetSet(float compass_tn);
+    void MadgwickBetaSet(float madgwick_b);
+    void WaypointRadiusSet(float wp_radius);
 
 private:
 
@@ -164,8 +168,8 @@ private:
     void AttitudeNED(void);
     void AccelNED(void);
     void AccelUncertaintyEarth(void);
-    void TrueNorthEarthAccel(Vector<float> &accel);
-    void BodyToEarthAccel(Vector<float> &a_xyz, Vector<float> &a_ned);
+    void TrueNorthEarthAccel(Vector<float> &accel) const;
+    void BodyToEarthAccel(Vector<float> &a_xyz, Vector<float> &a_ned) const;
     float HeadingError(void);
     
     // Position calculations 

@@ -74,13 +74,13 @@ protected:   // Protected members
 
     // Communication thread events 
     enum class CommsEvents : uint8_t {
-        NO_EVENT, 
-        DEBUG_WRITE, 
-        GPS_READ, 
-        IMU_READ, 
-        RC_READ, 
-        TELEMETRY_READ, 
-        TELEMETRY_WRITE 
+        NO_EVENT,
+        DEBUG_WRITE,
+        IMU_READ,
+        GPS_READ,
+        RC_READ,
+        TELEMETRY_READ,
+        TELEMETRY_WRITE
     } comms_event; 
 
     // System flags 

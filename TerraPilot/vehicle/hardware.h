@@ -72,7 +72,11 @@ public:   // Public methods
     
     // GPS 
     void GPSRead(void); 
-    bool GPSGet(VehicleNavigation::Location &location); 
+    bool GPSGet(
+        VehicleNavigation::Location &location,
+        VehicleNavigation::Location &location_uncertainty,
+        VehicleNavigation::Velocity &velocity,
+        VehicleNavigation::Velocity &velocity_uncertainty); 
     
     // IMU 
     void IMURead(void); 

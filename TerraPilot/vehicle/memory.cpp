@@ -30,7 +30,7 @@ public:   // public types
     enum ParameterIndex : uint8_t 
     {
         // Compass 
-        COMPASS_TN,     // True North offset (declination angle) 
+        COMPASS_TN,     // True North offset (magnetic declination) 
         COMPASS_HIX,    // Hard iron offset on the X axis (milligauss) 
         COMPASS_HIY,    // Hard iron offset on the Y axis (milligauss) 
         COMPASS_HIZ,    // Hard iron offset on the Z axis (milligauss) 
@@ -40,15 +40,21 @@ public:   // public types
         COMPASS_SIOX,   // Soft iron off-diagonal X axis component 
         COMPASS_SIOY,   // Soft iron off-diagonal Y axis component 
         COMPASS_SIOZ,   // Soft iron off-diagonal Z axis component 
+        // Accelerometer 
+        ACCEL_SX,       // Uncertainty/variance along the X axis (g's) 
+        ACCEL_SY,       // Uncertainty/variance along the Y axis (g's) 
+        ACCEL_SZ,       // Uncertainty/variance along the Z axis (g's) 
         // Waypoints 
-        WP_RADIUS       // Waypoint radius 
+        WP_RADIUS,      // Waypoint radius 
+        // Calculations 
+        MADGWICK_B      // Madgwick filter 
     };
 
     struct ParameterValue 
     {
         float 
         // Compass 
-        compass_tn,     // True North offset (declination angle) (+/- degrees*10) 
+        compass_tn,     // True North offset (magnetic declination) (degrees) 
         compass_hix,    // Hard iron offset on the X axis (milligauss) 
         compass_hiy,    // Hard iron offset on the Y axis (milligauss) 
         compass_hiz,    // Hard iron offset on the Z axis (milligauss) 
@@ -58,8 +64,14 @@ public:   // public types
         compass_siox,   // Soft iron off-diagonal X axis component 
         compass_sioy,   // Soft iron off-diagonal Y axis component 
         compass_sioz,   // Soft iron off-diagonal Z axis component 
+        // Accelerometer 
+        accel_sx,       // Uncertainty/variance along the X axis (g's) 
+        accel_sy,       // Uncertainty/variance along the Y axis (g's) 
+        accel_sz,       // Uncertainty/variance along the Z axis (g's) 
         // Waypoints 
-        wp_radius;      // Waypoint radius (meters) 
+        wp_radius,      // Waypoint radius (meters) 
+        // Calculations 
+        madgwick_b;     // Madgwick filter 
     }
     values;
 }; 
@@ -71,7 +83,7 @@ static Parameters params;
 // modified outside of this file. Only parameter values can be changed and it's done 
 // using the ParameterValues struct. 
 
-const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters = 
+const std::array<VehicleMemory::ParamInfo, num_parameters> parameters = 
 {{
     // Compass 
     {"COMPASS_TN",   &params.values.compass_tn,   MAV_PARAM_TYPE_REAL32, params.COMPASS_TN},     // 1 
@@ -84,8 +96,14 @@ const std::array<VehicleMemory::ParamInfo, NUM_PARAMETERS> parameters =
     {"COMPASS_SIOX", &params.values.compass_siox, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOX},   // 8 
     {"COMPASS_SIOY", &params.values.compass_sioy, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOY},   // 9 
     {"COMPASS_SIOZ", &params.values.compass_sioz, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOZ},   // 10 
+    // Accelerometer 
+    {"ACCEL_SX",     &params.values.accel_sx,     MAV_PARAM_TYPE_REAL32, params.ACCEL_SX},       // 11 
+    {"ACCEL_SY",     &params.values.accel_sy,     MAV_PARAM_TYPE_REAL32, params.ACCEL_SY},       // 12 
+    {"ACCEL_SZ",     &params.values.accel_sz,     MAV_PARAM_TYPE_REAL32, params.ACCEL_SZ},       // 13 
     // Waypoints 
-    {"WP_RADIUS",    &params.values.wp_radius,    MAV_PARAM_TYPE_REAL32, params.WP_RADIUS}       // 11 
+    {"WP_RADIUS",    &params.values.wp_radius,    MAV_PARAM_TYPE_REAL32, params.WP_RADIUS},      // 14 
+    // Calculations 
+    {"MADGWICK_B",   &params.values.madgwick_b,   MAV_PARAM_TYPE_REAL32, params.MADGWICK_B}      // 15 
 }};
 
 //=======================================================================================
@@ -106,7 +124,7 @@ VehicleMemory::VehicleMemory()
     mission.items[HOME_INDEX] = 
     {
         .param1 = RESET,                              // Hold - home location will hold indefinitely 
-        .param2 = VS_WAYPOINT_RADIUS,                 // Waypoint acceptance radius 
+        .param2 = vs_waypoint_radius,                 // Waypoint acceptance radius 
         .param3 = RESET,                              // Waypoint pass radius - pass through 
         .param4 = RESET,                              // Yaw angle at waypoint 
         .x = RESET,                                   // Home latitude - set by system or GCS 
@@ -127,20 +145,27 @@ VehicleMemory::VehicleMemory()
     //==================================================
     // The below code is temporary until parameters are fully implemented. 
 
-    params.values.compass_tn = VS_TN_OFFSET; 
-    params.values.wp_radius = VS_WAYPOINT_RADIUS; 
+    params.values.compass_tn = vs_tn_offset;
+    
+    params.values.compass_hix = vs_compass_hix;
+    params.values.compass_hiy = vs_compass_hiy;
+    params.values.compass_hiz = vs_compass_hiz;
+    
+    params.values.compass_sidx = vs_compass_sidx;
+    params.values.compass_sidy = vs_compass_sidy;
+    params.values.compass_sidz = vs_compass_sidz;
+    
+    params.values.compass_siox = vs_compass_siox;
+    params.values.compass_sioy = vs_compass_sioy;
+    params.values.compass_sioz = vs_compass_sioz;
 
-    params.values.compass_hix = VS_COMPASS_HIX; 
-    params.values.compass_hiy = VS_COMPASS_HIY; 
-    params.values.compass_hiz = VS_COMPASS_HIZ; 
+    params.values.accel_sx = vs_accel_sx;
+    params.values.accel_sy = vs_accel_sy;
+    params.values.accel_sz = vs_accel_sz;
 
-    params.values.compass_sidx = VS_COMPASS_SIDX; 
-    params.values.compass_sidy = VS_COMPASS_SIDY; 
-    params.values.compass_sidz = VS_COMPASS_SIDZ; 
+    params.values.wp_radius = vs_waypoint_radius;
 
-    params.values.compass_siox = VS_COMPASS_SIOX; 
-    params.values.compass_sioy = VS_COMPASS_SIOY; 
-    params.values.compass_sioz = VS_COMPASS_SIOZ; 
+    params.values.madgwick_b = vs_madgwick_b;
     
     //==================================================
 }
@@ -166,7 +191,7 @@ void VehicleMemory::ParameterLoad(Vehicle &vehicle)
     // Once all parameters have been read, set their values throughout the code. 
     if (parameters_read)
     {
-        for (uint8_t i = RESET; i < NUM_PARAMETERS; i++)
+        for (uint8_t i = RESET; i < num_parameters; i++)
         {
             ParameterSet(vehicle, parameters[i].name, *parameters[i].value); 
         }
@@ -250,7 +275,7 @@ void VehicleMemory::ParameterSetUpdate(
     switch (param_index)
     {
         case Parameters::COMPASS_TN: 
-            vehicle.navigation.TrueNorthOffsetSet((int16_t)(*parameters[param_index].value)); 
+            vehicle.navigation.TrueNorthOffsetSet(*parameters[param_index].value); 
             break; 
 
         case Parameters::COMPASS_HIX: 
@@ -289,9 +314,25 @@ void VehicleMemory::ParameterSetUpdate(
             vehicle.navigation.MagSoftIronOffDiagonalZSet(*parameters[param_index].value); 
             break; 
 
+        case Parameters::ACCEL_SX: 
+            vehicle.navigation.AccelUncertaintyXSet(*parameters[param_index].value); 
+            break; 
+
+        case Parameters::ACCEL_SY: 
+            vehicle.navigation.AccelUncertaintyYSet(*parameters[param_index].value); 
+            break; 
+
+        case Parameters::ACCEL_SZ: 
+            vehicle.navigation.AccelUncertaintyZSet(*parameters[param_index].value); 
+            break; 
+
         case Parameters::WP_RADIUS: 
             vehicle.navigation.WaypointRadiusSet(*parameters[param_index].value); 
-            break; 
+            break;
+
+        case Parameters::MADGWICK_B: 
+            vehicle.navigation.MadgwickBetaSet(*parameters[param_index].value); 
+            break;
         
         default: 
             break; 
