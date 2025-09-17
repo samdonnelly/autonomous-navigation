@@ -496,9 +496,9 @@ void VehicleNavigation::AttitudeNED(void)
 {
     // Calculate roll, pitch and yaw (radians) in the NED frame relative to magnetic 
     // North. 
-	orient.x = atan2f(r32, r33);     // Roll 
-	orient.y = -asinf(-_2_0f*r31);   // Pitch 
-	orient.z = -atan2f(r21, r11);    // Yaw 
+	orient.x = atan2f(r32, r33)*rad_to_deg;     // Roll 
+	orient.y = -asinf(-_2_0f*r31)*rad_to_deg;   // Pitch 
+	orient.z = -atan2f(r21, r11)*rad_to_deg;    // Yaw 
 
     // Adjust the yaw angle to be relative to true North. Roll and pitch are unaffected 
     // by this offset. 
@@ -661,7 +661,14 @@ void VehicleNavigation::KalmanPosePredict(void)
     velocity_filtered.vvel = k_vel.z;
 
     // Predict the new uncertainty. This must be done each prediction step to account for 
-    // error accumulation. 
+    // error accumulation. In the Kalman filter equations, the uncertainty is calculated 
+    // using the variance in the sensor measurements which is the square of the standard 
+    // deviation. These calculations use uncertainty in the same format/units as the 
+    // acceleration (i.e. not squared) and velocity and position uncertainty are 
+    // calculated the same way as the predicted velocity and position are from above. 
+    // This is done to simplify the calculation, and it still produces good results 
+    // because accelerometer uncertainty is hard to determine so empirical tuning is 
+    // often required anyway. The GPS uncertainty measurement is in the same units. 
     const Vector<float> accel_ned_uncertainty_si = 
     {
         .x = accel_ned_uncertainty.x*gravity,
@@ -757,27 +764,26 @@ void VehicleNavigation::TargetWaypoint(Vehicle &vehicle)
  */
 void VehicleNavigation::WaypointError(void)
 {
-    float current_lat, current_lon, target_lat, target_lon; 
-    float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8; 
-    float num, den; 
+    float current_lat, current_lon, target_lat, target_lon;
+    float eq0, eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8;
 
     // Convert the coordinates to radians so they're compatible with the math library. 
-    current_lat = location_filtered.lat * deg_to_rad; 
-    current_lon = location_filtered.lon * deg_to_rad; 
-    target_lat = location_target.lat * deg_to_rad; 
-    target_lon = location_target.lon * deg_to_rad; 
+    current_lat = location_filtered.lat*deg_to_rad;
+    current_lon = location_filtered.lon*deg_to_rad;
+    target_lat = location_target.lat*deg_to_rad;
+    target_lon = location_target.lon*deg_to_rad;
 
     // Break the calculations down into smaller chunks to make it more readable. This 
-    // also prevents from the same calculations from being done twice. 
-    eq0 = target_lon - current_lon; 
-    eq1 = cos(target_lat); 
-    eq2 = cos(current_lat); 
-    eq3 = sin(target_lat); 
-    eq4 = sin(current_lat); 
-    eq5 = eq1*sin(eq0); 
-    eq6 = eq1*cos(eq0); 
-    eq7 = eq2*eq3; 
-    eq8 = eq7 - eq4*eq6; 
+    // also prevents from the same calculations from being done more than once. 
+    eq0 = target_lon - current_lon;
+    eq1 = cos(target_lat);
+    eq2 = cos(current_lat);
+    eq3 = sin(target_lat);
+    eq4 = sin(current_lat);
+    eq5 = eq1*sin(eq0);
+    eq6 = eq1*cos(eq0);
+    eq7 = eq2*eq3;
+    eq8 = eq7 - eq4*eq6;
     
     // Calculate the initial heading in radians between coordinates relative to true 
     // North. As you move along the path that's the shortest distance between two points 
@@ -786,27 +792,25 @@ void VehicleNavigation::WaypointError(void)
     // navigation equations. Once the heading is found it's converted from radians to 
     // degrees and scaled by 10 (units: degrees*10) so its integer representation can 
     // hold one decimal place of accuracy. 
-    num = eq1*sin(eq0); 
-    den = eq7 - eq4*eq1*cos(eq0); 
-    heading_target = atan(num/den)*rad_to_deg; 
+    heading_target = atan(eq5/eq8)*rad_to_deg;
     
     // Correct the calculated heading if needed. atan can produce a heading outside the 
     // needed range (0-359.9 degrees) so this correction brings the value back within 
     // range. 
-    if (den < 0)
+    if (eq8 < 0)
     {
-        heading_target += heading_south; 
+        heading_target += heading_south;
     }
-    else if (num < 0)
+    else if (eq5 < 0)
     {
-        heading_target += heading_full_range; 
+        heading_target += heading_full_range;
     }
 
     // Calculate the surface distance (or radius - direction independent) in meters 
     // between the current and target coordinates. This distance can also be described as 
     // the distance between coordinates along their great-circle. This calculation comes 
     // from the great-circle navigation equations. 
-    waypoint_distance = atan2(sqrt((eq8*eq8) + (eq5*eq5)), (eq4*eq3 + eq2*eq6))*earth_radius*km_to_m; 
+    waypoint_distance = atan2(sqrt((eq8*eq8) + (eq5*eq5)), (eq4*eq3 + eq2*eq6))*earth_radius*km_to_m;
 }
 
 //=======================================================================================
@@ -884,7 +888,7 @@ float VehicleNavigation::HeadingTargetGet(void)
 /**
  * @brief Get the distance to the target waypoint 
  * 
- * @return uint16_t : waypoint distance (meters) 
+ * @return float : waypoint distance (meters) 
  */
 float VehicleNavigation::WaypointDistanceGet(void)
 {
