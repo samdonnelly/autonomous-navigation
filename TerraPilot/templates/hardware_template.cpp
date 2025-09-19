@@ -227,6 +227,40 @@ void VehicleHardware::IMUGet(
 // Memory 
 
 /**
+ * @brief Set the directory to store and access files 
+ * 
+ * @details This function will be called on startup of the system to establish the 
+ *          directory from which to read and write file data. Everything needed to get 
+ *          talking to the external memory should be done here (ex. SD cards may require 
+ *          being mounted before they can be used). The path to the directory is chosen 
+ *          by the user. The directory should be created if it does not exist, but if it 
+ *          does exist then it should not be overwritten. This allows files to be opened 
+ *          and closed without needing to re-specify the directory, only the file name. 
+ *          The file name will be provided by the autopilot when the file open and close 
+ *          functions are called. The status of these operations must be returned so the 
+ *          autopilot knows to try again or that there's an error. 
+ */
+void VehicleHardware::MemorySetDirectory(void)
+{
+    // 
+}
+
+
+// 
+void VehicleHardware::MemoryOpenFile(void)
+{
+    // 
+}
+
+
+// 
+void VehicleHardware::MemoryCloseFile(void)
+{
+    // 
+}
+
+
+/**
  * @brief Read from a memory storage device 
  */
 void VehicleHardware::MemoryRead(void)

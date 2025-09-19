@@ -86,6 +86,9 @@ public:   // Public methods
         VehicleNavigation::Vector<float> &mag); 
 
     // Memory 
+    void MemorySetDirectory(void);
+    void MemoryOpenFile(void);
+    void MemoryCloseFile(void);
     void MemoryRead(void); 
     void MemoryWrite(void); 
 
