@@ -34,10 +34,20 @@
 
 class VehicleHardware 
 {
-public:   // Public members 
+public:
 
     // These store the data provided by the hardware. The hardware can directly populate 
     // them and the vehicle system can directly access them. 
+
+    enum class HardwareStatus : uint32_t
+    {
+        HARDWARE_OK        = 0x00000001,   // Hardware ok - no faults 
+        MEMORY_DIR_FAULT   = 0x00000002,   // Memory directory fault 
+        MEMORY_OPEN_FAULT  = 0x00000004,   // Memory file open fault 
+        MEMORY_CLOSE_FAULT = 0x00000008,   // Memory file close fault 
+        MEMORY_READ_FAULT  = 0x00000010,   // Memory file read fault 
+        MEMORY_WRITE_FAULT = 0x00000020    // Memory file write fault 
+    };
 
     union DataReady 
     {
@@ -50,9 +60,7 @@ public:   // Public members
         };
         uint32_t flags; 
     }
-    data_ready; 
-
-public:   // Public methods 
+    data_ready;
 
     // Constructor 
     VehicleHardware() 
@@ -86,11 +94,11 @@ public:   // Public methods
         VehicleNavigation::Vector<float> &mag); 
 
     // Memory 
-    void MemorySetDirectory(void);
-    void MemoryOpenFile(void);
-    void MemoryCloseFile(void);
-    void MemoryRead(void); 
-    void MemoryWrite(void); 
+    HardwareStatus MemorySetDirectory(void);
+    HardwareStatus MemoryOpenFile(char *file_name);
+    HardwareStatus MemoryCloseFile(char *file_name);
+    HardwareStatus MemoryRead(char *data_buff); 
+    HardwareStatus MemoryWrite(char *data_buff); 
 
     // RC 
     // Serial protocol is used for remote control which means the hardware must read and 

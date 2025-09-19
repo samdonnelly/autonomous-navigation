@@ -19,11 +19,11 @@
 // Includes 
 
 // C library 
-#include <stdint.h> 
-#include <string.h> 
+#include <stdint.h>
+#include <string.h>
 
 // C++ library 
-#include <array> 
+#include <array>
 
 //=======================================================================================
 

@@ -27,17 +27,21 @@
 void Boat::TimerCallback50ms(void *timer_arg)
 {
     // Check for incoming telemetry messages 
-    boat.CommsEventQueue((Event)CommsEvents::TELEMETRY_READ); 
-    boat.MainEventQueue((Event)MainEvents::TELEMETRY_DECODE); 
+    boat.CommsEventQueue((Event)CommsEvents::TELEMETRY_READ);
+    boat.MainEventQueue((Event)MainEvents::TELEMETRY_DECODE);
 
     // Check for incoming RC (transmitter/receiver) data 
-    boat.CommsEventQueue((Event)CommsEvents::RC_READ); 
-    boat.MainEventQueue((Event)MainEvents::RC_UPDATE); 
+    boat.CommsEventQueue((Event)CommsEvents::RC_READ);
+    boat.MainEventQueue((Event)MainEvents::RC_UPDATE);
+
+    // Keep the current orientation up to date 
+    boat.CommsEventQueue((Event)CommsEvents::IMU_READ); 
+    boat.MainEventQueue((Event)MainEvents::IMU_UPDATE); 
 
     // State events 
     if (boat.main_state == MainStates::MANUAL_STATE)
     {
-        boat.MainEventQueue((Event)MainEvents::REMOTE_CONTROL); 
+        boat.MainEventQueue((Event)MainEvents::REMOTE_CONTROL);
     }
 }
 
@@ -45,10 +49,6 @@ void Boat::TimerCallback50ms(void *timer_arg)
 // 100ms timer 
 void Boat::TimerCallback100ms(void *timer_arg)
 {
-    // Keep the current orientation up to date 
-    boat.CommsEventQueue((Event)CommsEvents::IMU_READ); 
-    boat.MainEventQueue((Event)MainEvents::IMU_UPDATE); 
-
     // State events 
     if (boat.main_state == MainStates::AUTO_STATE)
     {
