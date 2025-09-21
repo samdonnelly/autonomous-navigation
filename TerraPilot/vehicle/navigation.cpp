@@ -27,11 +27,6 @@
 static constexpr float earth_radius = 6371.0f;   // Average radius of the Earth (km) 
 static constexpr float gravity = 9.81;           // Gravity (m/s^2) 
 
-// Unit conversions 
-static constexpr float rad_to_deg = 180.0f / 3.1415927f;   // Radians to degrees 
-static constexpr float deg_to_rad = 3.1415927f / 180.0f;   // Degrees to radians 
-static constexpr float km_to_m = 1000.0f;                  // Kilometers to meters 
-
 // Directions 
 static constexpr float heading_north = 0.0f;               // Heading when facing North 
 static constexpr float heading_south = 180.0f;             // Heading when facing South 
@@ -712,6 +707,9 @@ void VehicleNavigation::KalmanPoseUpdate(void)
     location_filtered.lat = location_filtered.lat + (location_gps.lat - location_filtered.lat)*K_N11;
     location_filtered.lon = location_filtered.lon + (location_gps.lon - location_filtered.lon)*K_E11;
     location_filtered.alt = location_filtered.alt + (location_gps.alt - location_filtered.alt)*K_D11;
+    location_filtered.latI = static_cast<int32_t>(location_filtered.lat * coordinate_scalar);
+    location_filtered.lonI = static_cast<int32_t>(location_filtered.lon * coordinate_scalar);
+    location_filtered.altI = static_cast<int32_t>(location_filtered.alt * altitude_scalar);
     
     // Update the state velocity. The local velocity for each axis is updated so velocity 
     // can continue to be estimated during the prediction step. The determined velocity 

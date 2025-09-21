@@ -77,9 +77,14 @@ VehicleTelemetry::VehicleTelemetry(uint8_t vehicle_type)
     // mavlink.rc_channels_scaled_msg_timing         = { RESET, RESET, FLAG_CLEAR }; 
     // mavlink.rc_channels_raw_msg_timing            = { RESET, RESET, FLAG_CLEAR }; 
     // mavlink.servo_output_raw_msg_timing           = { RESET, RESET, FLAG_CLEAR }; 
-    mavlink.attitude_msg_timing                   = { RESET, RESET, FLAG_CLEAR }; 
-    mavlink.position_target_global_int_msg_timing = { RESET, RESET, FLAG_CLEAR }; 
-    mavlink.nav_controller_output_msg_timing      = { RESET, RESET, FLAG_CLEAR }; 
+
+    // mavlink.attitude_msg_timing                   = { RESET, RESET, FLAG_CLEAR }; 
+    // mavlink.position_target_global_int_msg_timing = { RESET, RESET, FLAG_CLEAR }; 
+    // mavlink.nav_controller_output_msg_timing      = { RESET, RESET, FLAG_CLEAR }; 
+    mavlink.attitude_msg_timing                   = { RESET, 2, FLAG_SET /*RESET, FLAG_CLEAR*/ }; 
+    mavlink.position_target_global_int_msg_timing = { RESET, 2, FLAG_SET /*RESET, FLAG_CLEAR*/ }; 
+    mavlink.nav_controller_output_msg_timing      = { RESET, 2, FLAG_SET /*RESET, FLAG_CLEAR*/ }; 
+
     // mavlink.local_position_ned_msg_timing         = { RESET, RESET, FLAG_CLEAR }; 
     mavlink.global_pos_int_msg_timing             = { RESET, RESET, FLAG_CLEAR }; 
 
@@ -1329,9 +1334,9 @@ void VehicleTelemetry::MAVLinkAttitudeSendPeriodic(Vehicle &vehicle)
             channel, 
             &msg, 
             vehicle.auxiliary.time_usec,   // Time since boot 
-            orient.x,                      // Roll angle (rad) 
-            orient.y,                      // Pitch angle (rad) 
-            orient.z,                      // Yaw angle (rad) 
+            orient.x*deg_to_rad,           // Roll angle (rad) 
+            orient.y*deg_to_rad,           // Pitch angle (rad) 
+            orient.z*deg_to_rad,           // Yaw angle (rad) 
             gyro.x,                        // Roll angular speed (rad/s) 
             gyro.y,                        // Pitch angular speed (rad/s) 
             gyro.z);                       // Yaw angular speed (rad/s) 

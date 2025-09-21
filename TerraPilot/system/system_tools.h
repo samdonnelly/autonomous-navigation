@@ -37,8 +37,11 @@
 #define RESET 0 
 
 // Units 
-constexpr uint16_t s_to_ms = 1000;   // Seconds to milliseconds 
-constexpr float kph_to_mps = 3.6f;   // Kilometers/hour to meters/second 
+constexpr uint16_t s_to_ms = 1000;                  // Seconds to milliseconds 
+constexpr float kph_to_mps = 3.6f;                  // Kilometers/hour to meters/second 
+constexpr float rad_to_deg = 180.0f / 3.1415927f;   // Radians to degrees 
+constexpr float deg_to_rad = 3.1415927f / 180.0f;   // Degrees to radians 
+constexpr float km_to_m = 1000.0f;                  // Kilometers to meters 
 
 //=======================================================================================
 

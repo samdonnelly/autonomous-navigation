@@ -26,7 +26,8 @@
 //=======================================================================================
 // Constants 
 
-constexpr float coordinate_scalar = 10000000.0f;   // Adds or removes decimal places of lat, lon, and alt 
+constexpr float coordinate_scalar = 10000000.0f;   // Adds or removes decimal places of lat and lon 
+constexpr float altitude_scalar = 1000.0f;         // Adds or removes decimal places of alt 
 
 //=======================================================================================
 
