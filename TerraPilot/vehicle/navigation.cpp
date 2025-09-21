@@ -28,9 +28,12 @@ static constexpr float earth_radius = 6371.0f;   // Average radius of the Earth 
 static constexpr float gravity = 9.81;           // Gravity (m/s^2) 
 
 // Directions 
-static constexpr float heading_north = 0.0f;               // Heading when facing North 
-static constexpr float heading_south = 180.0f;             // Heading when facing South 
-static constexpr float heading_full_range = 360.0f;        // Range of heading 
+static constexpr float 
+heading_north = 0.0f,                                         // Heading when facing North 
+heading_south_deg = 180.0f,                                   // Heading when facing South (degrees) 
+heading_full_range_deg = 360.0f,                              // Range of heading (degrees) 
+heading_south_rad = heading_south_deg*deg_to_rad,             // Heading when facing South (radians) 
+heading_full_range_rad = heading_full_range_deg*deg_to_rad;   // Range of heading (radians) 
 
 // Other 
 static constexpr uint16_t mission_target_increment = 1;
@@ -54,7 +57,7 @@ VehicleNavigation::VehicleNavigation()
       r11(_0_0f), r12(_0_0f), r13(_0_0f), r21(_0_0f), r22(_0_0f), r23(_0_0f), r31(_0_0f), r32(_0_0f), r33(_0_0f),
       orient(),
       accel_ned(), accel_ned_uncertainty(),
-      heading_target(_0_0f),
+      heading(_0_0f), heading_target(_0_0f),
       location_gps(), location_gps_uncertainty(),
       velocity_gps(), velocity_gps_uncertainty(),
       k_dt(vs_kalman_dt),
@@ -491,21 +494,30 @@ void VehicleNavigation::AttitudeNED(void)
 {
     // Calculate roll, pitch and yaw (radians) in the NED frame relative to magnetic 
     // North. 
-	orient.x = atan2f(r32, r33)*rad_to_deg;     // Roll 
-	orient.y = -asinf(-_2_0f*r31)*rad_to_deg;   // Pitch 
-	orient.z = -atan2f(r21, r11)*rad_to_deg;    // Yaw 
+    orient.x = atan2f(r32, r33);     // Roll 
+	orient.y = -asinf(-_2_0f*r31);   // Pitch 
+	orient.z = -atan2f(r21, r11);    // Yaw 
 
-    // Adjust the yaw angle to be relative to true North. Roll and pitch are unaffected 
-    // by this offset. 
+    // Adjust the yaw angle to be relative to true North while still being within a valid 
+    // range. Roll and pitch are unaffected by this offset. 
     orient.z += true_north_offset;
 
-    if (orient.z < heading_north)
+    if (orient.z <= -heading_south_rad)
     {
-        orient.z += heading_full_range;
+        orient.z += heading_full_range_rad;
     }
-    else if (orient.z >= heading_full_range)
+    else if (orient.z > heading_south_rad)
     {
-        orient.z -= heading_full_range;
+        orient.z -= heading_full_range_rad;
+    }
+
+    // Record of a second version of the yaw angle but in the form of the vehicle heading 
+    // which is used for navigation calculations. 
+    heading = orient.z*rad_to_deg;
+
+    if (heading < heading_north)
+    {
+        heading += heading_full_range_deg;
     }
 }
 
@@ -578,16 +590,15 @@ void VehicleNavigation::TrueNorthEarthAccel(Vector<float> &acceleration) const
     // Rotate the Earth frame acceleration relative to magnetic North using a 2D rotation 
     // matrix so that it's relative to true North (magnetic declination correction). 
     const float
-    eqo = true_north_offset*deg_to_rad,
-    eq1 = cosf(eqo),
-    eq2 = sinf(eqo),
-    eq3 = acceleration.x*eq1,
-    eq4 = acceleration.y*eq2,
-    eq5 = acceleration.x*eq2,
-    eq6 = acceleration.y*eq1;
+    eq0 = cosf(true_north_offset),
+    eq1 = sinf(true_north_offset),
+    eq2 = acceleration.x*eq0,
+    eq3 = acceleration.y*eq1,
+    eq4 = acceleration.x*eq1,
+    eq5 = acceleration.y*eq0;
 
-    acceleration.x = eq3 - eq4;
-    acceleration.y = eq5 + eq6;
+    acceleration.x = eq2 - eq3;
+    acceleration.y = eq4 + eq5;
 }
 
 
@@ -601,15 +612,15 @@ float VehicleNavigation::HeadingError(void)
     // Find the error between the target heading and the current true North heading. 
     // The target heading is based on true North and is found using current and target 
     // GPS coordinates. 
-    float heading_error = heading_target - orient.z;
+    float heading_error = heading_target - heading;
 
-    if (heading_error > heading_south)
+    if (heading_error > heading_south_deg)
     {
-        heading_error -= heading_full_range; 
+        heading_error -= heading_full_range_deg; 
     }
-    else if (heading_error <= -heading_south)
+    else if (heading_error <= -heading_south_deg)
     {
-        heading_error += heading_full_range; 
+        heading_error += heading_full_range_deg; 
     }
 
     return heading_error; 
@@ -797,11 +808,11 @@ void VehicleNavigation::WaypointError(void)
     // range. 
     if (eq8 < 0)
     {
-        heading_target += heading_south;
+        heading_target += heading_south_deg;
     }
     else if (eq5 < 0)
     {
-        heading_target += heading_full_range;
+        heading_target += heading_full_range_deg;
     }
 
     // Calculate the surface distance (or radius - direction independent) in meters 
@@ -869,6 +880,17 @@ VehicleNavigation::Vector<float> VehicleNavigation::MagGet(void)
 VehicleNavigation::Vector<float> VehicleNavigation::OrientationGet(void)
 {
     return orient; 
+}
+
+
+/**
+ * @brief Get the vehicle heading 
+ * 
+ * @return float : heading (0-359.9 degrees) 
+ */
+float VehicleNavigation::HeadingGet(void)
+{
+    return heading; 
 }
 
 
@@ -1038,7 +1060,7 @@ void VehicleNavigation::MagSoftIronOffDiagonalZSet(float compass_sioz)
  */
 void VehicleNavigation::TrueNorthOffsetSet(float compass_tn)
 {
-    true_north_offset = compass_tn; 
+    true_north_offset = compass_tn*deg_to_rad; 
 }
 
 

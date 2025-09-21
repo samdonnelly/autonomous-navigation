@@ -82,17 +82,18 @@ public:
     void LocationUpdate(Vehicle &vehicle);
     
     // Mission execution 
-    void TargetAssess(Vehicle &vehicle); 
-    void CourseCorrection(Vehicle &vehicle); 
+    void TargetAssess(Vehicle &vehicle);
+    void CourseCorrection(Vehicle &vehicle);
 
     // Getters 
-    Location LocationGet(void); 
-    Vector<float> AccelGet(void); 
-    Vector<float> GyroGet(void); 
-    Vector<float> MagGet(void); 
-    Vector<float> OrientationGet(void); 
-    float HeadingTargetGet(void); 
-    float WaypointDistanceGet(void); 
+    Location LocationGet(void);
+    Vector<float> AccelGet(void);
+    Vector<float> GyroGet(void);
+    Vector<float> MagGet(void);
+    Vector<float> OrientationGet(void);
+    float HeadingGet(void);
+    float HeadingTargetGet(void);
+    float WaypointDistanceGet(void);
     
     // Setters 
     void AccelUncertaintyXSet(float accel_sx);
@@ -142,7 +143,7 @@ private:
     float r11, r12, r13, r21, r22, r23, r31, r32, r33;   // Madgwick quaternion rotation matrix elements 
     Vector<float> orient;                                // x = roll, y = pitch, z = yaw (radians) from NED frame 
     Vector<float> accel_ned, accel_ned_uncertainty;      // Acceleration and its uncertainty in the NED frame 
-    float heading_target;                                // Desired heading to waypoint (0-359.9 degrees) 
+    float heading, heading_target;                       // Current and desired heading (0-359.9 degrees) 
 
     // Location 
     mavlink_mission_item_int_t mission_target;                        // Mission target information 
