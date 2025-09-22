@@ -36,13 +36,13 @@ void Boat::CommsDispatch(Event event)
         case CommsEvents::DEBUG_WRITE: 
             boat.hardware.DebugWrite(); 
             break; 
-
-        case CommsEvents::IMU_READ: 
-            boat.hardware.IMURead(); 
-            break; 
         
         case CommsEvents::GPS_READ: 
             boat.hardware.GPSRead(); 
+            break; 
+
+        case CommsEvents::IMU_READ: 
+            boat.hardware.IMURead(); 
             break; 
 
         case CommsEvents::RC_READ: 

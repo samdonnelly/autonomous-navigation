@@ -62,12 +62,13 @@ protected:   // Protected members
     enum class MainEvents : uint8_t {
         NO_EVENT, 
         INIT, 
-        IMU_UPDATE,         // Get the new IMU data 
-        GPS_UPDATE,         // Get the new GPS data 
-        RC_UPDATE,          // Get the new RC data 
         COURSE_CORRECT,     // Adjust the vehicle course/orientation 
-        TARGET_ASSESS,      // Assess the current mission target 
+        GPS_UPDATE,         // Get the new GPS data 
+        IMU_UPDATE,         // Get the new IMU data 
+        PARAMETER_LOAD,     // Load parameters from memory 
+        RC_UPDATE,          // Get the new RC data 
         REMOTE_CONTROL,     // Manually control the vehicle 
+        TARGET_ASSESS,      // Assess the current mission target 
         TELEMETRY_DECODE,   // Get and decode any new telemetry data 
         TELEMETRY_ENCODE    // Set telemetry data to be sent 
     } main_event; 
@@ -76,8 +77,8 @@ protected:   // Protected members
     enum class CommsEvents : uint8_t {
         NO_EVENT,
         DEBUG_WRITE,
-        IMU_READ,
         GPS_READ,
+        IMU_READ,
         RC_READ,
         TELEMETRY_READ,
         TELEMETRY_WRITE

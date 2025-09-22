@@ -187,7 +187,10 @@ void Boat::MainInitState(Boat& data, Event event)
         case MainEvents::INIT: 
             data.main_state_flags.hold_state = FLAG_SET; 
             data.MainStateChange(); 
-            break; 
+            break;
+
+        case MainEvents::PARAMETER_LOAD:
+            break;
         
         default: 
             data.main_event = MainEvents::NO_EVENT; 

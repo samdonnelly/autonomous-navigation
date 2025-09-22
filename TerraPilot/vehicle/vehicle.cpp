@@ -214,28 +214,28 @@ void Vehicle::MainCommonEvents(Vehicle::MainEvents &event)
 {
     switch (event)
     {
-        case MainEvents::IMU_UPDATE: 
-            navigation.OrientationUpdate(*this); 
-            break; 
-        
         case MainEvents::GPS_UPDATE: 
             navigation.LocationUpdate(*this); 
-            break; 
+            break;
+        
+        case MainEvents::IMU_UPDATE: 
+            navigation.OrientationUpdate(*this); 
+            break;
         
         case MainEvents::RC_UPDATE: 
             control.RCUpdate(*this); 
-            break; 
+            break;
         
         case MainEvents::TELEMETRY_DECODE: 
             telemetry.MessageDecode(*this); 
-            break; 
+            break;
 
         case MainEvents::TELEMETRY_ENCODE: 
             telemetry.MessageEncode(*this); 
-            break; 
+            break;
         
         default:
-            break; 
+            break;
     }
 }
 

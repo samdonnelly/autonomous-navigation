@@ -178,6 +178,8 @@ VehicleMemory::VehicleMemory()
 
 /**
  * @brief Load stored parameters if they exist 
+ * 
+ * @param vehicle : vehicle object 
  */
 void VehicleMemory::ParameterLoad(Vehicle &vehicle)
 {
@@ -237,6 +239,7 @@ ParamIndex VehicleMemory::ParameterLookUp(const char *param_id)
 /**
  * @brief Set the parameter that matches the ID/name 
  * 
+ * @param vehicle : vehicle object 
  * @param param_id : name/key/ID of parameter used to search for a parameter 
  * @param value : number to set parameter to if ID is valid 
  * @return ParamIndex : index of specified parameter - index == parameters.size() if invalid 
