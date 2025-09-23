@@ -1056,9 +1056,9 @@ void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
     // timer counter limit is the same calculation for each requested message so it's 
     // done once here and assigned to the requested message. Note that the periodic 
     // interrupt period should be equipped to handle whatever the requested rate is. 
-    uint8_t timer_limit = (uint8_t)(s_to_ms / 
-        (mavlink.request_data_stream_msg_gcs.req_message_rate * telemetry_send_period)); 
-    uint8_t enable = mavlink.request_data_stream_msg_gcs.start_stop; 
+    // uint8_t timer_limit = (uint8_t)(s_to_ms / 
+    //     (mavlink.request_data_stream_msg_gcs.req_message_rate * telemetry_send_period)); 
+    // uint8_t enable = mavlink.request_data_stream_msg_gcs.start_stop; 
 
     // Enable/disable the requested message and assign the message timer counter limit 
     // so it gets sent to the GCS at the requested rate. 
@@ -1068,11 +1068,11 @@ void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
             break; 
         
         case MAV_DATA_STREAM_RAW_SENSORS: 
-            mavlink.raw_imu_msg_timing.enable = enable; 
-            mavlink.raw_imu_msg_timing.count_lim = timer_limit; 
+            // mavlink.raw_imu_msg_timing.enable = enable; 
+            // mavlink.raw_imu_msg_timing.count_lim = timer_limit; 
 
-            mavlink.gps_raw_int_msg_timing.enable = enable; 
-            mavlink.gps_raw_int_msg_timing.count_lim = timer_limit; 
+            // mavlink.gps_raw_int_msg_timing.enable = enable; 
+            // mavlink.gps_raw_int_msg_timing.count_lim = timer_limit; 
             break; 
 
         case MAV_DATA_STREAM_EXTENDED_STATUS: 
@@ -1090,22 +1090,22 @@ void VehicleTelemetry::MAVLinkRequestDataStreamReceive(void)
             break; 
 
         case MAV_DATA_STREAM_RAW_CONTROLLER: 
-            mavlink.attitude_msg_timing.enable = enable; 
-            mavlink.attitude_msg_timing.count_lim = timer_limit; 
+            // mavlink.attitude_msg_timing.enable = enable; 
+            // mavlink.attitude_msg_timing.count_lim = timer_limit; 
 
-            mavlink.position_target_global_int_msg_timing.enable = enable; 
-            mavlink.position_target_global_int_msg_timing.count_lim = timer_limit; 
+            // mavlink.position_target_global_int_msg_timing.enable = enable; 
+            // mavlink.position_target_global_int_msg_timing.count_lim = timer_limit; 
 
-            mavlink.nav_controller_output_msg_timing.enable = enable; 
-            mavlink.nav_controller_output_msg_timing.count_lim = timer_limit; 
+            // mavlink.nav_controller_output_msg_timing.enable = enable; 
+            // mavlink.nav_controller_output_msg_timing.count_lim = timer_limit; 
             break; 
 
         case MAV_DATA_STREAM_POSITION: 
             // mavlink.local_position_ned_msg_timing.enable = enable; 
             // mavlink.local_position_ned_msg_timing.count_lim = timer_limit; 
 
-            mavlink.global_pos_int_msg_timing.enable = enable; 
-            mavlink.global_pos_int_msg_timing.count_lim = timer_limit; 
+            // mavlink.global_pos_int_msg_timing.enable = enable; 
+            // mavlink.global_pos_int_msg_timing.count_lim = timer_limit; 
             break; 
 
         case MAV_DATA_STREAM_EXTRA1: 

@@ -107,7 +107,7 @@ protected:   // Protected methods
     virtual void MainStateSelect(uint8_t state) = 0; 
     virtual void MainStateRCModeMap(uint8_t &mode) = 0; 
     virtual void ManualDrive(VehicleControl::ChannelFunctions main_channels) = 0; 
-    virtual void AutoDrive(int16_t heading_error) = 0; 
+    virtual void AutoDrive(float heading_error) = 0; 
 
     // Helper functions 
     void MainEventQueue(Event event); 

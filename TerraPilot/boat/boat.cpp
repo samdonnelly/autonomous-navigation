@@ -23,9 +23,10 @@
 //=======================================================================================
 // Macros 
 
-#define BOAT_MAX_THRUST 1750U        // Make into a parameter 
-#define BOAT_MAX_HEADING_ERROR 900   // Error for max turn thrust (degrees*10 - up to 1800) 
-#define BOAT_NO_HEADING_ERROR 0 
+static constexpr uint16_t boat_max_thrust = 1750;   // Make into a parameter 
+
+static constexpr float boat_max_heading_error = 90.0f;   // Error for max turn thrust (degrees) 
+static constexpr float boat_no_heading_error = 0.0f;     // No error (degrees) 
 
 //=======================================================================================
 
@@ -131,23 +132,23 @@ void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
  * 
  * @param heading_error : error between current and desired headings (-1799 to 1800 degrees*10) 
  */
-void Boat::AutoDrive(int16_t heading_error)
+void Boat::AutoDrive(float heading_error)
 {
 #if VS_BOAT_K1 
 
     uint16_t 
-    left_thruster = BOAT_MAX_THRUST, 
-    right_thruster = BOAT_MAX_THRUST; 
+    left_thruster = boat_max_thrust, 
+    right_thruster = boat_max_thrust; 
 
     // If the boat is not pointing in the direction it needs to go then adjust the motor 
     // ouptut. Otherwise continue straight at the set thrust. 
-    if (heading_error != BOAT_NO_HEADING_ERROR)
+    if (heading_error != boat_no_heading_error)
     {
-        int16_t rise = BOAT_MAX_THRUST - VehicleControl::PWM_NEUTRAL; 
+        float rise = static_cast<float>(boat_max_thrust - VehicleControl::PWM_NEUTRAL); 
         uint16_t *thruster = nullptr; 
 
         // Check which direction the boat needs to turn 
-        if (heading_error < BOAT_NO_HEADING_ERROR)
+        if (heading_error < boat_no_heading_error)
         {
             heading_error = -heading_error; 
             thruster = &left_thruster; 
@@ -158,12 +159,12 @@ void Boat::AutoDrive(int16_t heading_error)
         }
 
         // Cap the heading error if it exceeds the set limit 
-        if (heading_error > BOAT_MAX_HEADING_ERROR)
+        if (heading_error > boat_max_heading_error)
         {
-            heading_error = BOAT_MAX_HEADING_ERROR; 
+            heading_error = boat_max_heading_error; 
         }
 
-        *thruster -= (uint16_t)((rise * heading_error) / BOAT_MAX_HEADING_ERROR); 
+        *thruster -= static_cast<uint16_t>(rise * heading_error / boat_max_heading_error); 
     }
 
     hardware.PropulsionSet(left_thruster, right_thruster); 

@@ -150,7 +150,7 @@ private:   // Private methods
     void MainStateSelect(uint8_t state) override; 
     void MainStateRCModeMap(uint8_t &mode) override; 
     void ManualDrive(VehicleControl::ChannelFunctions main_channels) override; 
-    void AutoDrive(int16_t heading_error) override; 
+    void AutoDrive(float heading_error) override; 
 
 public:   // Public methods 
 
