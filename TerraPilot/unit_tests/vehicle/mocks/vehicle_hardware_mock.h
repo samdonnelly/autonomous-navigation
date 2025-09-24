@@ -37,7 +37,7 @@ public:
     VehicleNavigation::Vector<int16_t> magnetometer; 
 
     // Telemetry 
-    uint8_t telemetry_in_buff[VS_TELEMETRY_BUFF]; 
+    uint8_t telemetry_in_buff[vs_telemetry_buff]; 
     uint16_t telemetry_in_size; 
     uint16_t telemetry_out_size; 
 

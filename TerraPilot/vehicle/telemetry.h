@@ -125,9 +125,9 @@ private:   // Private members
     mavlink_status_t msg_status; 
     uint16_t data_in_index; 
     uint16_t data_in_size; 
-    uint8_t data_in_buff[VS_TELEMETRY_BUFF]; 
+    uint8_t data_in_buff[vs_telemetry_buff]; 
     uint16_t data_out_size; 
-    uint8_t data_out_buff[VS_TELEMETRY_BUFF]; 
+    uint8_t data_out_buff[vs_telemetry_buff]; 
 
     // Parameter protocol 
     uint8_t parameter_index; 

@@ -48,10 +48,13 @@ constexpr float vs_kalman_dt = 0.1f;     // Position Kalman filter prediction ca
 //==================================================
 
 // Data sizes 
-#define VS_TELEMETRY_BUFF 1000     // Telemetry data buffer size (bytes) 
+constexpr uint16_t vs_telemetry_buff = 1500;   // Telemetry data buffer size (bytes) 
 
 // Propulsion and steering 
-#define VS_MOTOR_PWM_OFF 1500      // PWM to turn motor(s) off - can vary between motors/ESCs 
+constexpr uint16_t vs_motor_pwm_off = 1500;    // PWM to turn motor(s) off - can vary between motors/ESCs 
+
+// Navigation 
+#define VS_MAG_CAL 0                           // Include magnetometer calibration correction 
 
 //==================================================
 // To be made into parameters 
@@ -60,9 +63,9 @@ constexpr float vs_accel_sx = 0.1f;          // Accelerometer uncertainty along 
 constexpr float vs_accel_sy = 0.1f;          // Accelerometer uncertainty along the X-axis 
 constexpr float vs_accel_sz = 0.1f;          // Accelerometer uncertainty along the X-axis 
 
-constexpr float vs_tn_offset = 0.0f;         // Offset between true and magnetic North (magnetic declination) (degrees) 
-
 constexpr float vs_auto_max_pwm = 1750.0f;   // Max PWM output of motor(s) in autonomous modes 
+
+constexpr float vs_tn_offset = 0.0f;         // Offset between true and magnetic North (magnetic declination) (degrees) 
 
 constexpr float vs_compass_hix = 0.0f;       // Compass X-axis hard-iron offset 
 constexpr float vs_compass_hiy = 0.0f;       // Compass Y-axis hard-iron offset 

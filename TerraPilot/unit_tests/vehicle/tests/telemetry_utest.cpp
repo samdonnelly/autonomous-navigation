@@ -71,7 +71,7 @@ private:
         // 
     }
 
-    void AutoDrive(int16_t heading_error) override
+    void AutoDrive(float heading_error) override
     {
         // 
     }
@@ -191,7 +191,7 @@ TEST(vehicle_telemetry_test, telemetry_out_size)
     for (uint8_t i = RESET; i < 10; i++)
     {
         craft.TelemetryEncode(); 
-        UNSIGNED_LONGS_EQUAL(true, (hardware_mock.TelemetryOutGetSize() < VS_TELEMETRY_BUFF)); 
+        UNSIGNED_LONGS_EQUAL(true, (hardware_mock.TelemetryOutGetSize() < vs_telemetry_buff)); 
     }
     
     //==================================================
