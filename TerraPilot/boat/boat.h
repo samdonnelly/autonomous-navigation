@@ -26,9 +26,21 @@
 //=======================================================================================
 // Classes 
 
-class Boat : public Vehicle 
+class Boat final : public Vehicle 
 {
-private:   // Private members 
+public:
+
+    /**
+     * @brief Constructor 
+     */
+    Boat();
+
+    /**
+     * @brief Destructor 
+     */
+    ~Boat() = default;
+
+private:
 
     // Main thread states - The modes from ArduPilots Rover flightmodes are inserted 
     // here. The numbers for those modes are maintained so that this vehicle can be used 
@@ -85,13 +97,7 @@ private:   // Private members
         }; 
         uint32_t flags; 
     }
-    main_state_flags; 
-
-private:   // Private methods 
-
-    // Boat setup code. Naming and override allow for the Vehicle class to call this 
-    // during generic vehicle setup. 
-    void VehicleSetup(void) override; 
+    main_state_flags;
 
     // State function pointer 
     typedef void (*state_func_ptr)(Boat& data, Event event); 
@@ -146,16 +152,16 @@ private:   // Private methods
         &MainResetState      // 18: Reset 
     }; 
 
-    // Helper functions 
-    void MainStateSelect(uint8_t state) override; 
-    void MainStateRCModeMap(uint8_t &mode) override; 
-    void ManualDrive(VehicleControl::ChannelFunctions main_channels) override; 
-    void AutoDrive(float heading_error) override; 
+    // Vehicle functions - specific to Boat 
+    void VehicleSetup(void) override;
+    void MainStateSelect(uint8_t state) override;
+    void MainStateRCModeMap(uint8_t &mode) override;
+    void ManualDrive(VehicleControl::ChannelFunctions main_channels) override;
+    void AutoDrive(float heading_error) override;
+    void AutoDriveMaxPWMSet(uint16_t max_pwm) override;
 
-public:   // Public methods 
-
-    // Constructor 
-    Boat(); 
+    // Boat data 
+    uint16_t auto_max_pwm;
 }; 
 
 extern Boat boat; 

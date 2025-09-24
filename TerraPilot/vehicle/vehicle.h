@@ -103,11 +103,12 @@ protected:   // Protected members
 protected:   // Protected methods 
 
     // Vehicle specific functions 
-    virtual void VehicleSetup(void) = 0; 
-    virtual void MainStateSelect(uint8_t state) = 0; 
-    virtual void MainStateRCModeMap(uint8_t &mode) = 0; 
-    virtual void ManualDrive(VehicleControl::ChannelFunctions main_channels) = 0; 
-    virtual void AutoDrive(float heading_error) = 0; 
+    virtual void VehicleSetup(void) = 0;
+    virtual void MainStateSelect(uint8_t state) = 0;
+    virtual void MainStateRCModeMap(uint8_t &mode) = 0;
+    virtual void ManualDrive(VehicleControl::ChannelFunctions main_channels) = 0;
+    virtual void AutoDrive(float heading_error) = 0;
+    virtual void AutoDriveMaxPWMSet(uint16_t max_pwm) = 0;
 
     // Helper functions 
     void MainEventQueue(Event event); 

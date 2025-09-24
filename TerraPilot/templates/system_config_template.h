@@ -68,6 +68,12 @@ constexpr float vs_kalman_dt = 0.1f;     // Position Kalman filter prediction ca
 //==================================================
 // To be made into parameters 
 
+constexpr float vs_accel_sx = 0.1f;          // Accelerometer uncertainty along the X-axis 
+constexpr float vs_accel_sy = 0.1f;          // Accelerometer uncertainty along the X-axis 
+constexpr float vs_accel_sz = 0.1f;          // Accelerometer uncertainty along the X-axis 
+
+constexpr float vs_auto_max_pwm = 1750.0f;   // Max PWM output of motor(s) in autonomous modes 
+
 constexpr float vs_tn_offset = 0.0f;         // Offset between true and magnetic North (magnetic declination) (degrees) 
 
 constexpr float vs_compass_hix = 0.0f;       // Compass X-axis hard-iron offset 
@@ -82,13 +88,9 @@ constexpr float vs_compass_siox = 0.0f;      // Compass X-axis soft-iron off-dia
 constexpr float vs_compass_sioy = 0.0f;      // Compass Y-axis soft-iron off-diagonal correction 
 constexpr float vs_compass_sioz = 0.0f;      // Compass Z-axis soft-iron off-diagonal correction 
 
-constexpr float vs_accel_sx = 0.1f;          // Accelerometer uncertainty along the X-axis 
-constexpr float vs_accel_sy = 0.1f;          // Accelerometer uncertainty along the X-axis 
-constexpr float vs_accel_sz = 0.1f;          // Accelerometer uncertainty along the X-axis 
-
 constexpr float vs_waypoint_radius = 5.0f;   // Vehicle acceptance distance to waypoint (m) 
 
-constexpr float vs_madgwick_b = 0.5f;         // Madgwick filter weighted correction (beta) 
+constexpr float vs_madgwick_b = 0.5f;        // Madgwick filter weighted correction (beta) 
 
 //==================================================
 

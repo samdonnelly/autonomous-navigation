@@ -29,6 +29,12 @@ public:   // public types
 
     enum ParameterIndex : uint8_t 
     {
+        // Accelerometer 
+        ACCEL_SX,       // Uncertainty/variance along the X axis (g's) 
+        ACCEL_SY,       // Uncertainty/variance along the Y axis (g's) 
+        ACCEL_SZ,       // Uncertainty/variance along the Z axis (g's) 
+        // Autonomous modes 
+        AUTO_MAX_PWM,   // Max PWM output of motor(s) in autonomous modes 
         // Compass 
         COMPASS_TN,     // True North offset (magnetic declination) 
         COMPASS_HIX,    // Hard iron offset on the X axis (milligauss) 
@@ -40,10 +46,6 @@ public:   // public types
         COMPASS_SIOX,   // Soft iron off-diagonal X axis component 
         COMPASS_SIOY,   // Soft iron off-diagonal Y axis component 
         COMPASS_SIOZ,   // Soft iron off-diagonal Z axis component 
-        // Accelerometer 
-        ACCEL_SX,       // Uncertainty/variance along the X axis (g's) 
-        ACCEL_SY,       // Uncertainty/variance along the Y axis (g's) 
-        ACCEL_SZ,       // Uncertainty/variance along the Z axis (g's) 
         // Waypoints 
         WP_RADIUS,      // Waypoint radius 
         // Calculations 
@@ -53,6 +55,12 @@ public:   // public types
     struct ParameterValue 
     {
         float 
+        // Accelerometer 
+        accel_sx,       // Uncertainty/variance along the X axis (g's) 
+        accel_sy,       // Uncertainty/variance along the Y axis (g's) 
+        accel_sz,       // Uncertainty/variance along the Z axis (g's) 
+        // Autonomous modes 
+        auto_max_pwm,   // Max PWM output of motor(s) in autonomous modes 
         // Compass 
         compass_tn,     // True North offset (magnetic declination) (degrees) 
         compass_hix,    // Hard iron offset on the X axis (milligauss) 
@@ -64,10 +72,6 @@ public:   // public types
         compass_siox,   // Soft iron off-diagonal X axis component 
         compass_sioy,   // Soft iron off-diagonal Y axis component 
         compass_sioz,   // Soft iron off-diagonal Z axis component 
-        // Accelerometer 
-        accel_sx,       // Uncertainty/variance along the X axis (g's) 
-        accel_sy,       // Uncertainty/variance along the Y axis (g's) 
-        accel_sz,       // Uncertainty/variance along the Z axis (g's) 
         // Waypoints 
         wp_radius,      // Waypoint radius (meters) 
         // Calculations 
@@ -85,25 +89,27 @@ static Parameters params;
 
 const std::array<VehicleMemory::ParamInfo, num_parameters> parameters = 
 {{
-    // Compass 
-    {"COMPASS_TN",   &params.values.compass_tn,   MAV_PARAM_TYPE_REAL32, params.COMPASS_TN},     // 1 
-    {"COMPASS_HIX",  &params.values.compass_hix,  MAV_PARAM_TYPE_REAL32, params.COMPASS_HIX},    // 2 
-    {"COMPASS_HIY",  &params.values.compass_hiy,  MAV_PARAM_TYPE_REAL32, params.COMPASS_HIY},    // 3 
-    {"COMPASS_HIZ",  &params.values.compass_hiz,  MAV_PARAM_TYPE_REAL32, params.COMPASS_HIZ},    // 4 
-    {"COMPASS_SIDX", &params.values.compass_sidx, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIDX},   // 5 
-    {"COMPASS_SIDY", &params.values.compass_sidy, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIDY},   // 6 
-    {"COMPASS_SIDZ", &params.values.compass_sidz, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIDZ},   // 7 
-    {"COMPASS_SIOX", &params.values.compass_siox, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOX},   // 8 
-    {"COMPASS_SIOY", &params.values.compass_sioy, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOY},   // 9 
-    {"COMPASS_SIOZ", &params.values.compass_sioz, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOZ},   // 10 
     // Accelerometer 
-    {"ACCEL_SX",     &params.values.accel_sx,     MAV_PARAM_TYPE_REAL32, params.ACCEL_SX},       // 11 
-    {"ACCEL_SY",     &params.values.accel_sy,     MAV_PARAM_TYPE_REAL32, params.ACCEL_SY},       // 12 
-    {"ACCEL_SZ",     &params.values.accel_sz,     MAV_PARAM_TYPE_REAL32, params.ACCEL_SZ},       // 13 
+    {"ACCEL_SX",     &params.values.accel_sx,     MAV_PARAM_TYPE_REAL32, params.ACCEL_SX},       // 1 
+    {"ACCEL_SY",     &params.values.accel_sy,     MAV_PARAM_TYPE_REAL32, params.ACCEL_SY},       // 2 
+    {"ACCEL_SZ",     &params.values.accel_sz,     MAV_PARAM_TYPE_REAL32, params.ACCEL_SZ},       // 3 
+    // Autonomous modes 
+    {"AUTO_MAX_PWM", &params.values.auto_max_pwm, MAV_PARAM_TYPE_REAL32, params.AUTO_MAX_PWM},   // 4 
+    // Compass 
+    {"COMPASS_TN",   &params.values.compass_tn,   MAV_PARAM_TYPE_REAL32, params.COMPASS_TN},     // 5 
+    {"COMPASS_HIX",  &params.values.compass_hix,  MAV_PARAM_TYPE_REAL32, params.COMPASS_HIX},    // 6 
+    {"COMPASS_HIY",  &params.values.compass_hiy,  MAV_PARAM_TYPE_REAL32, params.COMPASS_HIY},    // 7 
+    {"COMPASS_HIZ",  &params.values.compass_hiz,  MAV_PARAM_TYPE_REAL32, params.COMPASS_HIZ},    // 8 
+    {"COMPASS_SIDX", &params.values.compass_sidx, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIDX},   // 9 
+    {"COMPASS_SIDY", &params.values.compass_sidy, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIDY},   // 10 
+    {"COMPASS_SIDZ", &params.values.compass_sidz, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIDZ},   // 11 
+    {"COMPASS_SIOX", &params.values.compass_siox, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOX},   // 12 
+    {"COMPASS_SIOY", &params.values.compass_sioy, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOY},   // 13 
+    {"COMPASS_SIOZ", &params.values.compass_sioz, MAV_PARAM_TYPE_REAL32, params.COMPASS_SIOZ},   // 14 
     // Waypoints 
-    {"WP_RADIUS",    &params.values.wp_radius,    MAV_PARAM_TYPE_REAL32, params.WP_RADIUS},      // 14 
+    {"WP_RADIUS",    &params.values.wp_radius,    MAV_PARAM_TYPE_REAL32, params.WP_RADIUS},      // 15 
     // Calculations 
-    {"MADGWICK_B",   &params.values.madgwick_b,   MAV_PARAM_TYPE_REAL32, params.MADGWICK_B}      // 15 
+    {"MADGWICK_B",   &params.values.madgwick_b,   MAV_PARAM_TYPE_REAL32, params.MADGWICK_B}      // 16 
 }};
 
 //=======================================================================================
@@ -145,6 +151,12 @@ VehicleMemory::VehicleMemory()
     //==================================================
     // The below code is temporary until parameters are fully implemented. 
 
+    params.values.accel_sx = vs_accel_sx;
+    params.values.accel_sy = vs_accel_sy;
+    params.values.accel_sz = vs_accel_sz;
+
+    params.values.auto_max_pwm = vs_auto_max_pwm;
+
     params.values.compass_tn = vs_tn_offset;
     
     params.values.compass_hix = vs_compass_hix;
@@ -158,10 +170,6 @@ VehicleMemory::VehicleMemory()
     params.values.compass_siox = vs_compass_siox;
     params.values.compass_sioy = vs_compass_sioy;
     params.values.compass_sioz = vs_compass_sioz;
-
-    params.values.accel_sx = vs_accel_sx;
-    params.values.accel_sy = vs_accel_sy;
-    params.values.accel_sz = vs_accel_sz;
 
     params.values.wp_radius = vs_waypoint_radius;
 
@@ -277,68 +285,72 @@ void VehicleMemory::ParameterSetUpdate(
 {
     switch (param_index)
     {
-        case Parameters::COMPASS_TN: 
-            vehicle.navigation.TrueNorthOffsetSet(*parameters[param_index].value); 
-            break; 
-
-        case Parameters::COMPASS_HIX: 
-            vehicle.navigation.MagHardIronXSet(*parameters[param_index].value); 
-            break; 
-
-        case Parameters::COMPASS_HIY: 
-            vehicle.navigation.MagHardIronYSet(*parameters[param_index].value); 
-            break; 
-
-        case Parameters::COMPASS_HIZ: 
-            vehicle.navigation.MagHardIronZSet(*parameters[param_index].value); 
-            break; 
-
-        case Parameters::COMPASS_SIDX: 
-            vehicle.navigation.MagSoftIronDiagonalXSet(*parameters[param_index].value); 
-            break; 
-
-        case Parameters::COMPASS_SIDY: 
-            vehicle.navigation.MagSoftIronDiagonalYSet(*parameters[param_index].value); 
-            break; 
-
-        case Parameters::COMPASS_SIDZ: 
-            vehicle.navigation.MagSoftIronDiagonalZSet(*parameters[param_index].value); 
-            break; 
-
-        case Parameters::COMPASS_SIOX: 
-            vehicle.navigation.MagSoftIronOffDiagonalXSet(*parameters[param_index].value); 
-            break; 
-
-        case Parameters::COMPASS_SIOY: 
-            vehicle.navigation.MagSoftIronOffDiagonalYSet(*parameters[param_index].value); 
-            break; 
-
-        case Parameters::COMPASS_SIOZ: 
-            vehicle.navigation.MagSoftIronOffDiagonalZSet(*parameters[param_index].value); 
-            break; 
-
         case Parameters::ACCEL_SX: 
-            vehicle.navigation.AccelUncertaintyXSet(*parameters[param_index].value); 
-            break; 
+            vehicle.navigation.AccelUncertaintyXSet(*parameters[param_index].value);
+            break;
 
         case Parameters::ACCEL_SY: 
-            vehicle.navigation.AccelUncertaintyYSet(*parameters[param_index].value); 
-            break; 
+            vehicle.navigation.AccelUncertaintyYSet(*parameters[param_index].value);
+            break;
 
         case Parameters::ACCEL_SZ: 
-            vehicle.navigation.AccelUncertaintyZSet(*parameters[param_index].value); 
-            break; 
+            vehicle.navigation.AccelUncertaintyZSet(*parameters[param_index].value);
+            break;
 
+        case Parameters::AUTO_MAX_PWM:
+            vehicle.AutoDriveMaxPWMSet(static_cast<uint16_t>(*parameters[param_index].value));
+            break;
+
+        case Parameters::COMPASS_TN: 
+            vehicle.navigation.TrueNorthOffsetSet(*parameters[param_index].value);
+            break;
+
+        case Parameters::COMPASS_HIX:     
+            vehicle.navigation.MagHardIronXSet(*parameters[param_index].value);
+            break;
+
+        case Parameters::COMPASS_HIY:     
+            vehicle.navigation.MagHardIronYSet(*parameters[param_index].value);
+            break;
+
+        case Parameters::COMPASS_HIZ:     
+            vehicle.navigation.MagHardIronZSet(*parameters[param_index].value);
+            break;
+
+        case Parameters::COMPASS_SIDX:     
+            vehicle.navigation.MagSoftIronDiagonalXSet(*parameters[param_index].value);
+            break;
+
+        case Parameters::COMPASS_SIDY:     
+            vehicle.navigation.MagSoftIronDiagonalYSet(*parameters[param_index].value);
+            break;
+
+        case Parameters::COMPASS_SIDZ:     
+            vehicle.navigation.MagSoftIronDiagonalZSet(*parameters[param_index].value);
+            break;
+
+        case Parameters::COMPASS_SIOX:     
+            vehicle.navigation.MagSoftIronOffDiagonalXSet(*parameters[param_index].value);
+            break;
+
+        case Parameters::COMPASS_SIOY:     
+            vehicle.navigation.MagSoftIronOffDiagonalYSet(*parameters[param_index].value);
+            break;
+
+        case Parameters::COMPASS_SIOZ:     
+            vehicle.navigation.MagSoftIronOffDiagonalZSet(*parameters[param_index].value);
+            break;
+    
         case Parameters::WP_RADIUS: 
-            vehicle.navigation.WaypointRadiusSet(*parameters[param_index].value); 
+            vehicle.navigation.WaypointRadiusSet(*parameters[param_index].value);
             break;
 
         case Parameters::MADGWICK_B: 
-            vehicle.navigation.MadgwickBetaSet(*parameters[param_index].value); 
+            vehicle.navigation.MadgwickBetaSet(*parameters[param_index].value);
             break;
         
         default: 
-            break; 
+            break;
     }
 }
 

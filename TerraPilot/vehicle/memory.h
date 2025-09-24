@@ -26,7 +26,7 @@
 //=======================================================================================
 // Macros 
 
-constexpr uint8_t num_parameters = 15;   // Number of parameters in the system 
+constexpr uint8_t num_parameters = 16;   // Number of parameters in the system 
 
 #define MAX_MISSION_SIZE 20   // Max number of mission items 
 #define HOME_OFFSET 1         // First mission item that isn't the home location 
@@ -120,7 +120,7 @@ public:   // public methods
     uint32_t MissionIDGet(void); 
     uint32_t MissionIDUpdate(void); 
     void MissionClear(void); 
-}; 
+};
 
 //=======================================================================================
 

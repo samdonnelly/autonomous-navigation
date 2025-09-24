@@ -21,20 +21,12 @@
 
 
 //=======================================================================================
-// Macros 
-
-static constexpr uint16_t boat_max_thrust = 1750;   // Make into a parameter 
-
-static constexpr float boat_max_heading_error = 90.0f;   // Error for max turn thrust (degrees) 
-static constexpr float boat_no_heading_error = 0.0f;     // No error (degrees) 
-
-//=======================================================================================
-
-
-//=======================================================================================
 // Global data 
 
 Boat boat; 
+
+static constexpr float boat_max_heading_error = 90.0f;   // Error for max turn thrust (degrees) 
+static constexpr float boat_no_heading_error = 0.0f;     // No error (degrees) 
 
 //=======================================================================================
 
@@ -80,7 +72,7 @@ void Boat::VehicleSetup(void)
  */
 void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
 {
-#if VS_BOAT_K1 
+#if VS_BOAT_K1
     
     // With this setup the steering (roll) command has to be mapped to a thruster output. 
 
@@ -99,31 +91,43 @@ void Boat::ManualDrive(VehicleControl::ChannelFunctions main_channels)
         // thruster value to neutral (zero thrust) while the right thuster will have the 
         // value of the throttle input. 
 
-        int16_t rise = (int16_t)VehicleControl::PWM_NEUTRAL - (int16_t)main_channels.throttle; 
-        int16_t run = VehicleControl::PWM_NEUTRAL - VehicleControl::PWM_LOW; 
-        int16_t roll = (int16_t)VehicleControl::PWM_NEUTRAL - (int16_t)main_channels.roll; 
-        int16_t thrust_diff = (rise * roll) / run; 
+        uint16_t 
+        run = VehicleControl::PWM_NEUTRAL - VehicleControl::PWM_LOW, 
+        rise, roll, *thruster = nullptr;
 
-        if (main_channels.roll < VehicleControl::PWM_NEUTRAL)
+        if (main_channels.roll > VehicleControl::PWM_NEUTRAL)
         {
-            left_thruster += (uint16_t)thrust_diff; 
+            roll = main_channels.roll - VehicleControl::PWM_NEUTRAL;
+            thruster = &right_thruster;
         }
-        else 
+        else
         {
-            right_thruster += (uint16_t)(-thrust_diff); 
+            roll = VehicleControl::PWM_NEUTRAL - main_channels.roll;
+            thruster = &left_thruster;
+        }
+
+        if (main_channels.throttle > VehicleControl::PWM_NEUTRAL)
+        {
+            rise = main_channels.throttle - VehicleControl::PWM_NEUTRAL;
+            *thruster -= roll * rise / run;
+        }
+        else
+        {
+            rise = VehicleControl::PWM_NEUTRAL - main_channels.throttle;
+            *thruster += roll * rise / run;
         }
     }
 
-    hardware.PropulsionSet(left_thruster, right_thruster); 
+    hardware.PropulsionSet(left_thruster, right_thruster);
 
-#elif VS_BOAT_K2 
+#elif VS_BOAT_K2
 
     // With this setup the inputs can directly be applied to the motor output and the 
     // unused DOFs set to neutral. 
     hardware.PropulsionSet(main_channels.throttle, VehicleControl::PWM_NEUTRAL); 
     hardware.SteeringSet(main_channels.roll, VehicleControl::PWM_NEUTRAL, VehicleControl::PWM_NEUTRAL); 
 
-#endif 
+#endif
 }
 
 
@@ -137,14 +141,14 @@ void Boat::AutoDrive(float heading_error)
 #if VS_BOAT_K1 
 
     uint16_t 
-    left_thruster = boat_max_thrust, 
-    right_thruster = boat_max_thrust; 
+    left_thruster = auto_max_pwm, 
+    right_thruster = auto_max_pwm; 
 
     // If the boat is not pointing in the direction it needs to go then adjust the motor 
     // ouptut. Otherwise continue straight at the set thrust. 
     if (heading_error != boat_no_heading_error)
     {
-        float rise = static_cast<float>(boat_max_thrust - VehicleControl::PWM_NEUTRAL); 
+        float rise = static_cast<float>(auto_max_pwm - VehicleControl::PWM_NEUTRAL); 
         uint16_t *thruster = nullptr; 
 
         // Check which direction the boat needs to turn 
@@ -175,6 +179,22 @@ void Boat::AutoDrive(float heading_error)
     // error only applies to the sterring output. 
     
 #endif 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Setters 
+
+/**
+ * @brief Set the max PWM motor output for autonomous modes 
+ * 
+ * @param max_pwm : max PWM (1500 - 2000) 
+ */
+void Boat::AutoDriveMaxPWMSet(uint16_t max_pwm)
+{
+    auto_max_pwm = max_pwm;
 }
 
 //=======================================================================================
