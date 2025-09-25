@@ -25,7 +25,8 @@
 
 // Real world data 
 static constexpr float earth_radius = 6371.0f;   // Average radius of the Earth (km) 
-static constexpr float gravity = 9.81;           // Gravity (m/s^2) 
+static constexpr float gravity = 9.81f;          // Gravity (m/s^2) 
+static constexpr float g = 1.0f;                 // Gravity (g's) 
 
 // Directions 
 static constexpr float 
@@ -73,7 +74,7 @@ VehicleNavigation::VehicleNavigation()
     // navigation can't happen without a position lock, and by the time one is obtained, 
     // the code guarantees there will be valid mission data to obtain which is also why 
     // other mission target data doesn't need to be set initially. 
-    mission_target.seq = ~RESET; 
+    mission_target.seq = ~RESET;
 }
 
 //=======================================================================================
@@ -532,7 +533,7 @@ void VehicleNavigation::AccelNED(void)
     // declination so that it becomes relative to true North. 
     BodyToEarthAccel(accel, accel_ned);
     accel_ned.y = -accel_ned.y;
-    accel_ned.z = -(accel_ned.z - gravity);
+    accel_ned.z = -(accel_ned.z - g);
     TrueNorthEarthAccel(accel_ned);
 }
 
@@ -661,6 +662,7 @@ void VehicleNavigation::KalmanPosePredict(void)
     location_filtered.lat = location_previous.lat + k_pos.x / coordinate_const;
     location_filtered.lon = location_previous.lon + k_pos.y / (coordinate_const*cosf(location_filtered.lat*deg_to_rad));
     location_filtered.alt = location_previous.alt + k_pos.z;
+    LocationScale();
 
     // Convert the local changes in velocity to a more usable form. 
     velocity_filtered.sog = sqrtf(k_vel.x*k_vel.x + k_vel.y*k_vel.y);
@@ -718,9 +720,7 @@ void VehicleNavigation::KalmanPoseUpdate(void)
     location_filtered.lat = location_filtered.lat + (location_gps.lat - location_filtered.lat)*K_N11;
     location_filtered.lon = location_filtered.lon + (location_gps.lon - location_filtered.lon)*K_E11;
     location_filtered.alt = location_filtered.alt + (location_gps.alt - location_filtered.alt)*K_D11;
-    location_filtered.latI = static_cast<int32_t>(location_filtered.lat * coordinate_scalar);
-    location_filtered.lonI = static_cast<int32_t>(location_filtered.lon * coordinate_scalar);
-    location_filtered.altI = static_cast<int32_t>(location_filtered.alt * altitude_scalar);
+    LocationScale();
     
     // Update the state velocity. The local velocity for each axis is updated so velocity 
     // can continue to be estimated during the prediction step. The determined velocity 
@@ -736,6 +736,17 @@ void VehicleNavigation::KalmanPoseUpdate(void)
     // distance from last known position is now zero. 
     location_previous = location_filtered;
     k_pos = { _0_0f, _0_0f, _0_0f };
+}
+
+
+/**
+ * @brief Scale the location to represent it as integers 
+ */
+void VehicleNavigation::LocationScale(void)
+{
+    location_filtered.latI = static_cast<int32_t>(location_filtered.lat * coordinate_scalar);
+    location_filtered.lonI = static_cast<int32_t>(location_filtered.lon * coordinate_scalar);
+    location_filtered.altI = static_cast<int32_t>(location_filtered.alt * altitude_scalar);
 }
 
 

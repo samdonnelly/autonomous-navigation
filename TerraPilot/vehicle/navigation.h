@@ -177,6 +177,7 @@ private:
     // Position calculations 
     void KalmanPosePredict(void);
     void KalmanPoseUpdate(void);
+    void LocationScale(void);
     void TargetWaypoint(Vehicle &vehicle); 
     void WaypointError(void);
 

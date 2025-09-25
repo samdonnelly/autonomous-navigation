@@ -32,12 +32,12 @@ static constexpr uint8_t
 heartbeat_send_freq = 1,               // HEARTBEAT 
 parameter_value_send_freq = 4,         // PARAMETER_VALUE 
 mission_current_send_freq = 1,         // MISSION_CURRENT 
-raw_imu_send_freq = 4,                 // RAW_IMU 
-gps_raw_int_send_freq = 1,             // GPS_RAW_INT 
+raw_imu_send_freq = 2,                 // RAW_IMU 
+gps_raw_int_send_freq = 2,             // GPS_RAW_INT 
 attitude_send_freq = 4,                // ATTITUDE 
-pos_target_global_int_send_freq = 1,   // POSITION_TARGET_GLOBAL_INT 
-nav_controller_out_send_freq = 1,      // NAV_CONTROLLER_OUTPUT 
-global_pos_int_send_freq = 1;          // GLOBAL_POS_INT 
+pos_target_global_int_send_freq = 2,   // POSITION_TARGET_GLOBAL_INT 
+nav_controller_out_send_freq = 2,      // NAV_CONTROLLER_OUTPUT 
+global_pos_int_send_freq = 2;          // GLOBAL_POS_INT 
 
 //=======================================================================================
 
@@ -94,8 +94,8 @@ VehicleTelemetry::VehicleTelemetry(uint8_t vehicle_type)
     // mavlink.rc_channels_raw_msg_timing            = { RESET, RESET, FLAG_CLEAR };
     // mavlink.servo_output_raw_msg_timing           = { RESET, RESET, FLAG_CLEAR };
     mavlink.attitude_msg_timing                   = { RESET, attitude_lim,              FLAG_SET };
-    mavlink.position_target_global_int_msg_timing = { RESET, pos_target_global_int_lim, FLAG_SET };
-    mavlink.nav_controller_output_msg_timing      = { RESET, nav_controller_lim,        FLAG_SET };
+    mavlink.position_target_global_int_msg_timing = { RESET, pos_target_global_int_lim, FLAG_CLEAR };
+    mavlink.nav_controller_output_msg_timing      = { RESET, nav_controller_lim,        FLAG_CLEAR };
     // mavlink.local_position_ned_msg_timing         = { RESET, RESET, FLAG_CLEAR };
     mavlink.global_pos_int_msg_timing             = { RESET, global_pos_int_lim,        FLAG_SET };
 
