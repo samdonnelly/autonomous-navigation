@@ -178,6 +178,24 @@ VehicleMemory::VehicleMemory()
     //==================================================
 }
 
+
+/**
+ * @brief Establish and load vehicle info from external memory 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleMemory::MemoryLoad(Vehicle &vehicle)
+{
+    // Make sure the vehicle directory and its needed files exist. If they don't then 
+    // create them and intialize the data. If they do then load exisiting data into the 
+    // system. 
+
+    vehicle.hardware.MemorySetDirectory();
+
+    ParameterLoad(vehicle);
+    MissionLoad();
+}
+
 //=======================================================================================
 
 

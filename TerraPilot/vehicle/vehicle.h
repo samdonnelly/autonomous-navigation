@@ -65,7 +65,6 @@ protected:   // Protected members
         COURSE_CORRECT,     // Adjust the vehicle course/orientation 
         GPS_UPDATE,         // Get the new GPS data 
         IMU_UPDATE,         // Get the new IMU data 
-        PARAMETER_LOAD,     // Load parameters from memory 
         RC_UPDATE,          // Get the new RC data 
         REMOTE_CONTROL,     // Manually control the vehicle 
         TARGET_ASSESS,      // Assess the current mission target 
