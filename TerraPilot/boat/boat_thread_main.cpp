@@ -80,31 +80,31 @@ void Boat::MainDispatch(Event event)
             break;
 
         case MainStates::ACRO_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::STEERING_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::LOITER_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::FOLLOW_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::SIMPLE_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::DOCK_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::CIRCLE_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::AUTO_STATE: 
@@ -123,15 +123,15 @@ void Boat::MainDispatch(Event event)
             break;
 
         case MainStates::RTL_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::SMART_RTL_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::GUIDED_STATE: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
 
         case MainStates::FAULT_STATE: 
@@ -149,7 +149,7 @@ void Boat::MainDispatch(Event event)
             break;
         
         default: 
-            state = MainStates::INIT_STATE;
+            state = MainStates::RESET_STATE;
             break;
     }
 

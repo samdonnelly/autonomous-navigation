@@ -190,7 +190,9 @@ void VehicleMemory::MemoryLoad(Vehicle &vehicle)
     // create them and intialize the data. If they do then load exisiting data into the 
     // system. 
 
+    xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY);
     vehicle.hardware.MemorySetDirectory();
+    xSemaphoreGive(vehicle.comms_mutex);
 
     ParameterLoad(vehicle);
     MissionLoad();

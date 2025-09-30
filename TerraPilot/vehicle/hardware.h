@@ -39,9 +39,9 @@ public:
     // These store the data provided by the hardware. The hardware can directly populate 
     // them and the vehicle system can directly access them. 
 
-    enum class HardwareStatus : uint32_t
+    enum class MemoryStatus : uint32_t
     {
-        HARDWARE_OK        = 0x00000001,   // Hardware ok - no faults 
+        MEMORY_OK          = 0x00000001,   // Hardware ok - no faults 
         MEMORY_DIR_FAULT   = 0x00000002,   // Memory directory fault 
         MEMORY_OPEN_FAULT  = 0x00000004,   // Memory file open fault 
         MEMORY_CLOSE_FAULT = 0x00000008,   // Memory file close fault 
@@ -94,11 +94,14 @@ public:
         VehicleNavigation::Vector<float> &mag); 
 
     // Memory 
-    HardwareStatus MemorySetDirectory(void);
-    HardwareStatus MemoryOpenFile(char *file_name);
-    HardwareStatus MemoryCloseFile(char *file_name);
-    HardwareStatus MemoryRead(char *data_buff); 
-    HardwareStatus MemoryWrite(char *data_buff); 
+    MemoryStatus MemoryEstablishDirectory(void);
+    void MemorySetFileName(char *file_name);
+    MemoryStatus MemoryOpenFile(void);
+    MemoryStatus MemoryCloseFile(void);
+    MemoryStatus MemoryRead(void);
+    void MemoryGetData(char *data_buff);
+    void MemorySetData(char *data_buff);
+    MemoryStatus MemoryWrite(void);
 
     // RC 
     // Serial protocol is used for remote control which means the hardware must read and 

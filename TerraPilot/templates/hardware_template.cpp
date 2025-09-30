@@ -227,7 +227,7 @@ void VehicleHardware::IMUGet(
 // Memory 
 
 /**
- * @brief Set the directory to store and access files on the external memory device 
+ * @brief Establish the directory to store and access files on the external memory device 
  * 
  * @details This function will be called on startup of the system to establish the 
  *          directory from which to read and write file data. Everything needed to get 
@@ -244,7 +244,7 @@ void VehicleHardware::IMUGet(
  * 
  * @return VehicleHardware::HardwareStatus : MEMORY_DIR_FAULT for problems, HARDWARE_OK otherwise 
  */
-VehicleHardware::HardwareStatus VehicleHardware::MemorySetDirectory(void)
+VehicleHardware::HardwareStatus VehicleHardware::MemoryEstablishDirectory(void)
 {
     return HardwareStatus::HARDWARE_OK;
 }
@@ -268,7 +268,7 @@ VehicleHardware::HardwareStatus VehicleHardware::MemorySetDirectory(void)
  * @param file_name : string containing the name of the file to be opened 
  * @return VehicleHardware::HardwareStatus : MEMORY_OPEN_FAULT for problems, HARDWARE_OK otherwise 
  */
-VehicleHardware::HardwareStatus VehicleHardware::MemoryOpenFile(char *file_name)
+VehicleHardware::HardwareStatus VehicleHardware::MemoryOpenFile(void)
 {
     return HardwareStatus::HARDWARE_OK;
 }
@@ -284,7 +284,7 @@ VehicleHardware::HardwareStatus VehicleHardware::MemoryOpenFile(char *file_name)
  * @param file_name : string containing the name of the file to be closed 
  * @return VehicleHardware::HardwareStatus : MEMORY_CLOSE_FAULT for problems, HARDWARE_OK otherwise 
  */
-VehicleHardware::HardwareStatus VehicleHardware::MemoryCloseFile(char *file_name)
+VehicleHardware::HardwareStatus VehicleHardware::MemoryCloseFile(void)
 {
     return HardwareStatus::HARDWARE_OK;
 }
@@ -310,7 +310,7 @@ VehicleHardware::HardwareStatus VehicleHardware::MemoryCloseFile(char *file_name
  * @param data_buff : buffer to store data read from the device 
  * @return VehicleHardware::HardwareStatus : MEMORY_READ_FAULT for problems, HARDWARE_OK otherwise 
  */
-VehicleHardware::HardwareStatus VehicleHardware::MemoryRead(char *data_buff)
+VehicleHardware::HardwareStatus VehicleHardware::MemoryRead(void)
 {
     return HardwareStatus::HARDWARE_OK;
 }
@@ -333,7 +333,7 @@ VehicleHardware::HardwareStatus VehicleHardware::MemoryRead(char *data_buff)
  * @param data_buff : buffer containing data to write to the device 
  * @return VehicleHardware::HardwareStatus : MEMORY_WRITE_FAULT for problems, HARDWARE_OK otherwise 
  */
-VehicleHardware::HardwareStatus VehicleHardware::MemoryWrite(char *data_buff)
+VehicleHardware::HardwareStatus VehicleHardware::MemoryWrite(void)
 {
     return HardwareStatus::HARDWARE_OK;
 }
