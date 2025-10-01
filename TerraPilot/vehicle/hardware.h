@@ -36,17 +36,14 @@ class VehicleHardware
 {
 public:
 
-    // These store the data provided by the hardware. The hardware can directly populate 
-    // them and the vehicle system can directly access them. 
-
     enum class MemoryStatus : uint32_t
     {
-        MEMORY_OK          = 0x00000001,   // Hardware ok - no faults 
-        MEMORY_DIR_FAULT   = 0x00000002,   // Memory directory fault 
-        MEMORY_OPEN_FAULT  = 0x00000004,   // Memory file open fault 
-        MEMORY_CLOSE_FAULT = 0x00000008,   // Memory file close fault 
-        MEMORY_READ_FAULT  = 0x00000010,   // Memory file read fault 
-        MEMORY_WRITE_FAULT = 0x00000020    // Memory file write fault 
+        MEMORY_OK           = 0x00000001,   // Memory ok - nothing to report 
+        MEMORY_FILE_CREATED = 0x00000002,   // File had to be created 
+        MEMORY_FILE_OPENED  = 0x00000004,   // Existing file successfully opened 
+        MEMORY_CAP_ERROR    = 0x00000008,   // Volume capacity (free space) error 
+        MEMORY_DIR_ERROR    = 0x00000010,   // Directory error 
+        MEMORY_OPEN_ERROR   = 0x00000020    // file open error 
     };
 
     union DataReady 
