@@ -23,8 +23,11 @@
 // Includes 
 
 #include "includes.h"
-#include "control.h"
+#include "telemetry.h"
 #include "navigation.h"
+#include "control.h"
+#include "memory.h"
+#include "auxiliary.h"
 
 //=======================================================================================
 
@@ -38,12 +41,12 @@ public:
 
     enum class MemoryStatus : uint32_t
     {
-        MEMORY_OK           = 0x00000001,   // Memory ok - nothing to report 
-        MEMORY_FILE_CREATED = 0x00000002,   // File had to be created 
-        MEMORY_FILE_OPENED  = 0x00000004,   // Existing file successfully opened 
-        MEMORY_CAP_ERROR    = 0x00000008,   // Volume capacity (free space) error 
-        MEMORY_DIR_ERROR    = 0x00000010,   // Directory error 
-        MEMORY_OPEN_ERROR   = 0x00000020    // file open error 
+        MEMORY_OK,             // Memory ok - nothing to report 
+        MEMORY_FILE_CREATED,   // File had to be created 
+        MEMORY_FILE_OPENED,    // Existing file successfully opened 
+        MEMORY_EOF,            // End of file reached 
+        MEMORY_CAP_ERROR,      // Volume capacity (free space) error 
+        MEMORY_ACCESS_ERROR    // Memory device access error 
     };
 
     union DataReady 
@@ -91,13 +94,13 @@ public:
         VehicleNavigation::Vector<float> &mag); 
 
     // Memory 
-    MemoryStatus MemoryEstablishDirectory(void);
-    void MemorySetFileName(char *file_name);
+    MemoryStatus MemorySetup(void);
+    void MemorySetFileName(char *file_name, uint16_t file_name_size);
     MemoryStatus MemoryOpenFile(void);
     MemoryStatus MemoryCloseFile(void);
     MemoryStatus MemoryRead(void);
-    void MemoryGetData(char *data_buff);
-    void MemorySetData(char *data_buff);
+    void MemoryGetData(char *data_buff, uint16_t data_buff_size);
+    void MemorySetData(char *data_buff, uint16_t data_buff_size);
     MemoryStatus MemoryWrite(void);
 
     // RC 

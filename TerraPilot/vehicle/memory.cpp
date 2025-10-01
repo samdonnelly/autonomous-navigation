@@ -191,7 +191,7 @@ void VehicleMemory::MemoryLoad(Vehicle &vehicle)
     // system. 
 
     xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY);
-    vehicle.hardware.MemoryEstablishDirectory();
+    vehicle.hardware.MemorySetup();
     xSemaphoreGive(vehicle.comms_mutex);
 
     ParameterLoad(vehicle);

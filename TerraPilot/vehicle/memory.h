@@ -26,7 +26,8 @@
 //=======================================================================================
 // Macros 
 
-constexpr uint8_t num_parameters = 16;  // Number of parameters in the system 
+constexpr uint8_t num_parameters = 16;       // Number of parameters in the system 
+constexpr uint16_t memory_buff_size = 250;   // External memory individual file data size 
 
 #define MAX_MISSION_SIZE 20   // Max number of mission items 
 #define HOME_OFFSET 1         // First mission item that isn't the home location 

@@ -24,6 +24,14 @@
 
 
 //=======================================================================================
+// Constants 
+
+constexpr uint16_t telemetry_buff_size = 1500;   // Telemetry data buffer size 
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Classes 
 
 class Vehicle; 
@@ -125,9 +133,9 @@ private:   // Private members
     mavlink_status_t msg_status; 
     uint16_t data_in_index; 
     uint16_t data_in_size; 
-    uint8_t data_in_buff[vs_telemetry_buff]; 
+    uint8_t data_in_buff[telemetry_buff_size]; 
     uint16_t data_out_size; 
-    uint8_t data_out_buff[vs_telemetry_buff]; 
+    uint8_t data_out_buff[telemetry_buff_size]; 
 
     // Parameter protocol 
     uint8_t parameter_index; 
