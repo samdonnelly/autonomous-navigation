@@ -26,45 +26,67 @@
 // Event loop dispatch function for the comms thread 
 void Boat::CommsDispatch(Event event)
 {
-    boat.comms_event = (CommsEvents)event; 
+    boat.comms_event = (CommsEvents)event;
 
     // General communication thread mutex grab 
-    xSemaphoreTake(boat.comms_mutex, portMAX_DELAY); 
+    xSemaphoreTake(boat.comms_mutex, portMAX_DELAY);
 
     switch (boat.comms_event)
     {
         case CommsEvents::DEBUG_WRITE: 
-            boat.hardware.DebugWrite(); 
-            break; 
+            boat.hardware.DebugWrite();
+            break;
         
         case CommsEvents::GPS_READ: 
-            boat.hardware.GPSRead(); 
-            break; 
+            boat.hardware.GPSRead();
+            break;
 
         case CommsEvents::IMU_READ: 
-            boat.hardware.IMURead(); 
-            break; 
+            boat.hardware.IMURead();
+            break;
+
+        case CommsEvents::MEMORY_SETUP:
+            boat.external_memory_status = boat.hardware.MemorySetup();
+            osSemaphoreRelease(boat.external_memory_semaphore);
+            break;
+
+        case CommsEvents::MEMORY_OPEN:
+            boat.external_memory_status = boat.hardware.MemoryOpenFile();
+            osSemaphoreRelease(boat.external_memory_semaphore);
+            break;
+
+        case CommsEvents::MEMORY_CLOSE:
+            boat.external_memory_status = boat.hardware.MemoryCloseFile();
+            break;
+
+        case CommsEvents::MEMORY_READ:
+            boat.external_memory_status = boat.hardware.MemoryRead();
+            break;
+
+        case CommsEvents::MEMORY_WRITE:
+            boat.external_memory_status = boat.hardware.MemoryWrite();
+            break;
 
         case CommsEvents::RC_READ: 
-            boat.hardware.RCRead(); 
-            break; 
+            boat.hardware.RCRead();
+            break;
 
         case CommsEvents::TELEMETRY_READ: 
-            boat.hardware.TelemetryRead(); 
-            break; 
+            boat.hardware.TelemetryRead();
+            break;
 
         case CommsEvents::TELEMETRY_WRITE: 
-            boat.hardware.TelemetryWrite(); 
-            osSemaphoreRelease(boat.telemetry_out_semaphore); 
-            break; 
+            boat.hardware.TelemetryWrite();
+            osSemaphoreRelease(boat.telemetry_out_semaphore);
+            break;
 
         default: 
-            boat.comms_event = CommsEvents::NO_EVENT; 
-            break; 
+            boat.comms_event = CommsEvents::NO_EVENT;
+            break;
     }
 
     // General communication thread mutex release 
-    xSemaphoreGive(boat.comms_mutex); 
+    xSemaphoreGive(boat.comms_mutex);
 }
 
 //=======================================================================================

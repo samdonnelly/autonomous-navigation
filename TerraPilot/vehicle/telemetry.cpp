@@ -300,10 +300,10 @@ void VehicleTelemetry::MAVLinkMessageSend(Vehicle &vehicle)
         // after sending the telemetry data. This semaphore exists because there are both 
         // periodic message sends and sends in response to incoming messages which have 
         // the potential the overwrite the sending buffer if not protected. 
-        osSemaphoreAcquire(vehicle.telemetry_out_semaphore, portMAX_DELAY); 
-        vehicle.hardware.TelemetrySet(data_out_size, data_out_buff); 
-        vehicle.CommsEventQueue((uint8_t)Vehicle::CommsEvents::TELEMETRY_WRITE); 
-        data_out_size = RESET; 
+        osSemaphoreAcquire(vehicle.telemetry_out_semaphore, portMAX_DELAY);
+        vehicle.hardware.TelemetrySet(data_out_size, data_out_buff);
+        vehicle.CommsEventQueue((uint8_t)Vehicle::CommsEvents::TELEMETRY_WRITE);
+        data_out_size = RESET;
     }
 }
 

@@ -63,7 +63,7 @@ public:
     data_ready;
 
     // Constructor 
-    VehicleHardware() 
+    VehicleHardware()
     {
         data_ready.flags = RESET; 
     }
@@ -95,12 +95,12 @@ public:
 
     // Memory 
     MemoryStatus MemorySetup(void);
-    void MemorySetFileName(char *file_name, uint16_t file_name_size);
+    void MemorySetFileName(const char *file_name, uint16_t file_name_size);
     MemoryStatus MemoryOpenFile(void);
     MemoryStatus MemoryCloseFile(void);
     MemoryStatus MemoryRead(void);
     void MemoryGetData(char *data_buff, uint16_t data_buff_size);
-    void MemorySetData(char *data_buff, uint16_t data_buff_size);
+    void MemorySetData(const char *data_buff, uint16_t data_buff_size);
     MemoryStatus MemoryWrite(void);
 
     // RC 
@@ -115,7 +115,7 @@ public:
     void TelemetryRead(void); 
     void TelemetryGet(uint16_t &size, uint8_t *buffer); 
     void TelemetrySet(uint16_t &size, uint8_t *buffer); 
-    void TelemetryWrite(void); 
+    void TelemetryWrite(void);
 }; 
 
 //=======================================================================================

@@ -37,26 +37,44 @@
 
 class Vehicle 
 {
-public:   // Friends 
+public:
 
-    friend class VehicleControl; 
-    friend class VehicleMemory; 
-    friend class VehicleNavigation; 
-    friend class VehicleTelemetry; 
+    // Friends :)
+    friend class VehicleControl;
+    friend class VehicleMemory;
+    friend class VehicleNavigation;
+    friend class VehicleTelemetry;
 
-protected:   // Protected members 
+    /**
+     * @brief Constructor 
+     * 
+     * @param vehicle_type : vehicle identification type 
+     */
+    Vehicle(uint8_t vehicle_type);
+
+    /**
+     * @brief Destructor 
+     */
+    ~Vehicle() = default;
+
+    // Project interface 
+    void Setup(void);
+    void Loop(void);
+
+protected:
 
     // Thread info 
-    ThreadEventData main_event_info; 
-    ThreadEventData comms_event_info; 
-    TimerThreadData periodic_timer_50ms; 
-    TimerThreadData periodic_timer_100ms; 
-    TimerThreadData periodic_timer_250ms; 
-    TimerThreadData periodic_timer_1s; 
+    ThreadEventData main_event_info;
+    ThreadEventData comms_event_info;
+    TimerThreadData periodic_timer_50ms;
+    TimerThreadData periodic_timer_100ms;
+    TimerThreadData periodic_timer_250ms;
+    TimerThreadData periodic_timer_1s;
 
     // Thread synchronization 
-    SemaphoreHandle_t comms_mutex; 
-    osSemaphoreId_t telemetry_out_semaphore; 
+    SemaphoreHandle_t comms_mutex;
+    osSemaphoreId_t telemetry_out_semaphore;
+    osSemaphoreId_t external_memory_semaphore;
 
     // Main thread events 
     enum class MainEvents : uint8_t {
@@ -70,7 +88,7 @@ protected:   // Protected members
         TARGET_ASSESS,      // Assess the current mission target 
         TELEMETRY_DECODE,   // Get and decode any new telemetry data 
         TELEMETRY_ENCODE    // Set telemetry data to be sent 
-    } main_event; 
+    } main_event;
 
     // Communication thread events 
     enum class CommsEvents : uint8_t {
@@ -78,28 +96,34 @@ protected:   // Protected members
         DEBUG_WRITE,
         GPS_READ,
         IMU_READ,
+        MEMORY_SETUP,
+        MEMORY_OPEN,
+        MEMORY_CLOSE,
+        MEMORY_READ,
+        MEMORY_WRITE,
         RC_READ,
         TELEMETRY_READ,
         TELEMETRY_WRITE
-    } comms_event; 
+    } comms_event;
 
     // System flags 
     struct SystemFlags 
     {
-        uint8_t state_entry : 1; 
-        uint8_t state_exit  : 1; 
+        uint8_t state_entry : 1;
+        uint8_t state_exit  : 1;
     }
-    main_system_flags; 
+    main_system_flags;
 
     // Features a vehicle has 
-    VehicleHardware hardware; 
-    VehicleTelemetry telemetry; 
-    VehicleNavigation navigation; 
-    VehicleControl control; 
-    VehicleMemory memory; 
-    VehicleAuxiliary auxiliary; 
+    VehicleHardware hardware;
+    VehicleTelemetry telemetry;
+    VehicleNavigation navigation;
+    VehicleControl control;
+    VehicleMemory memory;
+    VehicleAuxiliary auxiliary;
 
-protected:   // Protected methods 
+    // Vehicle statuses 
+    VehicleHardware::MemoryStatus external_memory_status;
 
     // Vehicle specific functions 
     virtual void VehicleSetup(void) = 0;
@@ -110,21 +134,12 @@ protected:   // Protected methods
     virtual void AutoDriveMaxPWMSet(uint16_t max_pwm) = 0;
 
     // Helper functions 
-    void MainEventQueue(Event event); 
-    void MainCommonEvents(Vehicle::MainEvents &event); 
-    void MainStateChange(void); 
-    void MainStateEnter(uint8_t state, uint32_t &flags); 
-    void MainStateExit(void); 
-    void CommsEventQueue(Event event); 
-
-public:   // Public methods 
-
-    // Constructor 
-    Vehicle(uint8_t vehicle_type); 
-
-    // Project interface 
-    void Setup(void); 
-    void Loop(void); 
+    void MainEventQueue(Event event);
+    void MainCommonEvents(Vehicle::MainEvents &event);
+    void MainStateChange(void);
+    void MainStateEnter(uint8_t state, uint32_t &flags);
+    void MainStateExit(void);
+    void CommsEventQueue(Event event);
 };
 
 //=======================================================================================

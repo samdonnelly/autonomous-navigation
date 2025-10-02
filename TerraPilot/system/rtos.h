@@ -49,7 +49,8 @@
 #define PERIODIC_TIMER_1S_PERIOD 200     // Ticks 
 
 // Thread synchronization 
-#define TELEMETRY_OUT_SEMAPHORE_COUNT 1 
+constexpr uint32_t telemetry_out_semaphore_count = 1;
+constexpr uint32_t ext_memory_semaphore_count = 1;
 
 //=======================================================================================
 

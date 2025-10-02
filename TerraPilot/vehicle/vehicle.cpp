@@ -179,9 +179,12 @@ void Vehicle::Setup(void)
 
     // Create mutex and semaphores 
     comms_mutex = xSemaphoreCreateMutex(); 
-    telemetry_out_semaphore = osSemaphoreNew(TELEMETRY_OUT_SEMAPHORE_COUNT,   // Total 
-                                             TELEMETRY_OUT_SEMAPHORE_COUNT,   // Initial 
+    telemetry_out_semaphore = osSemaphoreNew(telemetry_out_semaphore_count,   // Total 
+                                             telemetry_out_semaphore_count,   // Initial 
                                              NULL);                           // Attributes 
+    external_memory_semaphore = osSemaphoreNew(ext_memory_semaphore_count,    // Total 
+                                               RESET,                         // Initial 
+                                               NULL);                         // Attributes 
 
     // Queue the first event to start the system 
     MainEventQueue((Event)MainEvents::INIT); 

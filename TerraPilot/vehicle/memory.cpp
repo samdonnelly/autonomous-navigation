@@ -21,6 +21,14 @@
 
 
 //=======================================================================================
+// Constants 
+
+constexpr char parameters_filename[] = "parameters.txt";
+
+//=======================================================================================
+
+
+//=======================================================================================
 // Parameters 
 
 class Parameters 
@@ -190,12 +198,16 @@ void VehicleMemory::MemoryLoad(Vehicle &vehicle)
     // create them and intialize the data. If they do then load exisiting data into the 
     // system. 
 
-    xSemaphoreTake(vehicle.comms_mutex, portMAX_DELAY);
-    vehicle.hardware.MemorySetup();
-    xSemaphoreGive(vehicle.comms_mutex);
+    // Queue MEMORY_SETUP then wait until it finishes before proceeding. 
+    vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_SETUP);
+    ExternalMemoryWait(vehicle);
 
-    ParameterLoad(vehicle);
-    MissionLoad();
+    // Check status of memory before proceeding 
+    if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_OK)
+    {
+        ParameterLoad(vehicle);
+        MissionLoad();
+    }
 }
 
 //=======================================================================================
@@ -211,6 +223,73 @@ void VehicleMemory::MemoryLoad(Vehicle &vehicle)
  */
 void VehicleMemory::ParameterLoad(Vehicle &vehicle)
 {
+    // Set the file name to be the parameters file 
+    vehicle.hardware.MemorySetFileName(parameters_filename, 
+                                       static_cast<uint16_t>(sizeof(parameters_filename)));
+    
+    // Attempt to open the parameters file 
+    vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_OPEN);
+    ExternalMemoryWait(vehicle);
+
+    // Check status of memory 
+    if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_FILE_OPENED)
+    {
+        // If it already existed then we read each parameter and store it locally. 
+        // If it's detected that not all parameters are saved in the existing file, then 
+        // after reading them all we go and overwrite the parameters file with the local 
+        // parameters (values conserved). 
+
+        char param_buff[memory_buff_size];
+        char param_name[memory_buff_size];
+        uint32_t param_value_1 = RESET, param_value_2 = RESET;
+        int scan_result = RESET;
+        uint8_t param_count = RESET;
+
+        vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_READ);
+        ExternalMemoryWait(vehicle);
+        
+        while (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_OK)
+        {
+            vehicle.hardware.MemoryGetData(param_buff, memory_buff_size);
+            scan_result = sscanf(param_buff, "%s %lu.%lu", param_name, &param_value_1, &param_value_2);
+    
+            if ((scan_result > 1) && (scan_result <= 3))
+            {
+                // If scan is successful then we look up the parameter to get the index 
+                // and update the value at the index. 
+
+                // Increment an index if a match is found. Check the index after going 
+                // through the file to see if it matches the number of parameters. If so 
+                // then do nothing. If not then rewrite all the parameters so the memory 
+                // record of the parameters is up to date. 
+                param_count++;
+
+                // ParameterSet(vehicle, parameters[i].name, *parameters[i].value);
+            }
+
+            vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_READ);
+            ExternalMemoryWait(vehicle);
+        }
+
+        if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_EOF)
+        {
+            if (param_count != num_parameters)
+            {
+                // Overwrite parameters file 
+                // How do we overwrite if the number of parameters decreased? 
+            }
+        }
+    }
+    else if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_FILE_CREATED)
+    {
+        // If it didn't exist before then we write default parameter values to the new file 
+        // and proceed. 
+    }
+
+    // Attempt to close the parameters file 
+    vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_CLOSE);
+    ExternalMemoryWait(vehicle);
+
     // Once parameters are fully implemented, intialize this to zero and have it set 
     // once all parameters have been read. 
     static uint8_t parameters_read = FLAG_SET; 
@@ -607,6 +686,36 @@ void VehicleMemory::MissionClear(void)
 {
     memset((void *)&mission.items[HOME_OFFSET], RESET, MAX_MISSION_SIZE*sizeof(MissionItem)); 
     mission.size = HOME_OFFSET; 
+}
+
+//=======================================================================================
+
+
+//=======================================================================================
+// Helper functions 
+
+// 
+void VehicleMemory::ExternalMemoryEventQueue(Vehicle &vehicle, Vehicle::CommsEvents event)
+{
+    // 
+}
+
+/**
+ * @brief Wait for external memory communication 
+ * 
+ * @details External memory hardware communication sometimes needs to happen before the 
+ *          main thread can proceed. This is done through a semaphore which gets 
+ *          initialized to 0 and the main thread waits on the Sempahore relase before 
+ *          it proceeds. The comms thread will release the semaphore and once the main 
+ *          thread aquires it, it gives it right back since it only needed it in order 
+ *          to proceed. 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleMemory::ExternalMemoryWait(Vehicle &vehicle)
+{
+    osSemaphoreAcquire(vehicle.external_memory_semaphore, portMAX_DELAY);
+    osSemaphoreRelease(vehicle.external_memory_semaphore);
 }
 
 //=======================================================================================

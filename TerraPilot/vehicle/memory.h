@@ -129,6 +129,9 @@ private:
 
     // Mission 
     void MissionLoad(void);
+
+    // Helper functions 
+    void ExternalMemoryWait(Vehicle &vehicle);
 };
 
 //=======================================================================================
