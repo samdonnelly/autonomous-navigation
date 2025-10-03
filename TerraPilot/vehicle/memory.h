@@ -131,7 +131,7 @@ private:
     void MissionLoad(void);
 
     // Helper functions 
-    void ExternalMemoryWait(Vehicle &vehicle);
+    void ExternalMemoryEventQueue(Vehicle &vehicle, Event event);
 };
 
 //=======================================================================================

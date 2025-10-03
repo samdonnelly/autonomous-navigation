@@ -199,8 +199,7 @@ void VehicleMemory::MemoryLoad(Vehicle &vehicle)
     // system. 
 
     // Queue MEMORY_SETUP then wait until it finishes before proceeding. 
-    vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_SETUP);
-    ExternalMemoryWait(vehicle);
+    ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_SETUP));
 
     // Check status of memory before proceeding 
     if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_OK)
@@ -228,8 +227,7 @@ void VehicleMemory::ParameterLoad(Vehicle &vehicle)
                                        static_cast<uint16_t>(sizeof(parameters_filename)));
     
     // Attempt to open the parameters file 
-    vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_OPEN);
-    ExternalMemoryWait(vehicle);
+    ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_OPEN));
 
     // Check status of memory 
     if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_FILE_OPENED)
@@ -240,35 +238,31 @@ void VehicleMemory::ParameterLoad(Vehicle &vehicle)
         // parameters (values conserved). 
 
         char param_buff[memory_buff_size];
-        char param_name[memory_buff_size];
-        uint32_t param_value_1 = RESET, param_value_2 = RESET;
+        char param_name[memory_buff_size], param_value_str[memory_buff_size];
         int scan_result = RESET;
         uint8_t param_count = RESET;
 
-        vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_READ);
-        ExternalMemoryWait(vehicle);
+        ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_READ));
         
         while (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_OK)
         {
             vehicle.hardware.MemoryGetData(param_buff, memory_buff_size);
-            scan_result = sscanf(param_buff, "%s %lu.%lu", param_name, &param_value_1, &param_value_2);
-    
-            if ((scan_result > 1) && (scan_result <= 3))
+            scan_result = sscanf(param_buff, "%s %s", param_name, param_value_str);
+
+            if (scan_result == 2)
             {
-                // If scan is successful then we look up the parameter to get the index 
-                // and update the value at the index. 
+                // If the scan is successful then we update the value within the code. 
+                float param_value = strtof(param_value_str, nullptr);
+                ParameterSet(vehicle, param_name, param_value);
 
                 // Increment an index if a match is found. Check the index after going 
                 // through the file to see if it matches the number of parameters. If so 
                 // then do nothing. If not then rewrite all the parameters so the memory 
                 // record of the parameters is up to date. 
                 param_count++;
-
-                // ParameterSet(vehicle, parameters[i].name, *parameters[i].value);
             }
 
-            vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_READ);
-            ExternalMemoryWait(vehicle);
+            ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_READ));
         }
 
         if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_EOF)
@@ -287,8 +281,7 @@ void VehicleMemory::ParameterLoad(Vehicle &vehicle)
     }
 
     // Attempt to close the parameters file 
-    vehicle.CommsEventQueue((Event)Vehicle::CommsEvents::MEMORY_CLOSE);
-    ExternalMemoryWait(vehicle);
+    ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_CLOSE));
 
     // Once parameters are fully implemented, intialize this to zero and have it set 
     // once all parameters have been read. 
@@ -694,26 +687,21 @@ void VehicleMemory::MissionClear(void)
 //=======================================================================================
 // Helper functions 
 
-// 
-void VehicleMemory::ExternalMemoryEventQueue(Vehicle &vehicle, Vehicle::CommsEvents event)
-{
-    // 
-}
-
 /**
- * @brief Wait for external memory communication 
- * 
- * @details External memory hardware communication sometimes needs to happen before the 
- *          main thread can proceed. This is done through a semaphore which gets 
- *          initialized to 0 and the main thread waits on the Sempahore relase before 
- *          it proceeds. The comms thread will release the semaphore and once the main 
- *          thread aquires it, it gives it right back since it only needed it in order 
- *          to proceed. 
+ * @brief Queue an external memory event 
  * 
  * @param vehicle : vehicle object 
+ * @param event : comms event index 
  */
-void VehicleMemory::ExternalMemoryWait(Vehicle &vehicle)
+void VehicleMemory::ExternalMemoryEventQueue(Vehicle &vehicle, Event event)
 {
+    vehicle.CommsEventQueue(event);
+    
+    // External memory hardware communication sometimes needs to happen before the main 
+    // thread can proceed. This is done through a semaphore which gets initialized to 0 
+    // and the main thread waits on the Sempahore relase before it proceeds. The comms 
+    // thread will release the semaphore and once the main thread aquires it, it gives 
+    // it right back since it only needed it in order to proceed. 
     osSemaphoreAcquire(vehicle.external_memory_semaphore, portMAX_DELAY);
     osSemaphoreRelease(vehicle.external_memory_semaphore);
 }
