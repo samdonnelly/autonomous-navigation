@@ -432,6 +432,29 @@ VehicleHardware::MemoryStatus VehicleHardware::MemoryWrite(void)
     return MemoryStatus::MEMORY_OK;
 }
 
+
+/**
+ * @brief Truncate data in an open file 
+ * 
+ * @details The autopilot will call this function when old file data needs to be removed. 
+ *          In some cases, the autopilot needs to overwrite old data saved in external 
+ *          memory, and truncating the old data ensures no old data will be left behind 
+ *          once new data is done being written. This function should remove all the 
+ *          existing file data from the current position within the open file until the 
+ *          end of the file. This function shouldn't navigate to a certain point within 
+ *          the file as the autopilot will call this function when it needs to. 
+ *          
+ *          Note that the autopilot makes decisions based on the status of these functions 
+ *          so it's important the user provides the correct return values. 
+ * 
+ * @return VehicleHardware::MemoryStatus : MEMORY_ACCESS_ERROR --> Problem accessing device 
+ *                                         MEMORY_OK --> Data truncated, everything OK 
+ */
+VehicleHardware::MemoryStatus VehicleHardware::MemoryTruncate(void)
+{
+    return MemoryStatus::MEMORY_OK;
+}
+
 //=======================================================================================
 
 

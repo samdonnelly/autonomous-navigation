@@ -101,6 +101,7 @@ protected:
         MEMORY_CLOSE,
         MEMORY_READ,
         MEMORY_WRITE,
+        MEMORY_TRUNCATE,
         RC_READ,
         TELEMETRY_READ,
         TELEMETRY_WRITE

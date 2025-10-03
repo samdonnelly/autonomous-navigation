@@ -24,6 +24,10 @@
 // Constants 
 
 constexpr char parameters_filename[] = "parameters.txt";
+constexpr char parameter_read_format[] = "%s %s";
+constexpr int parm_read_num_items = 2;
+constexpr char parameter_write_format[] = "%s %ld.%ld";
+constexpr float param_scalar = 1000.0f;
 
 //=======================================================================================
 
@@ -226,79 +230,154 @@ void VehicleMemory::ParameterLoad(Vehicle &vehicle)
     vehicle.hardware.MemorySetFileName(parameters_filename, 
                                        static_cast<uint16_t>(sizeof(parameters_filename)));
     
-    // Attempt to open the parameters file 
+    // Attempt to open the parameters file. If it's found that the parameter file already 
+    // exists then the code reads the parameters from external memory and populates the 
+    // parameter values in the code. If it's found that the parameter file did not exist 
+    // and it needed to be created, then the code write the default parameter values to 
+    // the file which can then be updated as needed. 
     ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_OPEN));
 
-    // Check status of memory 
     if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_FILE_OPENED)
     {
-        // If it already existed then we read each parameter and store it locally. 
-        // If it's detected that not all parameters are saved in the existing file, then 
-        // after reading them all we go and overwrite the parameters file with the local 
-        // parameters (values conserved). 
-
-        char param_buff[memory_buff_size];
-        char param_name[memory_buff_size], param_value_str[memory_buff_size];
-        int scan_result = RESET;
-        uint8_t param_count = RESET;
-
-        ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_READ));
-        
-        while (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_OK)
-        {
-            vehicle.hardware.MemoryGetData(param_buff, memory_buff_size);
-            scan_result = sscanf(param_buff, "%s %s", param_name, param_value_str);
-
-            if (scan_result == 2)
-            {
-                // If the scan is successful then we update the value within the code. 
-                float param_value = strtof(param_value_str, nullptr);
-                ParameterSet(vehicle, param_name, param_value);
-
-                // Increment an index if a match is found. Check the index after going 
-                // through the file to see if it matches the number of parameters. If so 
-                // then do nothing. If not then rewrite all the parameters so the memory 
-                // record of the parameters is up to date. 
-                param_count++;
-            }
-
-            ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_READ));
-        }
-
-        if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_EOF)
-        {
-            if (param_count != num_parameters)
-            {
-                // Overwrite parameters file 
-                // How do we overwrite if the number of parameters decreased? 
-            }
-        }
+        ParameterReadAll(vehicle);
     }
     else if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_FILE_CREATED)
     {
-        // If it didn't exist before then we write default parameter values to the new file 
-        // and proceed. 
+        ParameterWriteAll(vehicle);
     }
 
     // Attempt to close the parameters file 
     ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_CLOSE));
 
-    // Once parameters are fully implemented, intialize this to zero and have it set 
-    // once all parameters have been read. 
-    static uint8_t parameters_read = FLAG_SET; 
-
-    // As each parameter is read, perform a parameter set so values get updated 
-    // throughout the code. 
-
-    // Once all parameters have been read, set their values throughout the code. 
-    if (parameters_read)
+    // Once all parameters have been established, set their values throughout the code. 
+    for (uint8_t i = RESET; i < num_parameters; i++)
     {
-        for (uint8_t i = RESET; i < num_parameters; i++)
+        ParameterSetUpdate(vehicle, parameters[i].index); 
+    }
+}
+
+
+/**
+ * @brief Read parameters from external memory 
+ * 
+ * @details This function reads parameters from an already open parameters file in 
+ *          external memory and uses the values found to populate the parameters values 
+ *          in the code. If there's a mismatch found between code and memory parameters, 
+ *          then the parameters file gets erased and rewritten so that they align 
+ *          (previously stored values will not be lost). 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleMemory::ParameterReadAll(Vehicle &vehicle)
+{
+    char param_buff[memory_buff_size];
+    char param_name[memory_buff_size], param_value_str[memory_buff_size];
+    uint16_t item_count = RESET;
+    uint16_t checksum_1 = RESET, checksum_2 = RESET;
+
+    ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_READ));
+    
+    while (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_OK)
+    {
+        vehicle.hardware.MemoryGetData(param_buff, memory_buff_size);
+        int scan_result = sscanf(param_buff, parameter_read_format, param_name, param_value_str);
+        item_count++;
+
+        if (scan_result == parm_read_num_items)
         {
-            ParameterSet(vehicle, parameters[i].name, *parameters[i].value); 
+            // If the scan is successful then we check for a parameter to update. 
+            float param_value = strtof(param_value_str, nullptr);
+            ParamIndex param_index = ParameterLookUp(param_name);
+
+            if (ParameterIndexCheck(param_index))
+            {
+                *parameters[param_index].value = param_value;
+
+                // This is used to see if all parametrs get updated. 
+                checksum_1 += param_index;
+                checksum_2 ^= param_index;
+            }
+        }
+
+        ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_READ));
+    }
+
+    if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_EOF)
+    {
+        // There are two mechanisms used to keep track of the parameters in the code 
+        // and the parameters saved in external memory. The first are checksums of 
+        // all the parameters indexes and the second is a total item count within the 
+        // external memory parameter file. These two together ensure the parameters 
+        // and their values in both the code and in external memory match. These 
+        // prevent against cases such as there being less parameters saved in memory 
+        // than in the code (parameters added), more parameters saved in memory than 
+        // in the code (parameters removed), the same number of parameters in both 
+        // places but parameter names changed or parameters replaced by others, and 
+        // duplicates of the same parameter saved in external memory. 
+
+        uint16_t checksum_check_1 = RESET, checksum_check_2 = RESET;
+
+        // Find the expected checksums of the parameter indexes 
+        for (uint16_t i = RESET; i < num_parameters; i++)
+        {
+            checksum_check_1 += i;
+            checksum_check_2 ^= i;
+        }
+
+        if ((checksum_1 != checksum_check_1) || 
+            (checksum_2 != checksum_check_2) || 
+            (item_count != num_parameters))
+        {
+            // There's a mismatch between the parameters in code and in external 
+            // memory. Remove all the parameter file data and rewrite it. 
+            ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_TRUNCATE));
+            ParameterWriteAll(vehicle);
         }
     }
 }
+
+
+/**
+ * @brief Write parameters to external memory 
+ * 
+ * @details This function writes parameters to an already open parameters file in 
+ *          external memory using the parameter values found in the code. 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleMemory::ParameterWriteAll(Vehicle &vehicle)
+{
+    char param_buff[memory_buff_size];
+    int32_t float_int = RESET, float_dec = RESET;
+
+    // Go through each parameter in the code and save it to external memory 
+    for (uint8_t i = RESET; i < num_parameters; i++)
+    {
+        float_int = static_cast<int32_t>(*parameters[i].value);
+        float decimal = static_cast<float>(float_int) - *parameters[i].value;
+        float_dec = abs(static_cast<int32_t>(decimal * param_scalar));
+
+        snprintf(param_buff, 
+                 memory_buff_size, 
+                 parameter_write_format, 
+                 parameters[i].name, float_int, float_dec);
+        vehicle.hardware.MemorySetData(param_buff, memory_buff_size);
+
+        ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_WRITE));
+
+        if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_ACCESS_ERROR)
+        {
+            break;
+        }
+    }
+}
+
+
+// // Update one parameter 
+// void VehicleMemory::ParameterWrite(void)
+// {
+//     // 
+// }
 
 
 /**

@@ -57,14 +57,22 @@ void Boat::CommsDispatch(Event event)
 
         case CommsEvents::MEMORY_CLOSE:
             boat.external_memory_status = boat.hardware.MemoryCloseFile();
+            osSemaphoreRelease(boat.external_memory_semaphore);
             break;
 
         case CommsEvents::MEMORY_READ:
             boat.external_memory_status = boat.hardware.MemoryRead();
+            osSemaphoreRelease(boat.external_memory_semaphore);
             break;
 
         case CommsEvents::MEMORY_WRITE:
             boat.external_memory_status = boat.hardware.MemoryWrite();
+            osSemaphoreRelease(boat.external_memory_semaphore);
+            break;
+
+        case CommsEvents::MEMORY_TRUNCATE:
+            boat.external_memory_status = boat.hardware.MemoryTruncate();
+            osSemaphoreRelease(boat.external_memory_semaphore);
             break;
 
         case CommsEvents::RC_READ: 
