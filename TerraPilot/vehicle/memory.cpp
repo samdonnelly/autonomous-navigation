@@ -258,7 +258,7 @@ void VehicleMemory::ParameterLoad(Vehicle &vehicle)
 
 
 /**
- * @brief Read parameters from external memory 
+ * @brief Read all parameters from external memory 
  * 
  * @details This function reads parameters from an already open parameters file in 
  *          external memory and uses the values found to populate the parameters values 
@@ -338,7 +338,7 @@ void VehicleMemory::ParameterReadAll(Vehicle &vehicle)
 
 
 /**
- * @brief Write parameters to external memory 
+ * @brief Write all parameters to external memory 
  * 
  * @details This function writes parameters to an already open parameters file in 
  *          external memory using the parameter values found in the code. 
@@ -373,45 +373,15 @@ void VehicleMemory::ParameterWriteAll(Vehicle &vehicle)
 }
 
 
-// // Update one parameter 
-// void VehicleMemory::ParameterWrite(void)
-// {
-//     // 
-// }
-
-
 /**
- * @brief Check if an index is within the parameter size 
+ * @brief Write one parameter to external memory 
  * 
- * @param param_index : index of parameter within 'parameters' 
- * @return true/false : status of the check - true if within range 
+ * @param vehicle : vehicle object 
  */
-bool VehicleMemory::ParameterIndexCheck(uint8_t param_index)
+void VehicleMemory::ParameterWriteOne(Vehicle &vehicle)
 {
-    return (param_index < parameters.size()); 
-}
-
-
-/**
- * @brief Look up a parameter using the ID/name 
- * 
- * @param param_id : name/key/ID of parameter used to search for a parameter 
- * @return ParamIndex : index of specified parameter - index == parameters.size() if invalid 
- */
-ParamIndex VehicleMemory::ParameterLookUp(const char *param_id)
-{
-    ParamIndex param_index = RESET; 
-
-    do
-    {
-        if (!strcmp(param_id, parameters[param_index].name))
-        {
-            break; 
-        }
-    } 
-    while (++param_index < parameters.size());
-
-    return param_index; 
+    // Read all the parametrs until the parameter matching the specified index is found. 
+    // Write the 
 }
 
 
@@ -441,6 +411,41 @@ ParamIndex VehicleMemory::ParameterSet(
     }
 
     return param_index; 
+}
+
+
+/**
+ * @brief Look up a parameter using the ID/name 
+ * 
+ * @param param_id : name/key/ID of parameter used to search for a parameter 
+ * @return ParamIndex : index of specified parameter - index == parameters.size() if invalid 
+ */
+ParamIndex VehicleMemory::ParameterLookUp(const char *param_id)
+{
+    ParamIndex param_index = RESET; 
+
+    do
+    {
+        if (!strcmp(param_id, parameters[param_index].name))
+        {
+            break; 
+        }
+    } 
+    while (++param_index < parameters.size());
+
+    return param_index; 
+}
+
+
+/**
+ * @brief Check if an index is within the parameter size 
+ * 
+ * @param param_index : index of parameter within 'parameters' 
+ * @return true/false : status of the check - true if within range 
+ */
+bool VehicleMemory::ParameterIndexCheck(uint8_t param_index)
+{
+    return (param_index < parameters.size()); 
 }
 
 

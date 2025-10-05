@@ -89,9 +89,9 @@ public:
     void MemoryLoad(Vehicle &vehicle);
 
     // Parameters 
-    bool ParameterIndexCheck(uint8_t index);
-    ParamIndex ParameterLookUp(const char *param_id);
     ParamIndex ParameterSet(Vehicle &vehicle, const char *param_id, float &value);
+    ParamIndex ParameterLookUp(const char *param_id);
+    bool ParameterIndexCheck(uint8_t index);
 
     // Mission 
     MissionItem MissionItemGet(uint16_t sequence);
@@ -127,6 +127,7 @@ private:
     void ParameterLoad(Vehicle &vehicle);
     void ParameterReadAll(Vehicle &vehicle);
     void ParameterWriteAll(Vehicle &vehicle);
+    void ParameterWriteOne(Vehicle &vehicle);
     void ParameterSetUpdate(Vehicle &vehicle, ParamIndex param_index);
 
     // Mission 
