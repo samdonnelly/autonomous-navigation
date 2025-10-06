@@ -455,6 +455,48 @@ VehicleHardware::MemoryStatus VehicleHardware::MemoryTruncate(void)
     return MemoryStatus::MEMORY_OK;
 }
 
+
+
+/**
+ * @brief Set the desired position to navigate to within the open file 
+ * 
+ * @details The autopilot will call this function to stage the desired position within 
+ *          the open file. This function should save the position so that when 
+ *          MemoryNavigate is called, the position within the file can be updated. The 
+ *          autopilot determines the position within the file it needs. 
+ * 
+ * @see MemoryNavigate
+ * 
+ * @param file_position : position within file (bytes) 
+ */
+void VehicleHardware::MemoryFilePosSet(uint32_t file_position)
+{
+    // 
+}
+
+
+/**
+ * @brief Navigate to a position within an open file 
+ * 
+ * @details This function will be called by the autopilot when the position within the 
+ *          open file needs to be updated. The position should have already been saved in 
+ *          the MemoryFilePosSet function which the autopilot will call before this. This 
+ *          function must take the set position and move to that point within the open 
+ *          file then return the status of the operation. 
+ *          
+ *          Note that the autopilot makes decisions based on the status of these functions 
+ *          so it's important the user provides the correct return values. 
+ * 
+ * @see MemoryFilePosSet
+ * 
+ * @return VehicleHardware::MemoryStatus : MEMORY_ACCESS_ERROR --> Problem accessing device 
+ *                                         MEMORY_OK --> Position updated, everything OK 
+ */
+VehicleHardware::MemoryStatus VehicleHardware::MemoryNavigate(void)
+{
+    return MemoryStatus::MEMORY_OK;
+}
+
 //=======================================================================================
 
 

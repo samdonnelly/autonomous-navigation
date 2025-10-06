@@ -380,8 +380,14 @@ void VehicleMemory::ParameterWriteAll(Vehicle &vehicle)
  */
 void VehicleMemory::ParameterWriteOne(Vehicle &vehicle)
 {
-    // Read all the parametrs until the parameter matching the specified index is found. 
-    // Write the 
+    // Set the parameter file name. 
+    // Open the parameter file. 
+    // Read the parameters one at a time. Check for a match between the read parameter 
+    // and the desired parameter and record the length of the parameter string. 
+    // Once a match is found then navigate to that point in the file (all string lengths 
+    // combined minus the matching string). 
+    // Write the new parameter value. 
+    // Close the file. 
 }
 
 

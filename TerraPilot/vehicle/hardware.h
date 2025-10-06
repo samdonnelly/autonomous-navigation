@@ -103,6 +103,8 @@ public:
     void MemorySetData(const char *data_buff, uint16_t data_buff_size);
     MemoryStatus MemoryWrite(void);
     MemoryStatus MemoryTruncate(void);
+    void MemoryFilePosSet(uint32_t file_position);
+    MemoryStatus MemoryNavigate(void);
 
     // RC 
     // Serial protocol is used for remote control which means the hardware must read and 
