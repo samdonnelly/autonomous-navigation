@@ -127,7 +127,8 @@ private:
     void ParameterLoad(Vehicle &vehicle);
     void ParameterReadAll(Vehicle &vehicle);
     void ParameterWriteAll(Vehicle &vehicle);
-    void ParameterWriteOne(Vehicle &vehicle);
+    void ParameterSave(Vehicle &vehicle, const char *param_id, float &value);
+    void ParameterStrFormat(char *param_buff, uint16_t buff_size, const char *param_id, float &value);
     void ParameterSetUpdate(Vehicle &vehicle, ParamIndex param_index);
 
     // Mission 

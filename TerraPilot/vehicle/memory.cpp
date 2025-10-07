@@ -26,7 +26,7 @@
 constexpr char parameters_filename[] = "parameters.txt";
 constexpr char parameter_read_format[] = "%s %s";
 constexpr int parm_read_num_items = 2;
-constexpr char parameter_write_format[] = "%s %ld.%ld";
+constexpr char parameter_write_format[] = "%s %ld.%ld     ";
 constexpr float param_scalar = 1000.0f;
 
 //=======================================================================================
@@ -329,7 +329,10 @@ void VehicleMemory::ParameterReadAll(Vehicle &vehicle)
             (item_count != num_parameters))
         {
             // There's a mismatch between the parameters in code and in external 
-            // memory. Remove all the parameter file data and rewrite it. 
+            // memory. Go to the beginning of the file, remove all previous data 
+            // and write the new data. 
+            vehicle.hardware.MemoryFilePositionSet(RESET);
+            ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_NAVIGATE));
             ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_TRUNCATE));
             ParameterWriteAll(vehicle);
         }
@@ -348,21 +351,12 @@ void VehicleMemory::ParameterReadAll(Vehicle &vehicle)
 void VehicleMemory::ParameterWriteAll(Vehicle &vehicle)
 {
     char param_buff[memory_buff_size];
-    int32_t float_int = RESET, float_dec = RESET;
 
     // Go through each parameter in the code and save it to external memory 
     for (uint8_t i = RESET; i < num_parameters; i++)
     {
-        float_int = static_cast<int32_t>(*parameters[i].value);
-        float decimal = static_cast<float>(float_int) - *parameters[i].value;
-        float_dec = abs(static_cast<int32_t>(decimal * param_scalar));
-
-        snprintf(param_buff, 
-                 memory_buff_size, 
-                 parameter_write_format, 
-                 parameters[i].name, float_int, float_dec);
+        ParameterStrFormat(param_buff, memory_buff_size, parameters[i].name, *parameters[i].value);
         vehicle.hardware.MemorySetData(param_buff, memory_buff_size);
-
         ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_WRITE));
 
         if (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_ACCESS_ERROR)
@@ -374,25 +368,7 @@ void VehicleMemory::ParameterWriteAll(Vehicle &vehicle)
 
 
 /**
- * @brief Write one parameter to external memory 
- * 
- * @param vehicle : vehicle object 
- */
-void VehicleMemory::ParameterWriteOne(Vehicle &vehicle)
-{
-    // Set the parameter file name. 
-    // Open the parameter file. 
-    // Read the parameters one at a time. Check for a match between the read parameter 
-    // and the desired parameter and record the length of the parameter string. 
-    // Once a match is found then navigate to that point in the file (all string lengths 
-    // combined minus the matching string). 
-    // Write the new parameter value. 
-    // Close the file. 
-}
-
-
-/**
- * @brief Set the parameter that matches the ID/name 
+ * @brief Update the parameter that matches the ID/name 
  * 
  * @param vehicle : vehicle object 
  * @param param_id : name/key/ID of parameter used to search for a parameter 
@@ -412,8 +388,9 @@ ParamIndex VehicleMemory::ParameterSet(
         // type should be used to figure out how to store the value, not the type 
         // received from the GCS. 
 
+        ParameterSave(vehicle, param_id, value);
         *parameters[param_index].value = value; 
-        ParameterSetUpdate(vehicle, parameters[param_index].index); 
+        ParameterSetUpdate(vehicle, parameters[param_index].index);
     }
 
     return param_index; 
@@ -421,7 +398,7 @@ ParamIndex VehicleMemory::ParameterSet(
 
 
 /**
- * @brief Look up a parameter using the ID/name 
+ * @brief Find a parameters index using the ID/name 
  * 
  * @param param_id : name/key/ID of parameter used to search for a parameter 
  * @return ParamIndex : index of specified parameter - index == parameters.size() if invalid 
@@ -444,7 +421,7 @@ ParamIndex VehicleMemory::ParameterLookUp(const char *param_id)
 
 
 /**
- * @brief Check if an index is within the parameter size 
+ * @brief Check if an index is within the total number of parameters 
  * 
  * @param param_index : index of parameter within 'parameters' 
  * @return true/false : status of the check - true if within range 
@@ -452,6 +429,91 @@ ParamIndex VehicleMemory::ParameterLookUp(const char *param_id)
 bool VehicleMemory::ParameterIndexCheck(uint8_t param_index)
 {
     return (param_index < parameters.size()); 
+}
+
+
+/**
+ * @brief Write one parameter to external memory 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleMemory::ParameterSave(
+    Vehicle &vehicle, 
+    const char *param_id, 
+    float &value)
+{
+    // Set the parameter file name and attempt to open the file. If there are no issues 
+    // opening the file, then start searching for where to write the parameter value. 
+    vehicle.hardware.MemorySetFileName(parameters_filename, 
+                                       static_cast<uint16_t>(sizeof(parameters_filename)));
+    ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_OPEN));
+
+    if (vehicle.external_memory_status != VehicleHardware::MemoryStatus::MEMORY_ACCESS_ERROR)
+    {
+        char param_buff[memory_buff_size];
+        char param_name[memory_buff_size], param_value_str[memory_buff_size];
+        uint32_t file_position = RESET;
+
+        // Read the parameters from external memory one at a time. Check the parameter ID 
+        // read against the specified parameter ID to update. If a match is found then 
+        // overwrite the saved value in external memory with the new value. 
+        ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_READ));
+        
+        while (vehicle.external_memory_status == VehicleHardware::MemoryStatus::MEMORY_OK)
+        {
+            vehicle.hardware.MemoryGetData(param_buff, memory_buff_size);
+            sscanf(param_buff, parameter_read_format, param_name, param_value_str);
+
+            if (strcmp(param_name, param_id) == 0)
+            {
+                // Parameter matched. Format the ID and value into a string then stage it 
+                // for writing to external memory. 
+                ParameterStrFormat(param_buff, memory_buff_size, param_id, value);
+                vehicle.hardware.MemorySetData(param_buff, memory_buff_size);
+                
+                // After finding a match, the file needs to be backtracked to be able to 
+                // overwrite the matched parameter that was just read. This is done by 
+                // keeping track of where the matching parameter starts within the file. 
+                // The position is file is set then the new parameter string is written. 
+                vehicle.hardware.MemoryFilePositionSet(file_position);
+                ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_NAVIGATE));
+                ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_WRITE));
+
+                break;
+            }
+            
+            file_position += static_cast<uint32_t>(strlen(param_buff));
+            ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_READ));
+        }
+    }
+
+    // Close the file. 
+    ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_CLOSE));
+}
+
+
+/**
+ * @brief Format a parameter ID and value into a string for writing to external memory 
+ * 
+ * @param param_buff : buffer to store parameter string 
+ * @param buff_size : size of buffer to store parameter string 
+ * @param param_id : ID/name of parameter 
+ * @param value : value of parameter 
+ */
+void VehicleMemory::ParameterStrFormat(
+    char *param_buff, 
+    uint16_t buff_size, 
+    const char *param_id, 
+    float &value)
+{
+    int32_t float_int = static_cast<int32_t>(value);
+    float decimal = static_cast<float>(float_int) - value;
+    int32_t float_dec = abs(static_cast<int32_t>(decimal * param_scalar));
+
+    snprintf(param_buff, 
+             buff_size, 
+             parameter_write_format, 
+             param_id, float_int, float_dec);
 }
 
 

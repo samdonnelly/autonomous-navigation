@@ -469,7 +469,7 @@ VehicleHardware::MemoryStatus VehicleHardware::MemoryTruncate(void)
  * 
  * @param file_position : position within file (bytes) 
  */
-void VehicleHardware::MemoryFilePosSet(uint32_t file_position)
+void VehicleHardware::MemoryFilePositionSet(uint32_t file_position)
 {
     // 
 }
@@ -480,14 +480,14 @@ void VehicleHardware::MemoryFilePosSet(uint32_t file_position)
  * 
  * @details This function will be called by the autopilot when the position within the 
  *          open file needs to be updated. The position should have already been saved in 
- *          the MemoryFilePosSet function which the autopilot will call before this. This 
- *          function must take the set position and move to that point within the open 
- *          file then return the status of the operation. 
+ *          the MemoryFilePositionSet function which the autopilot will call before this. 
+ *          This function must take the set position and move to that point within the 
+ *          open file then return the status of the operation. 
  *          
  *          Note that the autopilot makes decisions based on the status of these functions 
  *          so it's important the user provides the correct return values. 
  * 
- * @see MemoryFilePosSet
+ * @see MemoryFilePositionSet
  * 
  * @return VehicleHardware::MemoryStatus : MEMORY_ACCESS_ERROR --> Problem accessing device 
  *                                         MEMORY_OK --> Position updated, everything OK 
