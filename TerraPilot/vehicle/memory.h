@@ -26,7 +26,6 @@
 //=======================================================================================
 // Macros 
 
-constexpr uint16_t num_parameters = 16;       // Number of parameters in the system 
 constexpr uint16_t memory_buff_size = 250;   // External memory individual file data size 
 
 #define MAX_MISSION_SIZE 20   // Max number of mission items 
@@ -56,7 +55,34 @@ class VehicleMemory
 {
 public:
 
-    // Parameters 
+    enum ParameterList : uint16_t 
+    {
+        // Accelerometer 
+        ACCEL_SX,        // Uncertainty/variance along the X axis (g's) 
+        ACCEL_SY,        // Uncertainty/variance along the Y axis (g's) 
+        ACCEL_SZ,        // Uncertainty/variance along the Z axis (g's) 
+        // Autonomous modes 
+        AUTO_MAX_PWM,    // Max PWM output of motor(s) in autonomous modes 
+        // Compass 
+        COMPASS_TN,      // True North offset (magnetic declination) 
+        COMPASS_HIX,     // Hard iron offset on the X axis (milligauss) 
+        COMPASS_HIY,     // Hard iron offset on the Y axis (milligauss) 
+        COMPASS_HIZ,     // Hard iron offset on the Z axis (milligauss) 
+        COMPASS_SIDX,    // Soft iron diagonal X axis component 
+        COMPASS_SIDY,    // Soft iron diagonal Y axis component 
+        COMPASS_SIDZ,    // Soft iron diagonal Z axis component 
+        COMPASS_SIOX,    // Soft iron off-diagonal X axis component 
+        COMPASS_SIOY,    // Soft iron off-diagonal Y axis component 
+        COMPASS_SIOZ,    // Soft iron off-diagonal Z axis component 
+        // Waypoints 
+        WP_RADIUS,       // Waypoint radius 
+        // Calculations 
+        MADGWICK_B,      // Madgwick filter beta (weighted correction) 
+
+        NUM_PARAMETERS   // Number of parameters in the system 
+    };
+
+    // Parameter information 
     struct ParamInfo 
     {
         const char *name;           // Name/Key/ID of parameter - used to match/identify 
@@ -65,7 +91,7 @@ public:
         const ParamIndex index;     // Index of parameter in list - used to call setters 
     };
     
-    // Mission 
+    // Mission information 
     struct MissionInfo 
     {
         std::array<MissionItem, MAX_MISSION_SIZE + HOME_OFFSET> items;
@@ -144,7 +170,7 @@ private:
 //=======================================================================================
 // Other data 
 
-extern const std::array<VehicleMemory::ParamInfo, num_parameters> parameters;
+extern const std::array<VehicleMemory::ParamInfo, VehicleMemory::NUM_PARAMETERS> parameters;
 
 //=======================================================================================
 

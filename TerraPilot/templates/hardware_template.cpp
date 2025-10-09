@@ -463,7 +463,9 @@ VehicleHardware::MemoryStatus VehicleHardware::MemoryTruncate(void)
  * @details The autopilot will call this function to stage the desired position within 
  *          the open file. This function should save the position so that when 
  *          MemoryNavigate is called, the position within the file can be updated. The 
- *          autopilot determines the position within the file it needs. 
+ *          autopilot determines the position within the file it needs. If the max 
+ *          possible file position is provided (file_position = ~0), this means the 
+ *          autopilot needs to navigate to the end of the file. 
  * 
  * @see MemoryNavigate
  * 
