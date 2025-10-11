@@ -74,6 +74,9 @@ public:
         COMPASS_SIOX,    // Soft iron off-diagonal X axis component 
         COMPASS_SIOY,    // Soft iron off-diagonal Y axis component 
         COMPASS_SIOZ,    // Soft iron off-diagonal Z axis component 
+        // Logging 
+        LOG_ENABLE,      // Enable data logging 
+        LOG_DIVIDER,     // Log interval divider 
         // Waypoints 
         WP_RADIUS,       // Waypoint radius 
         // Calculations 
@@ -134,6 +137,9 @@ public:
     uint32_t MissionIDUpdate(void);
     void MissionClear(void);
 
+    // Data Logging 
+    void LogData(Vehicle &vehicle);
+
 private:
 
     union Status
@@ -141,6 +147,7 @@ private:
         struct 
         {
             uint32_t home_location : 1;
+            uint32_t log_file_open : 1;
         };
         uint32_t flags;
     }
@@ -148,6 +155,10 @@ private:
 
     // Mission 
     MissionInfo mission;
+
+    // Data logging 
+    uint16_t log_divider_count;
+    uint16_t log_divider_limit;
 
     // Parameters 
     void ParameterLoad(Vehicle &vehicle);

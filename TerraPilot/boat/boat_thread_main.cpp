@@ -493,6 +493,10 @@ void Boat::MainAutoState(Boat& data, Event event)
             data.navigation.CourseCorrection(data);
             break;
 
+        case MainEvents::LOG_DATA:
+            data.memory.LogData(data);
+            break;
+
         case MainEvents::TARGET_ASSESS: 
             data.navigation.TargetAssess(data);
             break;

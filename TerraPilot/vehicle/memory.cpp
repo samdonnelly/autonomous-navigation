@@ -55,6 +55,9 @@ struct ParameterValues
     compass_siox,   // Soft iron off-diagonal X axis component 
     compass_sioy,   // Soft iron off-diagonal Y axis component 
     compass_sioz,   // Soft iron off-diagonal Z axis component 
+    // Logging 
+    log_enable,     // Enable data logging 
+    log_divider,    // Log interval divider 
     // Waypoints 
     wp_radius,      // Waypoint radius (meters) 
     // Calculations 
@@ -87,6 +90,9 @@ const std::array<VehicleMemory::ParamInfo, VehicleMemory::NUM_PARAMETERS> parame
     {"COMPASS_SIOX", &param_values.compass_siox, MAV_PARAM_TYPE_REAL32, VehicleMemory::COMPASS_SIOX},
     {"COMPASS_SIOY", &param_values.compass_sioy, MAV_PARAM_TYPE_REAL32, VehicleMemory::COMPASS_SIOY},
     {"COMPASS_SIOZ", &param_values.compass_sioz, MAV_PARAM_TYPE_REAL32, VehicleMemory::COMPASS_SIOZ},
+    // Logging 
+    {"LOG_ENABLE",   &param_values.log_enable,   MAV_PARAM_TYPE_REAL32, VehicleMemory::LOG_ENABLE},
+    {"LOG_DIVIDER",  &param_values.log_divider,  MAV_PARAM_TYPE_REAL32, VehicleMemory::LOG_DIVIDER},
     // Waypoints 
     {"WP_RADIUS",    &param_values.wp_radius,    MAV_PARAM_TYPE_REAL32, VehicleMemory::WP_RADIUS},
     // Calculations 
@@ -100,6 +106,9 @@ const std::array<VehicleMemory::ParamInfo, VehicleMemory::NUM_PARAMETERS> parame
 // Initialization 
 
 VehicleMemory::VehicleMemory()
+    : status(),
+      log_divider_count(RESET),
+      log_divider_limit(RESET)
 {
     memset((void *)&mission.items, RESET, sizeof(mission.items)); 
     mission.target = HOME_INDEX; 
@@ -126,8 +135,6 @@ VehicleMemory::VehicleMemory()
         .autocontinue = false,                        // Autocontinue to next waypoint - false 
         .mission_type = MAV_MISSION_TYPE_MISSION      // Mission type - generic waypoint 
     };
-
-    status.flags = RESET; 
     
     //==================================================
     // The below code is temporary until parameters are fully implemented. 
@@ -221,7 +228,7 @@ void VehicleMemory::ParameterLoad(Vehicle &vehicle)
     // Once all parameters have been established, set their values throughout the code. 
     for (uint16_t i = RESET; i < NUM_PARAMETERS; i++)
     {
-        ParameterSetUpdate(vehicle, parameters[i].index); 
+        ParameterSetUpdate(vehicle, parameters[i].index);
     }
 }
 
@@ -553,6 +560,10 @@ void VehicleMemory::ParameterSetUpdate(
         case COMPASS_SIOZ:
             vehicle.navigation.MagSoftIronOffDiagonalZSet(*parameters[param_index].value);
             break;
+
+        case LOG_DIVIDER:
+            log_divider_limit = static_cast<uint16_t>(*parameters[param_index].value);
+            break;
     
         case WP_RADIUS:
             vehicle.navigation.WaypointRadiusSet(*parameters[param_index].value);
@@ -809,11 +820,47 @@ void VehicleMemory::MissionClear(void)
 
 //=======================================================================================
 // Data logging 
+
+// Create the log file (state entry process). 
+// What do we do when there's a file name conflict? (ex. starting logs without GPS so 
+// file name has a blank file stamp). 
+
+
+/**
+ * @brief Log data to external memory 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleMemory::LogData(Vehicle &vehicle)
+{
+    // Check for both an open file and the log interval divider 
+    if ((status.log_file_open == FLAG_SET) && (++log_divider_count >= log_divider_limit))
+    {
+        log_divider_count = RESET;
+
+        // Get needed data 
+        // Format data into a string 
+        // Stage the string of data for writing to external memory 
+        // Queue an external memory write event 
+    }
+}
+
+
+// Close the log file (state exit process). 
+
 //=======================================================================================
 
 
 //=======================================================================================
 // Helper functions 
+
+// File transition 
+// Check for an open file. If one is not open then proceed to open the needed file. If 
+// one is open then first close it and make note of which file was open before opening 
+// the new file. 
+// Call this function again to reverse the open file (how do we keep track of the file 
+// that needs to be reopened?). Once reopened, go to the end of the file so things can 
+// pick up where they left off. 
 
 /**
  * @brief Queue an external memory event 
