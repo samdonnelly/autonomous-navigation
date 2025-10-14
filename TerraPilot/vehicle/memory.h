@@ -138,7 +138,9 @@ public:
     void MissionClear(void);
 
     // Data Logging 
+    void LogCreate(Vehicle &vehicle);
     void LogData(Vehicle &vehicle);
+    void LogEnd(Vehicle &vehicle);
 
 private:
 

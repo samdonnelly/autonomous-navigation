@@ -821,9 +821,19 @@ void VehicleMemory::MissionClear(void)
 //=======================================================================================
 // Data logging 
 
-// Create the log file (state entry process). 
-// What do we do when there's a file name conflict? (ex. starting logs without GPS so 
-// file name has a blank file stamp). 
+/**
+ * @brief Create the log file 
+ * 
+ * @details (state entry process). 
+ *          What do we do when there's a file name conflict? (ex. starting logs without 
+ *          GPS so file name has a blank file stamp). 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleMemory::LogCreate(Vehicle &vehicle)
+{
+    // 
+}
 
 
 /**
@@ -846,7 +856,17 @@ void VehicleMemory::LogData(Vehicle &vehicle)
 }
 
 
-// Close the log file (state exit process). 
+/**
+ * @brief Close the log file 
+ * 
+ * @details (state exit process). 
+ * 
+ * @param vehicle : vehicle object 
+ */
+void VehicleMemory::LogEnd(Vehicle &vehicle)
+{
+    // 
+}
 
 //=======================================================================================
 
