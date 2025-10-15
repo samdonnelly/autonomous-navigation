@@ -859,13 +859,15 @@ void VehicleMemory::LogData(Vehicle &vehicle)
 /**
  * @brief Close the log file 
  * 
- * @details (state exit process). 
+ * @details 
  * 
  * @param vehicle : vehicle object 
  */
 void VehicleMemory::LogEnd(Vehicle &vehicle)
 {
-    // 
+    // Check for an open file? 
+    // Attempt to close the open log file. 
+    ExternalMemoryEventQueue(vehicle, static_cast<Event>(Vehicle::CommsEvents::MEMORY_CLOSE));
 }
 
 //=======================================================================================
