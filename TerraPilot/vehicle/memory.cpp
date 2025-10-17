@@ -891,15 +891,14 @@ void VehicleMemory::LogEnd(Vehicle &vehicle)
  */
 void VehicleMemory::ExternalMemoryEventQueue(Vehicle &vehicle, Event event)
 {
+    // External memory hardware communication events are queued by the main thread. The 
+    // main thread is also where data read from or written to external memory is handled. 
+    // This means that external memory communication must complete before the main thread 
+    // can proceed. To make sure the main thread doesn't proceed ahead of schedule, a 
+    // semaphore is used which the main thread tries to aquire but can't until the 
+    // communications thread releases it. The semaphore is initialized to 0. 
     vehicle.CommsEventQueue(event);
-    
-    // External memory hardware communication sometimes needs to happen before the main 
-    // thread can proceed. This is done through a semaphore which gets initialized to 0 
-    // and the main thread waits on the Sempahore relase before it proceeds. The comms 
-    // thread will release the semaphore and once the main thread aquires it, it gives 
-    // it right back since it only needed it in order to proceed. 
     osSemaphoreAcquire(vehicle.external_memory_semaphore, portMAX_DELAY);
-    osSemaphoreRelease(vehicle.external_memory_semaphore);
 }
 
 //=======================================================================================
