@@ -33,14 +33,14 @@
 // Thread configuration 
 
 // Main thread memory 
-#define MAIN_STACK_MULTIPLIER 8 
-#define MAIN_STACK_SIZE configMINIMAL_STACK_SIZE * MAIN_STACK_MULTIPLIER 
-#define MAIN_QUEUE_LEN 10 
+#define MAIN_STACK_MULTIPLIER 15
+#define MAIN_STACK_SIZE configMINIMAL_STACK_SIZE * MAIN_STACK_MULTIPLIER
+#define MAIN_QUEUE_LEN 10
 
 // Communication thread memory 
-#define COMMS_STACK_MULTIPLIER 8 
-#define COMMS_STACK_SIZE configMINIMAL_STACK_SIZE * COMMS_STACK_MULTIPLIER 
-#define COMMS_QUEUE_LEN 10 
+#define COMMS_STACK_MULTIPLIER 15
+#define COMMS_STACK_SIZE configMINIMAL_STACK_SIZE * COMMS_STACK_MULTIPLIER
+#define COMMS_QUEUE_LEN 10
 
 // Software timers thread (5ms tick period) 
 #define PERIODIC_TIMER_50MS_PERIOD 10    // Ticks 
